@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History - TennisPose</title>
+    <link rel="stylesheet" href="../assets/shared.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .navbar {
+            background: #fff;
+            padding: 16px 20px 20px;
+            border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-title {
+            font-size: 34px;
+            font-weight: 700;
+            color: #000;
+        }
+
+        .stats-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 24px 20px;
+            color: #fff;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value-large {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-label-white {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .chart-container {
+            background: #fff;
+            margin: 20px 20px 0;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .time-filter {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-btn {
+            padding: 6px 12px;
+            background: #F2F2F7;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #8e8e93;
+            cursor: pointer;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: #fff;
+        }
+
+        .chart {
+            height: 180px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 20px 0;
+        }
+
+        .chart-bar {
+            flex: 1;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            border-radius: 6px 6px 0 0;
+            position: relative;
+            min-height: 20px;
+            opacity: 0.9;
+            transition: all 0.2s;
+        }
+
+        .chart-bar:hover {
+            opacity: 1;
+        }
+
+        .chart-value {
+            position: absolute;
+            top: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            font-weight: 700;
+            color: #667eea;
+            white-space: nowrap;
+        }
+
+        .chart-label {
+            text-align: center;
+            font-size: 11px;
+            color: #8e8e93;
+            margin-top: 8px;
+        }
+
+        .sessions-list {
+            padding: 20px;
+        }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .list-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .filter-icon {
+            color: #007AFF;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .session-item {
+            background: #fff;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            gap: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .session-thumbnail {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        .session-details {
+            flex: 1;
+        }
+
+        .session-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .session-meta {
+            font-size: 13px;
+            color: #8e8e93;
+            margin-bottom: 8px;
+        }
+
+        .session-score {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #E8F5E9;
+            color: #34C759;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .session-score.medium {
+            background: #FFF3E0;
+            color: #FF9500;
+        }
+
+        .session-score.low {
+            background: #FFEBEE;
+            color: #FF3B30;
+        }
+
+        .session-arrow {
+            color: #C7C7CC;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <div class="phone-screen">
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div class="status-left">9:41</div>
+                <div class="status-right">
+                    <i class="fas fa-signal"></i>
+                    <i class="fas fa-wifi"></i>
+                    <i class="fas fa-battery-three-quarters"></i>
+                </div>
+            </div>
+            <div class="dynamic-island"></div>
+
+            <!-- Content -->
+            <div class="content">
+                <!-- Navbar -->
+                <div class="navbar">
+                    <div class="navbar-title">History</div>
+                </div>
+
+                <!-- Stats Header -->
+                <div class="stats-header">
+                    <div style="font-size: 17px; opacity: 0.9; margin-bottom: 8px;">Your Progress</div>
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <div class="stat-value-large">24</div>
+                            <div class="stat-label-white">Total Sessions</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value-large">87%</div>
+                            <div class="stat-label-white">Avg Score</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value-large">12</div>
+                            <div class="stat-label-white">Days Active</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Chart -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <div class="chart-title">Weekly Trend</div>
+                        <div class="time-filter">
+                            <button class="filter-btn active">Week</button>
+                            <button class="filter-btn">Month</button>
+                        </div>
+                    </div>
+                    <div class="chart">
+                        <div style="flex: 1;">
+                            <div class="chart-bar" style="height: 60%;">
+                                <div class="chart-value">82</div>
+                            </div>
+                            <div class="chart-label">Mon</div>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="chart-bar" style="height: 45%;">
+                                <div class="chart-value">76</div>
+                            </div>
+                            <div class="chart-label">Tue</div>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="chart-bar" style="height: 75%;">
+                                <div class="chart-value">88</div>
+                            </div>
+                            <div class="chart-label">Wed</div>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="chart-bar" style="height: 85%;">
+                                <div class="chart-value">91</div>
+                            </div>
+                            <div class="chart-label">Thu</div>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="chart-bar" style="height: 95%;">
+                                <div class="chart-value">92</div>
+                            </div>
+                            <div class="chart-label">Fri</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sessions List -->
+                <div class="sessions-list">
+                    <div class="list-header">
+                        <div class="list-title">All Sessions</div>
+                        <i class="fas fa-filter filter-icon"></i>
+                    </div>
+
+                    <div class="session-item">
+                        <img src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=200&h=200&fit=crop" alt="Serve" class="session-thumbnail">
+                        <div class="session-details">
+                            <div class="session-name">Serve Practice</div>
+                            <div class="session-meta">Today • 10:30 AM</div>
+                            <div class="session-score">
+                                <i class="fas fa-arrow-up"></i>92%
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <i class="fas fa-chevron-right session-arrow"></i>
+                        </div>
+                    </div>
+
+                    <div class="session-item">
+                        <img src="https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=200&h=200&fit=crop" alt="Forehand" class="session-thumbnail">
+                        <div class="session-details">
+                            <div class="session-name">Forehand Form</div>
+                            <div class="session-meta">Yesterday • 3:45 PM</div>
+                            <div class="session-score medium">
+                                <i class="fas fa-arrow-up"></i>84%
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <i class="fas fa-chevron-right session-arrow"></i>
+                        </div>
+                    </div>
+
+                    <div class="session-item">
+                        <img src="https://images.unsplash.com/photo-1617083278466-6e5088e4172d?w=200&h=200&fit=crop" alt="Backhand" class="session-thumbnail">
+                        <div class="session-details">
+                            <div class="session-name">Backhand Technique</div>
+                            <div class="session-meta">2 days ago • 2:15 PM</div>
+                            <div class="session-score">
+                                <i class="fas fa-arrow-up"></i>88%
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <i class="fas fa-chevron-right session-arrow"></i>
+                        </div>
+                    </div>
+
+                    <div class="session-item">
+                        <img src="https://images.unsplash.com/photo-1542144582-1ba00456b5e3?w=200&h=200&fit=crop" alt="Volley" class="session-thumbnail">
+                        <div class="session-details">
+                            <div class="session-name">Volley Training</div>
+                            <div class="session-meta">3 days ago • 11:00 AM</div>
+                            <div class="session-score medium">
+                                <i class="fas fa-minus"></i>79%
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <i class="fas fa-chevron-right session-arrow"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="height: 20px;"></div>
+            </div>
+
+            <!-- Tab Bar -->
+            <div class="tab-bar">
+                <div class="tab-item">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </div>
+                <div class="tab-item">
+                    <i class="fas fa-video"></i>
+                    <span>Record</span>
+                </div>
+                <div class="tab-item active">
+                    <i class="fas fa-chart-line"></i>
+                    <span>History</span>
+                </div>
+                <div class="tab-item">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
