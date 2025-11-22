@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeQuest - Gameplay</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .game-title { font-family: 'Press Start 2P', cursive; }
+        .code-font { font-family: 'JetBrains Mono', monospace; }
+        .tile {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .tile-floor { background: #334155; }
+        .tile-wall { background: #1e293b; border: 1px solid #0f172a; }
+        .tile-hazard { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .tile-goal { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); }
+        .tile-hero { background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); }
+        .tile-ai { background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%); }
+    </style>
+</head>
+<body class="bg-slate-900 h-screen flex flex-col overflow-hidden">
+    <!-- Header -->
+    <div class="bg-slate-800 border-b border-slate-700 px-4 py-3 flex-shrink-0">
+        <div class="flex items-center justify-between">
+            <button class="text-gray-400 hover:text-white transition flex items-center gap-2">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="text-center">
+                <div class="text-emerald-400 text-xs font-medium">LEVEL 4</div>
+                <h1 class="text-white text-sm font-semibold">Avoid the Lava</h1>
+            </div>
+            <button class="text-gray-400 hover:text-white transition">
+                <i class="fas fa-redo"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex overflow-hidden">
+        <!-- Left Panel: 2D Map -->
+        <div class="flex-1 p-4 flex flex-col">
+            <!-- Map Container -->
+            <div class="flex-1 flex items-center justify-center">
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                    <!-- Legend -->
+                    <div class="flex items-center gap-4 mb-3 text-xs">
+                        <div class="flex items-center gap-1">
+                            <div class="w-4 h-4 rounded tile-hero"></div>
+                            <span class="text-gray-400">You</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <div class="w-4 h-4 rounded tile-ai"></div>
+                            <span class="text-gray-400">AI</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <div class="w-4 h-4 rounded tile-goal"></div>
+                            <span class="text-gray-400">Goal</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <div class="w-4 h-4 rounded tile-hazard"></div>
+                            <span class="text-gray-400">Hazard</span>
+                        </div>
+                    </div>
+
+                    <!-- Grid Map 10x10 -->
+                    <div class="grid gap-1" style="grid-template-columns: repeat(10, 32px);">
+                        <!-- Row 1 -->
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <!-- Row 2 -->
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-hero"><i class="fas fa-user text-white"></i></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-wall"></div>
+                        <!-- Row 3 -->
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-wall"></div>
+                        <!-- Row 4 -->
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-hazard"><i class="fas fa-fire text-orange-200 text-xs"></i></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-wall"></div>
+                        <!-- Row 5 -->
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-wall"></div>
+                        <!-- Row 6 -->
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <!-- Row 7 -->
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-hazard"><i class="fas fa-fire text-orange-200 text-xs"></i></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-wall"></div>
+                        <!-- Row 8 -->
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-wall"></div>
+                        <!-- Row 9 -->
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-floor"></div>
+                        <div class="tile tile-goal"><i class="fas fa-star text-yellow-900"></i></div>
+                        <div class="tile tile-wall"></div>
+                        <!-- Row 10 -->
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                        <div class="tile tile-wall"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Console Output -->
+            <div class="bg-slate-800 rounded-xl p-3 border border-slate-700 mt-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <i class="fas fa-terminal text-emerald-400 text-xs"></i>
+                    <span class="text-gray-400 text-xs font-medium">Console</span>
+                </div>
+                <div class="code-font text-xs space-y-1 h-16 overflow-y-auto">
+                    <div class="text-gray-500">&gt; Ready to execute commands...</div>
+                    <div class="text-emerald-400">&gt; Step 1: RIGHT → OK</div>
+                    <div class="text-emerald-400">&gt; Step 2: RIGHT → OK</div>
+                    <div class="text-yellow-400">&gt; Step 3: DOWN → Warning: Hazard nearby!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Commands & AI -->
+        <div class="w-80 bg-slate-800/50 border-l border-slate-700 flex flex-col overflow-hidden">
+            <!-- Command Input -->
+            <div class="p-4 border-b border-slate-700">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-white text-sm font-semibold">Your Commands</h3>
+                    <button class="text-gray-400 hover:text-red-400 text-xs flex items-center gap-1 transition">
+                        <i class="fas fa-trash"></i> Clear
+                    </button>
+                </div>
+
+                <!-- Code Editor -->
+                <div class="bg-slate-900 rounded-lg p-3 border border-slate-700 mb-3">
+                    <textarea class="code-font w-full h-32 bg-transparent text-emerald-300 text-sm resize-none outline-none" placeholder="Type commands here...
+UP
+DOWN
+LEFT
+RIGHT
+REPEAT 3 [RIGHT]">RIGHT
+RIGHT
+DOWN
+DOWN
+DOWN
+RIGHT
+RIGHT
+DOWN
+DOWN
+RIGHT</textarea>
+                </div>
+
+                <!-- Helper -->
+                <div class="bg-slate-700/50 rounded-lg p-2 mb-3">
+                    <p class="text-gray-400 text-xs">
+                        <i class="fas fa-lightbulb text-yellow-400 mr-1"></i>
+                        Commands: UP, DOWN, LEFT, RIGHT, REPEAT n [...]
+                    </p>
+                </div>
+
+                <!-- Control Buttons -->
+                <div class="grid grid-cols-4 gap-2">
+                    <button class="col-span-2 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-semibold py-2 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition">
+                        <i class="fas fa-play"></i> Run
+                    </button>
+                    <button class="bg-slate-700 text-white py-2 rounded-lg hover:bg-slate-600 transition">
+                        <i class="fas fa-step-forward"></i>
+                    </button>
+                    <button class="bg-slate-700 text-white py-2 rounded-lg hover:bg-slate-600 transition">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- AI Panel -->
+            <div class="p-4 flex-1 overflow-y-auto">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-robot text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white text-sm font-semibold">AI Agent</h3>
+                        <p class="text-gray-400 text-xs">Compare your solution</p>
+                    </div>
+                </div>
+
+                <!-- AI Strategy -->
+                <div class="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3 mb-3">
+                    <p class="text-purple-300 text-xs">
+                        <i class="fas fa-brain mr-1"></i>
+                        <strong>Strategy:</strong> AI will find the shortest path while avoiding hazards.
+                    </p>
+                </div>
+
+                <!-- AI Stats -->
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <div class="bg-slate-700/50 rounded-lg p-2 text-center">
+                        <div class="text-purple-400 text-lg font-bold">12</div>
+                        <div class="text-gray-500 text-xs">AI Steps</div>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-2 text-center">
+                        <div class="text-emerald-400 text-lg font-bold">10</div>
+                        <div class="text-gray-500 text-xs">Your Steps</div>
+                    </div>
+                </div>
+
+                <!-- Run AI Button -->
+                <button class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition">
+                    <i class="fas fa-robot"></i> Run AI
+                </button>
+
+                <!-- Comparison Hint -->
+                <div class="mt-4 bg-slate-700/30 rounded-lg p-3">
+                    <p class="text-gray-400 text-xs leading-relaxed">
+                        <i class="fas fa-info-circle text-cyan-400 mr-1"></i>
+                        Run your code first, then run the AI to compare paths and learn from differences.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
