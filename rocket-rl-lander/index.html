@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rocket RL Lander - AI Learning Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #0a0a1a; }
+        .font-orbitron { font-family: 'Orbitron', monospace; }
+        .phone-frame {
+            width: 280px;
+            height: 580px;
+            border-radius: 40px;
+            border: 8px solid #1a1a2e;
+            overflow: hidden;
+            box-shadow: 0 25px 80px rgba(99, 102, 241, 0.3), 0 0 40px rgba(99, 102, 241, 0.1);
+            position: relative;
+            background: #000;
+        }
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 24px;
+            background: #1a1a2e;
+            border-radius: 0 0 20px 20px;
+            z-index: 10;
+        }
+        .phone-frame iframe {
+            width: 393px;
+            height: 852px;
+            border: none;
+            transform: scale(0.68);
+            transform-origin: top left;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .float { animation: float 3s ease-in-out infinite; }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 25px 80px rgba(99, 102, 241, 0.3), 0 0 40px rgba(99, 102, 241, 0.1); }
+            50% { box-shadow: 0 25px 80px rgba(139, 92, 246, 0.4), 0 0 60px rgba(139, 92, 246, 0.2); }
+        }
+        .pulse-glow { animation: pulse-glow 4s ease-in-out infinite; }
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s ease-in-out infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white overflow-x-hidden">
+    <!-- Stars Background -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="star" style="top: 10%; left: 20%; animation-delay: 0s;"></div>
+        <div class="star" style="top: 15%; left: 80%; animation-delay: 0.5s;"></div>
+        <div class="star" style="top: 30%; left: 10%; animation-delay: 1s;"></div>
+        <div class="star" style="top: 25%; left: 60%; animation-delay: 1.5s;"></div>
+        <div class="star" style="top: 40%; left: 90%; animation-delay: 0.3s;"></div>
+        <div class="star" style="top: 50%; left: 30%; animation-delay: 0.8s;"></div>
+        <div class="star" style="top: 60%; left: 70%; animation-delay: 1.2s;"></div>
+        <div class="star" style="top: 70%; left: 15%; animation-delay: 0.6s;"></div>
+        <div class="star" style="top: 80%; left: 85%; animation-delay: 1.8s;"></div>
+        <div class="star" style="top: 85%; left: 45%; animation-delay: 0.4s;"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="relative z-10 py-8 px-6">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-rocket text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-orbitron font-bold text-xl text-white">ROCKET RL</h1>
+                    <p class="text-indigo-400 text-xs">Reinforcement Learning Simulator</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-indigo-400 text-sm">Learn AI Through Play</span>
+                <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative z-10 py-12 px-6">
+        <div class="max-w-7xl mx-auto text-center">
+            <div class="inline-flex items-center gap-2 bg-indigo-500/20 border border-indigo-500/30 rounded-full px-4 py-2 mb-6">
+                <i class="fas fa-brain text-indigo-400"></i>
+                <span class="text-indigo-300 text-sm font-medium">Interactive AI Education</span>
+            </div>
+            <h2 class="font-orbitron text-4xl md:text-5xl font-bold mb-4">
+                <span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    Teach a Rocket to Land
+                </span>
+            </h2>
+            <p class="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
+                Watch AI learn through trial and error. Understand reinforcement learning by training a rocket to land safely on a platform.
+            </p>
+            <div class="flex flex-wrap justify-center gap-4 mb-12">
+                <div class="flex items-center gap-2 bg-white/5 rounded-lg px-4 py-2">
+                    <i class="fas fa-play-circle text-green-400"></i>
+                    <span class="text-gray-300 text-sm">Real-time Training</span>
+                </div>
+                <div class="flex items-center gap-2 bg-white/5 rounded-lg px-4 py-2">
+                    <i class="fas fa-chart-line text-blue-400"></i>
+                    <span class="text-gray-300 text-sm">Live Metrics</span>
+                </div>
+                <div class="flex items-center gap-2 bg-white/5 rounded-lg px-4 py-2">
+                    <i class="fas fa-graduation-cap text-purple-400"></i>
+                    <span class="text-gray-300 text-sm">Learn RL Concepts</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Phone Screens -->
+    <section class="relative z-10 py-8 px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-wrap justify-center gap-8">
+                <!-- Home Screen -->
+                <div class="text-center">
+                    <div class="phone-frame pulse-glow float mb-4">
+                        <iframe src="home.html"></iframe>
+                    </div>
+                    <h3 class="font-orbitron font-semibold text-white">Mission Control</h3>
+                    <p class="text-gray-500 text-sm">Start your AI journey</p>
+                </div>
+
+                <!-- Training Screen -->
+                <div class="text-center" style="animation-delay: 0.2s;">
+                    <div class="phone-frame pulse-glow float mb-4" style="animation-delay: 0.5s;">
+                        <iframe src="training.html"></iframe>
+                    </div>
+                    <h3 class="font-orbitron font-semibold text-white">Training Lab</h3>
+                    <p class="text-gray-500 text-sm">Watch AI learn in real-time</p>
+                </div>
+
+                <!-- Episodes Screen -->
+                <div class="text-center" style="animation-delay: 0.4s;">
+                    <div class="phone-frame pulse-glow float mb-4" style="animation-delay: 1s;">
+                        <iframe src="episodes.html"></iframe>
+                    </div>
+                    <h3 class="font-orbitron font-semibold text-white">Episode History</h3>
+                    <p class="text-gray-500 text-sm">Track learning progress</p>
+                </div>
+
+                <!-- Insights Screen -->
+                <div class="text-center" style="animation-delay: 0.6s;">
+                    <div class="phone-frame pulse-glow float mb-4" style="animation-delay: 1.5s;">
+                        <iframe src="insights.html"></iframe>
+                    </div>
+                    <h3 class="font-orbitron font-semibold text-white">AI Insights</h3>
+                    <p class="text-gray-500 text-sm">Understand RL concepts</p>
+                </div>
+
+                <!-- Settings Screen -->
+                <div class="text-center" style="animation-delay: 0.8s;">
+                    <div class="phone-frame pulse-glow float mb-4" style="animation-delay: 2s;">
+                        <iframe src="settings.html"></iframe>
+                    </div>
+                    <h3 class="font-orbitron font-semibold text-white">Parameters</h3>
+                    <p class="text-gray-500 text-sm">Tune the learning</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RL Concepts Section -->
+    <section class="relative z-10 py-16 px-6">
+        <div class="max-w-5xl mx-auto">
+            <h3 class="font-orbitron text-2xl font-bold text-center mb-12">
+                <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                    Reinforcement Learning Cycle
+                </span>
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="bg-gradient-to-br from-indigo-900/50 to-purple-900/50 border border-indigo-500/30 rounded-2xl p-6 text-center">
+                    <div class="w-14 h-14 bg-indigo-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-eye text-indigo-400 text-2xl"></i>
+                    </div>
+                    <h4 class="font-orbitron font-semibold text-white mb-2">Observe</h4>
+                    <p class="text-gray-400 text-sm">Agent sees the current state (position, velocity, angle)</p>
+                </div>
+                <div class="bg-gradient-to-br from-purple-900/50 to-pink-900/50 border border-purple-500/30 rounded-2xl p-6 text-center">
+                    <div class="w-14 h-14 bg-purple-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-brain text-purple-400 text-2xl"></i>
+                    </div>
+                    <h4 class="font-orbitron font-semibold text-white mb-2">Decide</h4>
+                    <p class="text-gray-400 text-sm">Neural network chooses an action (thrust, rotate)</p>
+                </div>
+                <div class="bg-gradient-to-br from-pink-900/50 to-red-900/50 border border-pink-500/30 rounded-2xl p-6 text-center">
+                    <div class="w-14 h-14 bg-pink-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-bolt text-pink-400 text-2xl"></i>
+                    </div>
+                    <h4 class="font-orbitron font-semibold text-white mb-2">Act</h4>
+                    <p class="text-gray-400 text-sm">Execute the action in the environment</p>
+                </div>
+                <div class="bg-gradient-to-br from-green-900/50 to-emerald-900/50 border border-green-500/30 rounded-2xl p-6 text-center">
+                    <div class="w-14 h-14 bg-green-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-trophy text-green-400 text-2xl"></i>
+                    </div>
+                    <h4 class="font-orbitron font-semibold text-white mb-2">Learn</h4>
+                    <p class="text-gray-400 text-sm">Receive reward and update policy</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="relative z-10 py-8 px-6 border-t border-white/10">
+        <div class="max-w-7xl mx-auto text-center">
+            <p class="text-gray-500 text-sm">Rocket RL Lander - Interactive Reinforcement Learning Education</p>
+        </div>
+    </footer>
+</body>
+</html>
