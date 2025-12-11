@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwingSense - Training</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            -webkit-font-smoothing: antialiased;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+        }
+        .game-view {
+            background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%);
+        }
+        .court-line {
+            stroke: rgba(255,255,255,0.3);
+        }
+        .ball-indicator {
+            animation: bounce 0.5s ease-in-out infinite alternate;
+        }
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-8px); }
+        }
+        .ready-pulse {
+            animation: readyPulse 1.5s ease-in-out infinite;
+        }
+        @keyframes readyPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+            50% { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900">
+    <div class="w-full max-w-[375px] mx-auto bg-gray-900 min-h-screen relative overflow-hidden">
+        <!-- Status Bar -->
+        <div class="bg-transparent px-6 pt-3 pb-2 flex justify-between items-center absolute top-0 left-0 right-0 z-10">
+            <span class="text-sm font-semibold text-white">9:41</span>
+            <div class="flex items-center space-x-1 text-white">
+                <i class="fas fa-signal text-sm"></i>
+                <i class="fas fa-wifi text-sm"></i>
+                <i class="fas fa-battery-full text-sm"></i>
+            </div>
+        </div>
+
+        <!-- Game View -->
+        <div class="game-view h-[400px] relative">
+            <!-- Back button -->
+            <button class="absolute top-14 left-4 z-10 w-10 h-10 bg-black/30 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <i class="fas fa-chevron-left text-white"></i>
+            </button>
+
+            <!-- Session info -->
+            <div class="absolute top-14 right-4 z-10 bg-black/30 rounded-full px-4 py-2 backdrop-blur-sm">
+                <span class="text-white text-sm font-medium">Rally Defense</span>
+            </div>
+
+            <!-- First Person Court View SVG -->
+            <svg class="w-full h-full" viewBox="0 0 375 400" preserveAspectRatio="xMidYMid slice">
+                <!-- Sky gradient -->
+                <defs>
+                    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#1e3a5f"/>
+                        <stop offset="100%" style="stop-color:#0f172a"/>
+                    </linearGradient>
+                    <linearGradient id="courtGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#166534"/>
+                        <stop offset="100%" style="stop-color:#14532d"/>
+                    </linearGradient>
+                </defs>
+
+                <!-- Court surface with perspective -->
+                <polygon points="0,400 375,400 320,180 55,180" fill="url(#courtGrad)"/>
+
+                <!-- Court lines -->
+                <line x1="55" y1="180" x2="0" y2="400" class="court-line" stroke-width="2"/>
+                <line x1="320" y1="180" x2="375" y2="400" class="court-line" stroke-width="2"/>
+                <line x1="55" y1="180" x2="320" y2="180" class="court-line" stroke-width="2"/>
+                <line x1="187" y1="180" x2="187" y2="400" class="court-line" stroke-width="2"/>
+
+                <!-- Service boxes -->
+                <line x1="100" y1="220" x2="275" y2="220" class="court-line" stroke-width="1"/>
+                <line x1="130" y1="180" x2="70" y2="290" class="court-line" stroke-width="1"/>
+                <line x1="245" y1="180" x2="305" y2="290" class="court-line" stroke-width="1"/>
+
+                <!-- Net -->
+                <line x1="30" y1="290" x2="345" y2="290" stroke="white" stroke-width="3"/>
+                <line x1="187" y1="275" x2="187" y2="290" stroke="white" stroke-width="4"/>
+
+                <!-- Opponent figure (simplified) -->
+                <ellipse cx="187" cy="200" rx="15" ry="8" fill="#374151"/>
+                <ellipse cx="187" cy="190" rx="8" ry="8" fill="#9ca3af"/>
+            </svg>
+
+            <!-- Ball indicator -->
+            <div class="absolute top-[180px] left-1/2 transform -translate-x-1/2 ball-indicator">
+                <div class="w-6 h-6 bg-yellow-400 rounded-full shadow-lg shadow-yellow-400/50"></div>
+            </div>
+
+            <!-- Shot prompt -->
+            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center">
+                <div class="bg-black/50 backdrop-blur-md rounded-2xl px-6 py-3">
+                    <p class="text-white/70 text-sm">Incoming Shot</p>
+                    <p class="text-white text-xl font-bold">FOREHAND DRIVE</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="bg-gray-900 px-5 py-4">
+            <!-- Timer and Score -->
+            <div class="flex justify-between items-center mb-4">
+                <div class="bg-gray-800 rounded-xl px-4 py-2">
+                    <p class="text-gray-400 text-xs">Time</p>
+                    <p class="text-white text-xl font-bold">02:34</p>
+                </div>
+                <div class="bg-gray-800 rounded-xl px-4 py-2">
+                    <p class="text-gray-400 text-xs">Shots</p>
+                    <p class="text-white text-xl font-bold">12/15</p>
+                </div>
+                <div class="bg-gray-800 rounded-xl px-4 py-2">
+                    <p class="text-gray-400 text-xs">Accuracy</p>
+                    <p class="text-green-500 text-xl font-bold">87%</p>
+                </div>
+            </div>
+
+            <!-- Sensor Status -->
+            <div class="bg-gray-800 rounded-xl p-4 mb-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-3 h-3 bg-green-500 rounded-full ready-pulse"></div>
+                        <span class="text-white font-medium">Sensor Ready</span>
+                    </div>
+                    <div class="flex items-center space-x-2 text-gray-400">
+                        <i class="fas fa-signal text-green-500"></i>
+                        <span class="text-sm">Strong</span>
+                    </div>
+                </div>
+                <p class="text-gray-500 text-sm mt-2">Perform your swing now</p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex space-x-3">
+                <button class="flex-1 bg-red-600 hover:bg-red-700 text-white rounded-xl py-3 font-semibold transition-all flex items-center justify-center space-x-2">
+                    <i class="fas fa-pause"></i>
+                    <span>Pause</span>
+                </button>
+                <button class="flex-1 bg-gray-700 hover:bg-gray-600 text-white rounded-xl py-3 font-semibold transition-all flex items-center justify-center space-x-2">
+                    <i class="fas fa-redo"></i>
+                    <span>Skip</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 px-6 py-2 max-w-[375px] mx-auto">
+            <div class="flex justify-around items-center">
+                <div class="flex flex-col items-center py-2">
+                    <i class="fas fa-home text-gray-500 text-xl"></i>
+                    <span class="text-xs text-gray-500 mt-1">Home</span>
+                </div>
+                <div class="flex flex-col items-center py-2">
+                    <i class="fas fa-gamepad text-indigo-500 text-xl"></i>
+                    <span class="text-xs text-indigo-500 mt-1 font-medium">Train</span>
+                </div>
+                <div class="flex flex-col items-center py-2">
+                    <i class="fas fa-chart-line text-gray-500 text-xl"></i>
+                    <span class="text-xs text-gray-500 mt-1">Stats</span>
+                </div>
+                <div class="flex flex-col items-center py-2">
+                    <i class="fas fa-cog text-gray-500 text-xl"></i>
+                    <span class="text-xs text-gray-500 mt-1">Settings</span>
+                </div>
+            </div>
+            <!-- Home Indicator -->
+            <div class="flex justify-center pt-1 pb-1">
+                <div class="w-32 h-1 bg-gray-600 rounded-full"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
