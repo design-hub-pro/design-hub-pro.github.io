@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroBattle Arena - Neural Network Agent Combat Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+        .font-game { font-family: 'Orbitron', sans-serif; }
+
+        .phone-frame {
+            background: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 100%);
+            border-radius: 45px;
+            padding: 8px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.6),
+                        0 0 0 1px rgba(255,255,255,0.1) inset,
+                        0 0 60px rgba(34, 211, 238, 0.15);
+        }
+
+        .phone-screen {
+            border-radius: 38px;
+            overflow: hidden;
+        }
+
+        .dynamic-island {
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 32px;
+            background: #000;
+            border-radius: 20px;
+            z-index: 100;
+        }
+
+        .scroll-container {
+            display: flex;
+            gap: 28px;
+            overflow-x: auto;
+            padding: 20px;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .scroll-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .scroll-container::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+
+        .scroll-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(90deg, #06b6d4, #a855f7);
+            border-radius: 10px;
+        }
+
+        .phone-item {
+            flex-shrink: 0;
+            scroll-snap-align: center;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #22d3ee 0%, #a855f7 50%, #f97316 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-gradient {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+        }
+
+        .neon-border {
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.3), 0 0 40px rgba(168, 85, 247, 0.2);
+        }
+
+        .diagram-frame {
+            background: #0f172a;
+            border-radius: 16px;
+            box-shadow: 0 4px 40px rgba(0,0,0,0.4);
+            overflow: hidden;
+            border: 1px solid rgba(34, 211, 238, 0.2);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(34, 211, 238, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(34, 211, 238, 0.5); }
+        }
+        .pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+    </style>
+</head>
+<body class="bg-slate-950">
+    <!-- Hero Section with Title -->
+    <section class="hero-gradient py-16 px-6 relative overflow-hidden">
+        <!-- Animated background grid -->
+        <div class="absolute inset-0 opacity-10">
+            <svg width="100%" height="100%">
+                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" stroke-width="0.5" class="text-cyan-500"/>
+                </pattern>
+                <rect width="100%" height="100%" fill="url(#grid)"/>
+            </svg>
+        </div>
+
+        <div class="max-w-6xl mx-auto text-center relative z-10">
+            <!-- Badges -->
+            <div class="flex flex-wrap justify-center gap-2 mb-6">
+                <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 text-xs font-semibold rounded-full border border-cyan-500/30">Neural Network</span>
+                <span class="px-3 py-1 bg-purple-500/20 text-purple-400 text-xs font-semibold rounded-full border border-purple-500/30">Turn-Based Combat</span>
+                <span class="px-3 py-1 bg-orange-500/20 text-orange-400 text-xs font-semibold rounded-full border border-orange-500/30">Competitive AI</span>
+                <span class="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-semibold rounded-full border border-emerald-500/30">Sandboxed Execution</span>
+            </div>
+
+            <!-- English Title -->
+            <h1 class="font-game text-4xl md:text-5xl font-extrabold mb-2">
+                <span class="gradient-text">NEUROBATTLE</span>
+                <span class="text-white"> ARENA</span>
+            </h1>
+            <h2 class="text-xl md:text-2xl font-semibold text-slate-300 mb-2">
+                Competitive Neural Network Agent Combat Platform
+            </h2>
+
+            <!-- Chinese Title -->
+            <p class="text-lg text-slate-400 mb-4">
+                竞技神经网络智能体对战平台
+            </p>
+
+            <!-- Subtitle -->
+            <p class="text-base md:text-lg text-slate-500 max-w-3xl mx-auto mb-8">
+                Turn-Based AI Combat System for User-Trained Neural Network Agents<br>
+                <span class="text-slate-600">面向用户训练神经网络智能体的回合制AI对战系统</span>
+            </p>
+
+            <!-- Abstract Box -->
+            <div class="max-w-4xl mx-auto bg-slate-900/70 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 text-left mb-8 neon-border">
+                <h3 class="text-sm font-bold text-slate-300 mb-3 flex items-center">
+                    <i class="fas fa-file-alt mr-2 text-cyan-400"></i>
+                    Abstract / 摘要
+                </h3>
+                <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                    <strong class="text-cyan-400">NeuroBattle Arena</strong> presents an innovative competitive gaming platform where users upload custom neural network-powered agents to compete in strategic turn-based combat. The platform emphasizes accessibility through a streamlined game mechanic featuring five core actions: <span class="text-orange-400">Attack</span>, <span class="text-emerald-400">Defend</span>, <span class="text-pink-400">Heal</span>, <span class="text-amber-400">Charge</span>, and <span class="text-purple-400">Special</span>. Users train their neural networks locally using provided SDKs and upload agent code with optional pretrained weights. Each agent receives a compact state vector containing health points, energy levels, buff/debuff status, and recent opponent action history, outputting probabilistic action selections through their neural architecture. The platform executes deterministic match simulations with detailed battle logs, replay visualizations, and performance analytics. A global leaderboard with ELO-based rankings drives competitive engagement.
+                </p>
+                <p class="text-sm text-slate-500 leading-relaxed">
+                    <strong class="text-cyan-400">NeuroBattle Arena</strong>是一个创新的竞技游戏平台，用户可以上传自定义的神经网络驱动智能体参与策略性回合制对战。平台通过简化的游戏机制强调可访问性，包含五种核心动作：攻击、防御、治疗、蓄力和特殊技能。用户使用提供的SDK在本地训练神经网络，并上传包含可选预训练权重的智能体代码。每个智能体接收紧凑的状态向量，通过其神经架构输出概率性动作选择。平台执行确定性对战模拟，提供详细的战斗日志、回放可视化和性能分析。全球排行榜系统采用ELO评分排名来推动竞技参与。
+                </p>
+            </div>
+
+            <!-- Keywords -->
+            <div class="max-w-3xl mx-auto">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Keywords / 关键词</h3>
+                <div class="flex flex-wrap justify-center gap-2">
+                    <span class="px-3 py-1 bg-slate-800 text-slate-400 text-xs rounded-full border border-slate-700">Neural Network Competition 神经网络竞赛</span>
+                    <span class="px-3 py-1 bg-slate-800 text-slate-400 text-xs rounded-full border border-slate-700">Turn-Based Combat AI 回合制AI对战</span>
+                    <span class="px-3 py-1 bg-slate-800 text-slate-400 text-xs rounded-full border border-slate-700">Agent-Based Gaming 智能体游戏</span>
+                    <span class="px-3 py-1 bg-slate-800 text-slate-400 text-xs rounded-full border border-slate-700">Machine Learning Platform 机器学习平台</span>
+                    <span class="px-3 py-1 bg-slate-800 text-slate-400 text-xs rounded-full border border-slate-700">Reinforcement Learning 强化学习</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Game Mechanics Section -->
+    <section class="bg-slate-900 py-12 px-6">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-white mb-2">
+                    <i class="fas fa-gamepad text-cyan-400 mr-3"></i>
+                    Game Mechanics / 游戏机制
+                </h2>
+            </div>
+            <div class="grid md:grid-cols-5 gap-4">
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
+                    <div class="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-sword text-orange-400 text-xl"></i>
+                    </div>
+                    <h3 class="text-orange-400 font-bold mb-1">ATTACK</h3>
+                    <p class="text-slate-400 text-xs">15-25 damage</p>
+                    <p class="text-slate-500 text-xs">0 energy</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
+                    <div class="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-shield text-emerald-400 text-xl"></i>
+                    </div>
+                    <h3 class="text-emerald-400 font-bold mb-1">DEFEND</h3>
+                    <p class="text-slate-400 text-xs">Block 70% dmg</p>
+                    <p class="text-slate-500 text-xs">+5 energy</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
+                    <div class="w-12 h-12 bg-pink-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-heart text-pink-400 text-xl"></i>
+                    </div>
+                    <h3 class="text-pink-400 font-bold mb-1">HEAL</h3>
+                    <p class="text-slate-400 text-xs">20-30 HP</p>
+                    <p class="text-slate-500 text-xs">-20 energy</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
+                    <div class="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-bolt text-amber-400 text-xl"></i>
+                    </div>
+                    <h3 class="text-amber-400 font-bold mb-1">CHARGE</h3>
+                    <p class="text-slate-400 text-xs">+30 energy</p>
+                    <p class="text-slate-500 text-xs">Vulnerable</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
+                    <div class="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-star text-purple-400 text-xl"></i>
+                    </div>
+                    <h3 class="text-purple-400 font-bold mb-1">SPECIAL</h3>
+                    <p class="text-slate-400 text-xs">40-60 damage</p>
+                    <p class="text-slate-500 text-xs">-50 energy</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Diagrams Section -->
+    <section class="bg-slate-950 py-16 px-6">
+        <div class="max-w-6xl mx-auto">
+            <!-- Section Header -->
+            <div class="text-center mb-12">
+                <h2 class="text-2xl md:text-3xl font-bold text-white mb-2">
+                    <i class="fas fa-microchip text-cyan-400 mr-3"></i>
+                    System Architecture
+                </h2>
+                <p class="text-slate-500">系统架构设计</p>
+            </div>
+
+            <!-- Use Case Diagram -->
+            <div class="mb-12">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-white">Use Case Diagram</h3>
+                        <p class="text-sm text-slate-500">用例图 - Platform Interactions</p>
+                    </div>
+                    <span class="px-3 py-1 bg-cyan-500/20 text-cyan-400 text-xs font-medium rounded-full border border-cyan-500/30">
+                        <i class="fas fa-project-diagram mr-1"></i>UML 2.0
+                    </span>
+                </div>
+                <div class="diagram-frame">
+                    <iframe src="diagram_usecase.html" class="w-full" style="height: 750px; border: none;"></iframe>
+                </div>
+            </div>
+
+            <!-- Technical Architecture Diagram -->
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-white">Technical System Architecture</h3>
+                        <p class="text-sm text-slate-500">技术系统架构图 - Patent-Style Technical Drawing</p>
+                    </div>
+                    <span class="px-3 py-1 bg-slate-700 text-slate-400 text-xs font-medium rounded-full border border-slate-600">
+                        <i class="fas fa-file-contract mr-1"></i>Patent Format
+                    </span>
+                </div>
+                <div class="diagram-frame bg-white">
+                    <iframe src="diagram_technical.html" class="w-full" style="height: 900px; border: none;"></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mobile App Interface Section -->
+    <section class="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 py-16">
+        <div class="max-w-full mx-auto">
+            <!-- Section Header -->
+            <div class="text-center mb-10 px-6">
+                <h2 class="text-2xl md:text-3xl font-bold text-white mb-2">
+                    <i class="fas fa-mobile-alt text-purple-400 mr-3"></i>
+                    Platform Interface
+                </h2>
+                <p class="text-slate-500 mb-4">平台界面设计</p>
+                <p class="text-sm text-slate-600 max-w-2xl mx-auto">
+                    High-fidelity prototypes for the NeuroBattle Arena gaming platform
+                    <br>NeuroBattle Arena游戏平台的高保真原型设计
+                </p>
+            </div>
+
+            <!-- Phone Frames Horizontal Scroll -->
+            <div class="scroll-container pb-4">
+                <!-- Home -->
+                <div class="phone-item">
+                    <div class="text-center mb-3">
+                        <span class="px-3 py-1 bg-cyan-500 text-white text-xs font-medium rounded-full">Main</span>
+                        <p class="text-sm font-semibold text-white mt-2">Home Screen</p>
+                        <p class="text-xs text-slate-500">平台首页</p>
+                    </div>
+                    <div class="phone-frame pulse-glow">
+                        <div class="phone-screen relative" style="width: 280px; height: 606px;">
+                            <div class="dynamic-island"></div>
+                            <iframe src="home.html" style="width: 390px; height: 844px; transform: scale(0.718); transform-origin: top left; border: none;"></iframe>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arena -->
+                <div class="phone-item">
+                    <div class="text-center mb-3">
+                        <span class="px-3 py-1 bg-orange-500 text-white text-xs font-medium rounded-full">Battle</span>
+                        <p class="text-sm font-semibold text-white mt-2">Battle Arena</p>
+                        <p class="text-xs text-slate-500">对战竞技场</p>
+                    </div>
+                    <div class="phone-frame">
+                        <div class="phone-screen relative" style="width: 280px; height: 606px;">
+                            <div class="dynamic-island"></div>
+                            <iframe src="arena.html" style="width: 390px; height: 844px; transform: scale(0.718); transform-origin: top left; border: none;"></iframe>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Battle -->
+                <div class="phone-item">
+                    <div class="text-center mb-3">
+                        <span class="px-3 py-1 bg-red-500 text-white text-xs font-medium rounded-full">Live</span>
+                        <p class="text-sm font-semibold text-white mt-2">Battle View</p>
+                        <p class="text-xs text-slate-500">实时对战</p>
+                    </div>
+                    <div class="phone-frame">
+                        <div class="phone-screen relative" style="width: 280px; height: 606px;">
+                            <div class="dynamic-island"></div>
+                            <iframe src="battle.html" style="width: 390px; height: 844px; transform: scale(0.718); transform-origin: top left; border: none;"></iframe>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard -->
+                <div class="phone-item">
+                    <div class="text-center mb-3">
+                        <span class="px-3 py-1 bg-amber-500 text-white text-xs font-medium rounded-full">Ranks</span>
+                        <p class="text-sm font-semibold text-white mt-2">Leaderboard</p>
+                        <p class="text-xs text-slate-500">排行榜</p>
+                    </div>
+                    <div class="phone-frame">
+                        <div class="phone-screen relative" style="width: 280px; height: 606px;">
+                            <div class="dynamic-island"></div>
+                            <iframe src="leaderboard.html" style="width: 390px; height: 844px; transform: scale(0.718); transform-origin: top left; border: none;"></iframe>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agent Upload -->
+                <div class="phone-item">
+                    <div class="text-center mb-3">
+                        <span class="px-3 py-1 bg-purple-500 text-white text-xs font-medium rounded-full">Deploy</span>
+                        <p class="text-sm font-semibold text-white mt-2">Upload Agent</p>
+                        <p class="text-xs text-slate-500">上传智能体</p>
+                    </div>
+                    <div class="phone-frame">
+                        <div class="phone-screen relative" style="width: 280px; height: 606px;">
+                            <div class="dynamic-island"></div>
+                            <iframe src="agent_upload.html" style="width: 390px; height: 844px; transform: scale(0.718); transform-origin: top left; border: none;"></iframe>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile -->
+                <div class="phone-item">
+                    <div class="text-center mb-3">
+                        <span class="px-3 py-1 bg-emerald-500 text-white text-xs font-medium rounded-full">User</span>
+                        <p class="text-sm font-semibold text-white mt-2">Profile</p>
+                        <p class="text-xs text-slate-500">用户资料</p>
+                    </div>
+                    <div class="phone-frame">
+                        <div class="phone-screen relative" style="width: 280px; height: 606px;">
+                            <div class="dynamic-island"></div>
+                            <iframe src="profile.html" style="width: 390px; height: 844px; transform: scale(0.718); transform-origin: top left; border: none;"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scroll Hint -->
+            <div class="text-center mt-4">
+                <p class="text-sm text-slate-600">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Scroll horizontally to view all screens / 横向滚动查看所有界面
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Summary -->
+    <section class="py-16 px-6 bg-slate-900">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-2xl font-bold text-white mb-2">Key Features / 核心功能</h2>
+            </div>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700">
+                    <div class="w-12 h-12 bg-cyan-500/20 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-upload text-cyan-400 text-xl"></i>
+                    </div>
+                    <h3 class="font-bold text-white mb-2">Agent Upload</h3>
+                    <p class="text-sm text-slate-400 mb-1">智能体上传</p>
+                    <p class="text-xs text-slate-500">Upload custom PyTorch/TensorFlow/ONNX agents with pretrained weights</p>
+                </div>
+                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700">
+                    <div class="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-shield-alt text-orange-400 text-xl"></i>
+                    </div>
+                    <h3 class="font-bold text-white mb-2">Sandboxed Execution</h3>
+                    <p class="text-sm text-slate-400 mb-1">沙箱安全执行</p>
+                    <p class="text-xs text-slate-500">Docker-isolated runtime with resource limits and cheat detection</p>
+                </div>
+                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700">
+                    <div class="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-trophy text-purple-400 text-xl"></i>
+                    </div>
+                    <h3 class="font-bold text-white mb-2">ELO Ranking</h3>
+                    <p class="text-sm text-slate-400 mb-1">ELO评分系统</p>
+                    <p class="text-xs text-slate-500">Global leaderboards, seasonal tournaments, and achievement badges</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 text-white py-12 px-6 border-t border-slate-800">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0 text-center md:text-left">
+                    <h3 class="font-game text-xl font-bold mb-1">
+                        <span class="text-cyan-400">NEURO</span><span class="text-purple-400">BATTLE</span>
+                    </h3>
+                    <p class="text-slate-400 text-sm">Neural Network Agent Combat Platform</p>
+                    <p class="text-slate-500 text-xs mt-1">竞技神经网络智能体对战平台</p>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div class="text-center">
+                        <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Technology</p>
+                        <div class="flex gap-2">
+                            <span class="px-2 py-1 bg-slate-800 text-slate-400 text-xs rounded border border-slate-700">PyTorch</span>
+                            <span class="px-2 py-1 bg-slate-800 text-slate-400 text-xs rounded border border-slate-700">Docker</span>
+                            <span class="px-2 py-1 bg-slate-800 text-slate-400 text-xs rounded border border-slate-700">FastAPI</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-slate-800 mt-8 pt-8 text-center">
+                <p class="text-slate-500 text-xs">
+                    This project is for demonstration and educational purposes. 本项目仅用于演示和教育目的。
+                </p>
+                <p class="text-slate-600 text-xs mt-2">
+                    © 2024 NeuroBattle Arena · High-Fidelity Prototype
+                </p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
