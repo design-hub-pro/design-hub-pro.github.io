@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initFilters();
     initNotifications();
     initQuickActions();
+    initProjectSwitcher();
 });
 
 // Page titles mapping
@@ -623,4 +624,59 @@ function showToast(message, type = 'info') {
         toast.style.animation = 'toastIn 0.3s ease reverse';
         setTimeout(() => toast.remove(), 300);
     }, 3000);
+}
+
+// Project Switcher
+function initProjectSwitcher() {
+    const projectSelector = document.getElementById('project-selector');
+    const projectSelectorBtn = document.getElementById('project-selector-btn');
+    const projectDropdown = document.getElementById('project-dropdown');
+    const currentProjectName = document.getElementById('current-project-name');
+    const projectOptions = document.querySelectorAll('.project-option');
+
+    if (!projectSelector || !projectSelectorBtn) return;
+
+    // Check if single project - if so, disable dropdown functionality
+    if (projectOptions.length <= 1) {
+        projectSelector.classList.add('single-project');
+        return;
+    }
+
+    // Toggle dropdown
+    projectSelectorBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        projectSelector.classList.toggle('open');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!projectSelector.contains(e.target)) {
+            projectSelector.classList.remove('open');
+        }
+    });
+
+    // Handle project selection
+    projectOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            const projectName = option.querySelector('.project-option-name').textContent;
+            const projectId = option.dataset.project;
+
+            // Update active state
+            projectOptions.forEach(opt => opt.classList.remove('active'));
+            option.classList.add('active');
+
+            // Update current project name in header
+            currentProjectName.textContent = projectName;
+
+            // Close dropdown
+            projectSelector.classList.remove('open');
+
+            // Show toast notification
+            showToast(`Switched to: ${projectName}`, 'success');
+
+            // In a real app, this would load the project data
+            // For demo purposes, we just show the toast
+            console.log(`Switched to project ID: ${projectId}`);
+        });
+    });
 }
