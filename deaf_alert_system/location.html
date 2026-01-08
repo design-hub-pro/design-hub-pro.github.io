@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundGuard - Location</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&display=swap');
+        * {
+            -webkit-font-smoothing: antialiased;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+        }
+        .map-container {
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 50%, #ecfdf5 100%);
+            position: relative;
+        }
+        .sound-wave {
+            animation: soundWave 2s ease-out infinite;
+        }
+        @keyframes soundWave {
+            0% { transform: scale(0.5); opacity: 0.8; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+        .device-marker {
+            animation: markerPulse 2s ease-in-out infinite;
+        }
+        @keyframes markerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .direction-arrow {
+            animation: arrowBlink 1s ease-in-out infinite;
+        }
+        @keyframes arrowBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="w-full min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+        <!-- iOS Status Bar -->
+        <div class="bg-slate-50 px-6 pt-3 pb-1">
+            <div class="flex justify-between items-center text-sm font-semibold text-black">
+                <span>9:41</span>
+                <div class="w-32 h-8 bg-black rounded-full absolute left-1/2 -translate-x-1/2 top-0"></div>
+                <div class="flex items-center gap-1.5">
+                    <i class="fas fa-signal text-xs"></i>
+                    <i class="fas fa-wifi text-xs"></i>
+                    <i class="fas fa-battery-full text-xs"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <div class="px-5 pt-4 pb-3">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900">Sound Location</h1>
+                    <p class="text-sm text-slate-500">Triangulated position</p>
+                </div>
+                <div class="flex gap-2">
+                    <div class="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center">
+                        <i class="fas fa-expand text-slate-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map View -->
+        <div class="px-5 mb-4">
+            <div class="map-container rounded-3xl h-72 relative overflow-hidden shadow-lg">
+                <!-- Grid lines -->
+                <svg class="absolute inset-0 w-full h-full opacity-20">
+                    <defs>
+                        <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+                            <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#64748b" stroke-width="0.5"/>
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)"/>
+                </svg>
+
+                <!-- Sound source with waves -->
+                <div class="absolute top-16 left-16">
+                    <div class="relative">
+                        <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center z-10 relative">
+                            <i class="fas fa-volume-high text-white text-sm"></i>
+                        </div>
+                        <div class="absolute inset-0 w-8 h-8 bg-red-400 rounded-full sound-wave"></div>
+                        <div class="absolute inset-0 w-8 h-8 bg-red-400 rounded-full sound-wave" style="animation-delay: 0.5s;"></div>
+                        <div class="absolute inset-0 w-8 h-8 bg-red-400 rounded-full sound-wave" style="animation-delay: 1s;"></div>
+                    </div>
+                    <p class="text-xs text-red-600 font-semibold mt-1 text-center">Sound</p>
+                </div>
+
+                <!-- User position (center) -->
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                    <div class="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center">
+                        <div class="w-10 h-10 bg-blue-500/40 rounded-full flex items-center justify-center">
+                            <div class="w-5 h-5 bg-blue-500 rounded-full"></div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-blue-600 font-semibold mt-1 text-center">You</p>
+                </div>
+
+                <!-- Device markers -->
+                <div class="absolute top-20 right-8 device-marker">
+                    <div class="w-7 h-7 bg-purple-500 rounded-lg flex items-center justify-center shadow-lg">
+                        <i class="fas fa-watch text-white text-xs"></i>
+                    </div>
+                    <p class="text-[10px] text-purple-600 font-medium mt-0.5 text-center">Wrist</p>
+                </div>
+
+                <div class="absolute bottom-20 left-20 device-marker">
+                    <div class="w-7 h-7 bg-orange-500 rounded-lg flex items-center justify-center shadow-lg">
+                        <i class="fas fa-gem text-white text-xs"></i>
+                    </div>
+                    <p class="text-[10px] text-orange-600 font-medium mt-0.5 text-center">Pendant</p>
+                </div>
+
+                <div class="absolute bottom-16 right-16 device-marker">
+                    <div class="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center shadow-lg">
+                        <i class="fas fa-paperclip text-white text-xs"></i>
+                    </div>
+                    <p class="text-[10px] text-emerald-600 font-medium mt-0.5 text-center">Clip</p>
+                </div>
+
+                <!-- Direction indicator -->
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                    <svg width="180" height="180" viewBox="0 0 180 180" class="opacity-70">
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/>
+                            </marker>
+                        </defs>
+                        <line x1="90" y1="90" x2="35" y2="35" stroke="#ef4444" stroke-width="3" marker-end="url(#arrowhead)" class="direction-arrow"/>
+                    </svg>
+                </div>
+
+                <!-- Compass -->
+                <div class="absolute top-4 right-4 w-12 h-12 bg-white/90 rounded-full shadow-lg flex items-center justify-center">
+                    <div class="text-center">
+                        <span class="text-red-500 text-xs font-bold">N</span>
+                        <i class="fas fa-location-arrow text-slate-600 text-lg block -rotate-45"></i>
+                    </div>
+                </div>
+
+                <!-- Distance badge -->
+                <div class="absolute bottom-4 left-4 bg-white/90 rounded-xl px-3 py-2 shadow-lg">
+                    <p class="text-xs text-slate-500">Distance</p>
+                    <p class="text-lg font-bold text-slate-800">~45m</p>
+                </div>
+
+                <!-- Direction badge -->
+                <div class="absolute bottom-4 right-4 bg-red-500 rounded-xl px-3 py-2 shadow-lg">
+                    <p class="text-xs text-red-100">Direction</p>
+                    <p class="text-lg font-bold text-white">NW</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Triangulation Data -->
+        <div class="px-5 mb-4">
+            <h3 class="font-semibold text-slate-800 mb-3">Triangulation Data</h3>
+            <div class="bg-white rounded-2xl p-4 shadow-sm">
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-watch text-purple-600 text-sm"></i>
+                        </div>
+                        <p class="text-lg font-bold text-slate-800">-42dB</p>
+                        <p class="text-xs text-slate-500">Wrist Band</p>
+                    </div>
+                    <div>
+                        <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-gem text-orange-600 text-sm"></i>
+                        </div>
+                        <p class="text-lg font-bold text-slate-800">-48dB</p>
+                        <p class="text-xs text-slate-500">Pendant</p>
+                    </div>
+                    <div>
+                        <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-paperclip text-emerald-600 text-sm"></i>
+                        </div>
+                        <p class="text-lg font-bold text-slate-800">-51dB</p>
+                        <p class="text-xs text-slate-500">Clip Sensor</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Location Info -->
+        <div class="px-5 mb-24">
+            <div class="bg-gradient-to-r from-slate-800 to-slate-700 rounded-2xl p-4 text-white">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-crosshairs text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="text-slate-300 text-xs">Calculated Position</p>
+                        <p class="font-semibold">45m Northwest of your location</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3 mt-3">
+                    <div class="bg-white/10 rounded-xl p-3">
+                        <p class="text-slate-300 text-xs">Confidence</p>
+                        <p class="text-xl font-bold">87%</p>
+                    </div>
+                    <div class="bg-white/10 rounded-xl p-3">
+                        <p class="text-slate-300 text-xs">Accuracy</p>
+                        <p class="text-xl font-bold">±8m</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Tab Bar -->
+        <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 pb-6 pt-3">
+            <div class="flex justify-around items-center">
+                <div class="flex flex-col items-center">
+                    <i class="fas fa-home text-slate-400 text-xl mb-1"></i>
+                    <span class="text-xs text-slate-400">Home</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <i class="fas fa-bell text-slate-400 text-xl mb-1"></i>
+                    <span class="text-xs text-slate-400">Alerts</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <i class="fas fa-map-location-dot text-blue-500 text-xl mb-1"></i>
+                    <span class="text-xs text-blue-500 font-medium">Location</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <i class="fas fa-clock-rotate-left text-slate-400 text-xl mb-1"></i>
+                    <span class="text-xs text-slate-400">History</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <i class="fas fa-gear text-slate-400 text-xl mb-1"></i>
+                    <span class="text-xs text-slate-400">Settings</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

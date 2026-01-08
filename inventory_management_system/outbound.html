@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>出库管理 - 进销存管理系统</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon">📦</div>
+                    <div>
+                        <div class="sidebar-logo-text">进销存系统</div>
+                        <div class="sidebar-logo-subtitle">Inventory Management</div>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">概览</div>
+                    <a href="index.html" class="nav-item">
+                        <span class="nav-item-icon">📊</span>
+                        <span>系统首页</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">核心业务</div>
+                    <a href="products.html" class="nav-item">
+                        <span class="nav-item-icon">🏷️</span>
+                        <span>商品管理</span>
+                    </a>
+                    <a href="inbound.html" class="nav-item">
+                        <span class="nav-item-icon">📥</span>
+                        <span>入库管理</span>
+                        <span class="nav-item-badge">3</span>
+                    </a>
+                    <a href="outbound.html" class="nav-item active">
+                        <span class="nav-item-icon">📤</span>
+                        <span>出库管理</span>
+                    </a>
+                    <a href="inventory.html" class="nav-item">
+                        <span class="nav-item-icon">📋</span>
+                        <span>库存查询</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">报表分析</div>
+                    <a href="profit.html" class="nav-item">
+                        <span class="nav-item-icon">📈</span>
+                        <span>毛利概览</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">李</div>
+                    <div class="user-info">
+                        <div class="user-name">李经理</div>
+                        <div class="user-role">管理员</div>
+                    </div>
+                    <span style="color: var(--gray-400);">⚙️</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <div class="breadcrumb">
+                        <a href="index.html">首页</a>
+                        <span class="breadcrumb-separator">/</span>
+                        <span class="breadcrumb-current">出库管理</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="header-search">
+                        <span class="header-search-icon">🔍</span>
+                        <input type="text" placeholder="搜索商品、料号...">
+                    </div>
+                    <button class="header-icon-btn">
+                        <span>🔔</span>
+                        <span class="badge"></span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">出库管理</h1>
+                        <p class="page-subtitle">记录商品出库信息，系统自动按FIFO扣减库存</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openModal()">
+                        <span>➕</span>
+                        新建出库
+                    </button>
+                </div>
+
+                <!-- Stats Summary -->
+                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon blue">📤</div>
+                        </div>
+                        <div class="stat-value">28</div>
+                        <div class="stat-label">本月出库批次</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon green">💰</div>
+                        </div>
+                        <div class="stat-value">$285,400</div>
+                        <div class="stat-label">本月销售额</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon purple">📈</div>
+                        </div>
+                        <div class="stat-value">15.0%</div>
+                        <div class="stat-label">平均毛利率</div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab active">全部记录</button>
+                    <button class="tab">今日出库</button>
+                    <button class="tab">本周出库</button>
+                </div>
+
+                <!-- Filter Bar -->
+                <div class="card">
+                    <div class="card-body" style="padding: 16px 24px;">
+                        <div class="filter-bar" style="margin-bottom: 0;">
+                            <div class="search-input">
+                                <span class="icon">🔍</span>
+                                <input type="text" placeholder="搜索商品或料号..." class="form-control" style="padding-left: 40px;">
+                            </div>
+                            <div class="date-range">
+                                <input type="date" class="form-control" style="width: 150px;" value="2025-03-01">
+                                <span class="date-range-separator">至</span>
+                                <input type="date" class="form-control" style="width: 150px;" value="2025-03-15">
+                            </div>
+                            <button class="btn btn-secondary">
+                                <span>🔍</span>
+                                筛选
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Outbound Records Table -->
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <h3 class="card-title">出库记录</h3>
+                            <span class="badge badge-info">共 28 条</span>
+                        </div>
+                        <button class="btn btn-ghost btn-sm">
+                            <span>📥</span>
+                            导出Excel
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>出库日期</th>
+                                    <th>规格</th>
+                                    <th>料号</th>
+                                    <th style="text-align: right;">数量</th>
+                                    <th style="text-align: right;">售价</th>
+                                    <th style="text-align: right;">销售金额</th>
+                                    <th style="text-align: right;">成本金额</th>
+                                    <th style="text-align: right;">毛利</th>
+                                    <th style="width: 100px;">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="font-weight: 500;">2025-03-15</td>
+                                    <td>
+                                        <div style="font-weight: 500;">SSD PM893 1.92TB 2.5</div>
+                                        <div style="font-size: 0.8125rem; color: var(--gray-500);">企业级SATA SSD</div>
+                                    </td>
+                                    <td><span class="sku-display">MZ7L31T9HBLT-00B7C</span></td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono);">200</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono);">$210.00</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono); font-weight: 600;">$42,000.00</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono); color: var(--gray-500);">$35,800.00</td>
+                                    <td style="text-align: right;">
+                                        <span class="amount positive">$6,200.00</span>
+                                        <div style="font-size: 0.75rem; color: var(--success-600);">14.8%</div>
+                                    </td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="action-btn" title="查看详情">👁️</button>
+                                            <button class="action-btn" title="打印">🖨️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 500;">2025-03-14</td>
+                                    <td>
+                                        <div style="font-weight: 500;">SSD PM897 960G 2.5</div>
+                                        <div style="font-size: 0.8125rem; color: var(--gray-500);">企业级SATA SSD (A07)</div>
+                                    </td>
+                                    <td><span class="sku-display">MZ7L3960HBLT-00A07</span></td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono);">80</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono);">$255.00</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono); font-weight: 600;">$20,400.00</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono); color: var(--gray-500);">$17,440.00</td>
+                                    <td style="text-align: right;">
+                                        <span class="amount positive">$2,960.00</span>
+                                        <div style="font-size: 0.75rem; color: var(--success-600);">14.5%</div>
+                                    </td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="action-btn" title="查看详情">👁️</button>
+                                            <button class="action-btn" title="打印">🖨️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 500;">2025-03-13</td>
+                                    <td>
+                                        <div style="font-weight: 500;">SSD PM1733 3.84TB</div>
+                                        <div style="font-size: 0.8125rem; color: var(--gray-500);">企业级NVMe SSD</div>
+                                    </td>
+                                    <td><span class="sku-display">MZWLR3T8HBLS-00007</span></td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono);">50</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono);">$195.00</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono); font-weight: 600;">$9,750.00</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono); color: var(--gray-500);">$8,192.00</td>
+                                    <td style="text-align: right;">
+                                        <span class="amount positive">$1,558.00</span>
+                                        <div style="font-size: 0.75rem; color: var(--success-600);">16.0%</div>
+                                    </td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="action-btn" title="查看详情">👁️</button>
+                                            <button class="action-btn" title="打印">🖨️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 500;">2025-03-12</td>
+                                    <td>
+                                        <div style="font-weight: 500;">SSD PM897 480G 2.5</div>
+                                        <div style="font-size: 0.8125rem; color: var(--gray-500);">企业级SATA SSD</div>
+                                    </td>
+                                    <td><span class="sku-display">MZ7L3480HBLT-00A03</span></td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono);">120</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono);">$82.00</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono); font-weight: 600;">$9,840.00</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono); color: var(--gray-500);">$8,400.00</td>
+                                    <td style="text-align: right;">
+                                        <span class="amount positive">$1,440.00</span>
+                                        <div style="font-size: 0.75rem; color: var(--success-600);">14.6%</div>
+                                    </td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="action-btn" title="查看详情">👁️</button>
+                                            <button class="action-btn" title="打印">🖨️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 500;">2025-03-11</td>
+                                    <td>
+                                        <div style="font-weight: 500;">SSD PM1733 3.2TB</div>
+                                        <div style="font-size: 0.8125rem; color: var(--gray-500);">企业级NVMe SSD</div>
+                                    </td>
+                                    <td><span class="sku-display">MZPLJ3T2HBJR-000M3</span></td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono);">30</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono);">$195.00</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono); font-weight: 600;">$5,850.00</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono); color: var(--gray-500);">$4,915.20</td>
+                                    <td style="text-align: right;">
+                                        <span class="amount positive">$934.80</span>
+                                        <div style="font-size: 0.75rem; color: var(--success-600);">16.0%</div>
+                                    </td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="action-btn" title="查看详情">👁️</button>
+                                            <button class="action-btn" title="打印">🖨️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 500;">2025-03-10</td>
+                                    <td>
+                                        <div style="font-weight: 500;">SSD PM893 1.92TB 2.5</div>
+                                        <div style="font-size: 0.8125rem; color: var(--gray-500);">企业级SATA SSD</div>
+                                    </td>
+                                    <td><span class="sku-display">MZ7L31T9HBLT-00B7C</span></td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono);">300</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono);">$208.00</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono); font-weight: 600;">$62,400.00</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono); color: var(--gray-500);">$53,700.00</td>
+                                    <td style="text-align: right;">
+                                        <span class="amount positive">$8,700.00</span>
+                                        <div style="font-size: 0.75rem; color: var(--success-600);">13.9%</div>
+                                    </td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="action-btn" title="查看详情">👁️</button>
+                                            <button class="action-btn" title="打印">🖨️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 500;">2025-03-08</td>
+                                    <td>
+                                        <div style="font-weight: 500;">SSD PM897 1.92TB 2.5</div>
+                                        <div style="font-size: 0.8125rem; color: var(--gray-500);">企业级SATA SSD</div>
+                                    </td>
+                                    <td><span class="sku-display">MZ7L31T9HBNA-00A03</span></td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono);">60</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono);">$258.00</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono); font-weight: 600;">$15,480.00</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono); color: var(--gray-500);">$13,200.00</td>
+                                    <td style="text-align: right;">
+                                        <span class="amount positive">$2,280.00</span>
+                                        <div style="font-size: 0.75rem; color: var(--success-600);">14.7%</div>
+                                    </td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="action-btn" title="查看详情">👁️</button>
+                                            <button class="action-btn" title="打印">🖨️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 500;">2025-03-05</td>
+                                    <td>
+                                        <div style="font-weight: 500;">SSD PM9D3a 1.92TB</div>
+                                        <div style="font-size: 0.8125rem; color: var(--gray-500);">企业级NVMe SSD</div>
+                                    </td>
+                                    <td><span class="sku-display">MZWL61T9HFLT-00AW7</span></td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono);">5</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono);">$320.00</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono); font-weight: 600;">$1,600.00</td>
+                                    <td style="text-align: right; font-family: var(--font-family-mono); color: var(--gray-500);">$1,375.00</td>
+                                    <td style="text-align: right;">
+                                        <span class="amount positive">$225.00</span>
+                                        <div style="font-size: 0.75rem; color: var(--success-600);">14.1%</div>
+                                    </td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="action-btn" title="查看详情">👁️</button>
+                                            <button class="action-btn" title="打印">🖨️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer">
+                        <div class="pagination">
+                            <div class="pagination-info">
+                                显示 1-8 条，共 28 条记录
+                            </div>
+                            <div class="pagination-controls">
+                                <button class="pagination-btn" disabled>‹</button>
+                                <button class="pagination-btn active">1</button>
+                                <button class="pagination-btn">2</button>
+                                <button class="pagination-btn">3</button>
+                                <button class="pagination-btn">4</button>
+                                <button class="pagination-btn">›</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- New Outbound Modal -->
+    <div class="modal-overlay" id="outboundModal" style="display: none;">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h3 class="modal-title">新建出库记录</h3>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label class="form-label">
+                            出库日期 <span class="required">*</span>
+                        </label>
+                        <input type="date" class="form-control" value="2025-03-15" style="width: 200px;">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            选择商品 <span class="required">*</span>
+                        </label>
+                        <select class="form-control form-select" id="productSelect" onchange="updateStock()">
+                            <option value="">搜索或选择商品...</option>
+                            <option value="PM893" data-stock="4051" data-price="179.00">SSD PM893 1.92TB 2.5 (MZ7L31T9HBLT-00B7C) - 库存: 4,051</option>
+                            <option value="PM897-480" data-stock="480" data-price="70.00">SSD PM897 480G 2.5 (MZ7L3480HBLT-00A03) - 库存: 480</option>
+                            <option value="PM897-960-A07" data-stock="299" data-price="218.00">SSD PM897 960G 2.5 (MZ7L3960HBLT-00A07) - 库存: 299</option>
+                            <option value="PM897-192" data-stock="121" data-price="220.00">SSD PM897 1.92TB 2.5 (MZ7L31T9HBNA-00A03) - 库存: 121</option>
+                            <option value="PM1733-32" data-stock="106" data-price="163.84">SSD PM1733 3.2TB (MZPLJ3T2HBJR-000M3) - 库存: 106</option>
+                            <option value="PM1733-384" data-stock="38" data-price="163.84">SSD PM1733 3.84TB (MZWLR3T8HBLS-00007) - 库存: 38</option>
+                            <option value="PM9D3a" data-stock="13" data-price="275.00">SSD PM9D3a 1.92TB (MZWL61T9HFLT-00AW7) - 库存: 13</option>
+                        </select>
+                    </div>
+
+                    <!-- Stock Info -->
+                    <div class="batch-info" id="stockInfo" style="display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <span style="font-weight: 600; color: var(--gray-700);">库存批次信息 (FIFO)</span>
+                            <span class="badge badge-info">可用库存: <span id="availableStock">0</span> 件</span>
+                        </div>
+                        <table style="width: 100%; font-size: 0.8125rem;">
+                            <thead>
+                                <tr style="color: var(--gray-500);">
+                                    <th style="text-align: left; padding: 6px 0;">入库日期</th>
+                                    <th style="text-align: right; padding: 6px 0;">剩余数量</th>
+                                    <th style="text-align: right; padding: 6px 0;">成本单价</th>
+                                    <th style="text-align: left; padding: 6px 0;">DC/产地</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batchTable">
+                                <tr>
+                                    <td style="padding: 6px 0;">2024-07-16</td>
+                                    <td style="text-align: right; padding: 6px 0;">2,671</td>
+                                    <td style="text-align: right; padding: 6px 0;">$182.60</td>
+                                    <td style="padding: 6px 0;">VN</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 6px 0;">2024-08-16</td>
+                                    <td style="text-align: right; padding: 6px 0;">1,380</td>
+                                    <td style="text-align: right; padding: 6px 0;">$179.00</td>
+                                    <td style="padding: 6px 0;">VN</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="form-row" style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label class="form-label">
+                                出库数量 <span class="required">*</span>
+                            </label>
+                            <input type="number" class="form-control" placeholder="请输入数量" id="outQty" oninput="calculateOutbound()">
+                            <div class="form-hint" id="stockHint">请先选择商品</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">
+                                售价单价 <span class="required">*</span>
+                            </label>
+                            <div style="position: relative;">
+                                <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--gray-500);">$</span>
+                                <input type="number" step="0.01" class="form-control" placeholder="0.00" style="padding-left: 28px;" id="sellPrice" oninput="calculateOutbound()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Calculation Panel -->
+                    <div class="calc-panel">
+                        <div class="calc-row">
+                            <span>出库数量</span>
+                            <span id="calcOutQty">0 件</span>
+                        </div>
+                        <div class="calc-row">
+                            <span>售价单价</span>
+                            <span id="calcSellPrice">$0.00</span>
+                        </div>
+                        <div class="calc-row">
+                            <span>销售金额</span>
+                            <span style="font-weight: 600;" id="calcSalesAmount">$0.00</span>
+                        </div>
+                        <div class="calc-row" style="color: var(--gray-500);">
+                            <span>预估成本 (FIFO)</span>
+                            <span id="calcCost">$0.00</span>
+                        </div>
+                        <div class="calc-row">
+                            <span style="font-weight: 600; color: var(--success-600);">预估毛利</span>
+                            <span style="color: var(--success-600); font-size: 1.125rem;" id="calcProfit">$0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Warning for insufficient stock -->
+                    <div class="alert alert-error" id="stockWarning" style="display: none; margin-top: 16px;">
+                        <span class="alert-icon">⚠️</span>
+                        <div class="alert-content">
+                            <div class="alert-title">库存不足</div>
+                            <div class="alert-text">出库数量超过当前可用库存，请调整出库数量或先进行入库操作。</div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" id="submitBtn">
+                    <span>📤</span>
+                    确认出库
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStock = 0;
+        let currentCost = 0;
+
+        function openModal() {
+            document.getElementById('outboundModal').style.display = 'flex';
+        }
+        function closeModal() {
+            document.getElementById('outboundModal').style.display = 'none';
+        }
+        function updateStock() {
+            const select = document.getElementById('productSelect');
+            const option = select.options[select.selectedIndex];
+            if (option.value) {
+                currentStock = parseInt(option.dataset.stock);
+                currentCost = parseFloat(option.dataset.price);
+                document.getElementById('stockInfo').style.display = 'block';
+                document.getElementById('availableStock').textContent = currentStock.toLocaleString();
+                document.getElementById('stockHint').textContent = '当前可用库存: ' + currentStock.toLocaleString() + ' 件';
+                document.getElementById('stockHint').style.color = 'var(--gray-500)';
+            } else {
+                currentStock = 0;
+                document.getElementById('stockInfo').style.display = 'none';
+                document.getElementById('stockHint').textContent = '请先选择商品';
+            }
+            calculateOutbound();
+        }
+        function calculateOutbound() {
+            const qty = parseInt(document.getElementById('outQty').value) || 0;
+            const sellPrice = parseFloat(document.getElementById('sellPrice').value) || 0;
+            const salesAmount = qty * sellPrice;
+            const costAmount = qty * currentCost;
+            const profit = salesAmount - costAmount;
+
+            document.getElementById('calcOutQty').textContent = qty + ' 件';
+            document.getElementById('calcSellPrice').textContent = '$' + sellPrice.toFixed(2);
+            document.getElementById('calcSalesAmount').textContent = '$' + salesAmount.toFixed(2);
+            document.getElementById('calcCost').textContent = '$' + costAmount.toFixed(2);
+            document.getElementById('calcProfit').textContent = '$' + profit.toFixed(2);
+
+            // Check stock
+            if (qty > currentStock && currentStock > 0) {
+                document.getElementById('stockWarning').style.display = 'flex';
+                document.getElementById('submitBtn').disabled = true;
+                document.getElementById('submitBtn').style.opacity = '0.5';
+                document.getElementById('stockHint').textContent = '超出可用库存 ' + (qty - currentStock) + ' 件';
+                document.getElementById('stockHint').style.color = 'var(--error-600)';
+            } else {
+                document.getElementById('stockWarning').style.display = 'none';
+                document.getElementById('submitBtn').disabled = false;
+                document.getElementById('submitBtn').style.opacity = '1';
+                if (currentStock > 0) {
+                    document.getElementById('stockHint').textContent = '当前可用库存: ' + currentStock.toLocaleString() + ' 件';
+                    document.getElementById('stockHint').style.color = 'var(--gray-500)';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

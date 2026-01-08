@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis - SwingVision AI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .result-header {
+            text-align: center;
+            padding: 20px;
+        }
+        .result-score {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.05));
+            border: 4px solid #22C55E;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+        .result-score.bad {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.05));
+            border-color: #EF4444;
+        }
+        .result-score .score {
+            font-size: 48px;
+            font-weight: 800;
+            color: #22C55E;
+        }
+        .result-score.bad .score {
+            color: #EF4444;
+        }
+        .result-score .label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray);
+        }
+        .verdict {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .verdict.good {
+            color: #22C55E;
+        }
+        .verdict.bad {
+            color: #EF4444;
+        }
+        .verdict-sub {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        .video-preview {
+            position: relative;
+            margin: 0 20px 20px;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .video-preview img {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+        }
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .play-btn {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark);
+        }
+        .timeline {
+            flex: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            position: relative;
+        }
+        .timeline-progress {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 65%;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+        .timeline-markers {
+            position: absolute;
+            top: -20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: rgba(255,255,255,0.6);
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 0 20px;
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            background: var(--dark-light);
+            border-radius: 16px;
+            padding: 16px;
+        }
+        .metric-card .icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+        .metric-card .value {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .metric-card .label {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        .angle-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .angle-bar {
+            flex: 1;
+            height: 6px;
+            background: var(--dark);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .angle-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+        .feedback-list {
+            padding: 0 20px;
+            margin-bottom: 24px;
+        }
+        .feedback-item {
+            display: flex;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .feedback-item:last-child {
+            border-bottom: none;
+        }
+        .feedback-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .feedback-icon.good {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22C55E;
+        }
+        .feedback-icon.improve {
+            background: rgba(245, 158, 11, 0.2);
+            color: #F59E0B;
+        }
+        .feedback-text {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="screen">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="time">9:41</span>
+            <div class="icons">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+
+        <!-- Dynamic Island -->
+        <div class="dynamic-island"></div>
+
+        <!-- Header -->
+        <div class="nav-header">
+            <button style="background: var(--dark-light); border: none; width: 40px; height: 40px; border-radius: 12px; color: white; cursor: pointer;">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 style="font-size: 18px;">Analysis Result</h1>
+            <button style="background: var(--dark-light); border: none; width: 40px; height: 40px; border-radius: 12px; color: white; cursor: pointer;">
+                <i class="fas fa-share-alt"></i>
+            </button>
+        </div>
+
+        <!-- Result Score -->
+        <div class="result-header">
+            <div class="result-score">
+                <span class="score">87</span>
+                <span class="label">Points</span>
+            </div>
+            <div class="verdict good">Good Swing!</div>
+            <div class="verdict-sub">Great form with minor improvements needed</div>
+        </div>
+
+        <!-- Video Preview -->
+        <div class="video-preview">
+            <img src="https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=800&h=450&fit=crop" alt="Swing Video">
+            <!-- Pose skeleton overlay -->
+            <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet">
+                <line x1="400" y1="80" x2="400" y2="150" stroke="#6366F1" stroke-width="3" stroke-linecap="round"/>
+                <line x1="400" y1="150" x2="400" y2="250" stroke="#6366F1" stroke-width="3" stroke-linecap="round"/>
+                <line x1="400" y1="150" x2="340" y2="130" stroke="#6366F1" stroke-width="3" stroke-linecap="round"/>
+                <line x1="340" y1="130" x2="280" y2="180" stroke="#6366F1" stroke-width="3" stroke-linecap="round"/>
+                <line x1="280" y1="180" x2="220" y2="150" stroke="#6366F1" stroke-width="3" stroke-linecap="round"/>
+                <line x1="400" y1="150" x2="460" y2="130" stroke="#6366F1" stroke-width="3" stroke-linecap="round"/>
+                <line x1="460" y1="130" x2="520" y2="180" stroke="#6366F1" stroke-width="3" stroke-linecap="round"/>
+                <line x1="520" y1="180" x2="600" y2="120" stroke="#6366F1" stroke-width="3" stroke-linecap="round"/>
+                <circle cx="400" cy="80" r="6" fill="#F59E0B"/>
+                <circle cx="400" cy="150" r="6" fill="#F59E0B"/>
+                <circle cx="340" cy="130" r="5" fill="#F59E0B"/>
+                <circle cx="280" cy="180" r="5" fill="#F59E0B"/>
+                <circle cx="220" cy="150" r="5" fill="#F59E0B"/>
+                <circle cx="460" cy="130" r="5" fill="#F59E0B"/>
+                <circle cx="520" cy="180" r="5" fill="#F59E0B"/>
+                <circle cx="600" cy="120" r="5" fill="#22C55E"/>
+            </svg>
+            <div class="video-controls">
+                <div class="play-btn">
+                    <i class="fas fa-play" style="margin-left: 3px;"></i>
+                </div>
+                <div class="timeline">
+                    <div class="timeline-progress"></div>
+                </div>
+                <span style="font-size: 12px;">0:02</span>
+            </div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <h2 class="section-title">Key Metrics</h2>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="icon" style="background: rgba(99, 102, 241, 0.2); color: #6366F1;">
+                    <i class="fas fa-arrows-alt-h"></i>
+                </div>
+                <div class="value">145°</div>
+                <div class="label">Hip Rotation</div>
+                <div class="angle-indicator">
+                    <div class="angle-bar">
+                        <div class="angle-bar-fill" style="width: 85%; background: #22C55E;"></div>
+                    </div>
+                    <span style="font-size: 11px; color: #22C55E;">Good</span>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="icon" style="background: rgba(16, 185, 129, 0.2); color: #10B981;">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <div class="value">92°</div>
+                <div class="label">Shoulder Turn</div>
+                <div class="angle-indicator">
+                    <div class="angle-bar">
+                        <div class="angle-bar-fill" style="width: 92%; background: #22C55E;"></div>
+                    </div>
+                    <span style="font-size: 11px; color: #22C55E;">Great</span>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="icon" style="background: rgba(245, 158, 11, 0.2); color: #F59E0B;">
+                    <i class="fas fa-hand-paper"></i>
+                </div>
+                <div class="value">68°</div>
+                <div class="label">Wrist Angle</div>
+                <div class="angle-indicator">
+                    <div class="angle-bar">
+                        <div class="angle-bar-fill" style="width: 65%; background: #F59E0B;"></div>
+                    </div>
+                    <span style="font-size: 11px; color: #F59E0B;">Improve</span>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="icon" style="background: rgba(139, 92, 246, 0.2); color: #8B5CF6;">
+                    <i class="fas fa-balance-scale"></i>
+                </div>
+                <div class="value">94%</div>
+                <div class="label">Balance</div>
+                <div class="angle-indicator">
+                    <div class="angle-bar">
+                        <div class="angle-bar-fill" style="width: 94%; background: #22C55E;"></div>
+                    </div>
+                    <span style="font-size: 11px; color: #22C55E;">Great</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Feedback -->
+        <h2 class="section-title">AI Feedback</h2>
+        <div class="feedback-list">
+            <div class="feedback-item">
+                <div class="feedback-icon good">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="feedback-text">Excellent hip rotation through impact zone</div>
+            </div>
+            <div class="feedback-item">
+                <div class="feedback-icon good">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="feedback-text">Good weight transfer from back to front foot</div>
+            </div>
+            <div class="feedback-item">
+                <div class="feedback-icon improve">
+                    <i class="fas fa-exclamation"></i>
+                </div>
+                <div class="feedback-text">Release wrists slightly earlier for more power</div>
+            </div>
+            <div class="feedback-item">
+                <div class="feedback-icon improve">
+                    <i class="fas fa-exclamation"></i>
+                </div>
+                <div class="feedback-text">Maintain spine angle through follow-through</div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="padding: 0 20px 20px; display: flex; gap: 12px;">
+            <button class="btn btn-secondary" style="flex: 1;">
+                <i class="fas fa-redo"></i> Try Again
+            </button>
+            <button class="btn btn-primary" style="flex: 1;">
+                <i class="fas fa-save"></i> Save
+            </button>
+        </div>
+
+        <!-- Tab Bar -->
+        <nav class="tab-bar">
+            <a href="#" class="tab-item">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-chart-line"></i>
+                <span>History</span>
+            </a>
+            <a href="#" class="tab-item capture-btn">
+                <i class="fas fa-plus"></i>
+                <span>Record</span>
+            </a>
+            <a href="#" class="tab-item active">
+                <i class="fas fa-brain"></i>
+                <span>Analysis</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+        </nav>
+    </div>
+</body>
+</html>

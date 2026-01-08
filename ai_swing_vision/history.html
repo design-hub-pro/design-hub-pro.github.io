@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History - SwingVision AI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .progress-chart {
+            padding: 20px;
+            background: var(--dark-light);
+            border-radius: 20px;
+            margin: 0 20px 20px;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .chart-period {
+            display: flex;
+            gap: 8px;
+        }
+        .period-btn {
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: transparent;
+            border: none;
+            color: var(--gray);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .period-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        .chart-bars {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 120px;
+            gap: 8px;
+        }
+        .chart-bar-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .chart-bar {
+            width: 100%;
+            border-radius: 6px 6px 0 0;
+            transition: all 0.3s ease;
+        }
+        .chart-bar.good {
+            background: linear-gradient(to top, #22C55E, #10B981);
+        }
+        .chart-bar.bad {
+            background: linear-gradient(to top, #EF4444, #F87171);
+        }
+        .chart-bar.mixed {
+            background: linear-gradient(to top, #F59E0B, #FBBF24);
+        }
+        .chart-label {
+            font-size: 11px;
+            color: var(--gray);
+        }
+        .summary-row {
+            display: flex;
+            gap: 12px;
+            padding: 0 20px;
+            margin-bottom: 20px;
+        }
+        .summary-card {
+            flex: 1;
+            background: var(--dark-light);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+        }
+        .summary-value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .summary-value.green {
+            color: #22C55E;
+        }
+        .summary-value.red {
+            color: #EF4444;
+        }
+        .summary-label {
+            font-size: 12px;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+        .date-header {
+            padding: 12px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray);
+            background: rgba(0,0,0,0.2);
+        }
+        .swing-list-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .swing-list-thumb {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            object-fit: cover;
+            position: relative;
+        }
+        .swing-list-info {
+            flex: 1;
+        }
+        .swing-list-title {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .swing-list-meta {
+            font-size: 13px;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .swing-list-score {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 700;
+        }
+        .swing-list-score.good {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22C55E;
+        }
+        .swing-list-score.bad {
+            background: rgba(239, 68, 68, 0.2);
+            color: #EF4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="screen">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="time">9:41</span>
+            <div class="icons">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+
+        <!-- Dynamic Island -->
+        <div class="dynamic-island"></div>
+
+        <!-- Header -->
+        <div class="nav-header">
+            <h1>History</h1>
+            <button style="background: var(--dark-light); border: none; width: 40px; height: 40px; border-radius: 12px; color: white; cursor: pointer;">
+                <i class="fas fa-calendar-alt"></i>
+            </button>
+        </div>
+
+        <!-- Progress Chart -->
+        <div class="progress-chart">
+            <div class="chart-header">
+                <span class="chart-title">Weekly Progress</span>
+                <div class="chart-period">
+                    <button class="period-btn active">Week</button>
+                    <button class="period-btn">Month</button>
+                </div>
+            </div>
+            <div class="chart-bars">
+                <div class="chart-bar-container">
+                    <div class="chart-bar good" style="height: 60%;"></div>
+                    <span class="chart-label">Mon</span>
+                </div>
+                <div class="chart-bar-container">
+                    <div class="chart-bar good" style="height: 75%;"></div>
+                    <span class="chart-label">Tue</span>
+                </div>
+                <div class="chart-bar-container">
+                    <div class="chart-bar mixed" style="height: 50%;"></div>
+                    <span class="chart-label">Wed</span>
+                </div>
+                <div class="chart-bar-container">
+                    <div class="chart-bar good" style="height: 85%;"></div>
+                    <span class="chart-label">Thu</span>
+                </div>
+                <div class="chart-bar-container">
+                    <div class="chart-bar bad" style="height: 40%;"></div>
+                    <span class="chart-label">Fri</span>
+                </div>
+                <div class="chart-bar-container">
+                    <div class="chart-bar good" style="height: 90%;"></div>
+                    <span class="chart-label">Sat</span>
+                </div>
+                <div class="chart-bar-container">
+                    <div class="chart-bar good" style="height: 80%;"></div>
+                    <span class="chart-label" style="color: var(--primary);">Today</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary-row">
+            <div class="summary-card">
+                <div class="summary-value green">32</div>
+                <div class="summary-label">Good Swings</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value red">11</div>
+                <div class="summary-label">Need Work</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value" style="color: var(--primary);">74%</div>
+                <div class="summary-label">Success Rate</div>
+            </div>
+        </div>
+
+        <!-- Filter Pills -->
+        <div class="filter-pills">
+            <button class="filter-pill active">All</button>
+            <button class="filter-pill">Good Only</button>
+            <button class="filter-pill">Needs Work</button>
+            <button class="filter-pill">Driver</button>
+            <button class="filter-pill">Iron</button>
+        </div>
+
+        <!-- History List -->
+        <div class="date-header">Today</div>
+
+        <div class="swing-list-item">
+            <img src="https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=150&h=150&fit=crop" alt="Swing" class="swing-list-thumb">
+            <div class="swing-list-info">
+                <div class="swing-list-title">Morning Practice</div>
+                <div class="swing-list-meta">
+                    <span>8:32 AM</span>
+                    <span>Driver</span>
+                </div>
+            </div>
+            <div class="swing-list-score good">92</div>
+        </div>
+
+        <div class="swing-list-item">
+            <img src="https://images.unsplash.com/photo-1593111774240-d529f12cf4bb?w=150&h=150&fit=crop" alt="Swing" class="swing-list-thumb">
+            <div class="swing-list-info">
+                <div class="swing-list-title">Driver Practice</div>
+                <div class="swing-list-meta">
+                    <span>7:45 AM</span>
+                    <span>Driver</span>
+                </div>
+            </div>
+            <div class="swing-list-score bad">54</div>
+        </div>
+
+        <div class="date-header">Yesterday</div>
+
+        <div class="swing-list-item">
+            <img src="https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?w=150&h=150&fit=crop" alt="Swing" class="swing-list-thumb">
+            <div class="swing-list-info">
+                <div class="swing-list-title">Iron Swing</div>
+                <div class="swing-list-meta">
+                    <span>6:20 PM</span>
+                    <span>7 Iron</span>
+                </div>
+            </div>
+            <div class="swing-list-score good">87</div>
+        </div>
+
+        <div class="swing-list-item">
+            <img src="https://images.unsplash.com/photo-1591491719565-9a1b6f921996?w=150&h=150&fit=crop" alt="Swing" class="swing-list-thumb">
+            <div class="swing-list-info">
+                <div class="swing-list-title">Putting Practice</div>
+                <div class="swing-list-meta">
+                    <span>5:15 PM</span>
+                    <span>Putter</span>
+                </div>
+            </div>
+            <div class="swing-list-score good">79</div>
+        </div>
+
+        <div class="swing-list-item">
+            <img src="https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=150&h=150&fit=crop" alt="Swing" class="swing-list-thumb">
+            <div class="swing-list-info">
+                <div class="swing-list-title">Full Swing</div>
+                <div class="swing-list-meta">
+                    <span>4:30 PM</span>
+                    <span>Driver</span>
+                </div>
+            </div>
+            <div class="swing-list-score good">85</div>
+        </div>
+
+        <!-- Tab Bar -->
+        <nav class="tab-bar">
+            <a href="#" class="tab-item">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="#" class="tab-item active">
+                <i class="fas fa-chart-line"></i>
+                <span>History</span>
+            </a>
+            <a href="#" class="tab-item capture-btn">
+                <i class="fas fa-plus"></i>
+                <span>Record</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-brain"></i>
+                <span>Analysis</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+        </nav>
+    </div>
+</body>
+</html>
