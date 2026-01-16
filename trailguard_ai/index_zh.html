@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrailGuard AI - AI驱动的步道健康监测系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+        * { font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+        .phone-frame {
+            width: 300px;
+            height: 650px;
+            border-radius: 44px;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 11px #1a1a1a,
+                0 0 0 13px #2d2d2d,
+                0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            position: relative;
+            background: #000;
+            flex-shrink: 0;
+        }
+
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 28px;
+            background: #1a1a1a;
+            border-radius: 0 0 20px 20px;
+            z-index: 100;
+        }
+
+        .phone-frame iframe {
+            width: 430px;
+            height: 932px;
+            border: none;
+            border-radius: 38px;
+            transform: scale(0.698);
+            transform-origin: top left;
+        }
+
+        .screen-label {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #14B8A6 0%, #0891B2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen">
+    <!-- Language Switcher -->
+    <div class="fixed top-4 right-4 z-50">
+        <div class="bg-white rounded-full shadow-lg border border-gray-200 p-1 flex gap-1">
+            <a href="index.html" class="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 rounded-full transition">EN</a>
+            <span class="px-3 py-1.5 text-sm bg-teal-600 text-white rounded-full font-medium">中文</span>
+        </div>
+    </div>
+
+    <!-- Hero Header -->
+    <header class="pt-12 pb-8 px-8 text-center border-b border-gray-100">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex items-center justify-center gap-3 mb-5">
+                <div class="w-16 h-16 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-mountain text-white text-3xl"></i>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-3">TrailGuard AI</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-5">基于匿名GPS数据和行走节奏模式的AI驱动步道健康监测系统</p>
+
+            <!-- Major Tags -->
+            <div class="flex items-center justify-center gap-3 flex-wrap">
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-teal-50 text-teal-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-leaf"></i>
+                    环境科学
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-brain"></i>
+                    机器学习
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-map-marked-alt"></i>
+                    地理空间分析
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Problem Statement Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">问题背景</span>
+                <h2 class="text-2xl font-bold text-gray-900">我们的步道正面临隐形威胁</h2>
+            </div>
+
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                <p class="text-gray-700 text-lg leading-relaxed mb-6">
+                    步道退化在肉眼可见之前就已经开始。当我们看到侵蚀、路面变宽或植被退化时，损害往往已经<strong class="text-gray-900">很严重且修复成本高昂</strong>。目前的监测依赖于定期的护林员巡查，无法检测隐藏在徒步者自然行为中的<strong class="text-gray-900">早期预警信号</strong>。
+                </p>
+
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div class="stat-card rounded-xl p-5 text-center">
+                        <p class="text-3xl font-bold text-teal-600 mb-1">171%</p>
+                        <p class="text-sm text-gray-600">新冠疫情期间步道使用量增长，磨损加速超出可持续水平</p>
+                    </div>
+                    <div class="stat-card rounded-xl p-5 text-center">
+                        <p class="text-3xl font-bold text-amber-600 mb-1">10-30年</p>
+                        <p class="text-sm text-gray-600">严重侵蚀的步道在可见损害发生后的恢复时间</p>
+                    </div>
+                    <div class="stat-card rounded-xl p-5 text-center">
+                        <p class="text-3xl font-bold text-red-600 mb-1">$20K+</p>
+                        <p class="text-sm text-gray-600">每英里修复成本——预防比修复更具成本效益</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Impact Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">社会影响</span>
+                <h2 class="text-2xl font-bold text-gray-900">公民科学与生态保护的结合</h2>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-users text-teal-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">青少年赋能</h3>
+                    <p class="text-sm text-gray-600 mb-3">Girl Scouts和青少年团体通过游戏化数据收集成为环境守护者。每次徒步都为步道保护做出贡献。</p>
+                    <p class="text-xs text-teal-600">美国Girl Scouts服务250万成员</p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-shield-halved text-purple-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">隐私优先设计</h3>
+                    <p class="text-sm text-gray-600 mb-3">所有数据都是匿名和聚合的。个人徒步模式永远不会被存储或共享——只有集体洞察。</p>
+                    <p class="text-xs text-purple-600">符合COPPA标准，适合青少年参与</p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-seedling text-green-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">主动式保护</h3>
+                    <p class="text-sm text-gray-600 mb-3">早期检测实现预防性维护，而非昂贵的紧急修复。AI在问题可见之前预测问题。</p>
+                    <p class="text-xs text-green-600">与被动修复相比节省高达10倍成本</p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-handshake text-blue-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">护林员合作</h3>
+                    <p class="text-sm text-gray-600 mb-3">AI洞察直接与公园护林员共享，优先分配最需要的维护资源。</p>
+                    <p class="text-xs text-blue-600">数据驱动的资源分配</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- App Screenshots Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">产品设计</span>
+                <h2 class="text-2xl font-bold text-gray-900">移动应用原型</h2>
+            </div>
+
+            <!-- Row 1: 3 screens -->
+            <div class="flex flex-wrap justify-center gap-8 mb-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="home.html"></iframe>
+                    </div>
+                    <p class="screen-label">首页</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="trails.html"></iframe>
+                    </div>
+                    <p class="screen-label">步道地图</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="analytics.html"></iframe>
+                    </div>
+                    <p class="screen-label">AI分析</p>
+                </div>
+            </div>
+
+            <!-- Row 2: 2 screens -->
+            <div class="flex flex-wrap justify-center gap-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="troop.html"></iframe>
+                    </div>
+                    <p class="screen-label">团队</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="profile.html"></iframe>
+                    </div>
+                    <p class="screen-label">个人资料</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- System Architecture Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">技术概述</span>
+                <h2 class="text-2xl font-bold text-gray-900">系统架构</h2>
+            </div>
+
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                <svg viewBox="0 0 900 420" class="w-full h-auto">
+                    <defs>
+                        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+                        </pattern>
+                        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.1"/>
+                        </filter>
+                    </defs>
+                    <rect width="900" height="420" fill="url(#grid)"/>
+
+                    <!-- Layer 1: Data Collection -->
+                    <g transform="translate(50, 60)">
+                        <rect x="0" y="0" width="160" height="300" rx="16" fill="#F0FDFA" stroke="#14B8A6" stroke-width="2" filter="url(#shadow)"/>
+                        <text x="80" y="30" text-anchor="middle" font-size="12" font-weight="600" fill="#0D9488">数据收集</text>
+
+                        <rect x="20" y="50" width="120" height="70" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="30" y="60" width="30" height="30" rx="6" fill="#14B8A6"/>
+                        <text x="45" y="80" text-anchor="middle" font-size="14" fill="white">📍</text>
+                        <text x="90" y="80" font-size="10" font-weight="500" fill="#374151">GPS轨迹</text>
+                        <text x="90" y="95" font-size="9" fill="#6b7280">路径记录</text>
+
+                        <rect x="20" y="130" width="120" height="70" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="30" y="140" width="30" height="30" rx="6" fill="#0891B2"/>
+                        <text x="45" y="160" text-anchor="middle" font-size="14" fill="white">👟</text>
+                        <text x="90" y="160" font-size="10" font-weight="500" fill="#374151">步频数据</text>
+                        <text x="90" y="175" font-size="9" fill="#6b7280">行走节奏</text>
+
+                        <rect x="20" y="210" width="120" height="70" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="30" y="220" width="30" height="30" rx="6" fill="#059669"/>
+                        <text x="45" y="240" text-anchor="middle" font-size="14" fill="white">🔒</text>
+                        <text x="90" y="240" font-size="10" font-weight="500" fill="#374151">匿名化</text>
+                        <text x="90" y="255" font-size="9" fill="#6b7280">隐私保护层</text>
+                    </g>
+
+                    <!-- Arrow 1 -->
+                    <g transform="translate(220, 200)">
+                        <path d="M 0 10 L 60 10" stroke="#14B8A6" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                        <text x="30" y="0" text-anchor="middle" font-size="9" fill="#6b7280">匿名</text>
+                        <text x="30" y="30" text-anchor="middle" font-size="9" fill="#6b7280">数据</text>
+                    </g>
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#14B8A6"/>
+                        </marker>
+                    </defs>
+
+                    <!-- Layer 2: AI Processing -->
+                    <g transform="translate(290, 60)">
+                        <rect x="0" y="0" width="200" height="300" rx="16" fill="#EDE9FE" stroke="#8B5CF6" stroke-width="2" filter="url(#shadow)"/>
+                        <text x="100" y="30" text-anchor="middle" font-size="12" font-weight="600" fill="#7C3AED">AI处理</text>
+
+                        <rect x="25" y="50" width="150" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <circle cx="55" cy="78" r="15" fill="#8B5CF6"/>
+                        <text x="55" y="82" text-anchor="middle" font-size="10" fill="white">🗺️</text>
+                        <text x="115" y="73" text-anchor="middle" font-size="10" font-weight="500" fill="#374151">路径比对</text>
+                        <text x="115" y="88" text-anchor="middle" font-size="9" fill="#6b7280">与官方步道对比</text>
+
+                        <rect x="25" y="115" width="150" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <circle cx="55" cy="143" r="15" fill="#A855F7"/>
+                        <text x="55" y="147" text-anchor="middle" font-size="14" fill="white">🧠</text>
+                        <text x="115" y="138" text-anchor="middle" font-size="10" font-weight="500" fill="#374151">ML模型</text>
+                        <text x="115" y="153" text-anchor="middle" font-size="9" fill="#6b7280">异常检测</text>
+
+                        <rect x="25" y="180" width="150" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <circle cx="55" cy="208" r="15" fill="#7C3AED"/>
+                        <text x="55" y="212" text-anchor="middle" font-size="10" fill="white">📊</text>
+                        <text x="115" y="203" text-anchor="middle" font-size="10" font-weight="500" fill="#374151">风险评分</text>
+                        <text x="115" y="218" text-anchor="middle" font-size="9" fill="#6b7280">预测引擎</text>
+
+                        <rect x="25" y="245" width="150" height="45" rx="10" fill="#F5F3FF" stroke="#8B5CF6" stroke-width="1"/>
+                        <text x="100" y="265" text-anchor="middle" font-size="9" font-weight="600" fill="#6D28D9">退化预警</text>
+                        <text x="100" y="280" text-anchor="middle" font-size="8" fill="#7C3AED">在可见损害之前</text>
+                    </g>
+
+                    <!-- Arrow 2 -->
+                    <g transform="translate(500, 200)">
+                        <path d="M 0 10 L 60 10" stroke="#8B5CF6" stroke-width="2" fill="none" marker-end="url(#arrowhead2)"/>
+                        <text x="30" y="0" text-anchor="middle" font-size="9" fill="#6b7280">洞察</text>
+                        <text x="30" y="30" text-anchor="middle" font-size="9" fill="#6b7280">与预警</text>
+                    </g>
+                    <defs>
+                        <marker id="arrowhead2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#8B5CF6"/>
+                        </marker>
+                    </defs>
+
+                    <!-- Layer 3: Actions -->
+                    <g transform="translate(570, 60)">
+                        <rect x="0" y="0" width="160" height="300" rx="16" fill="#DCFCE7" stroke="#22C55E" stroke-width="2" filter="url(#shadow)"/>
+                        <text x="80" y="30" text-anchor="middle" font-size="12" font-weight="600" fill="#16A34A">行动</text>
+
+                        <rect x="20" y="50" width="120" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="30" y="60" width="30" height="30" rx="6" fill="#22C55E"/>
+                        <text x="45" y="80" text-anchor="middle" font-size="14" fill="white">🏕️</text>
+                        <text x="90" y="75" font-size="10" font-weight="500" fill="#374151">护林员</text>
+                        <text x="90" y="90" font-size="9" fill="#6b7280">优先警报</text>
+
+                        <rect x="20" y="115" width="120" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="30" y="125" width="30" height="30" rx="6" fill="#10B981"/>
+                        <text x="45" y="145" text-anchor="middle" font-size="14" fill="white">🗺️</text>
+                        <text x="90" y="140" font-size="10" font-weight="500" fill="#374151">热力图</text>
+                        <text x="90" y="155" font-size="9" fill="#6b7280">风险区域</text>
+
+                        <rect x="20" y="180" width="120" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="30" y="190" width="30" height="30" rx="6" fill="#059669"/>
+                        <text x="45" y="210" text-anchor="middle" font-size="14" fill="white">📱</text>
+                        <text x="90" y="205" font-size="10" font-weight="500" fill="#374151">应用</text>
+                        <text x="90" y="220" font-size="9" fill="#6b7280">用户洞察</text>
+
+                        <rect x="20" y="245" width="120" height="45" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="30" y="255" width="30" height="25" rx="6" fill="#047857"/>
+                        <text x="45" y="273" text-anchor="middle" font-size="12" fill="white">🛠️</text>
+                        <text x="90" y="270" font-size="10" font-weight="500" fill="#374151">维护</text>
+                    </g>
+
+                    <!-- Users -->
+                    <g transform="translate(780, 120)">
+                        <circle cx="40" cy="40" r="35" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/>
+                        <text x="40" y="35" text-anchor="middle" font-size="24">⛺</text>
+                        <text x="40" y="55" text-anchor="middle" font-size="9" font-weight="600" fill="#92400E">童军</text>
+                        <text x="40" y="90" text-anchor="middle" font-size="9" fill="#6b7280">数据贡献者</text>
+                    </g>
+                </svg>
+
+                <div class="mt-6 pt-6 border-t border-gray-100">
+                    <div class="flex flex-wrap justify-center gap-6 text-sm">
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 rounded bg-teal-500"></div>
+                            <span class="text-gray-600">数据收集</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 rounded bg-purple-500"></div>
+                            <span class="text-gray-600">AI处理</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 rounded bg-green-500"></div>
+                            <span class="text-gray-600">保护行动</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Growth Path Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">发展路径</span>
+                <h2 class="text-2xl font-bold text-gray-900">从试点到平台</h2>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <span class="text-teal-600 font-bold text-lg">1</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-1">与Girl Scout团队本地试点</h3>
+                            <p class="text-sm text-gray-600">与湾区5个团队合作启动，与2-3个本地公园建立伙伴关系。童军在日常徒步活动中收集步道健康数据的同时获得保护徽章。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <span class="text-purple-600 font-bold text-lg">2</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-1">区域扩展与护林员集成</h3>
+                            <p class="text-sm text-gray-600">扩展到北加州地区50+个团队。与公园护林员系统集成，建立数据共享协议，并通过实地验证AI预测。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <span class="text-green-600 font-bold text-lg">3</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-1">全国平台与开放公民科学</h3>
+                            <p class="text-sm text-gray-600">与美国Girl Scouts全国合作，向其他户外组织开放平台。目标50K+用户在500+个公园贡献数据。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Your Journey Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">你的旅程</span>
+                <h2 class="text-2xl font-bold text-gray-900">从热爱到使命</h2>
+                <p class="text-gray-600 mt-3 max-w-2xl mx-auto">这个项目是你环境价值观和户外领导力经验的自然延伸。</p>
+            </div>
+
+            <div class="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-2xl p-8 border border-teal-100 mb-8">
+                <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i class="fas fa-route text-teal-600"></i>
+                    叙事弧线：从童军到科学家
+                </h3>
+                <div class="relative">
+                    <div class="absolute left-6 top-8 bottom-8 w-0.5 bg-teal-200"></div>
+
+                    <div class="space-y-6">
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-teal-500 rounded-full flex items-center justify-center flex-shrink-0 z-10">
+                                <i class="fas fa-campground text-white"></i>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 flex-1 shadow-sm">
+                                <p class="font-semibold text-gray-900">基础：对户外的热爱</p>
+                                <p class="text-sm text-gray-600 mt-1">"我的旅程始于Girl Scouts，通过露营、徒步和户外技能学习欣赏和尊重大自然。我亲眼见证了步道如何将人们与自然世界连接起来。"</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center flex-shrink-0 z-10">
+                                <i class="fas fa-eye text-white"></i>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 flex-1 shadow-sm">
+                                <p class="font-semibold text-gray-900">观察：隐形的问题</p>
+                                <p class="text-sm text-gray-600 mt-1">"在一次团队徒步中，我注意到每个人都在避开同一段泥泞的路段——在植被中开辟了一条新路。那时我意识到：我们的行为在问题可见之前就揭示了步道问题。"</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 z-10">
+                                <i class="fas fa-lightbulb text-white"></i>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 flex-1 shadow-sm">
+                                <p class="font-semibold text-gray-900">洞察：每一步都是数据</p>
+                                <p class="text-sm text-gray-600 mt-1">"如果我们能匿名收集这些行为数据呢？路径偏移和行走节奏变化可能是早期预警信号——AI可以在任何护林员巡查之前检测到。"</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 z-10">
+                                <i class="fas fa-rocket text-white"></i>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 flex-1 shadow-sm">
+                                <p class="font-semibold text-gray-900">创新：TrailGuard AI</p>
+                                <p class="text-sm text-gray-600 mt-1">"通过将公民科学与机器学习结合，我正在将每次童军徒步变成保护任务。我们保护步道不是通过避开它们，而是用心行走——让我们的脚步讲述故事。"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 px-8 border-t border-gray-100">
+        <div class="max-w-4xl mx-auto text-center">
+            <p class="text-sm text-gray-500">TrailGuard AI &mdash; 通过公民科学保护步道</p>
+            <p class="text-xs text-gray-400 mt-2">一个学生主导的保护技术项目</p>
+        </div>
+    </footer>
+</body>
+</html>
