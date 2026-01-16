@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WasteWise AI - 智能垃圾分类系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+        * { font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+        .phone-frame {
+            width: 280px;
+            height: 605px;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 10px #1a1a1a,
+                0 0 0 12px #2d2d2d,
+                0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            position: relative;
+            background: #000;
+            flex-shrink: 0;
+        }
+
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 24px;
+            background: #1a1a1a;
+            border-radius: 0 0 18px 18px;
+            z-index: 100;
+        }
+
+        .phone-frame iframe {
+            width: 375px;
+            height: 812px;
+            border: none;
+            border-radius: 30px;
+            transform: scale(0.745);
+            transform-origin: top left;
+        }
+
+        .screen-label {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen">
+    <!-- Language Switcher -->
+    <div class="fixed top-4 right-4 z-50">
+        <div class="bg-white rounded-full shadow-lg border border-gray-200 p-1 flex gap-1">
+            <a href="index.html" class="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 rounded-full transition">EN</a>
+            <span class="px-3 py-1.5 text-sm bg-green-600 text-white rounded-full font-medium">中文</span>
+        </div>
+    </div>
+
+    <!-- Hero Header -->
+    <header class="pt-12 pb-8 px-8 text-center border-b border-gray-100">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex items-center justify-center gap-3 mb-5">
+                <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-recycle text-white text-3xl"></i>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-3">WasteWise AI</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-5">基于传感器行为分析的AI智能垃圾分类系统</p>
+
+            <!-- Major Tags -->
+            <div class="flex items-center justify-center gap-3 flex-wrap">
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-leaf"></i>
+                    环境科学
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-cogs"></i>
+                    环境工程
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-microchip"></i>
+                    物联网与数据科学
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Problem Statement Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">核心问题</span>
+                <h2 class="text-2xl font-bold text-gray-900">政策与实践之间的鸿沟</h2>
+            </div>
+
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                <p class="text-gray-700 text-lg leading-relaxed mb-6">
+                    全球各国政府已实施强制垃圾分类政策，但<strong class="text-gray-900">合规往往流于表面</strong>。居民可能将物品放入正确的垃圾桶，却没有真正分类——将可回收物与污染物混合，或在错误的时间投放垃圾。现有系统依赖目视检查和自我报告，无法区分<strong class="text-gray-900">"形式化分类"</strong>和<strong class="text-gray-900">"真实有效分类"</strong>。
+                </p>
+
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div class="stat-card rounded-xl p-5 text-center">
+                        <p class="text-3xl font-bold text-red-600 mb-1">60%</p>
+                        <p class="text-sm text-gray-600">的回收物被污染，无法再循环利用</p>
+                    </div>
+                    <div class="stat-card rounded-xl p-5 text-center">
+                        <p class="text-3xl font-bold text-amber-600 mb-1">59%</p>
+                        <p class="text-sm text-gray-600">的美国人错误地认为大多数物品可以混合回收</p>
+                    </div>
+                    <div class="stat-card rounded-xl p-5 text-center">
+                        <p class="text-3xl font-bold text-gray-700 mb-1">9%</p>
+                        <p class="text-sm text-gray-600">有史以来生产的所有塑料废物中实际被回收的比例</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Impact Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">社会影响</span>
+                <h2 class="text-2xl font-bold text-gray-900">为什么现在很重要</h2>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Impact Card 1 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-globe-americas text-red-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">全球垃圾危机</h3>
+                    <p class="text-sm text-gray-600 mb-3">到2050年，城市固体废物将增长至<strong>38亿吨</strong>。如不采取干预措施，废物管理成本可能增至目前的三倍，达到<strong>每年6400亿美元</strong>。</p>
+                    <a href="https://www.greyparrot.ai/waste-and-recycling-statistics-2025" target="_blank" class="text-xs text-green-600 hover:underline flex items-center gap-1">
+                        <i class="fas fa-external-link-alt"></i> Greyparrot 2025年统计数据
+                    </a>
+                </div>
+
+                <!-- Impact Card 2 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-exclamation-triangle text-amber-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">回收污染问题</h3>
+                    <p class="text-sm text-gray-600 mb-3">2024年，超过<strong>35,000吨可回收塑料</strong>因污染而未能回收——相当于<strong>52,500吨二氧化碳</strong>的减排潜力被浪费。</p>
+                    <a href="https://www.greyparrot.ai/resources/blog/2024-recycling-data" target="_blank" class="text-xs text-green-600 hover:underline flex items-center gap-1">
+                        <i class="fas fa-external-link-alt"></i> Greyparrot 2024年报告
+                    </a>
+                </div>
+
+                <!-- Impact Card 3 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-flag text-blue-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">中国垃圾分类挑战</h3>
+                    <p class="text-sm text-gray-600 mb-3">尽管自2017年以来已在46个城市实施强制政策，研究表明由于执法薄弱和难以验证真实合规性，实施效果<strong>"不太理想"</strong>。</p>
+                    <a href="https://www.sciencedirect.com/science/article/abs/pii/S0921344922001604" target="_blank" class="text-xs text-green-600 hover:underline flex items-center gap-1">
+                        <i class="fas fa-external-link-alt"></i> ScienceDirect 研究论文
+                    </a>
+                </div>
+
+                <!-- Impact Card 4 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">政策影响已被证实</h3>
+                    <p class="text-sm text-gray-600 mb-3">北京的垃圾分类政策将碳排放从<strong>每吨3,584千克二氧化碳当量降至2,403千克</strong>——证明有效分类具有可衡量的环境效益。</p>
+                    <a href="https://link.springer.com/article/10.1007/s10163-024-01985-9" target="_blank" class="text-xs text-green-600 hover:underline flex items-center gap-1">
+                        <i class="fas fa-external-link-alt"></i> Springer 2024年研究
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- App Screenshots Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">产品设计</span>
+                <h2 class="text-2xl font-bold text-gray-900">移动应用原型</h2>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="home.html"></iframe>
+                    </div>
+                    <p class="screen-label">首页</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="analytics.html"></iframe>
+                    </div>
+                    <p class="screen-label">AI分析</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="community.html"></iframe>
+                    </div>
+                    <p class="screen-label">社区</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="feedback.html"></iframe>
+                    </div>
+                    <p class="screen-label">反馈</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="profile.html"></iframe>
+                    </div>
+                    <p class="screen-label">个人中心</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hardware Concept Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">硬件设计</span>
+                <h2 class="text-2xl font-bold text-gray-900">智能垃圾桶传感器系统</h2>
+            </div>
+
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                <svg viewBox="0 0 900 500" class="w-full h-auto">
+                    <defs>
+                        <filter id="hw-shadow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.1"/>
+                        </filter>
+                        <linearGradient id="binGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4ade80"/>
+                            <stop offset="100%" style="stop-color:#22c55e"/>
+                        </linearGradient>
+                        <linearGradient id="sensorGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#3b82f6"/>
+                            <stop offset="100%" style="stop-color:#1d4ed8"/>
+                        </linearGradient>
+                    </defs>
+
+                    <!-- Background -->
+                    <rect width="900" height="500" fill="#fafafa"/>
+
+                    <!-- Title: Cross-Section View -->
+                    <text x="200" y="40" text-anchor="middle" font-size="14" font-weight="600" fill="#374151">剖面视图</text>
+
+                    <!-- Smart Bin - Cross Section -->
+                    <g transform="translate(80, 60)">
+                        <!-- Bin Body - Back -->
+                        <rect x="40" y="20" width="200" height="280" rx="8" fill="#d1d5db" stroke="#9ca3af" stroke-width="2"/>
+
+                        <!-- Bin Interior -->
+                        <rect x="50" y="30" width="180" height="230" rx="4" fill="#f3f4f6"/>
+
+                        <!-- Waste Items Inside -->
+                        <ellipse cx="100" cy="180" rx="25" ry="15" fill="#fbbf24" opacity="0.7"/>
+                        <rect x="130" y="160" width="30" height="40" rx="4" fill="#60a5fa" opacity="0.7"/>
+                        <ellipse cx="170" cy="200" rx="20" ry="12" fill="#a78bfa" opacity="0.7"/>
+                        <rect x="90" y="140" width="25" height="35" rx="3" fill="#34d399" opacity="0.7"/>
+                        <ellipse cx="150" cy="130" rx="18" ry="10" fill="#f87171" opacity="0.7"/>
+
+                        <!-- Bin Lid -->
+                        <rect x="30" y="0" width="220" height="25" rx="6" fill="url(#binGradient)" filter="url(#hw-shadow)"/>
+                        <rect x="110" y="5" width="60" height="15" rx="4" fill="#16a34a"/>
+
+                        <!-- Load Cell Platform -->
+                        <rect x="50" y="265" width="180" height="12" rx="2" fill="#6b7280"/>
+
+                        <!-- Load Cells (4 corners) -->
+                        <rect x="55" y="277" width="30" height="18" rx="3" fill="url(#sensorGradient)"/>
+                        <rect x="195" y="277" width="30" height="18" rx="3" fill="url(#sensorGradient)"/>
+
+                        <!-- Base Platform -->
+                        <rect x="40" y="300" width="200" height="20" rx="4" fill="#374151"/>
+
+                        <!-- Labels -->
+                        <line x1="260" y1="12" x2="290" y2="12" stroke="#9ca3af" stroke-width="1"/>
+                        <text x="295" y="16" font-size="11" fill="#6b7280">带投放口的盖子</text>
+
+                        <line x1="235" y1="150" x2="290" y2="150" stroke="#9ca3af" stroke-width="1"/>
+                        <text x="295" y="154" font-size="11" fill="#6b7280">垃圾容器</text>
+
+                        <line x1="235" y1="270" x2="290" y2="270" stroke="#9ca3af" stroke-width="1"/>
+                        <text x="295" y="274" font-size="11" fill="#6b7280">称重平台</text>
+
+                        <line x1="235" y1="286" x2="290" y2="286" stroke="#9ca3af" stroke-width="1"/>
+                        <text x="295" y="290" font-size="11" fill="#3b82f6" font-weight="600">压力传感器</text>
+
+                        <line x1="245" y1="310" x2="290" y2="310" stroke="#9ca3af" stroke-width="1"/>
+                        <text x="295" y="314" font-size="11" fill="#6b7280">结构底座</text>
+                    </g>
+
+                    <!-- Title: Components -->
+                    <text x="680" y="40" text-anchor="middle" font-size="14" font-weight="600" fill="#374151">核心组件</text>
+
+                    <!-- Component 1: Load Cell -->
+                    <g transform="translate(530, 60)">
+                        <rect x="0" y="0" width="300" height="80" rx="12" fill="white" stroke="#e5e7eb" stroke-width="1" filter="url(#hw-shadow)"/>
+                        <rect x="15" y="15" width="50" height="50" rx="8" fill="#dbeafe"/>
+                        <rect x="25" y="25" width="30" height="30" rx="4" fill="#3b82f6"/>
+                        <text x="40" y="45" text-anchor="middle" font-size="10" fill="white" font-weight="600">LC</text>
+                        <text x="80" y="30" font-size="13" font-weight="600" fill="#1f2937">压力传感器</text>
+                        <text x="80" y="48" font-size="11" fill="#6b7280">实时测量重量变化</text>
+                        <text x="80" y="63" font-size="10" fill="#9ca3af">HX711 + 50kg称重传感器 (~¥50)</text>
+                    </g>
+
+                    <!-- Component 2: Microcontroller -->
+                    <g transform="translate(530, 155)">
+                        <rect x="0" y="0" width="300" height="80" rx="12" fill="white" stroke="#e5e7eb" stroke-width="1" filter="url(#hw-shadow)"/>
+                        <rect x="15" y="15" width="50" height="50" rx="8" fill="#dcfce7"/>
+                        <rect x="22" y="22" width="36" height="36" rx="4" fill="#22c55e"/>
+                        <circle cx="32" cy="32" r="3" fill="white"/>
+                        <circle cx="32" cy="42" r="3" fill="white"/>
+                        <circle cx="32" cy="52" r="3" fill="white"/>
+                        <rect x="40" y="30" width="15" height="20" rx="2" fill="#16a34a"/>
+                        <text x="80" y="30" font-size="13" font-weight="600" fill="#1f2937">ESP32 微控制器</text>
+                        <text x="80" y="48" font-size="11" fill="#6b7280">处理数据并通过WiFi发送</text>
+                        <text x="80" y="63" font-size="10" fill="#9ca3af">内置WiFi + 蓝牙 (~¥40)</text>
+                    </g>
+
+                    <!-- Component 3: Power -->
+                    <g transform="translate(530, 250)">
+                        <rect x="0" y="0" width="300" height="80" rx="12" fill="white" stroke="#e5e7eb" stroke-width="1" filter="url(#hw-shadow)"/>
+                        <rect x="15" y="15" width="50" height="50" rx="8" fill="#fef3c7"/>
+                        <rect x="25" y="22" width="30" height="36" rx="3" fill="#f59e0b"/>
+                        <rect x="32" y="18" width="16" height="6" rx="1" fill="#d97706"/>
+                        <text x="40" y="47" text-anchor="middle" font-size="8" fill="white" font-weight="600">3.7V</text>
+                        <text x="80" y="30" font-size="13" font-weight="600" fill="#1f2937">可充电电池</text>
+                        <text x="80" y="48" font-size="11" fill="#6b7280">18650锂电池，支持太阳能充电</text>
+                        <text x="80" y="63" font-size="10" fill="#9ca3af">续航3-6个月 (~¥30)</text>
+                    </g>
+
+                    <!-- Component 4: Enclosure -->
+                    <g transform="translate(530, 345)">
+                        <rect x="0" y="0" width="300" height="80" rx="12" fill="white" stroke="#e5e7eb" stroke-width="1" filter="url(#hw-shadow)"/>
+                        <rect x="15" y="15" width="50" height="50" rx="8" fill="#f3e8ff"/>
+                        <rect x="22" y="22" width="36" height="36" rx="6" fill="#a855f7" stroke="#9333ea" stroke-width="2"/>
+                        <circle cx="40" cy="40" r="8" fill="#f3e8ff"/>
+                        <text x="80" y="30" font-size="13" font-weight="600" fill="#1f2937">防水外壳</text>
+                        <text x="80" y="48" font-size="11" fill="#6b7280">IP65防护等级电子元件外壳</text>
+                        <text x="80" y="63" font-size="10" fill="#9ca3af">3D打印或成品外壳 (~¥60)</text>
+                    </g>
+
+                    <!-- Data Flow Arrow -->
+                    <g transform="translate(80, 400)">
+                        <text x="0" y="20" font-size="12" font-weight="600" fill="#374151">数据流程：</text>
+
+                        <!-- Flow diagram -->
+                        <rect x="90" y="5" width="80" height="30" rx="6" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+                        <text x="130" y="25" text-anchor="middle" font-size="10" fill="#1d4ed8">重量数据</text>
+
+                        <path d="M 175 20 L 200 20" stroke="#3b82f6" stroke-width="2" marker-end="url(#hw-arrow-zh)"/>
+
+                        <rect x="205" y="5" width="80" height="30" rx="6" fill="#dcfce7" stroke="#22c55e" stroke-width="1"/>
+                        <text x="245" y="25" text-anchor="middle" font-size="10" fill="#16a34a">ESP32</text>
+
+                        <path d="M 290 20 L 315 20" stroke="#22c55e" stroke-width="2" marker-end="url(#hw-arrow2-zh)"/>
+
+                        <rect x="320" y="5" width="80" height="30" rx="6" fill="#e0e7ff" stroke="#6366f1" stroke-width="1"/>
+                        <text x="360" y="25" text-anchor="middle" font-size="10" fill="#4f46e5">WiFi</text>
+
+                        <path d="M 405 20 L 430 20" stroke="#6366f1" stroke-width="2" marker-end="url(#hw-arrow3-zh)"/>
+
+                        <rect x="435" y="5" width="80" height="30" rx="6" fill="#fae8ff" stroke="#d946ef" stroke-width="1"/>
+                        <text x="475" y="25" text-anchor="middle" font-size="10" fill="#c026d3">云端</text>
+
+                        <path d="M 520 20 L 545 20" stroke="#d946ef" stroke-width="2" marker-end="url(#hw-arrow4-zh)"/>
+
+                        <rect x="550" y="5" width="80" height="30" rx="6" fill="#ffedd5" stroke="#f97316" stroke-width="1"/>
+                        <text x="590" y="25" text-anchor="middle" font-size="10" fill="#ea580c">AI分析</text>
+                    </g>
+
+                    <defs>
+                        <marker id="hw-arrow-zh" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                            <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+                        </marker>
+                        <marker id="hw-arrow2-zh" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                            <polygon points="0 0, 8 3, 0 6" fill="#22c55e"/>
+                        </marker>
+                        <marker id="hw-arrow3-zh" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                            <polygon points="0 0, 8 3, 0 6" fill="#6366f1"/>
+                        </marker>
+                        <marker id="hw-arrow4-zh" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                            <polygon points="0 0, 8 3, 0 6" fill="#d946ef"/>
+                        </marker>
+                    </defs>
+
+                    <!-- Total Cost Box -->
+                    <g transform="translate(680, 445)">
+                        <rect x="0" y="0" width="150" height="40" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
+                        <text x="75" y="18" text-anchor="middle" font-size="11" fill="#166534" font-weight="600">单个垃圾桶总成本</text>
+                        <text x="75" y="33" text-anchor="middle" font-size="14" fill="#15803d" font-weight="700">约¥180-250</text>
+                    </g>
+                </svg>
+
+                <!-- Hardware Notes -->
+                <div class="mt-6 pt-6 border-t border-gray-100">
+                    <div class="flex flex-wrap justify-center gap-6 text-sm">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-microchip text-green-500"></i>
+                            <span class="text-gray-600">兼容Arduino</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-wifi text-blue-500"></i>
+                            <span class="text-gray-600">支持WiFi连接</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-battery-full text-amber-500"></i>
+                            <span class="text-gray-600">低功耗设计</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-dollar-sign text-purple-500"></i>
+                            <span class="text-gray-600">成本友好的组件</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- System Architecture Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">技术概览</span>
+                <h2 class="text-2xl font-bold text-gray-900">系统架构</h2>
+            </div>
+
+            <!-- System Diagram -->
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                <svg viewBox="0 0 900 420" class="w-full h-auto">
+                    <!-- Background Grid -->
+                    <defs>
+                        <pattern id="grid-zh" width="20" height="20" patternUnits="userSpaceOnUse">
+                            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+                        </pattern>
+                        <filter id="shadow-zh" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.1"/>
+                        </filter>
+                    </defs>
+                    <rect width="900" height="420" fill="url(#grid-zh)"/>
+
+                    <!-- Layer 1: Hardware (Bins) -->
+                    <g transform="translate(50, 60)">
+                        <rect x="0" y="0" width="160" height="300" rx="16" fill="#ecfdf5" stroke="#10b981" stroke-width="2" filter="url(#shadow-zh)"/>
+                        <text x="80" y="30" text-anchor="middle" font-size="12" font-weight="600" fill="#065f46">硬件层</text>
+
+                        <!-- Bin 1 -->
+                        <rect x="20" y="50" width="120" height="70" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="30" y="60" width="30" height="30" rx="6" fill="#22c55e"/>
+                        <text x="70" y="75" font-size="10" font-weight="500" fill="#374151">可回收物</text>
+                        <text x="70" y="90" font-size="9" fill="#6b7280">压力传感器</text>
+                        <circle cx="120" cy="105" r="6" fill="#22c55e"/>
+
+                        <!-- Bin 2 -->
+                        <rect x="20" y="130" width="120" height="70" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="30" y="140" width="30" height="30" rx="6" fill="#f59e0b"/>
+                        <text x="70" y="155" font-size="10" font-weight="500" fill="#374151">厨余垃圾</text>
+                        <text x="70" y="170" font-size="9" fill="#6b7280">压力传感器</text>
+                        <circle cx="120" cy="185" r="6" fill="#22c55e"/>
+
+                        <!-- Bin 3 -->
+                        <rect x="20" y="210" width="120" height="70" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="30" y="220" width="30" height="30" rx="6" fill="#6b7280"/>
+                        <text x="70" y="235" font-size="10" font-weight="500" fill="#374151">其他垃圾</text>
+                        <text x="70" y="250" font-size="9" fill="#6b7280">压力传感器</text>
+                        <circle cx="120" cy="265" r="6" fill="#22c55e"/>
+                    </g>
+
+                    <!-- Arrow 1 -->
+                    <g transform="translate(220, 200)">
+                        <path d="M 0 10 L 60 10" stroke="#10b981" stroke-width="2" fill="none" marker-end="url(#arrowhead-zh)"/>
+                        <text x="30" y="0" text-anchor="middle" font-size="9" fill="#6b7280">重量数据</text>
+                        <text x="30" y="30" text-anchor="middle" font-size="9" fill="#6b7280">通过物联网</text>
+                    </g>
+                    <defs>
+                        <marker id="arrowhead-zh" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+                        </marker>
+                    </defs>
+
+                    <!-- Layer 2: Cloud Backend -->
+                    <g transform="translate(290, 60)">
+                        <rect x="0" y="0" width="200" height="300" rx="16" fill="#eff6ff" stroke="#3b82f6" stroke-width="2" filter="url(#shadow-zh)"/>
+                        <text x="100" y="30" text-anchor="middle" font-size="12" font-weight="600" fill="#1e40af">云端后台</text>
+
+                        <!-- Database -->
+                        <rect x="25" y="50" width="150" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <circle cx="55" cy="78" r="15" fill="#3b82f6"/>
+                        <text x="55" y="82" text-anchor="middle" font-size="12" fill="white"><tspan font-family="monospace">db</tspan></text>
+                        <text x="115" y="73" text-anchor="middle" font-size="10" font-weight="500" fill="#374151">时序数据库</text>
+                        <text x="115" y="88" text-anchor="middle" font-size="9" fill="#6b7280">重量历史记录</text>
+
+                        <!-- AI Engine -->
+                        <rect x="25" y="115" width="150" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <circle cx="55" cy="143" r="15" fill="#8b5cf6"/>
+                        <text x="55" y="147" text-anchor="middle" font-size="14" fill="white"><tspan>&#x1F9E0;</tspan></text>
+                        <text x="115" y="138" text-anchor="middle" font-size="10" font-weight="500" fill="#374151">AI/ML引擎</text>
+                        <text x="115" y="153" text-anchor="middle" font-size="9" fill="#6b7280">模式聚类分析</text>
+
+                        <!-- API -->
+                        <rect x="25" y="180" width="150" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <circle cx="55" cy="208" r="15" fill="#10b981"/>
+                        <text x="55" y="212" text-anchor="middle" font-size="10" fill="white">API</text>
+                        <text x="115" y="203" text-anchor="middle" font-size="10" font-weight="500" fill="#374151">REST API</text>
+                        <text x="115" y="218" text-anchor="middle" font-size="9" fill="#6b7280">数据与洞察</text>
+
+                        <!-- Classification Output -->
+                        <rect x="25" y="245" width="150" height="45" rx="10" fill="#f0fdf4" stroke="#22c55e" stroke-width="1"/>
+                        <text x="100" y="265" text-anchor="middle" font-size="9" font-weight="600" fill="#166534">分类输出</text>
+                        <text x="100" y="280" text-anchor="middle" font-size="8" fill="#16a34a">"真实分类" vs "形式分类"</text>
+                    </g>
+
+                    <!-- Arrow 2 -->
+                    <g transform="translate(500, 200)">
+                        <path d="M 0 10 L 60 10" stroke="#3b82f6" stroke-width="2" fill="none" marker-end="url(#arrowhead2-zh)"/>
+                        <text x="30" y="0" text-anchor="middle" font-size="9" fill="#6b7280">洞察</text>
+                        <text x="30" y="30" text-anchor="middle" font-size="9" fill="#6b7280">与评分</text>
+                    </g>
+                    <defs>
+                        <marker id="arrowhead2-zh" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/>
+                        </marker>
+                    </defs>
+
+                    <!-- Layer 3: Mobile App -->
+                    <g transform="translate(570, 60)">
+                        <rect x="0" y="0" width="160" height="300" rx="16" fill="#faf5ff" stroke="#8b5cf6" stroke-width="2" filter="url(#shadow-zh)"/>
+                        <text x="80" y="30" text-anchor="middle" font-size="12" font-weight="600" fill="#581c87">移动应用</text>
+
+                        <!-- Dashboard -->
+                        <rect x="20" y="50" width="120" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="30" y="60" width="30" height="30" rx="6" fill="#22c55e"/>
+                        <text x="35" y="80" font-size="14" fill="white">&#x1F3E0;</text>
+                        <text x="80" y="75" font-size="10" font-weight="500" fill="#374151">仪表盘</text>
+                        <text x="80" y="90" font-size="9" fill="#6b7280">实时状态</text>
+
+                        <!-- Analytics -->
+                        <rect x="20" y="115" width="120" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="30" y="125" width="30" height="30" rx="6" fill="#8b5cf6"/>
+                        <text x="35" y="145" font-size="14" fill="white">&#x1F4CA;</text>
+                        <text x="80" y="140" font-size="10" font-weight="500" fill="#374151">数据分析</text>
+                        <text x="80" y="155" font-size="9" fill="#6b7280">AI分类结果</text>
+
+                        <!-- Community -->
+                        <rect x="20" y="180" width="120" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="30" y="190" width="30" height="30" rx="6" fill="#f59e0b"/>
+                        <text x="35" y="210" font-size="14" fill="white">&#x1F465;</text>
+                        <text x="80" y="205" font-size="10" font-weight="500" fill="#374151">社区</text>
+                        <text x="80" y="220" font-size="9" fill="#6b7280">排行榜</text>
+
+                        <!-- Feedback -->
+                        <rect x="20" y="245" width="120" height="45" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="30" y="255" width="30" height="25" rx="6" fill="#3b82f6"/>
+                        <text x="35" y="273" font-size="12" fill="white">&#x1F4AC;</text>
+                        <text x="80" y="270" font-size="10" font-weight="500" fill="#374151">反馈</text>
+                    </g>
+
+                    <!-- Arrow 3: Feedback Loop -->
+                    <g transform="translate(740, 200)">
+                        <path d="M 0 10 L 40 10 L 40 150 L -530 150 L -530 120" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5,5" fill="none" marker-end="url(#arrowhead3-zh)"/>
+                        <text x="60" y="90" font-size="9" fill="#6b7280" transform="rotate(90, 60, 90)">行为改变</text>
+                    </g>
+                    <defs>
+                        <marker id="arrowhead3-zh" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto" transform="rotate(-90)">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+                        </marker>
+                    </defs>
+
+                    <!-- Users -->
+                    <g transform="translate(780, 120)">
+                        <circle cx="40" cy="40" r="35" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                        <text x="40" y="35" text-anchor="middle" font-size="24">&#x1F464;</text>
+                        <text x="40" y="55" text-anchor="middle" font-size="9" font-weight="600" fill="#92400e">用户</text>
+                        <text x="40" y="90" text-anchor="middle" font-size="9" fill="#6b7280">社区居民</text>
+                    </g>
+                </svg>
+
+                <!-- Legend -->
+                <div class="mt-6 pt-6 border-t border-gray-100">
+                    <div class="flex flex-wrap justify-center gap-6 text-sm">
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 rounded bg-emerald-500"></div>
+                            <span class="text-gray-600">硬件/物联网</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 rounded bg-blue-500"></div>
+                            <span class="text-gray-600">云端处理</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 rounded bg-purple-500"></div>
+                            <span class="text-gray-600">移动端界面</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 rounded border-2 border-amber-500 border-dashed"></div>
+                            <span class="text-gray-600">反馈循环</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Getting Started Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">成长路径</span>
+                <h2 class="text-2xl font-bold text-gray-900">从1到100</h2>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Step 1 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <span class="text-green-600 font-bold text-lg">1</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-1">在学校食堂开展试点</h3>
+                            <p class="text-sm text-gray-600">与学校的可持续发展协调员或校长沟通，在食堂安装2-3个配备传感器的垃圾桶。学校通常欢迎学生主导的环保项目，而食堂每天都会产生一致且可测量的垃圾数据。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <span class="text-blue-600 font-bold text-lg">2</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-1">与当地小区物业合作</h3>
+                            <p class="text-sm text-gray-600">联系附近小区的物业经理——他们经常因为垃圾分类不达标而面临罚款，会欢迎一个解决方案。提供免费的2个月试点，换取进入垃圾投放区域和居民反馈的机会。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <span class="text-purple-600 font-bold text-lg">3</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-1">向居委会或业主委员会展示</h3>
+                            <p class="text-sm text-gray-600">许多居民社区都在为垃圾分类污染问题苦恼，他们会欢迎一个数据驱动的解决方案。将你的学校试点结果带到社区会议上——这就是真正的创业项目找到第一批客户的方式。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Your Journey Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">你的旅程</span>
+                <h2 class="text-2xl font-bold text-gray-900">从热情到使命</h2>
+                <p class="text-gray-600 mt-3 max-w-2xl mx-auto">这个项目是你环保价值观和社区服务经历的自然延伸。</p>
+            </div>
+
+            <!-- Narrative Arc -->
+            <div class="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-8 border border-emerald-100 mb-8">
+                <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i class="fas fa-route text-emerald-600"></i>
+                    叙事弧线：从热情到创新
+                </h3>
+                <div class="relative">
+                    <!-- Timeline Line -->
+                    <div class="absolute left-6 top-8 bottom-8 w-0.5 bg-emerald-200"></div>
+
+                    <div class="space-y-6">
+                        <!-- Stage 1 -->
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 z-10">
+                                <i class="fas fa-seedling text-white"></i>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 flex-1 shadow-sm">
+                                <p class="font-semibold text-gray-900">基础：环保意识的萌芽</p>
+                                <p class="text-sm text-gray-600 mt-1">"我的旅程始于对大自然深深的热爱，这份热爱在多年的户外活动和环保社团中得到培养。我亲眼目睹了人类行为如何影响生态系统。"</p>
+                            </div>
+                        </div>
+
+                        <!-- Stage 2 -->
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center flex-shrink-0 z-10">
+                                <i class="fas fa-hands-helping text-white"></i>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 flex-1 shadow-sm">
+                                <p class="font-semibold text-gray-900">服务：社区参与</p>
+                                <p class="text-sm text-gray-600 mt-1">"通过志愿服务和女童军活动，我学到真正的改变发生在社区层面。但我也注意到一个问题——好的意愿并不总能带来好的结果。"</p>
+                            </div>
+                        </div>
+
+                        <!-- Stage 3 -->
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 z-10">
+                                <i class="fas fa-lightbulb text-white"></i>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 flex-1 shadow-sm">
+                                <p class="font-semibold text-gray-900">洞察：发现问题</p>
+                                <p class="text-sm text-gray-600 mt-1">"在社区清洁活动中，我观察到回收箱经常被污染。人们想要帮忙，但没有反馈，他们不知道自己的努力是否有效。"</p>
+                            </div>
+                        </div>
+
+                        <!-- Stage 4 -->
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 z-10">
+                                <i class="fas fa-rocket text-white"></i>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 flex-1 shadow-sm">
+                                <p class="font-semibold text-gray-900">创新：WasteWise AI</p>
+                                <p class="text-sm text-gray-600 mt-1">"我意识到技术可以弥合这个差距。通过将物联网传感器与AI结合，我可以为社区提供数据驱动的反馈，将好的意愿转化为真正的环境影响。"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 px-8 border-t border-gray-100">
+        <div class="max-w-4xl mx-auto text-center">
+            <p class="text-sm text-gray-500">WasteWise AI — 高影响力环保科技项目</p>
+            <p class="text-xs text-gray-400 mt-2">专为热爱可持续发展和技术的学生设计</p>
+        </div>
+    </footer>
+</body>
+</html>
