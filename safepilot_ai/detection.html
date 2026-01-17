@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=430, height=932, initial-scale=1.0">
+    <title>SafePilot AI - Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        body { width: 430px; height: 932px; overflow-x: hidden; }
+        @keyframes scan { 0%, 100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(100%); opacity: 1; } }
+        .scan-line { animation: scan 2s ease-in-out infinite; }
+        @keyframes pulse-ring { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+        .pulse-ring { animation: pulse-ring 1.5s ease-out infinite; }
+    </style>
+</head>
+<body class="bg-gray-900 min-h-screen">
+    <!-- Status Bar -->
+    <div class="bg-gray-900/80 backdrop-blur-sm px-6 py-2 flex justify-between items-center text-base font-medium sticky top-0 z-50 text-white">
+        <span>9:41</span>
+        <div class="flex items-center gap-1.5">
+            <i class="fas fa-signal text-sm"></i>
+            <i class="fas fa-wifi text-sm"></i>
+            <i class="fas fa-battery-full text-sm"></i>
+        </div>
+    </div>
+
+    <div class="px-6 pt-4 pb-32">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-4">
+            <h1 class="text-xl font-bold text-white">Live Detection</h1>
+            <div class="flex items-center gap-2 bg-green-500/20 px-4 py-2 rounded-full">
+                <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                <span class="text-green-400 font-medium text-sm">AI Active</span>
+            </div>
+        </div>
+
+        <!-- Vehicle Selector -->
+        <div class="bg-white/10 rounded-2xl p-4 mb-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-forklift text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="text-white font-semibold">Forklift #F-103</p>
+                        <p class="text-white/60 text-sm">Warehouse A • Active</p>
+                    </div>
+                </div>
+                <button class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                    <i class="fas fa-chevron-down text-white"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Live Camera Feed Simulation -->
+        <div class="relative bg-gray-800 rounded-3xl overflow-hidden mb-6">
+            <div class="relative">
+                <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&h=280&fit=crop" alt="Warehouse View" class="w-full h-56 object-cover opacity-80">
+
+                <!-- Scan Line Effect -->
+                <div class="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div class="scan-line absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent"></div>
+                </div>
+
+                <!-- Detection Overlays -->
+                <!-- Person Detection -->
+                <div class="absolute top-16 right-20">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-red-500/30 rounded-lg pulse-ring"></div>
+                        <div class="w-16 h-24 border-2 border-red-500 rounded-lg relative">
+                            <span class="absolute -top-6 left-0 text-xs bg-red-500 text-white px-2 py-0.5 rounded font-medium">PERSON</span>
+                            <span class="absolute -bottom-5 left-0 text-xs text-red-400 font-medium">2.3m</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Obstacle Detection -->
+                <div class="absolute bottom-12 left-16">
+                    <div class="w-20 h-12 border-2 border-amber-500 rounded-lg relative">
+                        <span class="absolute -top-6 left-0 text-xs bg-amber-500 text-white px-2 py-0.5 rounded font-medium">PALLET</span>
+                        <span class="absolute -bottom-5 left-0 text-xs text-amber-400 font-medium">1.1m</span>
+                    </div>
+                </div>
+
+                <!-- Trajectory Prediction -->
+                <svg class="absolute inset-0 w-full h-full pointer-events-none">
+                    <defs>
+                        <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ef4444;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M 200 220 Q 240 180 280 140" stroke="url(#pathGradient)" stroke-width="3" fill="none" stroke-dasharray="8,4"/>
+                    <circle cx="280" cy="140" r="8" fill="#ef4444" opacity="0.5"/>
+                    <text x="290" y="145" fill="#ef4444" font-size="10" font-weight="bold">COLLISION 1.8s</text>
+                </svg>
+            </div>
+
+            <!-- Camera Controls -->
+            <div class="absolute bottom-4 left-4 right-4 flex justify-between items-center">
+                <div class="flex gap-2">
+                    <button class="w-10 h-10 bg-black/50 rounded-full flex items-center justify-center">
+                        <i class="fas fa-video text-white"></i>
+                    </button>
+                    <button class="w-10 h-10 bg-black/50 rounded-full flex items-center justify-center">
+                        <i class="fas fa-expand text-white"></i>
+                    </button>
+                </div>
+                <div class="bg-black/50 rounded-full px-3 py-1.5 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                    <span class="text-white text-sm font-medium">LIVE</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detection Stats -->
+        <div class="grid grid-cols-3 gap-3 mb-6">
+            <div class="bg-white/10 rounded-xl p-3 text-center">
+                <div class="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-person text-red-400"></i>
+                </div>
+                <p class="text-white font-bold text-xl">2</p>
+                <p class="text-white/60 text-xs">Humans</p>
+            </div>
+            <div class="bg-white/10 rounded-xl p-3 text-center">
+                <div class="w-10 h-10 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-box text-amber-400"></i>
+                </div>
+                <p class="text-white font-bold text-xl">4</p>
+                <p class="text-white/60 text-xs">Obstacles</p>
+            </div>
+            <div class="bg-white/10 rounded-xl p-3 text-center">
+                <div class="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-eye-slash text-purple-400"></i>
+                </div>
+                <p class="text-white font-bold text-xl">1</p>
+                <p class="text-white/60 text-xs">Blind Spots</p>
+            </div>
+        </div>
+
+        <!-- AI Prediction Panel -->
+        <div class="bg-gradient-to-br from-red-500/20 to-red-600/10 border border-red-500/30 rounded-2xl p-4 mb-6">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-brain text-white"></i>
+                </div>
+                <div>
+                    <p class="text-red-400 font-bold text-base">Collision Predicted</p>
+                    <p class="text-white/70 text-sm">Trajectory analysis detected risk</p>
+                </div>
+            </div>
+            <div class="bg-black/30 rounded-xl p-3 mb-3">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-white/70 text-sm">Time to Impact</span>
+                    <span class="text-red-400 font-bold text-lg">1.8 sec</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-white/70 text-sm">Confidence</span>
+                    <span class="text-white font-medium">87%</span>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button class="flex-1 bg-red-500 py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2">
+                    <i class="fas fa-hand"></i>
+                    Auto Brake
+                </button>
+                <button class="flex-1 bg-white/10 py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2">
+                    <i class="fas fa-gauge-simple"></i>
+                    Limit Speed
+                </button>
+            </div>
+        </div>
+
+        <!-- Sensor Status -->
+        <div class="bg-white/10 rounded-2xl p-4">
+            <h3 class="text-white font-bold text-base mb-3">Sensor Status</h3>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="flex items-center gap-3 bg-white/5 rounded-xl p-3">
+                    <div class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-camera text-green-400 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-white text-sm font-medium">Front Camera</p>
+                        <p class="text-green-400 text-xs">Active</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 bg-white/5 rounded-xl p-3">
+                    <div class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-ruler text-green-400 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-white text-sm font-medium">Depth Sensor</p>
+                        <p class="text-green-400 text-xs">Active</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 bg-white/5 rounded-xl p-3">
+                    <div class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-radar text-green-400 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-white text-sm font-medium">LiDAR</p>
+                        <p class="text-green-400 text-xs">Active</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 bg-white/5 rounded-xl p-3">
+                    <div class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-microchip text-green-400 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-white text-sm font-medium">AI Processor</p>
+                        <p class="text-green-400 text-xs">42ms latency</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Tab Bar -->
+    <div class="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 px-6 py-3 pb-8">
+        <div class="flex justify-around items-center">
+            <div class="flex flex-col items-center">
+                <i class="fas fa-home text-gray-500 text-2xl"></i>
+                <span class="text-sm text-gray-500 mt-1">Home</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <i class="fas fa-eye text-blue-500 text-2xl"></i>
+                <span class="text-sm text-blue-500 font-medium mt-1">Detection</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <i class="fas fa-bell text-gray-500 text-2xl"></i>
+                <span class="text-sm text-gray-500 mt-1">Alerts</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <i class="fas fa-chart-line text-gray-500 text-2xl"></i>
+                <span class="text-sm text-gray-500 mt-1">Analytics</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <i class="fas fa-user text-gray-500 text-2xl"></i>
+                <span class="text-sm text-gray-500 mt-1">Profile</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
