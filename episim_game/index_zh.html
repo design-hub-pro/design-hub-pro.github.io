@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EpiSim - 病毒传播模拟教育游戏</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+        * { font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+        .phone-frame {
+            width: 280px;
+            height: 605px;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 10px #1a1a1a,
+                0 0 0 12px #2d2d2d,
+                0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            position: relative;
+            background: #000;
+            flex-shrink: 0;
+        }
+
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 24px;
+            background: #1a1a1a;
+            border-radius: 0 0 18px 18px;
+            z-index: 100;
+        }
+
+        .phone-frame iframe {
+            width: 375px;
+            height: 812px;
+            border: none;
+            border-radius: 30px;
+            transform: scale(0.745);
+            transform-origin: top left;
+        }
+
+        .screen-label {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen">
+    <!-- Language Switcher -->
+    <div class="fixed top-4 right-4 z-50">
+        <div class="bg-white rounded-full shadow-lg border border-gray-200 p-1 flex gap-1">
+            <a href="index.html" class="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 rounded-full transition">EN</a>
+            <span class="px-3 py-1.5 text-sm bg-purple-600 text-white rounded-full font-medium">中文</span>
+        </div>
+    </div>
+
+    <!-- Hero Header -->
+    <header class="pt-12 pb-8 px-8 text-center border-b border-gray-100">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex items-center justify-center gap-3 mb-5">
+                <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-virus text-white text-3xl"></i>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-3">EpiSim</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-5">一款挑战直觉的交互式教育游戏，通过战略决策和实时可视化帮助理解流行病动力学</p>
+
+            <!-- Major Tags -->
+            <div class="flex items-center justify-center gap-3 flex-wrap">
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-heartbeat"></i>
+                    公共卫生
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-gamepad"></i>
+                    教育游戏
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-chart-line"></i>
+                    数据科学
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Problem Statement Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">问题背景</span>
+                <h2 class="text-2xl font-bold text-gray-900">为什么我们需要更好的公共卫生教育</h2>
+            </div>
+
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-8">
+                <p class="text-gray-700 text-lg leading-relaxed mb-6">
+                    在疾病爆发期间，公众认知往往与科学现实脱节。人们认为<strong class="text-gray-900">"致死率越高越危险"</strong>，但实际上，高传播率低致死率的病毒可能造成更多总死亡。传统教育无法传达这些<strong class="text-gray-900">违反直觉的动力学规律</strong>，而这些正是做出明智政策支持和个人决策的关键。
+                </p>
+
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div class="stat-card rounded-xl p-5 text-center">
+                        <p class="text-3xl font-bold text-red-600 mb-1">75%</p>
+                        <p class="text-sm text-gray-600">的人仅凭致死率错误评估风险</p>
+                    </div>
+                    <div class="stat-card rounded-xl p-5 text-center">
+                        <p class="text-3xl font-bold text-amber-600 mb-1">85%</p>
+                        <p class="text-sm text-gray-600">模拟学习后理解力提升</p>
+                    </div>
+                    <div class="stat-card rounded-xl p-5 text-center">
+                        <p class="text-3xl font-bold text-purple-600 mb-1">38亿</p>
+                        <p class="text-sm text-gray-600">人缺乏基本健康素养</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Problem Images -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="rounded-2xl overflow-hidden shadow-lg">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/virus-spread-simulation-educational-game-an-inte/problem-background/1769036076960-image-1.png" alt="公共卫生教育差距" class="w-full h-56 object-cover">
+                    <div class="p-4 bg-white">
+                        <p class="text-sm text-gray-600 text-center">传统教育难以传达流行病动力学</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/virus-spread-simulation-educational-game-an-inte/problem-background/1769036077728-image-2.png" alt="病毒危险性误解" class="w-full h-56 object-cover">
+                    <div class="p-4 bg-white">
+                        <p class="text-sm text-gray-600 text-center">常见误解导致对政策的错误判断</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Impact Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">社会影响</span>
+                <h2 class="text-2xl font-bold text-gray-900">通过游戏提升健康素养</h2>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Impact Card 1 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-graduation-cap text-purple-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">经证实的学习效果</h3>
+                    <p class="text-sm text-gray-600 mb-3">疫情模拟游戏显著提升了学生的<strong>态势感知和公共卫生知识</strong>，降低焦虑并增强应对健康紧急事件的信心。</p>
+                    <a href="https://pubmed.ncbi.nlm.nih.gov/33218905/" target="_blank" class="text-xs text-purple-600 hover:underline flex items-center gap-1">
+                        <i class="fas fa-external-link-alt"></i> PubMed研究报告
+                    </a>
+                </div>
+
+                <!-- Impact Card 2 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-brain text-blue-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">通过体验挑战直觉</h3>
+                    <p class="text-sm text-gray-600 mb-3">CDC的"解决爆发"游戏表明，<strong>通过游戏应用流行病学知识的学生</strong>比仅学习理论的学生理解更深。</p>
+                    <a href="https://link.springer.com/article/10.1007/s44217-024-00137-3" target="_blank" class="text-xs text-purple-600 hover:underline flex items-center gap-1">
+                        <i class="fas fa-external-link-alt"></i> Springer 2024研究
+                    </a>
+                </div>
+
+                <!-- Impact Card 3 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-users text-amber-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">更好的疫情准备</h3>
+                    <p class="text-sm text-gray-600 mb-3">欧洲公共卫生应急模拟（PANDEM-2）表明，<strong>定期模拟演练能在真正紧急情况发生前测试解决方案</strong>，改善疫情应对。</p>
+                    <a href="https://pubmed.ncbi.nlm.nih.gov/39807047/" target="_blank" class="text-xs text-purple-600 hover:underline flex items-center gap-1">
+                        <i class="fas fa-external-link-alt"></i> PubMed PANDEM-2研究
+                    </a>
+                </div>
+
+                <!-- Impact Card 4 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-lightbulb text-green-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">从失败中学习</h3>
+                    <p class="text-sm text-gray-600 mb-3">研究表明，即使是<strong>"失败"的模拟也能提供深度学习体验</strong>，帮助玩家在没有现实后果的情况下理解为什么某些策略不起作用。</p>
+                    <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12385383/" target="_blank" class="text-xs text-purple-600 hover:underline flex items-center gap-1">
+                        <i class="fas fa-external-link-alt"></i> PMC研究文章
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- App Screenshots Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">产品设计</span>
+                <h2 class="text-2xl font-bold text-gray-900">移动应用原型</h2>
+            </div>
+
+            <!-- Row 1: 3 screens -->
+            <div class="flex flex-wrap justify-center gap-8 mb-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="home.html"></iframe>
+                    </div>
+                    <p class="screen-label">首页</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="simulation.html"></iframe>
+                    </div>
+                    <p class="screen-label">模拟</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="analytics.html"></iframe>
+                    </div>
+                    <p class="screen-label">数据分析</p>
+                </div>
+            </div>
+
+            <!-- Row 2: 2 screens -->
+            <div class="flex flex-wrap justify-center gap-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="learn.html"></iframe>
+                    </div>
+                    <p class="screen-label">学习</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="profile.html"></iframe>
+                    </div>
+                    <p class="screen-label">个人中心</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Project in Action Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">实际应用</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-3">项目实践</h2>
+                <p class="text-gray-600">展示EpiSim如何改变认知的真实场景</p>
+            </div>
+
+            <!-- Use Case Images - 2x2 Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/virus-spread-simulation-educational-game-an-inte/use-cases/1769036069482-image-1.png" alt="课堂学习" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">课堂整合</h3>
+                        <p class="text-sm text-gray-600">学生通过动手模拟参与流行病动力学学习，在实验中发现违反直觉的概念。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/virus-spread-simulation-educational-game-an-inte/use-cases/1769036070123-image-2.png" alt="公共卫生培训" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">公共卫生培训</h3>
+                        <p class="text-sm text-gray-600">未来的卫生专业人员在面对真正紧急情况之前，先在资源受限的场景中练习决策。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/virus-spread-simulation-educational-game-an-inte/use-cases/1769036070345-image-3.png" alt="社区教育" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">社区教育</h3>
+                        <p class="text-sm text-gray-600">科学博物馆和社区中心使用EpiSim帮助公众理解疫情应对策略。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/virus-spread-simulation-educational-game-an-inte/use-cases/1769036070542-image-4.png" alt="自主学习" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">自主学习</h3>
+                        <p class="text-sm text-gray-600">好奇的个人按自己的节奏探索流行病动力学，通过反复游戏和反思建立直觉。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- System Architecture Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">技术概述</span>
+                <h2 class="text-2xl font-bold text-gray-900">系统架构</h2>
+            </div>
+
+            <!-- Technical Illustration Image -->
+            <div class="mb-10 rounded-2xl overflow-hidden shadow-lg">
+                <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/virus-spread-simulation-educational-game-an-inte/product-concept/1769036056306-image-1.png" alt="EpiSim工作原理" class="w-full h-72 object-cover">
+                <div class="p-4 bg-white border-t border-gray-100">
+                    <p class="text-sm text-gray-600 text-center">从流行病建模到实时反馈和学习洞察</p>
+                </div>
+            </div>
+
+            <!-- System Diagram -->
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                <svg viewBox="0 0 900 420" class="w-full h-auto">
+                    <!-- Background Grid -->
+                    <defs>
+                        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+                        </pattern>
+                        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.1"/>
+                        </filter>
+                    </defs>
+                    <rect width="900" height="420" fill="url(#grid)"/>
+
+                    <!-- Layer 1: Simulation Engine -->
+                    <g transform="translate(50, 60)">
+                        <rect x="0" y="0" width="180" height="300" rx="16" fill="#faf5ff" stroke="#8b5cf6" stroke-width="2" filter="url(#shadow)"/>
+                        <text x="90" y="30" text-anchor="middle" font-size="12" font-weight="600" fill="#581c87">模拟引擎</text>
+
+                        <!-- SIR Model -->
+                        <rect x="15" y="50" width="150" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="25" y="60" width="30" height="30" rx="6" fill="#8b5cf6"/>
+                        <text x="40" y="80" text-anchor="middle" font-size="14" fill="white">S</text>
+                        <text x="95" y="75" font-size="10" font-weight="500" fill="#374151">SIR模型</text>
+                        <text x="95" y="90" font-size="9" fill="#6b7280">人群动态</text>
+
+                        <!-- R₀ Calculator -->
+                        <rect x="15" y="115" width="150" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="25" y="125" width="30" height="30" rx="6" fill="#6366f1"/>
+                        <text x="40" y="145" text-anchor="middle" font-size="10" fill="white">R₀</text>
+                        <text x="95" y="140" font-size="10" font-weight="500" fill="#374151">传播计算</text>
+                        <text x="95" y="155" font-size="9" fill="#6b7280">实时R值</text>
+
+                        <!-- Policy Effects -->
+                        <rect x="15" y="180" width="150" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="25" y="190" width="30" height="30" rx="6" fill="#a855f7"/>
+                        <text x="40" y="210" text-anchor="middle" font-size="10" fill="white">📋</text>
+                        <text x="95" y="205" font-size="10" font-weight="500" fill="#374151">政策效果</text>
+                        <text x="95" y="220" font-size="9" fill="#6b7280">干预模型</text>
+
+                        <!-- Resources -->
+                        <rect x="15" y="245" width="150" height="45" rx="10" fill="#faf5ff" stroke="#8b5cf6" stroke-width="1"/>
+                        <text x="90" y="265" text-anchor="middle" font-size="9" font-weight="600" fill="#581c87">基于代理的模型</text>
+                        <text x="90" y="280" text-anchor="middle" font-size="8" fill="#7c3aed">社交距离模拟</text>
+                    </g>
+
+                    <!-- Arrow 1 -->
+                    <g transform="translate(240, 200)">
+                        <path d="M 0 10 L 60 10" stroke="#8b5cf6" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                        <text x="30" y="0" text-anchor="middle" font-size="9" fill="#6b7280">状态</text>
+                        <text x="30" y="30" text-anchor="middle" font-size="9" fill="#6b7280">更新</text>
+                    </g>
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#8b5cf6"/>
+                        </marker>
+                    </defs>
+
+                    <!-- Layer 2: Game Logic -->
+                    <g transform="translate(310, 60)">
+                        <rect x="0" y="0" width="180" height="300" rx="16" fill="#eff6ff" stroke="#3b82f6" stroke-width="2" filter="url(#shadow)"/>
+                        <text x="90" y="30" text-anchor="middle" font-size="12" font-weight="600" fill="#1e40af">游戏逻辑</text>
+
+                        <!-- Level Manager -->
+                        <rect x="15" y="50" width="150" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <circle cx="40" cy="78" r="15" fill="#3b82f6"/>
+                        <text x="40" y="82" text-anchor="middle" font-size="10" fill="white">🎮</text>
+                        <text x="100" y="73" text-anchor="middle" font-size="10" font-weight="500" fill="#374151">关卡设计</text>
+                        <text x="100" y="88" text-anchor="middle" font-size="9" fill="#6b7280">挑战任务</text>
+
+                        <!-- Scoring -->
+                        <rect x="15" y="115" width="150" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <circle cx="40" cy="143" r="15" fill="#10b981"/>
+                        <text x="40" y="147" text-anchor="middle" font-size="10" fill="white">⭐</text>
+                        <text x="100" y="138" text-anchor="middle" font-size="10" font-weight="500" fill="#374151">评分系统</text>
+                        <text x="100" y="153" text-anchor="middle" font-size="9" fill="#6b7280">多维度评估</text>
+
+                        <!-- Feedback -->
+                        <rect x="15" y="180" width="150" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <circle cx="40" cy="208" r="15" fill="#f59e0b"/>
+                        <text x="40" y="212" text-anchor="middle" font-size="10" fill="white">💡</text>
+                        <text x="100" y="203" text-anchor="middle" font-size="10" font-weight="500" fill="#374151">AI反馈</text>
+                        <text x="100" y="218" text-anchor="middle" font-size="9" fill="#6b7280">解释性结果</text>
+
+                        <!-- Progress -->
+                        <rect x="15" y="245" width="150" height="45" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="1"/>
+                        <text x="90" y="265" text-anchor="middle" font-size="9" font-weight="600" fill="#1e40af">进度追踪</text>
+                        <text x="90" y="280" text-anchor="middle" font-size="8" fill="#2563eb">XP、徽章、等级</text>
+                    </g>
+
+                    <!-- Arrow 2 -->
+                    <g transform="translate(500, 200)">
+                        <path d="M 0 10 L 60 10" stroke="#3b82f6" stroke-width="2" fill="none" marker-end="url(#arrowhead2)"/>
+                        <text x="30" y="0" text-anchor="middle" font-size="9" fill="#6b7280">可视化</text>
+                        <text x="30" y="30" text-anchor="middle" font-size="9" fill="#6b7280">数据</text>
+                    </g>
+                    <defs>
+                        <marker id="arrowhead2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/>
+                        </marker>
+                    </defs>
+
+                    <!-- Layer 3: Mobile App -->
+                    <g transform="translate(570, 60)">
+                        <rect x="0" y="0" width="180" height="300" rx="16" fill="#ecfdf5" stroke="#10b981" stroke-width="2" filter="url(#shadow)"/>
+                        <text x="90" y="30" text-anchor="middle" font-size="12" font-weight="600" fill="#065f46">移动应用</text>
+
+                        <!-- Dashboard -->
+                        <rect x="15" y="50" width="150" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="25" y="60" width="30" height="30" rx="6" fill="#22c55e"/>
+                        <text x="40" y="80" font-size="14" fill="white" text-anchor="middle">📊</text>
+                        <text x="100" y="75" font-size="10" font-weight="500" fill="#374151">实时图表</text>
+                        <text x="100" y="90" font-size="9" fill="#6b7280">数据可视化</text>
+
+                        <!-- Controls -->
+                        <rect x="15" y="115" width="150" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="25" y="125" width="30" height="30" rx="6" fill="#8b5cf6"/>
+                        <text x="40" y="145" font-size="14" fill="white" text-anchor="middle">🎛️</text>
+                        <text x="100" y="140" font-size="10" font-weight="500" fill="#374151">政策控制</text>
+                        <text x="100" y="155" font-size="9" fill="#6b7280">决策界面</text>
+
+                        <!-- Learning -->
+                        <rect x="15" y="180" width="150" height="55" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="25" y="190" width="30" height="30" rx="6" fill="#f59e0b"/>
+                        <text x="40" y="210" font-size="14" fill="white" text-anchor="middle">📚</text>
+                        <text x="100" y="205" font-size="10" font-weight="500" fill="#374151">学习中心</text>
+                        <text x="100" y="220" font-size="9" fill="#6b7280">概念与课程</text>
+
+                        <!-- Profile -->
+                        <rect x="15" y="245" width="150" height="45" rx="10" fill="white" stroke="#d1d5db" stroke-width="1"/>
+                        <rect x="25" y="255" width="30" height="25" rx="6" fill="#3b82f6"/>
+                        <text x="40" y="273" font-size="12" fill="white" text-anchor="middle">👤</text>
+                        <text x="100" y="270" font-size="10" font-weight="500" fill="#374151">个人档案</text>
+                    </g>
+
+                    <!-- User -->
+                    <g transform="translate(780, 120)">
+                        <circle cx="40" cy="40" r="35" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                        <text x="40" y="35" text-anchor="middle" font-size="24">🧑‍🎓</text>
+                        <text x="40" y="55" text-anchor="middle" font-size="9" font-weight="600" fill="#92400e">学习者</text>
+                        <text x="40" y="90" text-anchor="middle" font-size="9" fill="#6b7280">学生</text>
+                        <text x="40" y="102" text-anchor="middle" font-size="9" fill="#6b7280">与公众</text>
+                    </g>
+
+                    <!-- Feedback Loop -->
+                    <g transform="translate(760, 200)">
+                        <path d="M 0 10 L 30 10 L 30 150 L -550 150 L -550 120" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5,5" fill="none" marker-end="url(#arrowhead3)"/>
+                        <text x="50" y="90" font-size="9" fill="#6b7280" transform="rotate(90, 50, 90)">学习循环</text>
+                    </g>
+                    <defs>
+                        <marker id="arrowhead3" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto" transform="rotate(-90)">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+                        </marker>
+                    </defs>
+                </svg>
+
+                <!-- Legend -->
+                <div class="mt-6 pt-6 border-t border-gray-100">
+                    <div class="flex flex-wrap justify-center gap-6 text-sm">
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 rounded bg-purple-500"></div>
+                            <span class="text-gray-600">流行病模拟</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 rounded bg-blue-500"></div>
+                            <span class="text-gray-600">游戏逻辑</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 rounded bg-green-500"></div>
+                            <span class="text-gray-600">用户界面</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 rounded border-2 border-amber-500 border-dashed"></div>
+                            <span class="text-gray-600">学习反馈</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Getting Started Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">发展路径</span>
+                <h2 class="text-2xl font-bold text-gray-900">从原型到影响力</h2>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Step 1 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <span class="text-green-600 font-bold text-lg">1</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-1">在学校科学展上发布</h3>
+                            <p class="text-sm text-gray-600">将EpiSim作为互动展品展示，让学生们竞争管理虚拟疫情。追踪玩家在游戏后对R₀和致死率理解的变化，收集数据证明教育效果。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <span class="text-blue-600 font-bold text-lg">2</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-1">与生物老师合作</h3>
+                            <p class="text-sm text-gray-600">联系AP生物和健康科学老师，将EpiSim整合到他们的流行病学课程单元中。提供与学习目标一致的教案和评估标准。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <span class="text-purple-600 font-bold text-lg">3</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-1">提交给科学博物馆或卫生部门</h3>
+                            <p class="text-sm text-gray-600">联系当地科学博物馆或公共卫生部门，将EpiSim作为社区健康素养计划的教育工具。许多机构积极寻求公众参与的互动内容。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- College Application Storyline Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">你的旅程</span>
+                <h2 class="text-2xl font-bold text-gray-900">从好奇到创造</h2>
+                <p class="text-gray-600 mt-3 max-w-2xl mx-auto">这个项目连接了你对科学、游戏以及改变公众认知的兴趣。</p>
+            </div>
+
+            <!-- Narrative Arc -->
+            <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-8 border border-purple-100 mb-8">
+                <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i class="fas fa-route text-purple-600"></i>
+                    叙事弧线：从问题到答案
+                </h3>
+                <div class="relative">
+                    <!-- Timeline Line -->
+                    <div class="absolute left-6 top-8 bottom-8 w-0.5 bg-purple-200"></div>
+
+                    <div class="space-y-6">
+                        <!-- Stage 1 -->
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 z-10">
+                                <i class="fas fa-seedling text-white"></i>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 flex-1 shadow-sm">
+                                <p class="font-semibold text-green-700">起点：一个困惑的问题</p>
+                                <p class="text-sm text-gray-600 mt-1 italic">"在疫情期间，我注意到人们做出看似不合逻辑的决定——比如害怕一种疾病却忽视更危险的另一种。我想理解为什么。"</p>
+                            </div>
+                        </div>
+
+                        <!-- Stage 2 -->
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center flex-shrink-0 z-10">
+                                <i class="fas fa-eye text-white"></i>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 flex-1 shadow-sm">
+                                <p class="font-semibold text-amber-700">观察：数学与直觉的差距</p>
+                                <p class="text-sm text-gray-600 mt-1 italic">"我了解到R₀和病死率以复杂的方式协同作用。高R₀低致死率的病毒可能比相反情况杀死更多人——但我们的大脑天生看不到这一点。"</p>
+                            </div>
+                        </div>
+
+                        <!-- Stage 3 -->
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 z-10">
+                                <i class="fas fa-lightbulb text-white"></i>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 flex-1 shadow-sm">
+                                <p class="font-semibold text-blue-700">洞察：通过体验学习</p>
+                                <p class="text-sm text-gray-600 mt-1 italic">"阅读流行病学没有改变我的直觉——但当我玩模拟游戏时，我开始'感受'传播率如何复合。我意识到游戏可以教授课本无法传达的东西。"</p>
+                            </div>
+                        </div>
+
+                        <!-- Stage 4 -->
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 z-10">
+                                <i class="fas fa-rocket text-white"></i>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 flex-1 shadow-sm">
+                                <p class="font-semibold text-purple-700">创新：EpiSim</p>
+                                <p class="text-sm text-gray-600 mt-1 italic">"我创建了EpiSim来帮助他人建立同样的直觉——不是通过告诉他们事实，而是让他们亲身体验流行病动力学的后果。"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 px-8 bg-gray-900">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="flex items-center justify-center gap-3 mb-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-virus text-white"></i>
+                </div>
+                <span class="text-xl font-bold text-white">EpiSim</span>
+            </div>
+            <p class="text-sm text-gray-400">学习管理流行病，挑战你的直觉，拯救虚拟生命</p>
+            <p class="text-xs text-gray-500 mt-2">一个学生主导的公共卫生教育项目</p>
+        </div>
+    </footer>
+</body>
+</html>
