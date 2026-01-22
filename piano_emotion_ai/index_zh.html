@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PianoEmotion AI - 通过Spotify音频特征分析钢琴音乐</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+        * { font-family: 'Noto Sans SC', 'Inter', sans-serif; }
+
+        .phone-frame {
+            width: 300px;
+            height: 650px;
+            border-radius: 44px;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 11px #1a1a1a,
+                0 0 0 13px #2d2d2d,
+                0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            position: relative;
+            background: #000;
+            flex-shrink: 0;
+        }
+
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 28px;
+            background: #1a1a1a;
+            border-radius: 0 0 20px 20px;
+            z-index: 100;
+        }
+
+        .phone-frame iframe {
+            width: 430px;
+            height: 932px;
+            border: none;
+            border-radius: 38px;
+            transform: scale(0.698);
+            transform-origin: top left;
+        }
+
+        .screen-label {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <!-- Language Switcher -->
+    <div class="fixed top-4 right-4 z-50">
+        <div class="bg-white rounded-full shadow-lg border border-gray-200 p-1 flex gap-1">
+            <a href="index.html" class="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 rounded-full transition">EN</a>
+            <span class="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-full font-medium">中文</span>
+        </div>
+    </div>
+
+    <!-- Hero Header -->
+    <header class="pt-12 pb-8 px-8 text-center border-b border-gray-100">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex items-center justify-center gap-3 mb-5">
+                <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-music text-white text-3xl"></i>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-3">PianoEmotion AI</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-5">利用Spotify音频特征分析钢琴主导的器乐作品，探索情感模式和独特声学特征。</p>
+            <!-- Major Tags -->
+            <div class="flex items-center justify-center gap-3 flex-wrap">
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-chart-bar"></i>
+                    数据科学
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-music"></i>
+                    音乐分析
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-brain"></i>
+                    机器学习
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Problem Statement Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">问题背景</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">理解音乐不仅仅是简单分类</h2>
+                <p class="text-gray-600 leading-relaxed">音乐流媒体平台将曲目归类为宽泛的流派，但<strong>钢琴音乐无法简单归类</strong>。全球超过7亿Spotify用户寻求个性化体验，理解钢琴主导曲目的<strong>情感和声学细微差别</strong>仍是一个未解决的挑战。</p>
+            </div>
+
+            <!-- Problem Images - 2 images side by side -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div class="rounded-2xl overflow-hidden shadow-lg">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/an-interactive-data-analysis-and-visualization-pla/problem-background/1769041893719-image-1.png" alt="音乐数据分析挑战" class="w-full h-56 object-cover">
+                    <div class="p-4 bg-white">
+                        <p class="text-sm text-gray-600 text-center">复杂的音频特征需要高级分析技术</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/an-interactive-data-analysis-and-visualization-pla/problem-background/1769041894963-image-2.png" alt="钢琴音乐多样性" class="w-full h-56 object-cover">
+                    <div class="p-4 bg-white">
+                        <p class="text-sm text-gray-600 text-center">钢琴音乐跨越广泛的情感和风格范围</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-5 text-center">
+                    <p class="text-4xl font-bold text-indigo-600 mb-2">7亿+</p>
+                    <p class="text-sm text-gray-600">Spotify用户寻求个性化音乐体验</p>
+                    <a href="https://digitalpianokraze.com/music-streaming-statistics/" target="_blank" class="text-xs text-indigo-500 hover:underline mt-2 inline-block">来源: Digital Piano Kraze <i class="fas fa-external-link-alt ml-1"></i></a>
+                </div>
+                <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-5 text-center">
+                    <p class="text-4xl font-bold text-purple-600 mb-2">284%</p>
+                    <p class="text-sm text-gray-600">"古典睡眠"播放列表播放量增长</p>
+                    <a href="https://www.classicfm.com/music-news/surge-millennial-gen-z-streaming-classical-music/" target="_blank" class="text-xs text-purple-500 hover:underline mt-2 inline-block">来源: Classic FM <i class="fas fa-external-link-alt ml-1"></i></a>
+                </div>
+                <div class="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-5 text-center">
+                    <p class="text-4xl font-bold text-emerald-600 mb-2">50-57%</p>
+                    <p class="text-sm text-gray-600">情感可通过少量声学特征预测</p>
+                    <a href="https://www.researchgate.net/publication/311442821" target="_blank" class="text-xs text-emerald-500 hover:underline mt-2 inline-block">来源: ResearchGate <i class="fas fa-external-link-alt ml-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Impact Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">社会影响</span>
+                <h2 class="text-2xl font-bold text-gray-900">推进音乐研究与理解</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Impact Card 1 -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-brain text-indigo-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">心理健康与音乐治疗</h3>
+                    <p class="text-sm text-gray-600 mb-3">了解钢琴音乐的情感特征帮助治疗师选择适合情绪调节和放松治疗的曲目。</p>
+                    <a href="https://pubmed.ncbi.nlm.nih.gov/37248624/" target="_blank" class="text-xs text-indigo-600 hover:underline">PubMed研究 <i class="fas fa-external-link-alt ml-1"></i></a>
+                </div>
+
+                <!-- Impact Card 2 -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-graduation-cap text-purple-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">音乐教育与教学法</h3>
+                    <p class="text-sm text-gray-600 mb-3">数据驱动的洞察帮助音乐教育者通过可量化的音频特征解释钢琴演奏中的情感表达。</p>
+                    <a href="https://online.ucpress.edu/mp/article/38/3/245/116126" target="_blank" class="text-xs text-purple-600 hover:underline">UC Press研究 <i class="fas fa-external-link-alt ml-1"></i></a>
+                </div>
+
+                <!-- Impact Card 3 -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-users text-emerald-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">可及性与包容性</h3>
+                    <p class="text-sm text-gray-600 mb-3">舒缓钢琴播放列表在35岁以下听众中增长10%，使古典音乐对年轻一代更加可及。</p>
+                    <a href="https://www.cbc.ca/news/entertainment/classical-music-resurgence-1.7415707" target="_blank" class="text-xs text-emerald-600 hover:underline">CBC新闻 <i class="fas fa-external-link-alt ml-1"></i></a>
+                </div>
+
+                <!-- Impact Card 4 -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-chart-line text-amber-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">市场增长与研究</h3>
+                    <p class="text-sm text-gray-600 mb-3">古典音乐市场预计到2033年达到150亿美元，年增长率5.8%，受流媒体和数据驱动策划推动。</p>
+                    <a href="https://www.futuredatastats.com/classical-music-market" target="_blank" class="text-xs text-amber-600 hover:underline">Future Data Stats <i class="fas fa-external-link-alt ml-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mobile App Prototype Section -->
+    <section class="py-12 px-8 bg-white">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">产品设计</span>
+                <h2 class="text-2xl font-bold text-gray-900">移动应用原型</h2>
+            </div>
+
+            <!-- Row 1: 3 screens -->
+            <div class="flex flex-wrap justify-center gap-8 mb-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="home.html"></iframe>
+                    </div>
+                    <p class="screen-label">首页</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="analyze.html"></iframe>
+                    </div>
+                    <p class="screen-label">特征分析</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="clusters.html"></iframe>
+                    </div>
+                    <p class="screen-label">情感聚类</p>
+                </div>
+            </div>
+
+            <!-- Row 2: 2 screens (centered) -->
+            <div class="flex flex-wrap justify-center gap-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="explore.html"></iframe>
+                    </div>
+                    <p class="screen-label">探索曲目</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="profile.html"></iframe>
+                    </div>
+                    <p class="screen-label">个人中心</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Project in Action Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">实际应用</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-3">项目实践</h2>
+                <p class="text-gray-600">展示PianoEmotion AI如何揭示洞察的真实场景</p>
+            </div>
+
+            <!-- Use Case Images - 2x2 Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/an-interactive-data-analysis-and-visualization-pla/use-cases/1769041885807-image-1.png" alt="分析音频特征" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">特征对比分析</h3>
+                        <p class="text-sm text-gray-600">比较钢琴曲目与其他器乐作品的声学性、效价和能量。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/an-interactive-data-analysis-and-visualization-pla/use-cases/1769041886657-image-2.png" alt="PCA聚类" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">PCA情感聚类</h3>
+                        <p class="text-sm text-gray-600">降维分析揭示钢琴音乐中不同的情感分组。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/an-interactive-data-analysis-and-visualization-pla/use-cases/1769041886877-image-3.png" alt="数据可视化" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">交互式可视化</h3>
+                        <p class="text-sm text-gray-600">丰富的图表帮助用户探索速度、效价和响度分布。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/an-interactive-data-analysis-and-visualization-pla/use-cases/1769041887078-image-4.png" alt="研究洞察" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">发现模式</h3>
+                        <p class="text-sm text-gray-600">AI驱动的洞察揭示钢琴音乐在情感表达上与其他流派的不同。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Overview Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">技术概述</span>
+                <h2 class="text-2xl font-bold text-gray-900">系统架构</h2>
+            </div>
+
+            <!-- Technical Illustration Image -->
+            <div class="mb-10 rounded-2xl overflow-hidden shadow-lg">
+                <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/an-interactive-data-analysis-and-visualization-pla/product-concept/1769041871421-image-1.png" alt="PianoEmotion AI工作原理" class="w-full h-72 object-cover">
+                <div class="p-4 bg-white border-t border-gray-100">
+                    <p class="text-sm text-gray-600 text-center">从原始Spotify数据到可操作的情感洞察</p>
+                </div>
+            </div>
+
+            <!-- SVG Architecture Diagram -->
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <svg viewBox="0 0 800 400" class="w-full h-auto">
+                    <!-- Background layers -->
+                    <rect x="20" y="20" width="240" height="360" rx="12" fill="#f0fdf4" stroke="#86efac" stroke-width="2"/>
+                    <rect x="280" y="20" width="240" height="360" rx="12" fill="#eef2ff" stroke="#a5b4fc" stroke-width="2"/>
+                    <rect x="540" y="20" width="240" height="360" rx="12" fill="#faf5ff" stroke="#d8b4fe" stroke-width="2"/>
+
+                    <!-- Layer titles -->
+                    <text x="140" y="55" text-anchor="middle" font-weight="bold" fill="#166534" font-size="16">数据层</text>
+                    <text x="400" y="55" text-anchor="middle" font-weight="bold" fill="#3730a3" font-size="16">分析层</text>
+                    <text x="660" y="55" text-anchor="middle" font-weight="bold" fill="#7e22ce" font-size="16">输出层</text>
+
+                    <!-- Data Layer Components -->
+                    <rect x="40" y="80" width="200" height="50" rx="8" fill="white" stroke="#22c55e" stroke-width="2"/>
+                    <text x="140" y="110" text-anchor="middle" fill="#374151" font-size="13">🎵 Spotify音频特征</text>
+
+                    <rect x="40" y="150" width="200" height="50" rx="8" fill="white" stroke="#22c55e" stroke-width="2"/>
+                    <text x="140" y="180" text-anchor="middle" fill="#374151" font-size="13">🎹 钢琴曲目筛选</text>
+
+                    <rect x="40" y="220" width="200" height="50" rx="8" fill="white" stroke="#22c55e" stroke-width="2"/>
+                    <text x="140" y="250" text-anchor="middle" fill="#374151" font-size="13">📊 特征提取</text>
+
+                    <rect x="40" y="290" width="200" height="70" rx="8" fill="white" stroke="#22c55e" stroke-width="2"/>
+                    <text x="140" y="318" text-anchor="middle" fill="#374151" font-size="12">速度、能量、效价</text>
+                    <text x="140" y="338" text-anchor="middle" fill="#374151" font-size="12">声学性、响度</text>
+
+                    <!-- Analysis Layer Components -->
+                    <rect x="300" y="80" width="200" height="50" rx="8" fill="white" stroke="#6366f1" stroke-width="2"/>
+                    <text x="400" y="110" text-anchor="middle" fill="#374151" font-size="13">📈 探索性分析</text>
+
+                    <rect x="300" y="150" width="200" height="50" rx="8" fill="white" stroke="#6366f1" stroke-width="2"/>
+                    <text x="400" y="180" text-anchor="middle" fill="#374151" font-size="13">🔬 统计比较</text>
+
+                    <rect x="300" y="220" width="200" height="50" rx="8" fill="white" stroke="#6366f1" stroke-width="2"/>
+                    <text x="400" y="250" text-anchor="middle" fill="#374151" font-size="13">🎯 PCA降维</text>
+
+                    <rect x="300" y="290" width="200" height="70" rx="8" fill="white" stroke="#6366f1" stroke-width="2"/>
+                    <text x="400" y="318" text-anchor="middle" fill="#374151" font-size="12">K-Means聚类</text>
+                    <text x="400" y="338" text-anchor="middle" fill="#374151" font-size="12">模式识别</text>
+
+                    <!-- Output Layer Components -->
+                    <rect x="560" y="80" width="200" height="50" rx="8" fill="white" stroke="#a855f7" stroke-width="2"/>
+                    <text x="660" y="110" text-anchor="middle" fill="#374151" font-size="13">💡 情感聚类</text>
+
+                    <rect x="560" y="150" width="200" height="50" rx="8" fill="white" stroke="#a855f7" stroke-width="2"/>
+                    <text x="660" y="180" text-anchor="middle" fill="#374151" font-size="13">📊 可视化</text>
+
+                    <rect x="560" y="220" width="200" height="50" rx="8" fill="white" stroke="#a855f7" stroke-width="2"/>
+                    <text x="660" y="250" text-anchor="middle" fill="#374151" font-size="13">🔍 特征对比</text>
+
+                    <rect x="560" y="290" width="200" height="70" rx="8" fill="white" stroke="#a855f7" stroke-width="2"/>
+                    <text x="660" y="318" text-anchor="middle" fill="#374151" font-size="12">研究洞察</text>
+                    <text x="660" y="338" text-anchor="middle" fill="#374151" font-size="12">导出报告</text>
+
+                    <!-- Arrows -->
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+                        </marker>
+                    </defs>
+                    <line x1="260" y1="200" x2="278" y2="200" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <line x1="520" y1="200" x2="538" y2="200" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
+                </svg>
+
+                <!-- Legend -->
+                <div class="flex flex-wrap justify-center gap-6 mt-6 pt-6 border-t border-gray-100">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-green-100 border-2 border-green-400 rounded"></div>
+                        <span class="text-sm text-gray-600">数据收集与筛选</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-indigo-100 border-2 border-indigo-400 rounded"></div>
+                        <span class="text-sm text-gray-600">统计分析</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-purple-100 border-2 border-purple-400 rounded"></div>
+                        <span class="text-sm text-gray-600">洞察与可视化</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Growth Path Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">发展路径</span>
+                <h2 class="text-2xl font-bold text-gray-900">从分析到发布</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Step 1 -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold mb-4">1</div>
+                    <h3 class="font-semibold text-gray-900 mb-2">数据收集与清洗</h3>
+                    <p class="text-sm text-gray-600">从Kaggle下载Spotify音频特征数据集，使用名称匹配和乐器性阈值筛选钢琴主导曲目。</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold mb-4">2</div>
+                    <h3 class="font-semibold text-gray-900 mb-2">探索性分析与聚类</h3>
+                    <p class="text-sm text-gray-600">对音频特征进行EDA分析，应用PCA降维，使用K-Means聚类发现情感分组。</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold mb-4">3</div>
+                    <h3 class="font-semibold text-gray-900 mb-2">可视化与洞察</h3>
+                    <p class="text-sm text-gray-600">创建交互式可视化，记录钢琴与其他器乐的对比发现，并公开分享研究洞察。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Your Journey Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">你的旅程</span>
+                <h2 class="text-2xl font-bold text-gray-900">从好奇到发现</h2>
+                <p class="text-gray-600 mt-2">对音乐和数据的热爱如何引领有意义的研究</p>
+            </div>
+
+            <!-- Timeline -->
+            <div class="relative">
+                <!-- Vertical line -->
+                <div class="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-gray-200"></div>
+
+                <!-- Stage 1 -->
+                <div class="flex items-center mb-12">
+                    <div class="w-1/2 pr-8 text-right">
+                        <h3 class="font-bold text-emerald-600 mb-1">基础</h3>
+                        <p class="text-sm text-gray-600 italic">"我一直被某些钢琴曲带给我的感受所吸引——平静、怀旧或深深触动。"</p>
+                    </div>
+                    <div class="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center z-10 border-4 border-white shadow">
+                        <i class="fas fa-seedling text-emerald-600 text-xl"></i>
+                    </div>
+                    <div class="w-1/2 pl-8"></div>
+                </div>
+
+                <!-- Stage 2 -->
+                <div class="flex items-center mb-12">
+                    <div class="w-1/2 pr-8"></div>
+                    <div class="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center z-10 border-4 border-white shadow">
+                        <i class="fas fa-eye text-amber-600 text-xl"></i>
+                    </div>
+                    <div class="w-1/2 pl-8">
+                        <h3 class="font-bold text-amber-600 mb-1">观察</h3>
+                        <p class="text-sm text-gray-600 italic">"我注意到流媒体播放列表对钢琴音乐的分类过于宽泛——'舒缓钢琴'和'悲伤钢琴'有什么不同？"</p>
+                    </div>
+                </div>
+
+                <!-- Stage 3 -->
+                <div class="flex items-center mb-12">
+                    <div class="w-1/2 pr-8 text-right">
+                        <h3 class="font-bold text-blue-600 mb-1">洞察</h3>
+                        <p class="text-sm text-gray-600 italic">"Spotify的音频特征包含可测量的情感指标——如果我能用数据科学揭示隐藏的模式呢？"</p>
+                    </div>
+                    <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center z-10 border-4 border-white shadow">
+                        <i class="fas fa-lightbulb text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="w-1/2 pl-8"></div>
+                </div>
+
+                <!-- Stage 4 -->
+                <div class="flex items-center">
+                    <div class="w-1/2 pr-8"></div>
+                    <div class="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center z-10 border-4 border-white shadow">
+                        <i class="fas fa-rocket text-purple-600 text-xl"></i>
+                    </div>
+                    <div class="w-1/2 pl-8">
+                        <h3 class="font-bold text-purple-600 mb-1">创新</h3>
+                        <p class="text-sm text-gray-600 italic">"PianoEmotion AI结合我对音乐的热爱与数据分析技能，发现钢琴音乐在情感上的独特之处。"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 py-8 px-8">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="flex items-center justify-center gap-3 mb-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-music text-white text-lg"></i>
+                </div>
+                <span class="text-xl font-bold text-white">PianoEmotion AI</span>
+            </div>
+            <p class="text-gray-400 mb-2">发现隐藏在钢琴音乐中的情感模式</p>
+            <p class="text-gray-500 text-sm">学生主导的音乐数据分析项目</p>
+        </div>
+    </footer>
+</body>
+</html>
