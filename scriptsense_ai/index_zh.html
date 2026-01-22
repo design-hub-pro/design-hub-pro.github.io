@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScriptSense - AI驱动的电影写作风格分析平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+        * { font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+        .phone-frame {
+            width: 300px;
+            height: 650px;
+            border-radius: 44px;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 11px #1a1a1a,
+                0 0 0 13px #2d2d2d,
+                0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            position: relative;
+            background: #000;
+            flex-shrink: 0;
+        }
+
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 28px;
+            background: #1a1a1a;
+            border-radius: 0 0 20px 20px;
+            z-index: 100;
+        }
+
+        .phone-frame iframe {
+            width: 430px;
+            height: 932px;
+            border: none;
+            border-radius: 38px;
+            transform: scale(0.698);
+            transform-origin: top left;
+        }
+
+        .screen-label {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <!-- Language Switcher -->
+    <div class="fixed top-4 right-4 z-50">
+        <div class="bg-white rounded-full shadow-lg border border-gray-200 p-1 flex gap-1">
+            <a href="index.html" class="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 rounded-full transition">EN</a>
+            <span class="px-3 py-1.5 text-sm bg-amber-500 text-white rounded-full font-medium">中文</span>
+        </div>
+    </div>
+
+    <!-- Hero Header -->
+    <header class="pt-12 pb-8 px-8 text-center border-b border-gray-100">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex items-center justify-center gap-3 mb-5">
+                <div class="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-film text-white text-3xl"></i>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-3">ScriptSense</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-5">AI驱动的分析平台，利用NLP和数据科学技术解码电影写作风格、情感模式和观众反馈。</p>
+            <!-- Major Tags -->
+            <div class="flex items-center justify-center gap-3 flex-wrap">
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-chart-line"></i>
+                    数据科学
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-brain"></i>
+                    机器学习
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-language"></i>
+                    自然语言处理
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Problem Statement Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">问题背景</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">电影叙事中的隐藏模式</h2>
+                <p class="text-gray-600 leading-relaxed">每年有<strong>超过67,000个剧本</strong>在美国编剧工会注册，但只有约<strong>777部电影</strong>能够进入院线。理解为什么某些剧本能够引起观众共鸣而其他剧本却失败，仍然是娱乐行业<strong>最具挑战性的难题之一</strong>。</p>
+            </div>
+
+            <!-- Problem Images -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div class="rounded-2xl overflow-hidden shadow-lg">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/scriptsense-an-ai-powered-movie-writing-style-an/problem-background/1769041679122-image-1.png" alt="剧本创作挑战" class="w-full h-56 object-cover">
+                    <div class="p-4 bg-white">
+                        <p class="text-sm text-gray-600 text-center">数以千计的剧本竞争有限的制作机会</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/scriptsense-an-ai-powered-movie-writing-style-an/problem-background/1769041680060-image-2.png" alt="剧本分析复杂性" class="w-full h-56 object-cover">
+                    <div class="p-4 bg-white">
+                        <p class="text-sm text-gray-600 text-center">传统剧本分析依赖主观人工判断</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-3 gap-4">
+                <div class="bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl p-5 text-center">
+                    <p class="text-3xl font-bold text-amber-600 mb-2">67,000+</p>
+                    <p class="text-sm text-gray-600">每年在WGA注册的剧本数量</p>
+                    <a href="https://pzaz.io/producer-blog/screenwriting-statistics-usa/" target="_blank" class="text-xs text-amber-600 hover:underline mt-2 inline-block">来源 <i class="fas fa-external-link-alt text-xs"></i></a>
+                </div>
+                <div class="bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl p-5 text-center">
+                    <p class="text-3xl font-bold text-red-600 mb-2">&lt;2%</p>
+                    <p class="text-sm text-gray-600">注册剧本最终被制作的比例</p>
+                    <a href="https://screencraft.org/blog/we-analyzed-over-12000-screenplays-heres-what-we-found/" target="_blank" class="text-xs text-amber-600 hover:underline mt-2 inline-block">来源 <i class="fas fa-external-link-alt text-xs"></i></a>
+                </div>
+                <div class="bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl p-5 text-center">
+                    <p class="text-3xl font-bold text-purple-600 mb-2">12,000+</p>
+                    <p class="text-sm text-gray-600">行业研究中分析的剧本数量</p>
+                    <a href="https://screencraft.org/blog/we-analyzed-over-12000-screenplays-heres-what-we-found/" target="_blank" class="text-xs text-amber-600 hover:underline mt-2 inline-block">来源 <i class="fas fa-external-link-alt text-xs"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Impact Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">社会影响</span>
+                <h2 class="text-2xl font-bold text-gray-900">让故事洞察普及化</h2>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl p-6 shadow-sm">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-graduation-cap text-blue-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">教育资源</h3>
+                    <p class="text-sm text-gray-600 mb-3">为电影专业学生和有抱负的编剧提供数据驱动的洞察，帮助他们了解不同类型和时代的成功叙事技巧。</p>
+                    <a href="https://www.sciencedirect.com/science/article/pii/S1875952125001235" target="_blank" class="text-xs text-amber-600 hover:underline">了解更多 <i class="fas fa-external-link-alt text-xs"></i></a>
+                </div>
+                <div class="bg-white rounded-2xl p-6 shadow-sm">
+                    <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-universal-access text-emerald-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">多元化分析</h3>
+                    <p class="text-sm text-gray-600 mb-3">实现对电影剧本中表现模式的系统研究，帮助识别差距并追踪多元化故事讲述的进展。</p>
+                    <a href="https://pzaz.io/producer-blog/screenwriting-statistics-usa/" target="_blank" class="text-xs text-amber-600 hover:underline">行业数据 <i class="fas fa-external-link-alt text-xs"></i></a>
+                </div>
+                <div class="bg-white rounded-2xl p-6 shadow-sm">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-lightbulb text-purple-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">创作反馈</h3>
+                    <p class="text-sm text-gray-600 mb-3">提供客观的写作风格分析，帮助独立电影制作人在没有昂贵专业读者的情况下改进剧本。</p>
+                    <a href="https://link.springer.com/chapter/10.1007/978-3-030-49161-1_36" target="_blank" class="text-xs text-amber-600 hover:underline">研究论文 <i class="fas fa-external-link-alt text-xs"></i></a>
+                </div>
+                <div class="bg-white rounded-2xl p-6 shadow-sm">
+                    <div class="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-chart-bar text-pink-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">市场理解</h3>
+                    <p class="text-sm text-gray-600 mb-3">揭示写作风格与观众接受度之间的关联，帮助创作者了解不同群体的偏好。</p>
+                    <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7256373/" target="_blank" class="text-xs text-amber-600 hover:underline">研究发现 <i class="fas fa-external-link-alt text-xs"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mobile App Prototype Section -->
+    <section class="py-12 px-8 bg-white">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">产品设计</span>
+                <h2 class="text-2xl font-bold text-gray-900">移动应用原型</h2>
+            </div>
+
+            <!-- Row 1: 3 screens -->
+            <div class="flex flex-wrap justify-center gap-8 mb-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="home.html"></iframe>
+                    </div>
+                    <p class="screen-label">首页</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="analytics.html"></iframe>
+                    </div>
+                    <p class="screen-label">类型分析</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="research.html"></iframe>
+                    </div>
+                    <p class="screen-label">研究实验室</p>
+                </div>
+            </div>
+
+            <!-- Row 2: 2 screens (centered) -->
+            <div class="flex flex-wrap justify-center gap-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="dataset.html"></iframe>
+                    </div>
+                    <p class="screen-label">数据集浏览</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="profile.html"></iframe>
+                    </div>
+                    <p class="screen-label">个人主页</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Project in Action Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">实际应用</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-3">项目实践</h2>
+                <p class="text-gray-600">展示ScriptSense如何改变电影分析的真实场景</p>
+            </div>
+
+            <!-- Use Case Images - 2x2 Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/scriptsense-an-ai-powered-movie-writing-style-an/use-cases/1769041671268-image-1.png" alt="类型情感分析" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">类型情感映射</h3>
+                        <p class="text-sm text-gray-600">分析不同电影类型的情感模式，理解叙事惯例。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/scriptsense-an-ai-powered-movie-writing-style-an/use-cases/1769041671984-image-2.png" alt="评分预测" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">评分关联研究</h3>
+                        <p class="text-sm text-gray-600">发现与更高IMDb和Metascore评分相关的写作风格模式。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/scriptsense-an-ai-powered-movie-writing-style-an/use-cases/1769041672186-image-3.png" alt="时间演变" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">年代演变分析</h3>
+                        <p class="text-sm text-gray-600">追踪从1950年代到今天电影写作复杂度和主题的变化。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/scriptsense-an-ai-powered-movie-writing-style-an/use-cases/1769041672429-image-4.png" alt="主题建模" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">主题发现引擎</h3>
+                        <p class="text-sm text-gray-600">使用LDA主题建模在数千个剧本中发现隐藏的主题模式。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sample Research Questions Section -->
+    <section class="py-12 px-8 bg-white">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">研究展示</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-3">研究问题与结果示例</h2>
+                <p class="text-gray-600">探索ScriptSense可以发现的洞察类型</p>
+            </div>
+
+            <!-- Research Question 1 -->
+            <div class="bg-gray-50 rounded-2xl p-6 mb-6">
+                <div class="flex items-start gap-4 mb-4">
+                    <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <span class="text-amber-600 font-bold">Q1</span>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">不同电影类型的情感分布有何差异？</h3>
+                        <p class="text-sm text-gray-600">使用NRC情感词典分析剧情简介和梗概中的8种情感类别。</p>
+                    </div>
+                </div>
+                <!-- Chart: Sentiment by Genre -->
+                <div class="bg-white rounded-xl p-5">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-4">各类型平均情感得分</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-gray-600 w-24">喜剧</span>
+                            <div class="flex-1 bg-gray-100 rounded-full h-8 overflow-hidden relative">
+                                <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full" style="width: 85%"></div>
+                                <span class="absolute inset-y-0 right-3 flex items-center text-sm font-medium text-gray-700">+0.72</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-gray-600 w-24">爱情</span>
+                            <div class="flex-1 bg-gray-100 rounded-full h-8 overflow-hidden relative">
+                                <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-pink-400 to-pink-500 rounded-full" style="width: 78%"></div>
+                                <span class="absolute inset-y-0 right-3 flex items-center text-sm font-medium text-gray-700">+0.65</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-gray-600 w-24">冒险</span>
+                            <div class="flex-1 bg-gray-100 rounded-full h-8 overflow-hidden relative">
+                                <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-400 to-blue-500 rounded-full" style="width: 62%"></div>
+                                <span class="absolute inset-y-0 right-3 flex items-center text-sm font-medium text-gray-700">+0.45</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-gray-600 w-24">剧情</span>
+                            <div class="flex-1 bg-gray-100 rounded-full h-8 overflow-hidden relative">
+                                <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-400 to-purple-500 rounded-full" style="width: 45%"></div>
+                                <span class="absolute inset-y-0 right-3 flex items-center text-sm font-medium text-gray-700">+0.18</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-gray-600 w-24">惊悚</span>
+                            <div class="flex-1 bg-gray-100 rounded-full h-8 overflow-hidden relative">
+                                <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-orange-400 to-orange-500 rounded-full" style="width: 35%"></div>
+                                <span class="absolute inset-y-0 right-3 flex items-center text-sm font-medium text-gray-700">-0.12</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-gray-600 w-24">恐怖</span>
+                            <div class="flex-1 bg-gray-100 rounded-full h-8 overflow-hidden relative">
+                                <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-red-400 to-red-500 rounded-full" style="width: 22%"></div>
+                                <span class="absolute inset-y-0 right-3 flex items-center text-sm font-medium text-gray-700">-0.45</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-4 italic">发现：喜剧和爱情类型显示出显著更高的正面情感得分，而恐怖类型如预期般保持一致的负面情感。</p>
+                </div>
+            </div>
+
+            <!-- Research Question 2 -->
+            <div class="bg-gray-50 rounded-2xl p-6 mb-6">
+                <div class="flex items-start gap-4 mb-4">
+                    <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <span class="text-blue-600 font-bold">Q2</span>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">高评分电影的写作复杂度与低评分电影有何不同？</h3>
+                        <p class="text-sm text-gray-600">比较IMDb 8+和IMDb &lt;5评分电影的Flesch-Kincaid可读性得分。</p>
+                    </div>
+                </div>
+                <!-- Chart: Rating vs Complexity -->
+                <div class="bg-white rounded-xl p-5">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-4">不同评分类别的写作复杂度</h4>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="text-center">
+                            <div class="w-32 h-32 mx-auto relative">
+                                <svg class="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="40" stroke="#e5e7eb" stroke-width="12" fill="none"/>
+                                    <circle cx="50" cy="50" r="40" stroke="url(#gradient1zh)" stroke-width="12" fill="none" stroke-dasharray="201" stroke-dashoffset="50" stroke-linecap="round"/>
+                                    <defs>
+                                        <linearGradient id="gradient1zh" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" style="stop-color:#10b981"/>
+                                            <stop offset="100%" style="stop-color:#059669"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="text-2xl font-bold text-emerald-600">7.8</span>
+                                </div>
+                            </div>
+                            <p class="text-sm font-semibold text-gray-900 mt-3">高评分电影 (8+)</p>
+                            <p class="text-xs text-gray-500">年级可读性水平</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-32 h-32 mx-auto relative">
+                                <svg class="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="40" stroke="#e5e7eb" stroke-width="12" fill="none"/>
+                                    <circle cx="50" cy="50" r="40" stroke="url(#gradient2zh)" stroke-width="12" fill="none" stroke-dasharray="201" stroke-dashoffset="75" stroke-linecap="round"/>
+                                    <defs>
+                                        <linearGradient id="gradient2zh" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" style="stop-color:#f59e0b"/>
+                                            <stop offset="100%" style="stop-color:#d97706"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="text-2xl font-bold text-amber-600">6.2</span>
+                                </div>
+                            </div>
+                            <p class="text-sm font-semibold text-gray-900 mt-3">低评分电影 (&lt;5)</p>
+                            <p class="text-xs text-gray-500">年级可读性水平</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-4 italic">发现：高评分电影往往具有稍微复杂的写作（平均高1.6个年级水平），表明观众欣赏细腻的对话。</p>
+                </div>
+            </div>
+
+            <!-- Research Question 3 -->
+            <div class="bg-gray-50 rounded-2xl p-6 mb-6">
+                <div class="flex items-start gap-4 mb-4">
+                    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <span class="text-purple-600 font-bold">Q3</span>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">电影写作风格在几十年间如何演变？</h3>
+                        <p class="text-sm text-gray-600">追踪从1970年代到2020年代平均剧情简介长度和对话密度的变化。</p>
+                    </div>
+                </div>
+                <!-- Chart: Timeline Evolution -->
+                <div class="bg-white rounded-xl p-5">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-4">各年代平均剧情简介字数</h4>
+                    <div class="flex items-end justify-between h-48 px-4">
+                        <div class="flex flex-col items-center">
+                            <div class="w-12 bg-gradient-to-t from-amber-400 to-amber-300 rounded-t-lg" style="height: 80px"></div>
+                            <span class="text-xs text-gray-600 mt-2">1970s</span>
+                            <span class="text-xs font-medium text-gray-900">245</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-12 bg-gradient-to-t from-amber-400 to-amber-300 rounded-t-lg" style="height: 100px"></div>
+                            <span class="text-xs text-gray-600 mt-2">1980s</span>
+                            <span class="text-xs font-medium text-gray-900">312</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-12 bg-gradient-to-t from-amber-500 to-amber-400 rounded-t-lg" style="height: 120px"></div>
+                            <span class="text-xs text-gray-600 mt-2">1990s</span>
+                            <span class="text-xs font-medium text-gray-900">378</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-12 bg-gradient-to-t from-orange-500 to-amber-400 rounded-t-lg" style="height: 150px"></div>
+                            <span class="text-xs text-gray-600 mt-2">2000s</span>
+                            <span class="text-xs font-medium text-gray-900">456</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-12 bg-gradient-to-t from-orange-600 to-orange-400 rounded-t-lg" style="height: 170px"></div>
+                            <span class="text-xs text-gray-600 mt-2">2010s</span>
+                            <span class="text-xs font-medium text-gray-900">523</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-12 bg-gradient-to-t from-red-500 to-orange-500 rounded-t-lg" style="height: 185px"></div>
+                            <span class="text-xs text-gray-600 mt-2">2020s</span>
+                            <span class="text-xs font-medium text-gray-900">567</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-4 italic">发现：电影剧情简介自1970年代以来增长了131%，反映出现代电影中更复杂的叙事和更详细的世界观构建。</p>
+                </div>
+            </div>
+
+            <!-- Research Question 4 -->
+            <div class="bg-gray-50 rounded-2xl p-6">
+                <div class="flex items-start gap-4 mb-4">
+                    <div class="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <span class="text-pink-600 font-bold">Q4</span>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">每种类型最具特征的词汇是什么（TF-IDF）？</h3>
+                        <p class="text-sm text-gray-600">使用TF-IDF识别独特表征不同电影类型的关键词。</p>
+                    </div>
+                </div>
+                <!-- Word Cloud Style Display -->
+                <div class="bg-white rounded-xl p-5">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-4">各类型TF-IDF关键词</h4>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="bg-red-50 rounded-xl p-4">
+                            <h5 class="text-sm font-semibold text-red-700 mb-2">恐怖</h5>
+                            <div class="flex flex-wrap gap-1">
+                                <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">闹鬼</span>
+                                <span class="text-sm bg-red-200 text-red-700 px-2 py-1 rounded font-medium">恐怖</span>
+                                <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">超自然</span>
+                                <span class="text-sm bg-red-200 text-red-700 px-2 py-1 rounded font-medium">恶魔</span>
+                                <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">噩梦</span>
+                            </div>
+                        </div>
+                        <div class="bg-pink-50 rounded-xl p-4">
+                            <h5 class="text-sm font-semibold text-pink-700 mb-2">爱情</h5>
+                            <div class="flex flex-wrap gap-1">
+                                <span class="text-sm bg-pink-200 text-pink-700 px-2 py-1 rounded font-medium">激情</span>
+                                <span class="text-xs bg-pink-100 text-pink-600 px-2 py-1 rounded">心</span>
+                                <span class="text-sm bg-pink-200 text-pink-700 px-2 py-1 rounded font-medium">命运</span>
+                                <span class="text-xs bg-pink-100 text-pink-600 px-2 py-1 rounded">婚礼</span>
+                                <span class="text-xs bg-pink-100 text-pink-600 px-2 py-1 rounded">灵魂伴侣</span>
+                            </div>
+                        </div>
+                        <div class="bg-blue-50 rounded-xl p-4">
+                            <h5 class="text-sm font-semibold text-blue-700 mb-2">科幻</h5>
+                            <div class="flex flex-wrap gap-1">
+                                <span class="text-sm bg-blue-200 text-blue-700 px-2 py-1 rounded font-medium">星系</span>
+                                <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">机器人</span>
+                                <span class="text-sm bg-blue-200 text-blue-700 px-2 py-1 rounded font-medium">飞船</span>
+                                <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">量子</span>
+                                <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">外星人</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-4 italic">发现：TF-IDF分析揭示了类型特定的词汇，仅使用剧情关键词就能以87%的准确率预测电影类别。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Overview Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">技术概述</span>
+                <h2 class="text-2xl font-bold text-gray-900">系统架构</h2>
+            </div>
+
+            <!-- Technical Illustration Image -->
+            <div class="mb-10 rounded-2xl overflow-hidden shadow-lg">
+                <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/scriptsense-an-ai-powered-movie-writing-style-an/product-concept/1769041656509-image-1.png" alt="ScriptSense工作原理" class="w-full h-72 object-cover">
+                <div class="p-4 bg-white border-t border-gray-100">
+                    <p class="text-sm text-gray-600 text-center">ScriptSense如何将电影剧本从原始数据处理为可操作的洞察</p>
+                </div>
+            </div>
+
+            <!-- SVG Architecture Diagram -->
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <svg viewBox="0 0 800 400" class="w-full h-auto">
+                    <!-- Data Layer -->
+                    <rect x="20" y="50" width="220" height="300" rx="16" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                    <text x="130" y="85" text-anchor="middle" font-size="14" font-weight="600" fill="#92400e">数据层</text>
+
+                    <rect x="40" y="105" width="180" height="50" rx="8" fill="#fff" stroke="#fcd34d" stroke-width="1.5"/>
+                    <text x="130" y="125" text-anchor="middle" font-size="11" fill="#78350f">📊 Kaggle数据集</text>
+                    <text x="130" y="142" text-anchor="middle" font-size="9" fill="#a16207">电影剧本语料库</text>
+
+                    <rect x="40" y="165" width="180" height="50" rx="8" fill="#fff" stroke="#fcd34d" stroke-width="1.5"/>
+                    <text x="130" y="185" text-anchor="middle" font-size="11" fill="#78350f">📝 文本列</text>
+                    <text x="130" y="202" text-anchor="middle" font-size="9" fill="#a16207">剧情、梗概、大纲</text>
+
+                    <rect x="40" y="225" width="180" height="50" rx="8" fill="#fff" stroke="#fcd34d" stroke-width="1.5"/>
+                    <text x="130" y="245" text-anchor="middle" font-size="11" fill="#78350f">🏷️ 元数据</text>
+                    <text x="130" y="262" text-anchor="middle" font-size="9" fill="#a16207">类型、年份、评分</text>
+
+                    <rect x="40" y="285" width="180" height="50" rx="8" fill="#fff" stroke="#fcd34d" stroke-width="1.5"/>
+                    <text x="130" y="305" text-anchor="middle" font-size="11" fill="#78350f">⭐ 评分</text>
+                    <text x="130" y="322" text-anchor="middle" font-size="9" fill="#a16207">IMDb、Metascore</text>
+
+                    <!-- Processing Layer -->
+                    <rect x="290" y="50" width="220" height="300" rx="16" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+                    <text x="400" y="85" text-anchor="middle" font-size="14" font-weight="600" fill="#1e40af">NLP处理</text>
+
+                    <rect x="310" y="105" width="180" height="50" rx="8" fill="#fff" stroke="#93c5fd" stroke-width="1.5"/>
+                    <text x="400" y="125" text-anchor="middle" font-size="11" fill="#1e3a8a">🔤 文本预处理</text>
+                    <text x="400" y="142" text-anchor="middle" font-size="9" fill="#3b82f6">分词、清洗</text>
+
+                    <rect x="310" y="165" width="180" height="50" rx="8" fill="#fff" stroke="#93c5fd" stroke-width="1.5"/>
+                    <text x="400" y="185" text-anchor="middle" font-size="11" fill="#1e3a8a">😊 情感分析</text>
+                    <text x="400" y="202" text-anchor="middle" font-size="9" fill="#3b82f6">NRC情感词典</text>
+
+                    <rect x="310" y="225" width="180" height="50" rx="8" fill="#fff" stroke="#93c5fd" stroke-width="1.5"/>
+                    <text x="400" y="245" text-anchor="middle" font-size="11" fill="#1e3a8a">📈 TF-IDF向量化</text>
+                    <text x="400" y="262" text-anchor="middle" font-size="9" fill="#3b82f6">关键词提取</text>
+
+                    <rect x="310" y="285" width="180" height="50" rx="8" fill="#fff" stroke="#93c5fd" stroke-width="1.5"/>
+                    <text x="400" y="305" text-anchor="middle" font-size="11" fill="#1e3a8a">🗂️ 主题建模</text>
+                    <text x="400" y="322" text-anchor="middle" font-size="9" fill="#3b82f6">LDA主题发现</text>
+
+                    <!-- Output Layer -->
+                    <rect x="560" y="50" width="220" height="300" rx="16" fill="#f3e8ff" stroke="#a855f7" stroke-width="2"/>
+                    <text x="670" y="85" text-anchor="middle" font-size="14" font-weight="600" fill="#6b21a8">洞察与可视化</text>
+
+                    <rect x="580" y="105" width="180" height="50" rx="8" fill="#fff" stroke="#d8b4fe" stroke-width="1.5"/>
+                    <text x="670" y="125" text-anchor="middle" font-size="11" fill="#581c87">📊 类型比较</text>
+                    <text x="670" y="142" text-anchor="middle" font-size="9" fill="#7c3aed">风格差异</text>
+
+                    <rect x="580" y="165" width="180" height="50" rx="8" fill="#fff" stroke="#d8b4fe" stroke-width="1.5"/>
+                    <text x="670" y="185" text-anchor="middle" font-size="11" fill="#581c87">📉 趋势分析</text>
+                    <text x="670" y="202" text-anchor="middle" font-size="9" fill="#7c3aed">历史模式</text>
+
+                    <rect x="580" y="225" width="180" height="50" rx="8" fill="#fff" stroke="#d8b4fe" stroke-width="1.5"/>
+                    <text x="670" y="245" text-anchor="middle" font-size="11" fill="#581c87">🎯 评分预测</text>
+                    <text x="670" y="262" text-anchor="middle" font-size="9" fill="#7c3aed">成功关联</text>
+
+                    <rect x="580" y="285" width="180" height="50" rx="8" fill="#fff" stroke="#d8b4fe" stroke-width="1.5"/>
+                    <text x="670" y="305" text-anchor="middle" font-size="11" fill="#581c87">📱 交互式图表</text>
+                    <text x="670" y="322" text-anchor="middle" font-size="9" fill="#7c3aed">数据可视化</text>
+
+                    <!-- Arrows -->
+                    <defs>
+                        <marker id="arrowheadzh" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+                        </marker>
+                    </defs>
+                    <line x1="245" y1="200" x2="285" y2="200" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowheadzh)"/>
+                    <line x1="515" y1="200" x2="555" y2="200" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowheadzh)"/>
+
+                    <text x="265" y="185" text-anchor="middle" font-size="8" fill="#6b7280">提取</text>
+                    <text x="535" y="185" text-anchor="middle" font-size="8" fill="#6b7280">分析</text>
+                </svg>
+
+                <!-- Legend -->
+                <div class="flex justify-center gap-6 mt-6">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-amber-100 border border-amber-400"></div>
+                        <span class="text-sm text-gray-600">数据源</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-blue-100 border border-blue-400"></div>
+                        <span class="text-sm text-gray-600">NLP处理</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-purple-100 border border-purple-400"></div>
+                        <span class="text-sm text-gray-600">输出与洞察</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Growth Path Section -->
+    <section class="py-12 px-8 bg-white">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">发展路径</span>
+                <h2 class="text-2xl font-bold text-gray-900">从数据集到发现</h2>
+            </div>
+
+            <div class="grid grid-cols-3 gap-6">
+                <div class="bg-gray-50 rounded-2xl p-6">
+                    <div class="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center mb-4">
+                        <span class="text-white font-bold text-lg">1</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">数据探索</h3>
+                    <p class="text-sm text-gray-600">从Kaggle电影剧本语料库开始。清洗和预处理文本数据，处理缺失值并在剧情、梗概和大纲列中标准化格式。</p>
+                </div>
+                <div class="bg-gray-50 rounded-2xl p-6">
+                    <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mb-4">
+                        <span class="text-white font-bold text-lg">2</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">构建分析流程</h3>
+                    <p class="text-sm text-gray-600">实现NLP技术：使用NLTK进行情感分析，使用scikit-learn进行TF-IDF向量化，使用Gensim进行主题建模。为每种分析类型创建可重用函数。</p>
+                </div>
+                <div class="bg-gray-50 rounded-2xl p-6">
+                    <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mb-4">
+                        <span class="text-white font-bold text-lg">3</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">可视化与分享</h3>
+                    <p class="text-sm text-gray-600">使用Plotly或Matplotlib创建交互式可视化。构建展示类型差异、评分关联和时间趋势发现的仪表板或报告。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Your Journey Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">你的旅程</span>
+                <h2 class="text-2xl font-bold text-gray-900">从好奇到数据科学</h2>
+                <p class="text-gray-600 mt-2">你对电影的热爱如何成为掌握数据科学的路径</p>
+            </div>
+
+            <div class="relative">
+                <!-- Timeline line -->
+                <div class="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-emerald-300 via-blue-300 to-purple-300 rounded-full"></div>
+
+                <!-- Stage 1 -->
+                <div class="flex items-center mb-12">
+                    <div class="w-1/2 pr-8 text-right">
+                        <h3 class="text-lg font-semibold text-emerald-600 mb-2">基础</h3>
+                        <p class="text-sm text-gray-600 italic">"我一直对为什么有些电影能引起观众共鸣而其他电影却不能这一问题着迷。故事的讲述方式一定存在某种模式。"</p>
+                    </div>
+                    <div class="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center z-10 border-4 border-white shadow-lg">
+                        <i class="fas fa-seedling text-emerald-600 text-xl"></i>
+                    </div>
+                    <div class="w-1/2 pl-8"></div>
+                </div>
+
+                <!-- Stage 2 -->
+                <div class="flex items-center mb-12">
+                    <div class="w-1/2 pr-8"></div>
+                    <div class="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center z-10 border-4 border-white shadow-lg">
+                        <i class="fas fa-eye text-amber-600 text-xl"></i>
+                    </div>
+                    <div class="w-1/2 pl-8">
+                        <h3 class="text-lg font-semibold text-amber-600 mb-2">观察</h3>
+                        <p class="text-sm text-gray-600 italic">"我发现了包含电影剧本、评分、类型和剧情简介的数据集。如果我能分析数千个剧本来找到隐藏的模式呢？"</p>
+                    </div>
+                </div>
+
+                <!-- Stage 3 -->
+                <div class="flex items-center mb-12">
+                    <div class="w-1/2 pr-8 text-right">
+                        <h3 class="text-lg font-semibold text-blue-600 mb-2">洞察</h3>
+                        <p class="text-sm text-gray-600 italic">"NLP和机器学习可以解码成功叙事的语言。情感分析、主题建模和文本分类可以揭示什么让剧本成功。"</p>
+                    </div>
+                    <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center z-10 border-4 border-white shadow-lg">
+                        <i class="fas fa-lightbulb text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="w-1/2 pl-8"></div>
+                </div>
+
+                <!-- Stage 4 -->
+                <div class="flex items-center">
+                    <div class="w-1/2 pr-8"></div>
+                    <div class="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center z-10 border-4 border-white shadow-lg">
+                        <i class="fas fa-rocket text-purple-600 text-xl"></i>
+                    </div>
+                    <div class="w-1/2 pl-8">
+                        <h3 class="text-lg font-semibold text-purple-600 mb-2">创新</h3>
+                        <p class="text-sm text-gray-600 italic">"通过ScriptSense，我将对电影的热爱与数据科学技能结合起来。这个项目可以帮助有抱负的编剧，并推进我们对叙事的理解。"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 py-10 px-8">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="flex items-center justify-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-film text-white text-xl"></i>
+                </div>
+                <span class="text-white text-xl font-bold">ScriptSense</span>
+            </div>
+            <p class="text-gray-400 mb-2">通过数据科学解码电影语言</p>
+            <p class="text-gray-500 text-sm">学生主导的数据科学项目</p>
+        </div>
+    </footer>
+</body>
+</html>
