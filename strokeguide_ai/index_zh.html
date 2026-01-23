@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StrokeGuide AI - AI驱动的学生绘画反馈系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+        * { font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+        .phone-frame {
+            width: 300px;
+            height: 650px;
+            border-radius: 44px;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 11px #1a1a1a,
+                0 0 0 13px #2d2d2d,
+                0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            position: relative;
+            background: #000;
+            flex-shrink: 0;
+        }
+
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 28px;
+            background: #1a1a1a;
+            border-radius: 0 0 20px 20px;
+            z-index: 100;
+        }
+
+        .phone-frame iframe {
+            width: 430px;
+            height: 932px;
+            border: none;
+            border-radius: 38px;
+            transform: scale(0.698);
+            transform-origin: top left;
+        }
+
+        .screen-label {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #f97316, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <!-- Language Switcher -->
+    <div class="fixed top-4 right-4 z-50">
+        <div class="bg-white rounded-full shadow-lg border border-gray-200 p-1 flex gap-1">
+            <a href="index.html" class="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 rounded-full transition">EN</a>
+            <span class="px-3 py-1.5 text-sm bg-orange-500 text-white rounded-full font-medium">中文</span>
+        </div>
+    </div>
+
+    <!-- Hero Header -->
+    <header class="pt-12 pb-8 px-8 text-center border-b border-gray-100">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex items-center justify-center gap-3 mb-5">
+                <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-pencil-alt text-white text-3xl"></i>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-3">StrokeGuide AI</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-5">AI驱动的视觉反馈系统，通过实时笔画分析和鼓励性反馈指导学生绘画学习。</p>
+            <!-- Major Tags -->
+            <div class="flex items-center justify-center gap-3 flex-wrap">
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-robot"></i>
+                    计算机视觉
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-graduation-cap"></i>
+                    教育科技
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-hand-paper"></i>
+                    精细运动发展
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Problem Statement Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">问题背景</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">学生精细运动技能正在下降</h2>
+                <p class="text-gray-600 leading-relaxed">在屏幕和数字设备主导的时代，<strong>儿童的精细运动技能正以惊人的速度下降</strong>。传统的绘画教学缺乏学生所需的个性化实时反馈，而教师在拥挤的教室中难以给予每个学生个别关注。</p>
+            </div>
+
+            <!-- Problem Images - 2 images side by side -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div class="rounded-2xl overflow-hidden shadow-lg">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/the-drawing-machine-is-enhanced-with-a-camera-base/problem-background/1769127447360-image-1.png" alt="学生在绘画中遇到困难" class="w-full h-56 object-cover">
+                    <div class="p-4 bg-white">
+                        <p class="text-sm text-gray-600 text-center">许多学生在学习绘制基本图形时缺乏信心</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/the-drawing-machine-is-enhanced-with-a-camera-base/problem-background/1769127448017-image-2.png" alt="传统课堂的局限性" class="w-full h-56 object-cover">
+                    <div class="p-4 bg-white">
+                        <p class="text-sm text-gray-600 text-center">教师无法为每个学生提供实时反馈</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-6 border border-red-100">
+                    <p class="text-4xl font-bold text-red-600 mb-2">77%</p>
+                    <p class="text-gray-700 text-sm">的学前至三年级教师表示精细运动技能对学生来说变得更具挑战性</p>
+                    <a href="https://www.mother.ly/child/child-milestones/fine-motor-skills-declining-in-children/" target="_blank" class="text-red-600 text-xs mt-2 inline-flex items-center gap-1 hover:underline">
+                        Education Week调查 <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+                <div class="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-6 border border-amber-100">
+                    <p class="text-4xl font-bold text-amber-600 mb-2">10-30%</p>
+                    <p class="text-gray-700 text-sm">的学龄儿童存在影响学业表现的书写困难问题</p>
+                    <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9485126/" target="_blank" class="text-amber-600 text-xs mt-2 inline-flex items-center gap-1 hover:underline">
+                        PMC研究 <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+                <div class="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-6 border border-orange-100">
+                    <p class="text-4xl font-bold text-orange-600 mb-2">60%</p>
+                    <p class="text-gray-700 text-sm">的学校时间涉及精细运动任务，技能发展至关重要</p>
+                    <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5851374/" target="_blank" class="text-orange-600 text-xs mt-2 inline-flex items-center gap-1 hover:underline">
+                        运动技能研究 <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Impact Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">社会影响</span>
+                <h2 class="text-2xl font-bold text-gray-900">通过引导式学习赋能学生</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-brain text-blue-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">增强运动学习</h3>
+                    <p class="text-gray-600 text-sm mb-3">视觉反馈促进技能习得和运动学习，研究表明在各种活动的控制环境中有显著改善。</p>
+                    <a href="https://link.springer.com/article/10.1007/s12662-021-00782-y" target="_blank" class="text-blue-600 text-xs inline-flex items-center gap-1 hover:underline">
+                        德国体育研究杂志 <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-heart text-green-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">建立自信</h3>
+                    <p class="text-gray-600 text-sm mb-3">鼓励性反馈而非评分可以减少焦虑并建立自尊，积极强化已被证明可将学习效果提高40%。</p>
+                    <a href="https://www.nature.com/articles/s41598-021-96876-6" target="_blank" class="text-green-600 text-xs inline-flex items-center gap-1 hover:underline">
+                        Nature科学报告 <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-universal-access text-purple-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">普及艺术教育</h3>
+                    <p class="text-gray-600 text-sm mb-3">仅11%的加州学校提供全面的艺术教育。AI辅助工具可以帮助弥补缺乏艺术教师的社区差距。</p>
+                    <a href="https://createca.org/citations/" target="_blank" class="text-purple-600 text-xs inline-flex items-center gap-1 hover:underline">
+                        Create CA研究 <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-child text-amber-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">早期干预</h3>
+                    <p class="text-gray-600 text-sm mb-3">运动技能发展不足的儿童有养成不良习惯的风险。早期引导干预可预防书写清晰度和学业表现方面的困难。</p>
+                    <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5851374/" target="_blank" class="text-amber-600 text-xs inline-flex items-center gap-1 hover:underline">
+                        PMC学前研究 <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mobile App Prototype Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">产品设计</span>
+                <h2 class="text-2xl font-bold text-gray-900">移动应用原型</h2>
+            </div>
+
+            <!-- Row 1: 3 screens -->
+            <div class="flex flex-wrap justify-center gap-8 mb-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="home.html"></iframe>
+                    </div>
+                    <p class="screen-label">首页</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="practice.html"></iframe>
+                    </div>
+                    <p class="screen-label">练习模式</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="progress.html"></iframe>
+                    </div>
+                    <p class="screen-label">进度追踪</p>
+                </div>
+            </div>
+
+            <!-- Row 2: 2 screens (centered) -->
+            <div class="flex flex-wrap justify-center gap-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="feedback.html"></iframe>
+                    </div>
+                    <p class="screen-label">AI反馈</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="profile.html"></iframe>
+                    </div>
+                    <p class="screen-label">个人资料</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Project in Action Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">实际应用</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-3">项目实践</h2>
+                <p class="text-gray-600">展示StrokeGuide AI如何产生影响的真实场景</p>
+            </div>
+
+            <!-- Use Case Images - 2x2 Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/the-drawing-machine-is-enhanced-with-a-camera-base/use-cases/1769127438501-image-1.png" alt="学生在机械臂指导下练习" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">引导式绘画练习</h3>
+                        <p class="text-sm text-gray-600">学生跟随机械臂的笔画，摄像头捕捉他们的动作进行实时比较和反馈。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/the-drawing-machine-is-enhanced-with-a-camera-base/use-cases/1769127439294-image-2.png" alt="平板上的实时视觉反馈" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">实时视觉反馈</h3>
+                        <p class="text-sm text-gray-600">系统将学生的笔画与参考路径叠加，用鼓励性建议突出需要改进的地方。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/the-drawing-machine-is-enhanced-with-a-camera-base/use-cases/1769127439578-image-3.png" alt="课堂整合" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">课堂整合</h3>
+                        <p class="text-sm text-gray-600">多名学生同时练习，每人都能获得个性化反馈，教师可监控整体进度。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/the-drawing-machine-is-enhanced-with-a-camera-base/use-cases/1769127439809-image-4.png" alt="庆祝进步" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">庆祝进步</h3>
+                        <p class="text-sm text-gray-600">学生获得徽章并看到自己随时间的进步，通过积极强化和可见增长建立信心。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Overview Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">技术概述</span>
+                <h2 class="text-2xl font-bold text-gray-900">系统架构</h2>
+            </div>
+
+            <!-- Technical Illustration Image -->
+            <div class="mb-10 rounded-2xl overflow-hidden shadow-lg">
+                <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/the-drawing-machine-is-enhanced-with-a-camera-base/product-concept/1769127422829-image-1.png" alt="StrokeGuide AI工作原理" class="w-full h-72 object-cover">
+                <div class="p-4 bg-white border-t border-gray-100">
+                    <p class="text-sm text-gray-600 text-center">系统工作原理 - 从摄像头捕捉到鼓励性反馈</p>
+                </div>
+            </div>
+
+            <!-- SVG Architecture Diagram -->
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <svg viewBox="0 0 800 400" class="w-full h-auto">
+                    <!-- Background layers -->
+                    <rect x="20" y="20" width="220" height="360" rx="16" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                    <rect x="290" y="20" width="220" height="360" rx="16" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+                    <rect x="560" y="20" width="220" height="360" rx="16" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+
+                    <!-- Layer titles -->
+                    <text x="130" y="55" text-anchor="middle" font-weight="bold" font-size="16" fill="#92400e">📹 输入层</text>
+                    <text x="400" y="55" text-anchor="middle" font-weight="bold" font-size="16" fill="#1e40af">🧠 处理层</text>
+                    <text x="670" y="55" text-anchor="middle" font-weight="bold" font-size="16" fill="#166534">💬 输出层</text>
+
+                    <!-- Input Layer Components -->
+                    <rect x="40" y="80" width="180" height="50" rx="8" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+                    <text x="130" y="110" text-anchor="middle" font-size="13" fill="#374151">摄像头模块</text>
+
+                    <rect x="40" y="145" width="180" height="50" rx="8" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+                    <text x="130" y="175" text-anchor="middle" font-size="13" fill="#374151">机械臂路径</text>
+
+                    <rect x="40" y="210" width="180" height="50" rx="8" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+                    <text x="130" y="240" text-anchor="middle" font-size="13" fill="#374151">学生绘画</text>
+
+                    <rect x="40" y="275" width="180" height="50" rx="8" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+                    <text x="130" y="305" text-anchor="middle" font-size="13" fill="#374151">参考模板</text>
+
+                    <!-- Processing Layer Components -->
+                    <rect x="310" y="80" width="180" height="50" rx="8" fill="#ffffff" stroke="#3b82f6" stroke-width="1.5"/>
+                    <text x="400" y="110" text-anchor="middle" font-size="13" fill="#374151">计算机视觉</text>
+
+                    <rect x="310" y="145" width="180" height="50" rx="8" fill="#ffffff" stroke="#3b82f6" stroke-width="1.5"/>
+                    <text x="400" y="175" text-anchor="middle" font-size="13" fill="#374151">笔画对比</text>
+
+                    <rect x="310" y="210" width="180" height="50" rx="8" fill="#ffffff" stroke="#3b82f6" stroke-width="1.5"/>
+                    <text x="400" y="240" text-anchor="middle" font-size="13" fill="#374151">形状分析</text>
+
+                    <rect x="310" y="275" width="180" height="50" rx="8" fill="#ffffff" stroke="#3b82f6" stroke-width="1.5"/>
+                    <text x="400" y="305" text-anchor="middle" font-size="13" fill="#374151">比例检测</text>
+
+                    <!-- Output Layer Components -->
+                    <rect x="580" y="80" width="180" height="50" rx="8" fill="#ffffff" stroke="#22c55e" stroke-width="1.5"/>
+                    <text x="670" y="110" text-anchor="middle" font-size="13" fill="#374151">对齐反馈</text>
+
+                    <rect x="580" y="145" width="180" height="50" rx="8" fill="#ffffff" stroke="#22c55e" stroke-width="1.5"/>
+                    <text x="670" y="175" text-anchor="middle" font-size="13" fill="#374151">鼓励信息</text>
+
+                    <rect x="580" y="210" width="180" height="50" rx="8" fill="#ffffff" stroke="#22c55e" stroke-width="1.5"/>
+                    <text x="670" y="240" text-anchor="middle" font-size="13" fill="#374151">技巧建议</text>
+
+                    <rect x="580" y="275" width="180" height="50" rx="8" fill="#ffffff" stroke="#22c55e" stroke-width="1.5"/>
+                    <text x="670" y="305" text-anchor="middle" font-size="13" fill="#374151">进度追踪</text>
+
+                    <!-- Arrows -->
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+                        </marker>
+                    </defs>
+
+                    <line x1="240" y1="200" x2="280" y2="200" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <line x1="510" y1="200" x2="550" y2="200" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                    <!-- Legend -->
+                    <rect x="40" y="350" width="12" height="12" rx="2" fill="#fef3c7" stroke="#f59e0b"/>
+                    <text x="60" y="361" font-size="11" fill="#374151">数据采集</text>
+
+                    <rect x="180" y="350" width="12" height="12" rx="2" fill="#dbeafe" stroke="#3b82f6"/>
+                    <text x="200" y="361" font-size="11" fill="#374151">AI分析</text>
+
+                    <rect x="300" y="350" width="12" height="12" rx="2" fill="#dcfce7" stroke="#22c55e"/>
+                    <text x="320" y="361" font-size="11" fill="#374151">用户反馈</text>
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- Growth Path Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">发展路径</span>
+                <h2 class="text-2xl font-bold text-gray-900">从原型到平台</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl mb-4">1</div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">构建核心系统</h3>
+                    <p class="text-gray-600 text-sm">使用OpenCV和Python开发基于摄像头的视觉反馈模块。用基本几何图形训练笔画对比算法，创建鼓励性反馈消息库。</p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl mb-4">2</div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">学校试点</h3>
+                    <p class="text-gray-600 text-sm">与当地小学合作进行试点测试。收集学生和教师的反馈，迭代反馈消息，测量学生绘画技能随时间的提升。</p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xl mb-4">3</div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">扩展与推广</h3>
+                    <p class="text-gray-600 text-sm">开发移动伴侣应用供家庭练习。添加更复杂的绘画练习和图案。创建教师仪表板追踪课堂进度，与现有艺术课程整合。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Your Journey Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">你的旅程</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-3">从热爱到使命</h2>
+                <p class="text-gray-600">你对技术和教育的兴趣如何汇聚创造影响</p>
+            </div>
+
+            <div class="relative">
+                <!-- Timeline line -->
+                <div class="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-green-400 via-blue-400 to-purple-400 rounded-full hidden md:block"></div>
+
+                <!-- Stage 1 -->
+                <div class="flex flex-col md:flex-row items-center mb-12">
+                    <div class="md:w-1/2 md:pr-12 md:text-right mb-4 md:mb-0">
+                        <h3 class="text-lg font-bold text-green-600 mb-2">启蒙</h3>
+                        <p class="text-gray-600 italic">"我一直喜欢看着人们学习和成长。教弟弟妹妹画画在我心中点燃了什么。"</p>
+                    </div>
+                    <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center z-10 border-4 border-white shadow-lg">
+                        <i class="fas fa-seedling text-green-600 text-xl"></i>
+                    </div>
+                    <div class="md:w-1/2 md:pl-12 hidden md:block"></div>
+                </div>
+
+                <!-- Stage 2 -->
+                <div class="flex flex-col md:flex-row items-center mb-12">
+                    <div class="md:w-1/2 md:pr-12 hidden md:block"></div>
+                    <div class="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center z-10 border-4 border-white shadow-lg">
+                        <i class="fas fa-eye text-amber-600 text-xl"></i>
+                    </div>
+                    <div class="md:w-1/2 md:pl-12 md:text-left mt-4 md:mt-0">
+                        <h3 class="text-lg font-bold text-amber-600 mb-2">观察</h3>
+                        <p class="text-gray-600 italic">"我注意到学生在学习画画时会感到沮丧。他们需要鼓励而不是批评，但老师无法给每个人个别关注。"</p>
+                    </div>
+                </div>
+
+                <!-- Stage 3 -->
+                <div class="flex flex-col md:flex-row items-center mb-12">
+                    <div class="md:w-1/2 md:pr-12 md:text-right mb-4 md:mb-0">
+                        <h3 class="text-lg font-bold text-blue-600 mb-2">洞察</h3>
+                        <p class="text-gray-600 italic">"如果技术能提供学生需要的个性化指导会怎样？不是打分，而是引导——像一个始终鼓励的耐心导师。"</p>
+                    </div>
+                    <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center z-10 border-4 border-white shadow-lg">
+                        <i class="fas fa-lightbulb text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="md:w-1/2 md:pl-12 hidden md:block"></div>
+                </div>
+
+                <!-- Stage 4 -->
+                <div class="flex flex-col md:flex-row items-center">
+                    <div class="md:w-1/2 md:pr-12 hidden md:block"></div>
+                    <div class="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center z-10 border-4 border-white shadow-lg">
+                        <i class="fas fa-rocket text-purple-600 text-xl"></i>
+                    </div>
+                    <div class="md:w-1/2 md:pl-12 md:text-left mt-4 md:mt-0">
+                        <h3 class="text-lg font-bold text-purple-600 mb-2">创新</h3>
+                        <p class="text-gray-600 italic">"通过StrokeGuide AI，我将计算机视觉与温和、支持性的反馈相结合，帮助每个学生发现绘画的乐趣。"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 py-10 px-8">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="flex items-center justify-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-pencil-alt text-white text-xl"></i>
+                </div>
+                <span class="text-2xl font-bold text-white">StrokeGuide AI</span>
+            </div>
+            <p class="text-gray-400 mb-3">引导每一笔，鼓励每一位艺术家</p>
+            <p class="text-gray-500 text-sm">学生主导的教育科技项目</p>
+        </div>
+    </footer>
+</body>
+</html>
