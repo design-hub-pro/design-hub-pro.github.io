@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Profile - KartMetrics Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background: #0f0f1a; }
+        .sidebar { background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); }
+        .card { background: #1a1a2e; border: 1px solid #2a2a4a; }
+        .active-nav { background: linear-gradient(90deg, rgba(102, 126, 234, 0.3) 0%, transparent 100%); border-left: 3px solid #667eea; }
+    </style>
+</head>
+<body class="min-h-screen text-white">
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 min-h-screen fixed left-0 top-0 p-4">
+            <div class="flex items-center gap-3 mb-8 px-2">
+                <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-flag-checkered text-lg"></i>
+                </div>
+                <span class="font-bold text-xl">KartMetrics</span>
+            </div>
+
+            <nav class="space-y-1">
+                <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-th-large w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="lap-analysis.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-stopwatch w-5"></i>
+                    <span>Lap Analysis</span>
+                </a>
+                <a href="racing-line.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-route w-5"></i>
+                    <span>Racing Line</span>
+                </a>
+                <a href="speed-profile.html" class="active-nav flex items-center gap-3 px-4 py-3 rounded-lg text-white">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    <span>Speed Profile</span>
+                </a>
+                <a href="rpm-analysis.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-cog w-5"></i>
+                    <span>RPM Analysis</span>
+                </a>
+                <a href="consistency.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-chart-bar w-5"></i>
+                    <span>Consistency</span>
+                </a>
+                <a href="imu-smoothness.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-wave-square w-5"></i>
+                    <span>IMU Analysis</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="ml-64 flex-1 p-8">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold">Speed Profile Analysis</h1>
+                    <p class="text-gray-400 mt-1">Compare speed curves and analyze cornering efficiency</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <select class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm">
+                        <option>Lap 12 vs Best Lap</option>
+                        <option>Lap 12 vs Average</option>
+                        <option>All Laps Overlay</option>
+                    </select>
+                    <button class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm">
+                        <i class="fas fa-cog mr-2"></i>Settings
+                    </button>
+                </div>
+            </div>
+
+            <!-- Speed Profile Chart -->
+            <div class="card rounded-2xl p-6 mb-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="font-semibold text-lg">Speed vs Track Position</h3>
+                    <div class="flex items-center gap-6 text-sm">
+                        <span class="flex items-center gap-2">
+                            <span class="w-4 h-1 bg-green-500 rounded"></span>
+                            Best Lap (42.847s)
+                        </span>
+                        <span class="flex items-center gap-2">
+                            <span class="w-4 h-1 bg-purple-500 rounded"></span>
+                            Lap 12 (42.951s)
+                        </span>
+                        <span class="flex items-center gap-2">
+                            <span class="w-4 h-1 bg-gray-500 rounded"></span>
+                            Average
+                        </span>
+                    </div>
+                </div>
+
+                <div style="height: 350px; position: relative;">
+                    <canvas id="speedChart"></canvas>
+                    <!-- Track position markers overlay -->
+                    <div class="absolute bottom-12 left-16 right-4 flex justify-between text-xs text-gray-500">
+                        <span>S/F</span>
+                        <span>T1</span>
+                        <span>T2</span>
+                        <span>S2</span>
+                        <span>T3</span>
+                        <span>CHI</span>
+                        <span>T7</span>
+                        <span>Final</span>
+                        <span>S/F</span>
+                    </div>
+                </div>
+
+                <!-- Speed difference highlight zones -->
+                <div class="mt-4 flex items-center gap-4">
+                    <div class="flex items-center gap-2 px-3 py-2 bg-red-500/10 border border-red-500/30 rounded-lg">
+                        <i class="fas fa-arrow-down text-red-400"></i>
+                        <span class="text-sm">T3 exit: -4.3 km/h deficit</span>
+                    </div>
+                    <div class="flex items-center gap-2 px-3 py-2 bg-red-500/10 border border-red-500/30 rounded-lg">
+                        <i class="fas fa-arrow-down text-red-400"></i>
+                        <span class="text-sm">T7 mid-corner: -2.8 km/h</span>
+                    </div>
+                    <div class="flex items-center gap-2 px-3 py-2 bg-green-500/10 border border-green-500/30 rounded-lg">
+                        <i class="fas fa-arrow-up text-green-400"></i>
+                        <span class="text-sm">Main straight: +1.2 km/h</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Corner Analysis Grid -->
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <!-- Mid-Corner Speed Comparison -->
+                <div class="card rounded-2xl p-6">
+                    <h3 class="font-semibold text-lg mb-4">Mid-Corner Speed Analysis</h3>
+                    <p class="text-gray-400 text-sm mb-4">Minimum speed achieved at each corner apex</p>
+                    <canvas id="minSpeedChart" height="200"></canvas>
+                </div>
+
+                <!-- Exit Speed Comparison -->
+                <div class="card rounded-2xl p-6">
+                    <h3 class="font-semibold text-lg mb-4">Exit Speed Analysis</h3>
+                    <p class="text-gray-400 text-sm mb-4">Speed at corner exit points</p>
+                    <canvas id="exitSpeedChart" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Detailed Corner Breakdown -->
+            <div class="card rounded-2xl p-6">
+                <h3 class="font-semibold text-lg mb-6">Cornering Efficiency Breakdown</h3>
+                <div class="grid grid-cols-4 gap-4">
+                    <!-- Turn 1 -->
+                    <div class="bg-gray-800 rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="font-medium">Turn 1</span>
+                            <span class="text-green-400 text-sm">Good</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-sm text-gray-400 mb-1">
+                                    <span>Entry</span>
+                                    <span>79.1 km/h</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-green-500 rounded-full" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm text-gray-400 mb-1">
+                                    <span>Min</span>
+                                    <span>48.3 km/h</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-green-500 rounded-full" style="width: 78%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm text-gray-400 mb-1">
+                                    <span>Exit</span>
+                                    <span>62.4 km/h</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-green-500 rounded-full" style="width: 82%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-gray-700">
+                            <p class="text-xs text-gray-500">Delta: <span class="text-green-400">-0.02s</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Turn 3 -->
+                    <div class="bg-gray-800 rounded-xl p-4 border border-red-500/30">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="font-medium">Turn 3 <i class="fas fa-exclamation-circle text-red-400 ml-1"></i></span>
+                            <span class="text-red-400 text-sm">Critical</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-sm text-gray-400 mb-1">
+                                    <span>Entry</span>
+                                    <span class="text-red-400">58.1 km/h</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-red-500 rounded-full" style="width: 65%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm text-gray-400 mb-1">
+                                    <span>Min</span>
+                                    <span class="text-red-400">41.2 km/h</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-red-500 rounded-full" style="width: 58%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm text-gray-400 mb-1">
+                                    <span>Exit</span>
+                                    <span class="text-red-400">55.8 km/h</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-red-500 rounded-full" style="width: 62%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-gray-700">
+                            <p class="text-xs text-gray-500">Delta: <span class="text-red-400">+0.31s</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Chicane -->
+                    <div class="bg-gray-800 rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="font-medium">Chicane</span>
+                            <span class="text-orange-400 text-sm">Moderate</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-sm text-gray-400 mb-1">
+                                    <span>Entry</span>
+                                    <span>65.2 km/h</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-yellow-500 rounded-full" style="width: 75%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm text-gray-400 mb-1">
+                                    <span>Min</span>
+                                    <span>38.5 km/h</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-yellow-500 rounded-full" style="width: 70%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm text-gray-400 mb-1">
+                                    <span>Exit</span>
+                                    <span>54.1 km/h</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-orange-500 rounded-full" style="width: 68%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-gray-700">
+                            <p class="text-xs text-gray-500">Delta: <span class="text-orange-400">+0.09s</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Turn 7 -->
+                    <div class="bg-gray-800 rounded-xl p-4 border border-orange-500/30">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="font-medium">Turn 7</span>
+                            <span class="text-orange-400 text-sm">Attention</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-sm text-gray-400 mb-1">
+                                    <span>Entry</span>
+                                    <span>51.2 km/h</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-yellow-500 rounded-full" style="width: 72%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm text-gray-400 mb-1">
+                                    <span>Min</span>
+                                    <span class="text-orange-400">35.8 km/h</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-orange-500 rounded-full" style="width: 60%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm text-gray-400 mb-1">
+                                    <span>Exit</span>
+                                    <span>58.4 km/h</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-yellow-500 rounded-full" style="width: 74%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-gray-700">
+                            <p class="text-xs text-gray-500">Delta: <span class="text-orange-400">+0.19s</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommendations -->
+                <div class="mt-6 p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-xl border border-purple-500/30">
+                    <h4 class="font-medium mb-3 flex items-center gap-2">
+                        <i class="fas fa-lightbulb text-yellow-400"></i>
+                        Speed Optimization Recommendations
+                    </h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div class="flex items-start gap-3">
+                            <span class="w-6 h-6 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <span class="text-red-400 text-xs font-bold">1</span>
+                            </span>
+                            <p class="text-gray-300"><strong>T3 Exit Speed:</strong> Carry 4+ km/h more through apex by using earlier turn-in. This compounds to significant time loss on the following straight.</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="w-6 h-6 bg-orange-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <span class="text-orange-400 text-xs font-bold">2</span>
+                            </span>
+                            <p class="text-gray-300"><strong>T7 Mid-corner:</strong> Minimum speed is 2.8 km/h below optimal. Focus on maintaining speed through the apex rather than braking too much.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Source Annotation -->
+            <div class="card rounded-2xl p-6 mt-6 border border-cyan-500/30 bg-gradient-to-r from-cyan-500/5 to-blue-500/5">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-cyan-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-database text-cyan-400"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-medium text-cyan-400 mb-3">Data Sources Used for This Analysis</h4>
+                        <div class="grid grid-cols-2 gap-6 text-sm">
+                            <div>
+                                <p class="text-gray-400 mb-2 font-medium">Primary Data Channels:</p>
+                                <ul class="space-y-1.5 text-gray-300">
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-tachometer-alt text-green-400 w-4"></i>
+                                        <span><strong>GPS Speed</strong> - Velocity from GPS module (km/h, 25Hz)</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-satellite text-blue-400 w-4"></i>
+                                        <span><strong>GPS Position</strong> - For track position mapping</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-clock text-purple-400 w-4"></i>
+                                        <span><strong>Timestamp</strong> - Time synchronization for lap alignment</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p class="text-gray-400 mb-2 font-medium">How Data Contributes:</p>
+                                <ul class="space-y-1.5 text-gray-300">
+                                    <li><span class="text-cyan-400">•</span> GPS speed channel provides instant velocity readings</li>
+                                    <li><span class="text-cyan-400">•</span> Speed trace plotted against distance/track position</li>
+                                    <li><span class="text-cyan-400">•</span> Min/max speed detection for corner apex & exit analysis</li>
+                                    <li><span class="text-cyan-400">•</span> Speed differential calculated between comparison laps</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-gray-700">
+                            <p class="text-xs text-gray-500 mb-2"><i class="fas fa-info-circle text-blue-400 mr-1"></i><strong>Accuracy Note:</strong> GPS-derived speed is typically accurate to ±0.5 km/h. For higher precision, wheel speed sensors can supplement GPS data (optional channel).</p>
+                            <div class="flex items-center gap-4 text-xs text-gray-500">
+                                <span><i class="fas fa-check-circle text-green-400 mr-1"></i>MyChron: GPS Speed channel</span>
+                                <span><i class="fas fa-check-circle text-green-400 mr-1"></i>Alfano: Speed channel</span>
+                                <span><i class="fas fa-plus-circle text-blue-400 mr-1"></i>Optional: Wheel speed sensor</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Speed Profile Chart
+        const speedCtx = document.getElementById('speedChart').getContext('2d');
+
+        // Generate smoother speed data points
+        const distance = Array.from({length: 100}, (_, i) => i);
+        const bestLapSpeed = [
+            85, 87, 85, 80, 72, 62, 48, 52, 58, 65,  // T1
+            72, 78, 82, 85, 87, 88, 88, 87, 85, 80,  // S2
+            75, 68, 62, 55, 45, 42, 45, 52, 60, 68,  // T3
+            72, 70, 65, 58, 48, 38, 42, 50, 58, 65,  // Chicane
+            68, 65, 60, 52, 45, 38, 35, 38, 45, 55,  // T7
+            62, 68, 72, 75, 78, 80, 82, 84, 85, 86,  // Exit
+            86, 87, 87, 88, 88, 87, 86, 82, 78, 72,  // Final approach
+            68, 62, 55, 48, 45, 48, 55, 62, 70, 78,  // Final corner
+            82, 85, 86, 87, 88, 88, 87, 86, 85, 84,  // Pit straight
+            83, 82, 82, 83, 84, 85, 86, 87, 88, 85   // S/F
+        ];
+
+        const currentLapSpeed = bestLapSpeed.map((v, i) => {
+            // Add variations for current lap
+            if (i >= 20 && i <= 35) return v - 4; // T3 slower
+            if (i >= 45 && i <= 55) return v - 2.5; // T7 slower
+            if (i >= 85 && i <= 95) return v + 1; // Straight faster
+            return v + (Math.random() - 0.5) * 1.5;
+        });
+
+        const avgSpeed = bestLapSpeed.map(v => v - 2 + Math.random());
+
+        new Chart(speedCtx, {
+            type: 'line',
+            data: {
+                labels: distance,
+                datasets: [{
+                    label: 'Best Lap',
+                    data: bestLapSpeed,
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 0
+                }, {
+                    label: 'Lap 12',
+                    data: currentLapSpeed,
+                    borderColor: '#a855f7',
+                    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 0
+                }, {
+                    label: 'Average',
+                    data: avgSpeed,
+                    borderColor: '#6b7280',
+                    borderWidth: 1,
+                    borderDash: [5, 5],
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        min: 30,
+                        max: 95,
+                        title: {
+                            display: true,
+                            text: 'Speed (km/h)',
+                            color: '#9ca3af'
+                        },
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#9ca3af' }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Track Position (%)',
+                            color: '#9ca3af'
+                        },
+                        grid: { display: false },
+                        ticks: {
+                            color: '#9ca3af',
+                            maxTicksLimit: 10
+                        }
+                    }
+                }
+            }
+        });
+
+        // Min Speed Chart
+        const minCtx = document.getElementById('minSpeedChart').getContext('2d');
+        new Chart(minCtx, {
+            type: 'bar',
+            data: {
+                labels: ['T1', 'T2', 'T3', 'Chicane', 'T7', 'Final'],
+                datasets: [{
+                    label: 'Best Lap',
+                    data: [48, 52, 45, 38, 38, 45],
+                    backgroundColor: '#22c55e'
+                }, {
+                    label: 'Lap 12',
+                    data: [48.3, 51.5, 41.2, 38.5, 35.8, 44.8],
+                    backgroundColor: '#a855f7'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top', labels: { color: '#9ca3af' } }
+                },
+                scales: {
+                    y: {
+                        min: 30,
+                        title: { display: true, text: 'km/h', color: '#9ca3af' },
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#9ca3af' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#9ca3af' }
+                    }
+                }
+            }
+        });
+
+        // Exit Speed Chart
+        const exitCtx = document.getElementById('exitSpeedChart').getContext('2d');
+        new Chart(exitCtx, {
+            type: 'bar',
+            data: {
+                labels: ['T1', 'T2', 'T3', 'Chicane', 'T7', 'Final'],
+                datasets: [{
+                    label: 'Best Lap',
+                    data: [62, 68, 60, 55, 62, 72],
+                    backgroundColor: '#22c55e'
+                }, {
+                    label: 'Lap 12',
+                    data: [62.4, 67.2, 55.8, 54.1, 58.4, 71.5],
+                    backgroundColor: '#a855f7'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top', labels: { color: '#9ca3af' } }
+                },
+                scales: {
+                    y: {
+                        min: 45,
+                        title: { display: true, text: 'km/h', color: '#9ca3af' },
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#9ca3af' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#9ca3af' }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

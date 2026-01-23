@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPM Analysis - KartMetrics Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background: #0f0f1a; }
+        .sidebar { background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); }
+        .card { background: #1a1a2e; border: 1px solid #2a2a4a; }
+        .active-nav { background: linear-gradient(90deg, rgba(102, 126, 234, 0.3) 0%, transparent 100%); border-left: 3px solid #667eea; }
+        .rpm-gauge {
+            background: conic-gradient(
+                from 180deg,
+                #22c55e 0deg 60deg,
+                #84cc16 60deg 90deg,
+                #eab308 90deg 120deg,
+                #f97316 120deg 150deg,
+                #ef4444 150deg 180deg
+            );
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white">
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 min-h-screen fixed left-0 top-0 p-4">
+            <div class="flex items-center gap-3 mb-8 px-2">
+                <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-flag-checkered text-lg"></i>
+                </div>
+                <span class="font-bold text-xl">KartMetrics</span>
+            </div>
+
+            <nav class="space-y-1">
+                <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-th-large w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="lap-analysis.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-stopwatch w-5"></i>
+                    <span>Lap Analysis</span>
+                </a>
+                <a href="racing-line.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-route w-5"></i>
+                    <span>Racing Line</span>
+                </a>
+                <a href="speed-profile.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    <span>Speed Profile</span>
+                </a>
+                <a href="rpm-analysis.html" class="active-nav flex items-center gap-3 px-4 py-3 rounded-lg text-white">
+                    <i class="fas fa-cog w-5"></i>
+                    <span>RPM Analysis</span>
+                </a>
+                <a href="consistency.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-chart-bar w-5"></i>
+                    <span>Consistency</span>
+                </a>
+                <a href="imu-smoothness.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-wave-square w-5"></i>
+                    <span>IMU Analysis</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="ml-64 flex-1 p-8">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold">RPM & Power Band Analysis</h1>
+                    <p class="text-gray-400 mt-1">Analyze engine utilization and power delivery across the track</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2 bg-gray-800 rounded-lg p-2">
+                        <span class="text-sm text-gray-400">Power Band:</span>
+                        <span class="px-3 py-1 bg-green-500/20 text-green-400 rounded text-sm font-medium">8,500 - 12,500 RPM</span>
+                    </div>
+                    <select class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm">
+                        <option>Lap 12</option>
+                        <option>Best Lap</option>
+                        <option>All Laps</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- RPM Stats -->
+            <div class="grid grid-cols-4 gap-6 mb-8">
+                <div class="card rounded-2xl p-5">
+                    <p class="text-gray-400 text-sm mb-2">Peak RPM</p>
+                    <p class="text-3xl font-bold text-red-400">13,250</p>
+                    <p class="text-xs text-gray-500 mt-1">Main straight end</p>
+                </div>
+                <div class="card rounded-2xl p-5">
+                    <p class="text-gray-400 text-sm mb-2">Avg in Power Band</p>
+                    <p class="text-3xl font-bold text-green-400">78%</p>
+                    <p class="text-xs text-gray-500 mt-1">of lap time</p>
+                </div>
+                <div class="card rounded-2xl p-5">
+                    <p class="text-gray-400 text-sm mb-2">Below Power Band</p>
+                    <p class="text-3xl font-bold text-orange-400">14%</p>
+                    <p class="text-xs text-gray-500 mt-1">Chicane + T7 exit</p>
+                </div>
+                <div class="card rounded-2xl p-5">
+                    <p class="text-gray-400 text-sm mb-2">Rev Limiter Hits</p>
+                    <p class="text-3xl font-bold text-purple-400">3</p>
+                    <p class="text-xs text-gray-500 mt-1">Main straight only</p>
+                </div>
+            </div>
+
+            <!-- RPM vs Track Position -->
+            <div class="card rounded-2xl p-6 mb-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="font-semibold text-lg">RPM vs Track Position</h3>
+                    <div class="flex items-center gap-4 text-sm">
+                        <span class="flex items-center gap-2">
+                            <span class="w-8 h-3 bg-gradient-to-r from-green-500 to-green-400 rounded"></span>
+                            Optimal Power Band
+                        </span>
+                        <span class="flex items-center gap-2">
+                            <span class="w-8 h-3 bg-gradient-to-r from-red-500 to-orange-500 rounded"></span>
+                            Below/Above Range
+                        </span>
+                    </div>
+                </div>
+                <div style="height: 300px;">
+                    <canvas id="rpmChart"></canvas>
+                </div>
+
+                <!-- Power band zone indicators -->
+                <div class="mt-4 flex items-center gap-2 text-sm">
+                    <span class="text-gray-400">Power Band Zones:</span>
+                    <div class="flex-1 h-6 bg-gray-800 rounded-full overflow-hidden flex">
+                        <div class="bg-green-500/30 flex items-center justify-center text-xs" style="width: 15%">T1</div>
+                        <div class="bg-green-500 flex items-center justify-center text-xs text-black" style="width: 20%">S2</div>
+                        <div class="bg-orange-500 flex items-center justify-center text-xs" style="width: 12%">T3</div>
+                        <div class="bg-red-500 flex items-center justify-center text-xs" style="width: 8%">CHI</div>
+                        <div class="bg-orange-500 flex items-center justify-center text-xs" style="width: 10%">T7</div>
+                        <div class="bg-green-500 flex items-center justify-center text-xs text-black" style="width: 25%">PIT STR</div>
+                        <div class="bg-green-500/50 flex items-center justify-center text-xs" style="width: 10%">FIN</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Analysis -->
+            <div class="grid grid-cols-2 gap-6">
+                <!-- Problem Zones -->
+                <div class="card rounded-2xl p-6">
+                    <h3 class="font-semibold text-lg mb-4">Power Band Issues</h3>
+                    <div class="space-y-4">
+                        <!-- Issue 1: Chicane -->
+                        <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-arrow-down text-red-400 text-xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <p class="font-medium">Chicane Exit - RPM Drop</p>
+                                        <span class="text-red-400 text-sm">Critical</span>
+                                    </div>
+                                    <p class="text-gray-400 text-sm mt-1">RPM drops to 7,200 (below 8,500 power band)</p>
+                                    <div class="mt-3 flex items-center gap-4 text-sm">
+                                        <div>
+                                            <span class="text-gray-500">Min RPM:</span>
+                                            <span class="text-red-400 font-mono ml-1">7,200</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">Time Lost:</span>
+                                            <span class="text-red-400 font-mono ml-1">~0.12s</span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 p-2 bg-gray-800 rounded-lg">
+                                        <p class="text-xs text-gray-400">
+                                            <i class="fas fa-lightbulb text-yellow-400 mr-1"></i>
+                                            Consider 1 tooth larger rear sprocket for better chicane exit pull
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Issue 2: T7 -->
+                        <div class="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-exclamation text-orange-400 text-xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <p class="font-medium">Turn 7 Mid-Corner</p>
+                                        <span class="text-orange-400 text-sm">Moderate</span>
+                                    </div>
+                                    <p class="text-gray-400 text-sm mt-1">Brief dip to 8,100 RPM at apex</p>
+                                    <div class="mt-3 flex items-center gap-4 text-sm">
+                                        <div>
+                                            <span class="text-gray-500">Min RPM:</span>
+                                            <span class="text-orange-400 font-mono ml-1">8,100</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">Time Lost:</span>
+                                            <span class="text-orange-400 font-mono ml-1">~0.05s</span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 p-2 bg-gray-800 rounded-lg">
+                                        <p class="text-xs text-gray-400">
+                                            <i class="fas fa-lightbulb text-yellow-400 mr-1"></i>
+                                            Maintain higher corner speed to stay in power band
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Issue 3: Over-rev -->
+                        <div class="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-arrow-up text-purple-400 text-xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <p class="font-medium">Main Straight - Rev Limiter</p>
+                                        <span class="text-purple-400 text-sm">Info</span>
+                                    </div>
+                                    <p class="text-gray-400 text-sm mt-1">Hitting limiter for 1.2 seconds at end of straight</p>
+                                    <div class="mt-3 flex items-center gap-4 text-sm">
+                                        <div>
+                                            <span class="text-gray-500">Peak RPM:</span>
+                                            <span class="text-purple-400 font-mono ml-1">13,250</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">Duration:</span>
+                                            <span class="text-purple-400 font-mono ml-1">1.2s</span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 p-2 bg-gray-800 rounded-lg">
+                                        <p class="text-xs text-gray-400">
+                                            <i class="fas fa-lightbulb text-yellow-400 mr-1"></i>
+                                            Consider 1 tooth smaller rear sprocket if chicane allows
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RPM Distribution & Recommendations -->
+                <div class="space-y-6">
+                    <!-- RPM Histogram -->
+                    <div class="card rounded-2xl p-6">
+                        <h3 class="font-semibold text-lg mb-4">RPM Distribution</h3>
+                        <canvas id="rpmHistogram" height="180"></canvas>
+                        <div class="mt-4 flex items-center justify-between text-sm">
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-green-500 rounded"></div>
+                                <span class="text-gray-400">Optimal Range</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-orange-500 rounded"></div>
+                                <span class="text-gray-400">Sub-optimal</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-red-500 rounded"></div>
+                                <span class="text-gray-400">Out of Range</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gear Ratio Suggestion -->
+                    <div class="card rounded-2xl p-6">
+                        <h3 class="font-semibold text-lg mb-4">Gearing Analysis</h3>
+                        <div class="bg-gray-800 rounded-xl p-4 mb-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-gray-400">Current Setup</span>
+                                <span class="font-mono">10T / 82T</span>
+                            </div>
+                            <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500" style="width: 100%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>Shorter</span>
+                                <span>Current</span>
+                                <span>Taller</span>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                                <div>
+                                    <p class="font-medium text-sm">Suggested: 10T / 81T</p>
+                                    <p class="text-xs text-gray-400">Better chicane exit, slight top speed loss</p>
+                                </div>
+                                <span class="text-green-400 text-sm">Recommended</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                                <div>
+                                    <p class="font-medium text-sm">Alternative: 11T / 85T</p>
+                                    <p class="text-xs text-gray-400">Higher top speed, may bog in slow corners</p>
+                                </div>
+                                <span class="text-gray-400 text-sm">High-speed tracks</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Source Annotation -->
+            <div class="card rounded-2xl p-6 mt-6 border border-cyan-500/30 bg-gradient-to-r from-cyan-500/5 to-blue-500/5">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-cyan-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-database text-cyan-400"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-medium text-cyan-400 mb-3">Data Sources Used for This Analysis</h4>
+                        <div class="grid grid-cols-2 gap-6 text-sm">
+                            <div>
+                                <p class="text-gray-400 mb-2 font-medium">Primary Data Channels:</p>
+                                <ul class="space-y-1.5 text-gray-300">
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-cog text-green-400 w-4"></i>
+                                        <span><strong>RPM</strong> - Engine speed from inductive pickup (50-100Hz)</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-satellite text-blue-400 w-4"></i>
+                                        <span><strong>GPS Position</strong> - For track position correlation</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-tachometer-alt text-purple-400 w-4"></i>
+                                        <span><strong>GPS Speed</strong> - For gear ratio inference</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p class="text-gray-400 mb-2 font-medium">How Data Contributes:</p>
+                                <ul class="space-y-1.5 text-gray-300">
+                                    <li><span class="text-cyan-400">•</span> RPM channel directly measures engine revolutions</li>
+                                    <li><span class="text-cyan-400">•</span> Power band range (user-configurable or engine spec)</li>
+                                    <li><span class="text-cyan-400">•</span> Rev limiter detection via sustained peak RPM</li>
+                                    <li><span class="text-cyan-400">•</span> Gear ratio suggestions calculated from RPM/Speed ratio</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-gray-700">
+                            <p class="text-xs text-gray-500 mb-2"><i class="fas fa-info-circle text-blue-400 mr-1"></i><strong>Setup Required:</strong> RPM sensor wire must be connected to spark plug lead or ECU signal. Power band limits should be configured in settings based on your engine specification.</p>
+                            <div class="flex items-center gap-4 text-xs text-gray-500">
+                                <span><i class="fas fa-check-circle text-green-400 mr-1"></i>MyChron: RPM channel (inductive/ECU)</span>
+                                <span><i class="fas fa-check-circle text-green-400 mr-1"></i>Alfano: RPM channel</span>
+                                <span><i class="fas fa-cog text-orange-400 mr-1"></i>Config: Power band range</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // RPM vs Track Position Chart
+        const rpmCtx = document.getElementById('rpmChart').getContext('2d');
+
+        const trackPosition = Array.from({length: 100}, (_, i) => i);
+        const rpmData = [
+            11500, 12000, 12500, 12800, 13000, 13200, 13250, 13250, 12800, 11500, // Start/T1
+            10200, 9500, 9000, 8800, 9200, 10000, 11000, 11800, 12500, 12800,     // T1 exit - S2
+            13000, 13200, 13250, 13250, 13200, 12800, 12000, 11000, 10000, 9200,  // S2 - T3
+            8800, 8500, 8200, 8500, 9000, 9800, 10500, 11200, 11800, 12000,       // T3 - Chicane entry
+            11000, 9500, 8200, 7500, 7200, 7500, 8200, 9000, 10000, 11000,        // Chicane
+            11500, 11200, 10500, 9500, 8800, 8200, 8100, 8500, 9200, 10000,       // T7
+            10800, 11500, 12000, 12500, 12800, 13000, 13200, 13250, 13250, 13200, // T7 exit
+            12800, 12000, 11000, 10000, 9200, 9000, 9500, 10200, 11000, 11800,    // Final corner
+            12200, 12600, 12800, 13000, 13200, 13250, 13250, 13200, 12800, 12200, // Pit straight
+            11800, 11500, 11200, 11500, 11800, 12200, 12500, 12800, 13000, 12000  // to S/F
+        ];
+
+        // Create gradient for power band visualization
+        const gradient = rpmCtx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(239, 68, 68, 0.5)');   // Red at top (over-rev)
+        gradient.addColorStop(0.3, 'rgba(34, 197, 94, 0.5)'); // Green in middle (optimal)
+        gradient.addColorStop(0.7, 'rgba(34, 197, 94, 0.5)');
+        gradient.addColorStop(1, 'rgba(249, 115, 22, 0.5)');  // Orange at bottom (under)
+
+        new Chart(rpmCtx, {
+            type: 'line',
+            data: {
+                labels: trackPosition,
+                datasets: [{
+                    label: 'RPM',
+                    data: rpmData,
+                    borderColor: '#a855f7',
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    annotation: {
+                        annotations: {
+                            powerBandLow: {
+                                type: 'line',
+                                yMin: 8500,
+                                yMax: 8500,
+                                borderColor: '#22c55e',
+                                borderWidth: 2,
+                                borderDash: [5, 5]
+                            },
+                            powerBandHigh: {
+                                type: 'line',
+                                yMin: 12500,
+                                yMax: 12500,
+                                borderColor: '#22c55e',
+                                borderWidth: 2,
+                                borderDash: [5, 5]
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        min: 6000,
+                        max: 14000,
+                        title: {
+                            display: true,
+                            text: 'RPM',
+                            color: '#9ca3af'
+                        },
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#9ca3af' }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Track Position (%)',
+                            color: '#9ca3af'
+                        },
+                        grid: { display: false },
+                        ticks: { color: '#9ca3af', maxTicksLimit: 10 }
+                    }
+                }
+            }
+        });
+
+        // Draw power band reference lines manually
+        const chart = Chart.getChart('rpmChart');
+        const meta = chart.getDatasetMeta(0);
+        const yScale = chart.scales.y;
+
+        // RPM Histogram
+        const histCtx = document.getElementById('rpmHistogram').getContext('2d');
+        new Chart(histCtx, {
+            type: 'bar',
+            data: {
+                labels: ['<7k', '7-8k', '8-9k', '9-10k', '10-11k', '11-12k', '12-13k', '>13k'],
+                datasets: [{
+                    label: 'Time %',
+                    data: [2, 8, 12, 15, 18, 20, 18, 7],
+                    backgroundColor: [
+                        '#ef4444', '#f97316', '#84cc16', '#22c55e',
+                        '#22c55e', '#22c55e', '#84cc16', '#f97316'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        title: { display: true, text: '% of Lap', color: '#9ca3af' },
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#9ca3af' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#9ca3af' }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

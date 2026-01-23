@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Racing Line - KartMetrics Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #0f0f1a; }
+        .sidebar { background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); }
+        .card { background: #1a1a2e; border: 1px solid #2a2a4a; }
+        .active-nav { background: linear-gradient(90deg, rgba(102, 126, 234, 0.3) 0%, transparent 100%); border-left: 3px solid #667eea; }
+        .track-bg { background: radial-gradient(ellipse at center, #1a2a1a 0%, #0f0f1a 70%); }
+    </style>
+</head>
+<body class="min-h-screen text-white">
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 min-h-screen fixed left-0 top-0 p-4">
+            <div class="flex items-center gap-3 mb-8 px-2">
+                <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-flag-checkered text-lg"></i>
+                </div>
+                <span class="font-bold text-xl">KartMetrics</span>
+            </div>
+
+            <nav class="space-y-1">
+                <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-th-large w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="lap-analysis.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-stopwatch w-5"></i>
+                    <span>Lap Analysis</span>
+                </a>
+                <a href="racing-line.html" class="active-nav flex items-center gap-3 px-4 py-3 rounded-lg text-white">
+                    <i class="fas fa-route w-5"></i>
+                    <span>Racing Line</span>
+                </a>
+                <a href="speed-profile.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    <span>Speed Profile</span>
+                </a>
+                <a href="rpm-analysis.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-cog w-5"></i>
+                    <span>RPM Analysis</span>
+                </a>
+                <a href="consistency.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-chart-bar w-5"></i>
+                    <span>Consistency</span>
+                </a>
+                <a href="imu-smoothness.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-wave-square w-5"></i>
+                    <span>IMU Analysis</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="ml-64 flex-1 p-8">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold">Racing Line Comparison</h1>
+                    <p class="text-gray-400 mt-1">Compare trajectories and identify line deviations</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" checked class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-green-500 focus:ring-green-500">
+                            <span class="flex items-center gap-2">
+                                <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                                Best Lap
+                            </span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" checked class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-purple-500 focus:ring-purple-500">
+                            <span class="flex items-center gap-2">
+                                <span class="w-3 h-3 bg-purple-500 rounded-full"></span>
+                                Current Lap
+                            </span>
+                        </label>
+                    </div>
+                    <select class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm">
+                        <option>Current: Lap 12</option>
+                        <option>Lap 5</option>
+                        <option>Lap 15</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Track Map with Racing Lines -->
+            <div class="card rounded-2xl p-6 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold text-lg">Track Overview</h3>
+                    <div class="flex items-center gap-2">
+                        <button class="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg"><i class="fas fa-search-plus"></i></button>
+                        <button class="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg"><i class="fas fa-search-minus"></i></button>
+                        <button class="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+
+                <div class="track-bg rounded-xl p-8 relative" style="min-height: 450px;">
+                    <svg viewBox="0 0 900 450" class="w-full h-full">
+                        <!-- Track surface -->
+                        <path d="M 120 350 Q 80 150 280 100 L 500 100 Q 620 100 680 160 L 750 230 Q 850 320 800 380 Q 750 420 650 400 L 200 400 Q 80 400 120 350"
+                              fill="#1a2a1a" stroke="#2a4a2a" stroke-width="50" stroke-linecap="round"/>
+
+                        <!-- Track edges -->
+                        <path d="M 120 350 Q 80 150 280 100 L 500 100 Q 620 100 680 160 L 750 230 Q 850 320 800 380 Q 750 420 650 400 L 200 400 Q 80 400 120 350"
+                              fill="none" stroke="#4a5a4a" stroke-width="52" stroke-linecap="round"/>
+                        <path d="M 120 350 Q 80 150 280 100 L 500 100 Q 620 100 680 160 L 750 230 Q 850 320 800 380 Q 750 420 650 400 L 200 400 Q 80 400 120 350"
+                              fill="none" stroke="#1a2a1a" stroke-width="48" stroke-linecap="round"/>
+
+                        <!-- Kerbs markers -->
+                        <circle cx="180" cy="140" r="6" fill="#ff4444" opacity="0.7"/>
+                        <circle cx="550" cy="95" r="6" fill="#ff4444" opacity="0.7"/>
+                        <circle cx="720" cy="200" r="6" fill="#ff4444" opacity="0.7"/>
+                        <circle cx="780" cy="350" r="6" fill="#ff4444" opacity="0.7"/>
+
+                        <!-- Best lap racing line (green) -->
+                        <path d="M 115 340 Q 95 180 260 110 L 480 105 Q 590 105 655 155 L 730 220 Q 820 300 780 365 Q 745 400 640 385 L 210 385 Q 100 380 115 340"
+                              fill="none" stroke="#22c55e" stroke-width="4" stroke-linecap="round" stroke-dasharray="0"/>
+
+                        <!-- Current lap racing line (purple) - showing deviations -->
+                        <path d="M 115 340 Q 100 185 265 115 L 480 108 Q 580 108 650 165 L 740 235 Q 830 310 785 370 Q 750 405 640 390 L 210 390 Q 95 385 115 340"
+                              fill="none" stroke="#a855f7" stroke-width="4" stroke-linecap="round"/>
+
+                        <!-- Apex markers -->
+                        <circle cx="180" cy="120" r="8" fill="none" stroke="#22c55e" stroke-width="2"/>
+                        <circle cx="185" cy="128" r="8" fill="none" stroke="#a855f7" stroke-width="2" stroke-dasharray="3"/>
+
+                        <circle cx="630" cy="145" r="8" fill="none" stroke="#22c55e" stroke-width="2"/>
+                        <circle cx="628" cy="158" r="8" fill="none" stroke="#a855f7" stroke-width="2" stroke-dasharray="3"/>
+
+                        <circle cx="780" cy="310" r="8" fill="none" stroke="#22c55e" stroke-width="2"/>
+                        <circle cx="788" cy="318" r="8" fill="none" stroke="#a855f7" stroke-width="2" stroke-dasharray="3"/>
+
+                        <!-- Corner labels -->
+                        <text x="155" y="90" fill="#9ca3af" font-size="12" font-weight="bold">T1</text>
+                        <text x="610" y="115" fill="#9ca3af" font-size="12" font-weight="bold">T3</text>
+                        <text x="780" cy="280" fill="#9ca3af" font-size="12" font-weight="bold">T7</text>
+
+                        <!-- Problem area highlight -->
+                        <ellipse cx="635" cy="155" rx="40" ry="30" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="5" opacity="0.7"/>
+                        <text x="680" y="145" fill="#ef4444" font-size="10">Late Apex</text>
+
+                        <!-- Start/Finish -->
+                        <rect x="105" y="355" width="25" height="4" fill="white"/>
+                    </svg>
+
+                    <!-- Corner detail popover -->
+                    <div class="absolute top-4 right-4 w-72 bg-gray-900/95 backdrop-blur rounded-xl border border-gray-700 overflow-hidden">
+                        <div class="bg-red-500/20 px-4 py-3 border-b border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <span class="font-semibold">Turn 3 - Line Deviation</span>
+                                <span class="text-red-400 text-sm font-bold">+0.312s</span>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <div class="space-y-3 text-sm">
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-sign-in-alt text-orange-400 mt-0.5"></i>
+                                    <div>
+                                        <p class="text-gray-400">Turn-in Point</p>
+                                        <p class="text-white">2.4m late vs optimal</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-bullseye text-red-400 mt-0.5"></i>
+                                    <div>
+                                        <p class="text-gray-400">Apex Hit</p>
+                                        <p class="text-white">1.8m wide, 0.15s late</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-sign-out-alt text-yellow-400 mt-0.5"></i>
+                                    <div>
+                                        <p class="text-gray-400">Track-out</p>
+                                        <p class="text-white">Insufficient exit width used</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 p-3 bg-gray-800 rounded-lg">
+                                <p class="text-xs text-gray-400 flex items-start gap-2">
+                                    <i class="fas fa-lightbulb text-yellow-400 mt-0.5"></i>
+                                    <span>Recommendation: Brake 3m earlier and turn in before the 50m board to hit apex correctly</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Corner Detail Views -->
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Turn 1 -->
+                <div class="card rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-semibold">Turn 1</h4>
+                        <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-full">-0.078s</span>
+                    </div>
+                    <div class="bg-gray-900 rounded-xl p-4 mb-4" style="height: 150px;">
+                        <svg viewBox="0 0 200 120" class="w-full h-full">
+                            <!-- Mini track segment -->
+                            <path d="M 20 100 Q 20 30 100 20 L 180 20" fill="none" stroke="#2a4a2a" stroke-width="30" stroke-linecap="round"/>
+                            <!-- Best line -->
+                            <path d="M 25 90 Q 30 40 95 25 L 175 22" fill="none" stroke="#22c55e" stroke-width="3"/>
+                            <!-- Current line -->
+                            <path d="M 25 90 Q 35 45 100 30 L 175 27" fill="none" stroke="#a855f7" stroke-width="3"/>
+                            <!-- Apex markers -->
+                            <circle cx="60" cy="35" r="5" fill="none" stroke="#22c55e" stroke-width="2"/>
+                            <circle cx="68" cy="42" r="5" fill="none" stroke="#a855f7" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Entry Speed</span>
+                            <span>78.2 vs 79.1 km/h</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Apex Distance</span>
+                            <span class="text-yellow-400">+0.8m wide</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Turn 3 -->
+                <div class="card rounded-2xl p-5 border-red-500/50">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-semibold">Turn 3 <i class="fas fa-exclamation-triangle text-red-400 ml-2"></i></h4>
+                        <span class="px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-full font-bold">+0.312s</span>
+                    </div>
+                    <div class="bg-gray-900 rounded-xl p-4 mb-4" style="height: 150px;">
+                        <svg viewBox="0 0 200 120" class="w-full h-full">
+                            <path d="M 20 20 L 100 20 Q 180 20 180 100" fill="none" stroke="#2a4a2a" stroke-width="30" stroke-linecap="round"/>
+                            <!-- Best line -->
+                            <path d="M 25 22 L 90 22 Q 170 25 172 95" fill="none" stroke="#22c55e" stroke-width="3"/>
+                            <!-- Current line - showing late apex -->
+                            <path d="M 25 22 L 95 25 Q 165 35 168 95" fill="none" stroke="#a855f7" stroke-width="3"/>
+                            <!-- Problem zone -->
+                            <ellipse cx="135" cy="45" rx="25" ry="20" fill="none" stroke="#ef4444" stroke-width="1" stroke-dasharray="3" opacity="0.5"/>
+                            <circle cx="140" cy="30" r="5" fill="none" stroke="#22c55e" stroke-width="2"/>
+                            <circle cx="145" cy="45" r="5" fill="none" stroke="#a855f7" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Entry Speed</span>
+                            <span class="text-red-400">58.1 vs 62.4 km/h</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Apex Distance</span>
+                            <span class="text-red-400">+1.8m wide</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Turn 7 -->
+                <div class="card rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-semibold">Turn 7</h4>
+                        <span class="px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-full">+0.187s</span>
+                    </div>
+                    <div class="bg-gray-900 rounded-xl p-4 mb-4" style="height: 150px;">
+                        <svg viewBox="0 0 200 120" class="w-full h-full">
+                            <path d="M 20 20 Q 80 20 120 60 Q 180 120 180 100" fill="none" stroke="#2a4a2a" stroke-width="30" stroke-linecap="round"/>
+                            <!-- Best line -->
+                            <path d="M 25 22 Q 75 25 115 60 Q 170 110 175 95" fill="none" stroke="#22c55e" stroke-width="3"/>
+                            <!-- Current line -->
+                            <path d="M 25 22 Q 80 28 118 65 Q 175 115 178 98" fill="none" stroke="#a855f7" stroke-width="3"/>
+                            <circle cx="115" cy="55" r="5" fill="none" stroke="#22c55e" stroke-width="2"/>
+                            <circle cx="120" cy="62" r="5" fill="none" stroke="#a855f7" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Entry Speed</span>
+                            <span>51.2 vs 52.8 km/h</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Apex Distance</span>
+                            <span class="text-orange-400">+1.2m wide</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Source Annotation -->
+            <div class="card rounded-2xl p-6 mt-6 border border-cyan-500/30 bg-gradient-to-r from-cyan-500/5 to-blue-500/5">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-cyan-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-database text-cyan-400"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-medium text-cyan-400 mb-3">Data Sources Used for This Analysis</h4>
+                        <div class="grid grid-cols-2 gap-6 text-sm">
+                            <div>
+                                <p class="text-gray-400 mb-2 font-medium">Primary Data Channels:</p>
+                                <ul class="space-y-1.5 text-gray-300">
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-satellite text-green-400 w-4"></i>
+                                        <span><strong>GPS Latitude</strong> - WGS84 coordinates (25Hz recommended)</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-satellite text-green-400 w-4"></i>
+                                        <span><strong>GPS Longitude</strong> - WGS84 coordinates (25Hz recommended)</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-tachometer-alt text-blue-400 w-4"></i>
+                                        <span><strong>GPS Speed</strong> - Instantaneous velocity (km/h)</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p class="text-gray-400 mb-2 font-medium">How Data Contributes:</p>
+                                <ul class="space-y-1.5 text-gray-300">
+                                    <li><span class="text-cyan-400">•</span> GPS coordinates plotted to render racing line trajectory</li>
+                                    <li><span class="text-cyan-400">•</span> Lap-to-lap trajectory overlay shows line deviations</li>
+                                    <li><span class="text-cyan-400">•</span> Apex detection via curvature analysis of GPS path</li>
+                                    <li><span class="text-cyan-400">•</span> Turn-in/track-out points identified from heading changes</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-gray-700">
+                            <p class="text-xs text-gray-500 mb-2"><i class="fas fa-info-circle text-blue-400 mr-1"></i><strong>GPS Resolution Note:</strong> Higher frequency GPS (25Hz) provides more precise line comparison. 10Hz data is usable but shows less detail in tight corners.</p>
+                            <div class="flex items-center gap-4 text-xs text-gray-500">
+                                <span><i class="fas fa-check-circle text-green-400 mr-1"></i>MyChron 5: 25Hz GPS</span>
+                                <span><i class="fas fa-check-circle text-green-400 mr-1"></i>Alfano Pro+: 25Hz GPS</span>
+                                <span><i class="fas fa-check-circle text-yellow-400 mr-1"></i>Alfano Pro: 10Hz GPS</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

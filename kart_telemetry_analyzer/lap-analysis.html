@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lap Analysis - KartMetrics Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background: #0f0f1a; }
+        .sidebar { background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); }
+        .card { background: #1a1a2e; border: 1px solid #2a2a4a; }
+        .active-nav { background: linear-gradient(90deg, rgba(102, 126, 234, 0.3) 0%, transparent 100%); border-left: 3px solid #667eea; }
+        .heatmap-cell { transition: all 0.2s; }
+        .heatmap-cell:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body class="min-h-screen text-white">
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 min-h-screen fixed left-0 top-0 p-4">
+            <div class="flex items-center gap-3 mb-8 px-2">
+                <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-flag-checkered text-lg"></i>
+                </div>
+                <span class="font-bold text-xl">KartMetrics</span>
+            </div>
+
+            <nav class="space-y-1">
+                <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-th-large w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="lap-analysis.html" class="active-nav flex items-center gap-3 px-4 py-3 rounded-lg text-white">
+                    <i class="fas fa-stopwatch w-5"></i>
+                    <span>Lap Analysis</span>
+                </a>
+                <a href="racing-line.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-route w-5"></i>
+                    <span>Racing Line</span>
+                </a>
+                <a href="speed-profile.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    <span>Speed Profile</span>
+                </a>
+                <a href="rpm-analysis.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-cog w-5"></i>
+                    <span>RPM Analysis</span>
+                </a>
+                <a href="consistency.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-chart-bar w-5"></i>
+                    <span>Consistency</span>
+                </a>
+                <a href="imu-smoothness.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-wave-square w-5"></i>
+                    <span>IMU Analysis</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="ml-64 flex-1 p-8">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold">Lap & Sector Analysis</h1>
+                    <p class="text-gray-400 mt-1">Identify time loss sources across track segments</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2 bg-gray-800 rounded-lg p-1">
+                        <button class="px-4 py-2 bg-purple-600 rounded-md text-sm font-medium">Heatmap</button>
+                        <button class="px-4 py-2 text-gray-400 hover:text-white text-sm">Table</button>
+                    </div>
+                    <select class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm">
+                        <option>Compare to: Best Lap</option>
+                        <option>Compare to: Average</option>
+                        <option>Compare to: Reference Driver</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Lap Selection -->
+            <div class="card rounded-2xl p-6 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold">Select Laps to Analyze</h3>
+                    <span class="text-sm text-gray-400">45 laps recorded</span>
+                </div>
+                <div class="flex gap-2 flex-wrap">
+                    <button class="px-3 py-2 bg-green-600 rounded-lg text-sm font-medium">Lap 8 (Best) 42.847</button>
+                    <button class="px-3 py-2 bg-purple-600 rounded-lg text-sm font-medium">Lap 12 42.951</button>
+                    <button class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm">Lap 5 43.102</button>
+                    <button class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm">Lap 15 43.234</button>
+                    <button class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm">Lap 22 43.089</button>
+                    <button class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm">Lap 31 43.312</button>
+                    <button class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm text-gray-400">+ More</button>
+                </div>
+            </div>
+
+            <!-- Time Loss Heatmap -->
+            <div class="card rounded-2xl p-6 mb-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="font-semibold text-lg">Time Loss Heatmap</h3>
+                        <p class="text-gray-400 text-sm">Lap 12 vs Best Lap • Hover over segments for details</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 bg-green-500 rounded"></div>
+                            <span class="text-sm text-gray-400">Gain</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 bg-yellow-500 rounded"></div>
+                            <span class="text-sm text-gray-400">Minor loss</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 bg-red-500 rounded"></div>
+                            <span class="text-sm text-gray-400">Major loss</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Track Visualization -->
+                <div class="relative bg-gray-900 rounded-2xl p-8 overflow-hidden" style="min-height: 400px;">
+                    <!-- SVG Track Map -->
+                    <svg viewBox="0 0 800 400" class="w-full h-full">
+                        <!-- Track outline -->
+                        <path d="M 100 300 Q 100 100 250 100 L 400 100 Q 500 100 550 150 L 600 200 Q 700 250 700 300 Q 700 350 600 350 L 200 350 Q 100 350 100 300"
+                              fill="none" stroke="#374151" stroke-width="40" stroke-linecap="round"/>
+
+                        <!-- Sector segments with colors -->
+                        <!-- Sector 1: Start/Finish straight - Green (gain) -->
+                        <path d="M 100 300 Q 100 200 150 150" fill="none" stroke="#22c55e" stroke-width="35" stroke-linecap="round" class="heatmap-cell cursor-pointer"/>
+
+                        <!-- Turn 1 - Yellow -->
+                        <path d="M 150 150 Q 180 100 250 100" fill="none" stroke="#eab308" stroke-width="35" stroke-linecap="round" class="heatmap-cell cursor-pointer"/>
+
+                        <!-- Sector 2: Back straight - Green -->
+                        <path d="M 250 100 L 400 100" fill="none" stroke="#22c55e" stroke-width="35" stroke-linecap="round" class="heatmap-cell cursor-pointer"/>
+
+                        <!-- Turn 3 - Red (major loss) -->
+                        <path d="M 400 100 Q 500 100 550 150" fill="none" stroke="#ef4444" stroke-width="35" stroke-linecap="round" class="heatmap-cell cursor-pointer"/>
+
+                        <!-- Chicane - Orange -->
+                        <path d="M 550 150 L 600 200" fill="none" stroke="#f97316" stroke-width="35" stroke-linecap="round" class="heatmap-cell cursor-pointer"/>
+
+                        <!-- Turn 7 - Red -->
+                        <path d="M 600 200 Q 700 250 700 300" fill="none" stroke="#ef4444" stroke-width="35" stroke-linecap="round" class="heatmap-cell cursor-pointer"/>
+
+                        <!-- Final corner - Yellow -->
+                        <path d="M 700 300 Q 700 350 600 350" fill="none" stroke="#eab308" stroke-width="35" stroke-linecap="round" class="heatmap-cell cursor-pointer"/>
+
+                        <!-- Pit straight - Green -->
+                        <path d="M 600 350 L 200 350 Q 100 350 100 300" fill="none" stroke="#22c55e" stroke-width="35" stroke-linecap="round" class="heatmap-cell cursor-pointer"/>
+
+                        <!-- Sector labels -->
+                        <text x="120" y="250" fill="white" font-size="12" font-weight="bold">T1</text>
+                        <text x="320" y="85" fill="white" font-size="12" font-weight="bold">S2</text>
+                        <text x="470" y="115" fill="white" font-size="12" font-weight="bold">T3</text>
+                        <text x="570" y="170" fill="white" font-size="12" font-weight="bold">CHI</text>
+                        <text x="680" y="270" fill="white" font-size="12" font-weight="bold">T7</text>
+                        <text x="400" y="365" fill="white" font-size="12" font-weight="bold">PIT STRAIGHT</text>
+
+                        <!-- Start/Finish line -->
+                        <line x1="90" y1="310" x2="110" y2="310" stroke="white" stroke-width="3"/>
+                        <text x="60" y="315" fill="white" font-size="10">S/F</text>
+                    </svg>
+
+                    <!-- Hover tooltip -->
+                    <div class="absolute top-4 right-4 bg-gray-800/90 backdrop-blur rounded-xl p-4 border border-gray-700 w-64">
+                        <p class="text-gray-400 text-sm mb-2">Turn 3 Analysis</p>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Time Delta</span>
+                                <span class="text-red-400 font-bold">+0.312s</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Entry Speed</span>
+                                <span class="text-white">62.4 km/h</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Min Speed</span>
+                                <span class="text-white">41.2 km/h</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Exit Speed</span>
+                                <span class="text-orange-400">58.1 km/h</span>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-gray-700">
+                            <p class="text-xs text-gray-400"><i class="fas fa-lightbulb text-yellow-400 mr-1"></i> Late apex detected - try earlier turn-in</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Segment Table -->
+            <div class="grid grid-cols-2 gap-6">
+                <div class="card rounded-2xl p-6">
+                    <h3 class="font-semibold text-lg mb-4">Micro-Sector Breakdown</h3>
+                    <div class="overflow-hidden rounded-xl border border-gray-700">
+                        <table class="w-full">
+                            <thead class="bg-gray-800">
+                                <tr>
+                                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-400">Segment</th>
+                                    <th class="text-right py-3 px-4 text-sm font-medium text-gray-400">Best</th>
+                                    <th class="text-right py-3 px-4 text-sm font-medium text-gray-400">Lap 12</th>
+                                    <th class="text-right py-3 px-4 text-sm font-medium text-gray-400">Delta</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-700">
+                                <tr class="hover:bg-gray-800/50">
+                                    <td class="py-3 px-4">Start - T1</td>
+                                    <td class="py-3 px-4 text-right font-mono">4.821</td>
+                                    <td class="py-3 px-4 text-right font-mono">4.798</td>
+                                    <td class="py-3 px-4 text-right font-mono text-green-400">-0.023</td>
+                                </tr>
+                                <tr class="hover:bg-gray-800/50">
+                                    <td class="py-3 px-4">T1 - T2</td>
+                                    <td class="py-3 px-4 text-right font-mono">5.432</td>
+                                    <td class="py-3 px-4 text-right font-mono">5.510</td>
+                                    <td class="py-3 px-4 text-right font-mono text-yellow-400">+0.078</td>
+                                </tr>
+                                <tr class="hover:bg-gray-800/50 bg-red-500/10">
+                                    <td class="py-3 px-4 flex items-center gap-2">
+                                        T3 Entry
+                                        <i class="fas fa-exclamation-circle text-red-400"></i>
+                                    </td>
+                                    <td class="py-3 px-4 text-right font-mono">3.102</td>
+                                    <td class="py-3 px-4 text-right font-mono">3.414</td>
+                                    <td class="py-3 px-4 text-right font-mono text-red-400 font-bold">+0.312</td>
+                                </tr>
+                                <tr class="hover:bg-gray-800/50">
+                                    <td class="py-3 px-4">T3 - Chicane</td>
+                                    <td class="py-3 px-4 text-right font-mono">4.234</td>
+                                    <td class="py-3 px-4 text-right font-mono">4.321</td>
+                                    <td class="py-3 px-4 text-right font-mono text-orange-400">+0.087</td>
+                                </tr>
+                                <tr class="hover:bg-gray-800/50 bg-red-500/10">
+                                    <td class="py-3 px-4 flex items-center gap-2">
+                                        T7
+                                        <i class="fas fa-exclamation-circle text-red-400"></i>
+                                    </td>
+                                    <td class="py-3 px-4 text-right font-mono">5.876</td>
+                                    <td class="py-3 px-4 text-right font-mono">6.063</td>
+                                    <td class="py-3 px-4 text-right font-mono text-red-400 font-bold">+0.187</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Cumulative Time Loss -->
+                <div class="card rounded-2xl p-6">
+                    <h3 class="font-semibold text-lg mb-4">Cumulative Time Loss</h3>
+                    <canvas id="cumulativeChart" height="240"></canvas>
+                    <div class="mt-4 grid grid-cols-2 gap-4">
+                        <div class="bg-gray-800 rounded-xl p-4 text-center">
+                            <p class="text-gray-400 text-sm">Total Time Lost</p>
+                            <p class="text-2xl font-bold text-red-400">+0.641s</p>
+                        </div>
+                        <div class="bg-gray-800 rounded-xl p-4 text-center">
+                            <p class="text-gray-400 text-sm">Potential Gain</p>
+                            <p class="text-2xl font-bold text-green-400">0.538s</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Source Annotation -->
+            <div class="card rounded-2xl p-6 mt-6 border border-cyan-500/30 bg-gradient-to-r from-cyan-500/5 to-blue-500/5">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-cyan-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-database text-cyan-400"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-medium text-cyan-400 mb-3">Data Sources Used for This Analysis</h4>
+                        <div class="grid grid-cols-2 gap-6 text-sm">
+                            <div>
+                                <p class="text-gray-400 mb-2 font-medium">Primary Data Channels:</p>
+                                <ul class="space-y-1.5 text-gray-300">
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-satellite text-green-400 w-4"></i>
+                                        <span><strong>GPS Position</strong> - Latitude/Longitude (25Hz MyChron / 10Hz Alfano)</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-stopwatch text-blue-400 w-4"></i>
+                                        <span><strong>Lap Time</strong> - Start/Finish beacon trigger timestamp</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-clock text-purple-400 w-4"></i>
+                                        <span><strong>Split Times</strong> - Intermediate beacon timestamps (if configured)</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p class="text-gray-400 mb-2 font-medium">How Data Contributes:</p>
+                                <ul class="space-y-1.5 text-gray-300">
+                                    <li><span class="text-cyan-400">•</span> GPS coordinates define track segmentation (auto micro-sectors)</li>
+                                    <li><span class="text-cyan-400">•</span> Time deltas calculated from GPS timestamp differences</li>
+                                    <li><span class="text-cyan-400">•</span> Heatmap colors derived from cumulative time loss per segment</li>
+                                    <li><span class="text-cyan-400">•</span> Speed data from GPS velocity used for entry/exit analysis</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-gray-700 flex items-center gap-4 text-xs text-gray-500">
+                            <span><i class="fas fa-check-circle text-green-400 mr-1"></i>MyChron 5/5S: Full support</span>
+                            <span><i class="fas fa-check-circle text-green-400 mr-1"></i>Alfano Pro/Pro+: Full support</span>
+                            <span><i class="fas fa-check-circle text-yellow-400 mr-1"></i>Alfano 6: Basic support (10Hz GPS)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Cumulative time loss chart
+        const cumCtx = document.getElementById('cumulativeChart').getContext('2d');
+        new Chart(cumCtx, {
+            type: 'line',
+            data: {
+                labels: ['Start', 'T1', 'T2', 'S2', 'T3', 'CHI', 'T7', 'Final', 'Finish'],
+                datasets: [{
+                    label: 'Cumulative Delta',
+                    data: [0, -0.023, 0.055, 0.032, 0.344, 0.431, 0.618, 0.641, 0.641],
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: {
+                            color: '#9ca3af',
+                            callback: function(value) {
+                                return (value >= 0 ? '+' : '') + value.toFixed(2) + 's';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#9ca3af' }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

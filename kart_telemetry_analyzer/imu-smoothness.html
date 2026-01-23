@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMU Smoothness Analysis - KartMetrics Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background: #0f0f1a; }
+        .sidebar { background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); }
+        .card { background: #1a1a2e; border: 1px solid #2a2a4a; }
+        .active-nav { background: linear-gradient(90deg, rgba(102, 126, 234, 0.3) 0%, transparent 100%); border-left: 3px solid #667eea; }
+    </style>
+</head>
+<body class="min-h-screen text-white">
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 min-h-screen fixed left-0 top-0 p-4">
+            <div class="flex items-center gap-3 mb-8 px-2">
+                <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-flag-checkered text-lg"></i>
+                </div>
+                <span class="font-bold text-xl">KartMetrics</span>
+            </div>
+
+            <nav class="space-y-1">
+                <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-th-large w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="lap-analysis.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-stopwatch w-5"></i>
+                    <span>Lap Analysis</span>
+                </a>
+                <a href="racing-line.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-route w-5"></i>
+                    <span>Racing Line</span>
+                </a>
+                <a href="speed-profile.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    <span>Speed Profile</span>
+                </a>
+                <a href="rpm-analysis.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-cog w-5"></i>
+                    <span>RPM Analysis</span>
+                </a>
+                <a href="consistency.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                    <i class="fas fa-chart-bar w-5"></i>
+                    <span>Consistency</span>
+                </a>
+                <a href="imu-smoothness.html" class="active-nav flex items-center gap-3 px-4 py-3 rounded-lg text-white">
+                    <i class="fas fa-wave-square w-5"></i>
+                    <span>IMU Analysis</span>
+                </a>
+            </nav>
+
+            <div class="mt-8 px-2">
+                <div class="bg-purple-500/10 border border-purple-500/30 rounded-xl p-3">
+                    <p class="text-xs text-purple-400 font-medium mb-1">
+                        <i class="fas fa-microchip mr-1"></i>Advanced Feature
+                    </p>
+                    <p class="text-xs text-gray-400">Requires IMU-equipped data logger (MyChron 5 / Alfano Pro)</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="ml-64 flex-1 p-8">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold">Driving Smoothness Analysis</h1>
+                    <p class="text-gray-400 mt-1">IMU-based analysis of braking, steering, and vehicle dynamics</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="px-3 py-2 bg-green-500/20 text-green-400 rounded-lg text-sm">
+                        <i class="fas fa-check-circle mr-2"></i>IMU Data Available
+                    </span>
+                    <select class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm">
+                        <option>Lap 12 Analysis</option>
+                        <option>Best Lap</option>
+                        <option>Average Profile</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Smoothness Scores -->
+            <div class="grid grid-cols-4 gap-6 mb-8">
+                <div class="card rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-gray-400 text-sm">Overall Smoothness</span>
+                        <div class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-wave-square text-green-400"></i>
+                        </div>
+                    </div>
+                    <p class="text-3xl font-bold text-green-400">82<span class="text-lg text-gray-400">/100</span></p>
+                    <p class="text-xs text-gray-500 mt-1">Good control inputs</p>
+                </div>
+
+                <div class="card rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-gray-400 text-sm">Braking Smoothness</span>
+                        <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-brake-warning text-blue-400"></i>
+                        </div>
+                    </div>
+                    <p class="text-3xl font-bold">78<span class="text-lg text-gray-400">/100</span></p>
+                    <p class="text-xs text-yellow-400 mt-1">Slight improvement needed</p>
+                </div>
+
+                <div class="card rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-gray-400 text-sm">Steering Smoothness</span>
+                        <div class="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-dharmachakra text-purple-400"></i>
+                        </div>
+                    </div>
+                    <p class="text-3xl font-bold text-green-400">88<span class="text-lg text-gray-400">/100</span></p>
+                    <p class="text-xs text-green-400 mt-1">Very smooth inputs</p>
+                </div>
+
+                <div class="card rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-gray-400 text-sm">Slip Events</span>
+                        <div class="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-car-side text-orange-400"></i>
+                        </div>
+                    </div>
+                    <p class="text-3xl font-bold text-orange-400">4</p>
+                    <p class="text-xs text-gray-500 mt-1">Minor slides detected</p>
+                </div>
+            </div>
+
+            <!-- G-Force Trace -->
+            <div class="card rounded-2xl p-6 mb-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="font-semibold text-lg">G-Force Trace vs Track Position</h3>
+                    <div class="flex items-center gap-4 text-sm">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+                            Longitudinal (Brake/Accel)
+                        </span>
+                        <span class="flex items-center gap-2">
+                            <span class="w-3 h-3 bg-blue-500 rounded-full"></span>
+                            Lateral (Cornering)
+                        </span>
+                    </div>
+                </div>
+                <div style="height: 280px;">
+                    <canvas id="gForceChart"></canvas>
+                </div>
+                <div class="mt-4 flex items-center gap-4">
+                    <div class="flex items-center gap-2 px-3 py-2 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                        <i class="fas fa-exclamation-triangle text-orange-400"></i>
+                        <span class="text-sm">T3 Entry: Abrupt brake release detected (-1.8G to 0G in 0.15s)</span>
+                    </div>
+                    <div class="flex items-center gap-2 px-3 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                        <i class="fas fa-info-circle text-yellow-400"></i>
+                        <span class="text-sm">T7: Slight oversteer slide (lateral spike)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- G-G Diagram and Corner Analysis -->
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <!-- G-G Diagram -->
+                <div class="card rounded-2xl p-6">
+                    <h3 class="font-semibold text-lg mb-4">G-G Diagram (Friction Circle)</h3>
+                    <div class="relative bg-gray-900 rounded-xl p-4" style="height: 300px;">
+                        <canvas id="ggDiagram"></canvas>
+                        <!-- Overlay annotations -->
+                        <div class="absolute top-4 left-4 text-xs text-gray-500">Braking</div>
+                        <div class="absolute bottom-4 left-4 text-xs text-gray-500">Acceleration</div>
+                        <div class="absolute top-1/2 left-2 text-xs text-gray-500 -translate-y-1/2">Left</div>
+                        <div class="absolute top-1/2 right-2 text-xs text-gray-500 -translate-y-1/2">Right</div>
+                    </div>
+                    <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+                        <div class="bg-gray-800 rounded-lg p-3 text-center">
+                            <p class="text-gray-400">Peak Lateral G</p>
+                            <p class="font-mono font-bold text-blue-400">1.42G</p>
+                        </div>
+                        <div class="bg-gray-800 rounded-lg p-3 text-center">
+                            <p class="text-gray-400">Peak Braking G</p>
+                            <p class="font-mono font-bold text-red-400">1.85G</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Corner-by-Corner Smoothness -->
+                <div class="card rounded-2xl p-6">
+                    <h3 class="font-semibold text-lg mb-4">Corner Smoothness Breakdown</h3>
+                    <div class="space-y-4">
+                        <!-- T1 -->
+                        <div class="flex items-center gap-4">
+                            <span class="w-12 text-sm font-medium">T1</span>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <div class="flex-1 h-3 bg-gray-800 rounded-full overflow-hidden">
+                                        <div class="h-full bg-green-500 rounded-full" style="width: 85%"></div>
+                                    </div>
+                                    <span class="text-sm font-mono w-8">85</span>
+                                </div>
+                                <p class="text-xs text-gray-500">Smooth entry, good trail-braking</p>
+                            </div>
+                        </div>
+
+                        <!-- T3 -->
+                        <div class="flex items-center gap-4">
+                            <span class="w-12 text-sm font-medium text-orange-400">T3</span>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <div class="flex-1 h-3 bg-gray-800 rounded-full overflow-hidden">
+                                        <div class="h-full bg-orange-500 rounded-full" style="width: 62%"></div>
+                                    </div>
+                                    <span class="text-sm font-mono w-8 text-orange-400">62</span>
+                                </div>
+                                <p class="text-xs text-orange-400">Abrupt brake release, unsettles car</p>
+                            </div>
+                        </div>
+
+                        <!-- Chicane -->
+                        <div class="flex items-center gap-4">
+                            <span class="w-12 text-sm font-medium">CHI</span>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <div class="flex-1 h-3 bg-gray-800 rounded-full overflow-hidden">
+                                        <div class="h-full bg-yellow-500 rounded-full" style="width: 74%"></div>
+                                    </div>
+                                    <span class="text-sm font-mono w-8">74</span>
+                                </div>
+                                <p class="text-xs text-gray-500">Slightly jerky direction changes</p>
+                            </div>
+                        </div>
+
+                        <!-- T7 -->
+                        <div class="flex items-center gap-4">
+                            <span class="w-12 text-sm font-medium text-yellow-400">T7</span>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <div class="flex-1 h-3 bg-gray-800 rounded-full overflow-hidden">
+                                        <div class="h-full bg-yellow-500 rounded-full" style="width: 71%"></div>
+                                    </div>
+                                    <span class="text-sm font-mono w-8 text-yellow-400">71</span>
+                                </div>
+                                <p class="text-xs text-yellow-400">Minor oversteer, steering correction</p>
+                            </div>
+                        </div>
+
+                        <!-- Final -->
+                        <div class="flex items-center gap-4">
+                            <span class="w-12 text-sm font-medium">Final</span>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <div class="flex-1 h-3 bg-gray-800 rounded-full overflow-hidden">
+                                        <div class="h-full bg-green-500 rounded-full" style="width: 88%"></div>
+                                    </div>
+                                    <span class="text-sm font-mono w-8">88</span>
+                                </div>
+                                <p class="text-xs text-gray-500">Excellent control throughout</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Training Recommendations -->
+            <div class="card rounded-2xl p-6">
+                <h3 class="font-semibold text-lg mb-6">
+                    <i class="fas fa-graduation-cap text-purple-400 mr-2"></i>
+                    Training Recommendations
+                </h3>
+                <div class="grid grid-cols-2 gap-6">
+                    <!-- Braking Technique -->
+                    <div class="bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-500/30 rounded-xl p-5">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-hand-paper text-red-400 text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium mb-2">Brake Release Technique</h4>
+                                <p class="text-sm text-gray-400 mb-3">Your T3 entry shows abrupt brake release causing weight transfer issues.</p>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex items-start gap-2">
+                                        <span class="text-red-400 mt-1">1.</span>
+                                        <span>Practice gradual brake release (trail braking) into T3</span>
+                                    </div>
+                                    <div class="flex items-start gap-2">
+                                        <span class="text-red-400 mt-1">2.</span>
+                                        <span>Focus on smooth transition from braking to turning</span>
+                                    </div>
+                                    <div class="flex items-start gap-2">
+                                        <span class="text-red-400 mt-1">3.</span>
+                                        <span>Aim for brake release over 0.3-0.4s instead of 0.15s</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Steering Inputs -->
+                    <div class="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-xl p-5">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-dharmachakra text-blue-400 text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium mb-2">Steering Smoothness (Good)</h4>
+                                <p class="text-sm text-gray-400 mb-3">Overall steering is smooth. Minor improvement areas:</p>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex items-start gap-2">
+                                        <span class="text-blue-400 mt-1">1.</span>
+                                        <span>Chicane: Slightly smoother weight transitions</span>
+                                    </div>
+                                    <div class="flex items-start gap-2">
+                                        <span class="text-blue-400 mt-1">2.</span>
+                                        <span>T7: Anticipate oversteer with earlier counter-steer</span>
+                                    </div>
+                                    <div class="flex items-start gap-2">
+                                        <span class="text-blue-400 mt-1">3.</span>
+                                        <span>Maintain current technique for T1 and Final corner</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slip Detection -->
+                    <div class="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-xl p-5">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-car-crash text-yellow-400 text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium mb-2">Slip Event Analysis</h4>
+                                <p class="text-sm text-gray-400 mb-3">4 minor slip events detected this session:</p>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex items-center justify-between">
+                                        <span>T7 apex (oversteer)</span>
+                                        <span class="text-yellow-400">×2</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span>Chicane exit (power slide)</span>
+                                        <span class="text-yellow-400">×1</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span>T3 entry (lock-up)</span>
+                                        <span class="text-orange-400">×1</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Overall Tips -->
+                    <div class="bg-gradient-to-br from-green-500/10 to-cyan-500/10 border border-green-500/30 rounded-xl p-5">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-lightbulb text-green-400 text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium mb-2">Key Takeaways</h4>
+                                <p class="text-sm text-gray-400 mb-3">Focus areas for next session:</p>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex items-start gap-2">
+                                        <i class="fas fa-check text-green-400 mt-1"></i>
+                                        <span>Prioritize T3 brake release smoothness</span>
+                                    </div>
+                                    <div class="flex items-start gap-2">
+                                        <i class="fas fa-check text-green-400 mt-1"></i>
+                                        <span>Work on T7 car control to prevent slides</span>
+                                    </div>
+                                    <div class="flex items-start gap-2">
+                                        <i class="fas fa-check text-green-400 mt-1"></i>
+                                        <span>Maintain excellent technique elsewhere</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Source Annotation -->
+            <div class="card rounded-2xl p-6 mt-6 border border-orange-500/30 bg-gradient-to-r from-orange-500/5 to-red-500/5">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-microchip text-orange-400"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-medium text-orange-400 mb-3">Data Sources Used for This Analysis (Advanced IMU Feature)</h4>
+                        <div class="grid grid-cols-2 gap-6 text-sm">
+                            <div>
+                                <p class="text-gray-400 mb-2 font-medium">Primary Data Channels:</p>
+                                <ul class="space-y-1.5 text-gray-300">
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-arrows-alt-h text-red-400 w-4"></i>
+                                        <span><strong>Lateral Acceleration</strong> - Y-axis G-force (100Hz IMU)</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-arrows-alt-v text-blue-400 w-4"></i>
+                                        <span><strong>Longitudinal Acceleration</strong> - X-axis G-force (100Hz IMU)</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-satellite text-green-400 w-4"></i>
+                                        <span><strong>GPS Position</strong> - For track position correlation</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fas fa-sync text-purple-400 w-4"></i>
+                                        <span><strong>Gyroscope</strong> - Yaw rate for slip detection (optional)</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p class="text-gray-400 mb-2 font-medium">How Data Contributes:</p>
+                                <ul class="space-y-1.5 text-gray-300">
+                                    <li><span class="text-orange-400">•</span> Longitudinal G measures braking/acceleration intensity</li>
+                                    <li><span class="text-orange-400">•</span> Lateral G measures cornering forces</li>
+                                    <li><span class="text-orange-400">•</span> G-G diagram plots combined grip utilization</li>
+                                    <li><span class="text-orange-400">•</span> Rate-of-change of G-forces indicates input smoothness</li>
+                                    <li><span class="text-orange-400">•</span> Slip events detected from sudden lateral G spikes</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-gray-700">
+                            <p class="text-xs text-gray-500 mb-2"><i class="fas fa-exclamation-triangle text-yellow-400 mr-1"></i><strong>Device Requirement:</strong> This analysis requires an IMU (Inertial Measurement Unit) equipped data logger. Not all devices include IMU sensors.</p>
+                            <div class="flex items-center gap-4 text-xs text-gray-500">
+                                <span><i class="fas fa-check-circle text-green-400 mr-1"></i>MyChron 5: Built-in 3-axis IMU</span>
+                                <span><i class="fas fa-check-circle text-green-400 mr-1"></i>Alfano Pro+: Built-in IMU</span>
+                                <span><i class="fas fa-times-circle text-red-400 mr-1"></i>Alfano 6/Pro: No IMU</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // G-Force Trace Chart
+        const gForceCtx = document.getElementById('gForceChart').getContext('2d');
+
+        const trackPos = Array.from({length: 100}, (_, i) => i);
+
+        // Longitudinal G (braking = negative, acceleration = positive)
+        const longG = [
+            0.2, 0.3, 0.4, 0.3, 0.1, -0.5, -1.2, -1.6, -1.8, -1.5,  // T1 braking
+            -0.8, -0.3, 0.2, 0.5, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1,      // T1 exit acceleration
+            0.3, 0.4, 0.5, 0.4, 0.3, 0.2, -0.3, -0.8, -1.4, -1.8,    // S2 to T3 braking
+            -1.2, -0.5, 0.0, 0.3, 0.5, 0.4, 0.3, 0.2, 0.1, -0.2,     // T3 exit (note abrupt release)
+            -0.6, -1.0, -1.2, -0.8, -0.4, 0.1, 0.4, 0.5, 0.4, 0.3,   // Chicane
+            0.2, 0.1, -0.3, -0.8, -1.2, -1.4, -1.0, -0.5, 0.0, 0.4,  // T7
+            0.5, 0.5, 0.4, 0.3, 0.2, 0.3, 0.4, 0.5, 0.5, 0.4,        // T7 exit
+            0.3, 0.2, -0.4, -0.9, -1.3, -1.0, -0.5, 0.0, 0.4, 0.5,   // Final corner
+            0.5, 0.4, 0.3, 0.3, 0.3, 0.4, 0.4, 0.4, 0.3, 0.2         // Pit straight
+        ];
+
+        // Lateral G (left = negative, right = positive)
+        const latG = [
+            0.0, 0.1, 0.2, 0.4, 0.8, 1.1, 1.3, 1.35, 1.2, 0.9,       // T1 (right turn)
+            0.5, 0.2, 0.0, -0.1, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3,     // T1 exit
+            0.1, 0.0, -0.1, -0.2, -0.3, -0.4, -0.6, -0.9, -1.2, -1.35, // T3 (left turn)
+            -1.4, -1.3, -1.1, -0.8, -0.4, 0.0, 0.3, 0.5, 0.6, 0.4,   // T3 exit
+            0.2, -0.3, -0.8, -1.0, -0.6, 0.4, 0.9, 1.1, 0.8, 0.3,    // Chicane (left-right)
+            0.0, -0.2, -0.5, -0.9, -1.2, -1.4, -1.5, -1.3, -0.9, -0.4, // T7 (left) with spike
+            0.0, 0.2, 0.3, 0.2, 0.1, 0.0, -0.2, -0.4, -0.6, -0.8,    // Exit to final
+            -1.0, -1.2, -1.3, -1.2, -1.0, -0.7, -0.3, 0.0, 0.1, 0.0  // Final corner (left)
+        ];
+
+        new Chart(gForceCtx, {
+            type: 'line',
+            data: {
+                labels: trackPos,
+                datasets: [{
+                    label: 'Longitudinal G',
+                    data: longG,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 0
+                }, {
+                    label: 'Lateral G',
+                    data: latG,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        min: -2,
+                        max: 2,
+                        title: { display: true, text: 'G-Force', color: '#9ca3af' },
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#9ca3af' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Track Position (%)', color: '#9ca3af' },
+                        grid: { display: false },
+                        ticks: { color: '#9ca3af', maxTicksLimit: 10 }
+                    }
+                }
+            }
+        });
+
+        // G-G Diagram (Friction Circle)
+        const ggCtx = document.getElementById('ggDiagram').getContext('2d');
+
+        // Create scatter data from G-force arrays
+        const ggData = longG.map((lg, i) => ({ x: latG[i], y: lg }));
+
+        new Chart(ggCtx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'G-G Plot',
+                    data: ggData,
+                    backgroundColor: 'rgba(168, 85, 247, 0.6)',
+                    pointRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        min: -2,
+                        max: 2,
+                        title: { display: true, text: 'Lateral G', color: '#9ca3af' },
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#9ca3af' }
+                    },
+                    y: {
+                        min: -2,
+                        max: 1,
+                        title: { display: true, text: 'Long G', color: '#9ca3af' },
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#9ca3af' }
+                    }
+                }
+            }
+        });
+
+        // Draw friction circle
+        const chart = Chart.getChart('ggDiagram');
+        const originalDraw = chart.draw;
+        chart.draw = function() {
+            originalDraw.apply(this, arguments);
+
+            const ctx = this.ctx;
+            const xAxis = this.scales.x;
+            const yAxis = this.scales.y;
+
+            // Draw circle representing friction limit
+            ctx.save();
+            ctx.beginPath();
+            const centerX = xAxis.getPixelForValue(0);
+            const centerY = yAxis.getPixelForValue(0);
+            const radius = xAxis.getPixelForValue(1.5) - xAxis.getPixelForValue(0);
+
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = 'rgba(34, 197, 94, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.restore();
+        };
+        chart.draw();
+    </script>
+</body>
+</html>
