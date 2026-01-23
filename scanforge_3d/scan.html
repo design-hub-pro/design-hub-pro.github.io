@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=430, height=932, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ScanForge 3D - Scan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        body {
+            width: 430px;
+            height: 932px;
+            margin: 0;
+            overflow-x: hidden;
+            background: #0a0a0f;
+        }
+        .scanner-grid {
+            background-image:
+                linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .scan-line {
+            animation: scanMove 3s ease-in-out infinite;
+        }
+        @keyframes scanMove {
+            0%, 100% { transform: translateY(0); opacity: 0.8; }
+            50% { transform: translateY(200px); opacity: 1; }
+        }
+        .rotate-indicator {
+            animation: rotate 4s linear infinite;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .point-cloud {
+            animation: pointFade 2s ease-in-out infinite;
+        }
+        @keyframes pointFade {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div class="bg-transparent px-6 py-2 flex justify-between items-center text-base font-medium text-white sticky top-0 z-50">
+        <span>9:41</span>
+        <div class="flex items-center gap-1.5">
+            <i class="fas fa-signal text-sm"></i>
+            <i class="fas fa-wifi text-sm"></i>
+            <i class="fas fa-battery-full text-sm"></i>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="px-6 pt-2 pb-4 flex items-center justify-between">
+        <button class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+            <i class="fas fa-arrow-left text-white text-lg"></i>
+        </button>
+        <h1 class="text-xl font-bold text-white">Scanning</h1>
+        <button class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+            <i class="fas fa-cog text-white text-lg"></i>
+        </button>
+    </div>
+
+    <!-- Scanner View -->
+    <div class="px-6 py-4">
+        <div class="bg-gray-900 rounded-3xl overflow-hidden relative scanner-grid" style="height: 380px;">
+            <!-- Scan Progress -->
+            <div class="absolute top-4 left-4 right-4 z-20">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-white font-medium text-base">Scan Progress</span>
+                    <span class="text-blue-400 font-bold text-base">67%</span>
+                </div>
+                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full" style="width: 67%"></div>
+                </div>
+            </div>
+
+            <!-- 3D Object Visualization -->
+            <div class="absolute inset-0 flex items-center justify-center">
+                <!-- Rotating Platform -->
+                <div class="relative">
+                    <div class="w-48 h-48 border-2 border-blue-500/30 rounded-full flex items-center justify-center rotate-indicator">
+                        <div class="w-40 h-40 border border-blue-400/20 rounded-full"></div>
+                    </div>
+
+                    <!-- Object being scanned -->
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="relative">
+                            <i class="fas fa-chess-knight text-6xl text-blue-400/80"></i>
+                            <!-- Point cloud effect -->
+                            <div class="absolute -top-2 -left-2 w-2 h-2 bg-cyan-400 rounded-full point-cloud"></div>
+                            <div class="absolute top-4 -right-3 w-1.5 h-1.5 bg-blue-400 rounded-full point-cloud" style="animation-delay: 0.3s"></div>
+                            <div class="absolute -bottom-1 left-2 w-2 h-2 bg-cyan-300 rounded-full point-cloud" style="animation-delay: 0.6s"></div>
+                            <div class="absolute top-0 right-0 w-1 h-1 bg-blue-300 rounded-full point-cloud" style="animation-delay: 0.9s"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scan line -->
+                <div class="absolute left-8 right-8 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent scan-line"></div>
+            </div>
+
+            <!-- Camera indicators -->
+            <div class="absolute bottom-4 left-4 right-4 flex justify-between">
+                <div class="flex items-center gap-2 bg-black/50 px-3 py-2 rounded-xl">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-white text-sm font-medium">Depth Camera</span>
+                </div>
+                <div class="flex items-center gap-2 bg-black/50 px-3 py-2 rounded-xl">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-white text-sm font-medium">RGB Camera</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scan Info -->
+    <div class="px-6 py-2">
+        <div class="grid grid-cols-3 gap-3">
+            <div class="bg-gray-800/50 rounded-2xl p-4 text-center">
+                <i class="fas fa-sync-alt text-blue-400 text-xl mb-2"></i>
+                <p class="text-2xl font-bold text-white">240°</p>
+                <p class="text-sm text-gray-400">Rotation</p>
+            </div>
+            <div class="bg-gray-800/50 rounded-2xl p-4 text-center">
+                <i class="fas fa-layer-group text-cyan-400 text-xl mb-2"></i>
+                <p class="text-2xl font-bold text-white">48K</p>
+                <p class="text-sm text-gray-400">Points</p>
+            </div>
+            <div class="bg-gray-800/50 rounded-2xl p-4 text-center">
+                <i class="fas fa-clock text-purple-400 text-xl mb-2"></i>
+                <p class="text-2xl font-bold text-white">1:24</p>
+                <p class="text-sm text-gray-400">Remaining</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scan Quality -->
+    <div class="px-6 py-4">
+        <div class="bg-gray-800/50 rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-white">Scan Quality</h3>
+                <span class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm font-medium">Excellent</span>
+            </div>
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-400 text-base">Surface Detail</span>
+                    <div class="flex items-center gap-2">
+                        <div class="w-24 h-2 bg-gray-700 rounded-full overflow-hidden">
+                            <div class="h-full bg-green-500 rounded-full" style="width: 92%"></div>
+                        </div>
+                        <span class="text-white font-medium text-sm">92%</span>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-400 text-base">Edge Accuracy</span>
+                    <div class="flex items-center gap-2">
+                        <div class="w-24 h-2 bg-gray-700 rounded-full overflow-hidden">
+                            <div class="h-full bg-green-500 rounded-full" style="width: 88%"></div>
+                        </div>
+                        <span class="text-white font-medium text-sm">88%</span>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-400 text-base">Color Capture</span>
+                    <div class="flex items-center gap-2">
+                        <div class="w-24 h-2 bg-gray-700 rounded-full overflow-hidden">
+                            <div class="h-full bg-green-500 rounded-full" style="width: 95%"></div>
+                        </div>
+                        <span class="text-white font-medium text-sm">95%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Control Buttons -->
+    <div class="px-6 py-4">
+        <div class="flex gap-4">
+            <button class="flex-1 py-4 bg-red-500/20 text-red-400 rounded-2xl font-semibold text-lg">
+                <i class="fas fa-pause mr-2"></i>Pause
+            </button>
+            <button class="flex-1 py-4 bg-gray-700 text-white rounded-2xl font-semibold text-lg">
+                <i class="fas fa-stop mr-2"></i>Cancel
+            </button>
+        </div>
+    </div>
+
+    <!-- Bottom spacer -->
+    <div class="h-28"></div>
+
+    <!-- Bottom Tab Bar -->
+    <div class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 px-6 py-3 pb-8">
+        <div class="flex justify-around items-center">
+            <div class="flex flex-col items-center">
+                <i class="fas fa-home text-gray-500 text-2xl"></i>
+                <span class="text-sm text-gray-500 mt-1">Home</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <i class="fas fa-crosshairs text-blue-500 text-2xl"></i>
+                <span class="text-sm text-blue-500 font-medium mt-1">Scan</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <i class="fas fa-folder text-gray-500 text-2xl"></i>
+                <span class="text-sm text-gray-500 mt-1">Library</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <i class="fas fa-chart-line text-gray-500 text-2xl"></i>
+                <span class="text-sm text-gray-500 mt-1">Stats</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <i class="fas fa-user text-gray-500 text-2xl"></i>
+                <span class="text-sm text-gray-500 mt-1">Profile</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

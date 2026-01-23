@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScanForge 3D - 自动化3D扫描与重建</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+        * { font-family: 'Noto Sans SC', 'Inter', sans-serif; }
+
+        .phone-frame {
+            width: 300px;
+            height: 650px;
+            border-radius: 44px;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 11px #1a1a1a,
+                0 0 0 13px #2d2d2d,
+                0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            position: relative;
+            background: #000;
+            flex-shrink: 0;
+        }
+
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 28px;
+            background: #1a1a1a;
+            border-radius: 0 0 20px 20px;
+            z-index: 100;
+        }
+
+        .phone-frame iframe {
+            width: 430px;
+            height: 932px;
+            border: none;
+            border-radius: 38px;
+            transform: scale(0.698);
+            transform-origin: top left;
+        }
+
+        .screen-label {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <!-- Language Switcher -->
+    <div class="fixed top-4 right-4 z-50">
+        <div class="bg-white rounded-full shadow-lg border border-gray-200 p-1 flex gap-1">
+            <a href="index.html" class="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 rounded-full transition">EN</a>
+            <span class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-full font-medium">中文</span>
+        </div>
+    </div>
+
+    <!-- Hero Header -->
+    <header class="pt-12 pb-8 px-8 text-center border-b border-gray-100">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex items-center justify-center gap-3 mb-5">
+                <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-cube text-white text-3xl"></i>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-3">ScanForge 3D</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-5">智能硬件系统，通过同步深度扫描和AI驱动的网格重建，自动将实物转换为可3D打印的数字模型。</p>
+            <!-- Major Tags -->
+            <div class="flex items-center justify-center gap-3 flex-wrap">
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-cogs"></i>
+                    机械工程
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-code"></i>
+                    计算机科学
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-drafting-compass"></i>
+                    工业设计
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Problem Statement Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">问题背景</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">3D扫描对大多数创作者仍不可及</h2>
+                <p class="text-gray-600 leading-relaxed">尽管3D打印不断发展，<strong>从实物创建精确数字模型</strong>仍然需要昂贵的设备或繁琐的手动测量。这一障碍阻止了学生、业余爱好者和小企业利用<strong>快速原型制作和数字制造</strong>技术。</p>
+            </div>
+
+            <!-- Problem Images - 2 images side by side -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div class="rounded-2xl overflow-hidden shadow-lg">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/automated-3d-scanning-and-reconstruction-device-is/problem-background/1769128892678-image-1.png" alt="传统3D扫描挑战" class="w-full h-56 object-cover">
+                    <div class="p-4 bg-white">
+                        <p class="text-sm text-gray-600 text-center">复杂的手动流程阻碍了创意工作流程</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/automated-3d-scanning-and-reconstruction-device-is/problem-background/1769128893353-image-2.png" alt="昂贵的扫描设备" class="w-full h-56 object-cover">
+                    <div class="p-4 bg-white">
+                        <p class="text-sm text-gray-600 text-center">专业扫描设备成本在1,000至50,000美元以上</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-6 text-center">
+                    <p class="text-4xl font-bold text-blue-600 mb-2">82亿美元</p>
+                    <p class="text-gray-600 text-sm">到2030年3D扫描市场规模，年复合增长率15%</p>
+                    <a href="https://www.mordorintelligence.com/industry-reports/3d-scanners-market" target="_blank" class="text-xs text-blue-500 hover:underline mt-2 inline-block">Mordor Intelligence <i class="fas fa-external-link-alt ml-1"></i></a>
+                </div>
+                <div class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-6 text-center">
+                    <p class="text-4xl font-bold text-indigo-600 mb-2">40%</p>
+                    <p class="text-gray-600 text-sm">的企业使用快速原型技术加速产品开发</p>
+                    <a href="https://www.precedenceresearch.com/rapid-prototyping-market" target="_blank" class="text-xs text-blue-500 hover:underline mt-2 inline-block">Precedence Research <i class="fas fa-external-link-alt ml-1"></i></a>
+                </div>
+                <div class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-6 text-center">
+                    <p class="text-4xl font-bold text-purple-600 mb-2">29%</p>
+                    <p class="text-gray-600 text-sm">的制造商已实施数字孪生战略</p>
+                    <a href="https://hexagon.com/resources/insights/digital-twin/statistics" target="_blank" class="text-xs text-blue-500 hover:underline mt-2 inline-block">Hexagon <i class="fas fa-external-link-alt ml-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Impact Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">社会影响</span>
+                <h2 class="text-2xl font-bold text-gray-900">数字制造民主化</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Impact Card 1 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-graduation-cap text-blue-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">STEM教育提升</h3>
+                    <p class="text-gray-600 text-sm mb-3">3D打印培养学生的创造力、批判性思维和空间可视化能力。动手学习帮助学生通过实际创作理解抽象概念。</p>
+                    <a href="https://journals.sagepub.com/doi/10.1177/27527263221129357" target="_blank" class="text-xs text-blue-500 hover:underline">SAGE期刊研究 <i class="fas fa-external-link-alt ml-1"></i></a>
+                </div>
+
+                <!-- Impact Card 2 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-industry text-emerald-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">制造业创新</h3>
+                    <p class="text-gray-600 text-sm mb-3">快速原型制作市场预计到2034年将达到214.7亿美元，实现更快的产品开发周期和跨行业的经济高效制造解决方案。</p>
+                    <a href="https://www.precedenceresearch.com/rapid-prototyping-market" target="_blank" class="text-xs text-blue-500 hover:underline">Precedence Research <i class="fas fa-external-link-alt ml-1"></i></a>
+                </div>
+
+                <!-- Impact Card 3 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-globe text-purple-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">数字孪生革命</h3>
+                    <p class="text-gray-600 text-sm mb-3">数字孪生市场预计从2024年的177.3亿美元增长到2032年的2590亿美元，3D扫描实现实时数字副本用于预测性维护和效率提升。</p>
+                    <a href="https://www.fortunebusinessinsights.com/digital-twin-market-106246" target="_blank" class="text-xs text-blue-500 hover:underline">Fortune Business Insights <i class="fas fa-external-link-alt ml-1"></i></a>
+                </div>
+
+                <!-- Impact Card 4 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-users text-amber-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">偏远地区普及</h3>
+                    <p class="text-gray-600 text-sm mb-3">3D打印创客空间为农村学生提供宝贵的STEM参与机会，通过传统教学往往缺乏的动手实践、情境相关的体验进行学习。</p>
+                    <a href="https://www.frontiersin.org/journals/education/articles/10.3389/feduc.2023.1233337/full" target="_blank" class="text-xs text-blue-500 hover:underline">Frontiers in Education <i class="fas fa-external-link-alt ml-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mobile App Prototype Section -->
+    <section class="py-12 px-8 bg-white">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">产品设计</span>
+                <h2 class="text-2xl font-bold text-gray-900">移动应用原型</h2>
+            </div>
+
+            <!-- Row 1: 3 screens -->
+            <div class="flex flex-wrap justify-center gap-8 mb-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="home.html"></iframe>
+                    </div>
+                    <p class="screen-label">主页</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="scan.html"></iframe>
+                    </div>
+                    <p class="screen-label">扫描</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="library.html"></iframe>
+                    </div>
+                    <p class="screen-label">模型库</p>
+                </div>
+            </div>
+
+            <!-- Row 2: 2 screens (centered) -->
+            <div class="flex flex-wrap justify-center gap-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="export.html"></iframe>
+                    </div>
+                    <p class="screen-label">导出</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="profile.html"></iframe>
+                    </div>
+                    <p class="screen-label">个人中心</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Project in Action Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">实际应用</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-3">项目实践</h2>
+                <p class="text-gray-600">展示 ScanForge 3D 如何产生实际影响的真实场景</p>
+            </div>
+
+            <!-- Use Case Images - 2x2 Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/automated-3d-scanning-and-reconstruction-device-is/use-cases/1769128884422-image-1.png" alt="学生原型制作" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">教育原型制作</h3>
+                        <p class="text-sm text-gray-600">工程专业学生扫描机械零件以创建数字模型，用于设计项目中的分析和快速迭代。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/automated-3d-scanning-and-reconstruction-device-is/use-cases/1769128885049-image-2.png" alt="小企业制造" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">小企业制造</h3>
+                        <p class="text-sm text-gray-600">本地创客扫描定制产品以创建复制品，无需昂贵的模具即可实现小批量生产。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/automated-3d-scanning-and-reconstruction-device-is/use-cases/1769128885281-image-3.png" alt="数字存档" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">数字存档</h3>
+                        <p class="text-sm text-gray-600">博物馆和收藏家通过高保真3D数字化保存文物和收藏品，建立永久记录。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/automated-3d-scanning-and-reconstruction-device-is/use-cases/1769128885522-image-4.png" alt="替换零件" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">替换零件生产</h3>
+                        <p class="text-sm text-gray-600">扫描损坏或磨损的零件以重新创建精确复制品，延长产品寿命并减少浪费。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Overview Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">技术概述</span>
+                <h2 class="text-2xl font-bold text-gray-900">系统架构</h2>
+            </div>
+
+            <!-- Technical Illustration Image -->
+            <div class="mb-10 rounded-2xl overflow-hidden shadow-lg">
+                <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/automated-3d-scanning-and-reconstruction-device-is/product-concept/1769128869307-image-1.png" alt="ScanForge 3D 系统概念" class="w-full h-72 object-cover">
+                <div class="p-4 bg-white border-t border-gray-100">
+                    <p class="text-sm text-gray-600 text-center">集成硬件系统，结合深度传感、电动旋转和智能重建</p>
+                </div>
+            </div>
+
+            <!-- SVG Architecture Diagram -->
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <svg viewBox="0 0 800 400" class="w-full h-auto">
+                    <!-- Background -->
+                    <rect width="800" height="400" fill="#fafafa"/>
+
+                    <!-- Hardware Layer -->
+                    <rect x="40" y="40" width="200" height="320" rx="16" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+                    <text x="140" y="75" text-anchor="middle" font-weight="bold" font-size="14" fill="#1e40af">🔧 硬件层</text>
+
+                    <rect x="60" y="95" width="160" height="45" rx="8" fill="white" stroke="#93c5fd" stroke-width="1"/>
+                    <text x="140" y="123" text-anchor="middle" font-size="12" fill="#374151">深度相机 (RGB-D)</text>
+
+                    <rect x="60" y="150" width="160" height="45" rx="8" fill="white" stroke="#93c5fd" stroke-width="1"/>
+                    <text x="140" y="178" text-anchor="middle" font-size="12" fill="#374151">电动转盘</text>
+
+                    <rect x="60" y="205" width="160" height="45" rx="8" fill="white" stroke="#93c5fd" stroke-width="1"/>
+                    <text x="140" y="233" text-anchor="middle" font-size="12" fill="#374151">步进控制器</text>
+
+                    <rect x="60" y="260" width="160" height="45" rx="8" fill="white" stroke="#93c5fd" stroke-width="1"/>
+                    <text x="140" y="288" text-anchor="middle" font-size="12" fill="#374151">LED环形灯</text>
+
+                    <rect x="60" y="315" width="160" height="30" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1"/>
+                    <text x="140" y="335" text-anchor="middle" font-size="10" fill="#6b7280">约$150-200 物料成本</text>
+
+                    <!-- Arrow 1 -->
+                    <path d="M250 200 L290 200" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <text x="270" y="190" text-anchor="middle" font-size="10" fill="#6b7280">点云</text>
+
+                    <!-- Processing Layer -->
+                    <rect x="300" y="40" width="200" height="320" rx="16" fill="#e0e7ff" stroke="#6366f1" stroke-width="2"/>
+                    <text x="400" y="75" text-anchor="middle" font-weight="bold" font-size="14" fill="#3730a3">⚙️ 处理层</text>
+
+                    <rect x="320" y="95" width="160" height="45" rx="8" fill="white" stroke="#a5b4fc" stroke-width="1"/>
+                    <text x="400" y="123" text-anchor="middle" font-size="12" fill="#374151">点云融合</text>
+
+                    <rect x="320" y="150" width="160" height="45" rx="8" fill="white" stroke="#a5b4fc" stroke-width="1"/>
+                    <text x="400" y="178" text-anchor="middle" font-size="12" fill="#374151">网格重建</text>
+
+                    <rect x="320" y="205" width="160" height="45" rx="8" fill="white" stroke="#a5b4fc" stroke-width="1"/>
+                    <text x="400" y="233" text-anchor="middle" font-size="12" fill="#374151">表面平滑</text>
+
+                    <rect x="320" y="260" width="160" height="45" rx="8" fill="white" stroke="#a5b4fc" stroke-width="1"/>
+                    <text x="400" y="288" text-anchor="middle" font-size="12" fill="#374151">纹理映射</text>
+
+                    <rect x="320" y="315" width="160" height="30" rx="6" fill="#eef2ff" stroke="#a5b4fc" stroke-width="1"/>
+                    <text x="400" y="335" text-anchor="middle" font-size="10" fill="#6b7280">Open3D + PCL</text>
+
+                    <!-- Arrow 2 -->
+                    <path d="M510 200 L550 200" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <text x="530" y="190" text-anchor="middle" font-size="10" fill="#6b7280">3D网格</text>
+
+                    <!-- Output Layer -->
+                    <rect x="560" y="40" width="200" height="320" rx="16" fill="#f3e8ff" stroke="#8b5cf6" stroke-width="2"/>
+                    <text x="660" y="75" text-anchor="middle" font-weight="bold" font-size="14" fill="#5b21b6">📤 输出层</text>
+
+                    <rect x="580" y="95" width="160" height="45" rx="8" fill="white" stroke="#c4b5fd" stroke-width="1"/>
+                    <text x="660" y="123" text-anchor="middle" font-size="12" fill="#374151">STL导出</text>
+
+                    <rect x="580" y="150" width="160" height="45" rx="8" fill="white" stroke="#c4b5fd" stroke-width="1"/>
+                    <text x="660" y="178" text-anchor="middle" font-size="12" fill="#374151">OBJ/GLTF导出</text>
+
+                    <rect x="580" y="205" width="160" height="45" rx="8" fill="white" stroke="#c4b5fd" stroke-width="1"/>
+                    <text x="660" y="233" text-anchor="middle" font-size="12" fill="#374151">打印预览</text>
+
+                    <rect x="580" y="260" width="160" height="45" rx="8" fill="white" stroke="#c4b5fd" stroke-width="1"/>
+                    <text x="660" y="288" text-anchor="middle" font-size="12" fill="#374151">云同步</text>
+
+                    <rect x="580" y="315" width="160" height="30" rx="6" fill="#faf5ff" stroke="#c4b5fd" stroke-width="1"/>
+                    <text x="660" y="335" text-anchor="middle" font-size="10" fill="#6b7280">打印就绪文件</text>
+
+                    <!-- Arrowhead Definition -->
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+                        </marker>
+                    </defs>
+                </svg>
+
+                <!-- Legend -->
+                <div class="flex justify-center gap-6 mt-6 pt-6 border-t border-gray-100">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-blue-200 border border-blue-500"></div>
+                        <span class="text-sm text-gray-600">硬件层</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-indigo-200 border border-indigo-500"></div>
+                        <span class="text-sm text-gray-600">处理层</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-purple-200 border border-purple-500"></div>
+                        <span class="text-sm text-gray-600">输出层</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Growth Path Section -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">发展路径</span>
+                <h2 class="text-2xl font-bold text-gray-900">从原型到平台</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Step 1 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-xl mb-4">1</div>
+                    <h3 class="font-semibold text-gray-900 mb-2">构建核心硬件</h3>
+                    <p class="text-gray-600 text-sm">从Intel RealSense深度相机、Arduino控制的步进电机和3D打印转盘开始。MVP总成本低于200美元。</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl mb-4">2</div>
+                    <h3 class="font-semibold text-gray-900 mb-2">开发重建流程</h3>
+                    <p class="text-gray-600 text-sm">使用Open3D和点云库（PCL）构建网格重建算法。在多样化对象数据集上训练以实现稳健性能。</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xl mb-4">3</div>
+                    <h3 class="font-semibold text-gray-900 mb-2">在创客空间推广</h3>
+                    <p class="text-gray-600 text-sm">与大学创客空间和FabLab合作部署和迭代。从真实用户收集反馈以优化扫描工作流程。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Your Journey Section -->
+    <section class="py-12 px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">你的旅程</span>
+                <h2 class="text-2xl font-bold text-gray-900">从热爱到使命</h2>
+                <p class="text-gray-600 mt-2">你的工程好奇心如何引领创新</p>
+            </div>
+
+            <!-- Timeline -->
+            <div class="relative">
+                <!-- Timeline Line -->
+                <div class="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-gray-200"></div>
+
+                <!-- Stage 1: Foundation -->
+                <div class="relative flex items-center mb-12">
+                    <div class="w-1/2 pr-8 text-right">
+                        <h3 class="font-semibold text-emerald-600 mb-1">启蒙</h3>
+                        <p class="text-gray-600 text-sm italic">"我一直着迷于机器如何从数字设计创造实物。每次3D打印都像魔法一样。"</p>
+                    </div>
+                    <div class="absolute left-1/2 transform -translate-x-1/2 w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center border-4 border-white shadow-lg z-10">
+                        <i class="fas fa-seedling text-emerald-600 text-xl"></i>
+                    </div>
+                    <div class="w-1/2 pl-8"></div>
+                </div>
+
+                <!-- Stage 2: Observation -->
+                <div class="relative flex items-center mb-12">
+                    <div class="w-1/2 pr-8"></div>
+                    <div class="absolute left-1/2 transform -translate-x-1/2 w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center border-4 border-white shadow-lg z-10">
+                        <i class="fas fa-eye text-amber-600 text-xl"></i>
+                    </div>
+                    <div class="w-1/2 pl-8">
+                        <h3 class="font-semibold text-amber-600 mb-1">观察</h3>
+                        <p class="text-gray-600 text-sm italic">"但我注意到最大的瓶颈：将实物带入数字世界。现有的扫描仪既昂贵又复杂。"</p>
+                    </div>
+                </div>
+
+                <!-- Stage 3: Insight -->
+                <div class="relative flex items-center mb-12">
+                    <div class="w-1/2 pr-8 text-right">
+                        <h3 class="font-semibold text-blue-600 mb-1">洞察</h3>
+                        <p class="text-gray-600 text-sm italic">"如果我们能用现成的组件构建一个价格实惠的自动化扫描仪呢？技术已经存在——只需要整合。"</p>
+                    </div>
+                    <div class="absolute left-1/2 transform -translate-x-1/2 w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center border-4 border-white shadow-lg z-10">
+                        <i class="fas fa-lightbulb text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="w-1/2 pl-8"></div>
+                </div>
+
+                <!-- Stage 4: Innovation -->
+                <div class="relative flex items-center">
+                    <div class="w-1/2 pr-8"></div>
+                    <div class="absolute left-1/2 transform -translate-x-1/2 w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center border-4 border-white shadow-lg z-10">
+                        <i class="fas fa-rocket text-purple-600 text-xl"></i>
+                    </div>
+                    <div class="w-1/2 pl-8">
+                        <h3 class="font-semibold text-purple-600 mb-1">创新</h3>
+                        <p class="text-gray-600 text-sm italic">"ScanForge 3D是我的答案：让3D扫描民主化，让任何人都能将他们的实物创作转化为数字资产。"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 py-12 px-8">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="flex items-center justify-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-cube text-white text-xl"></i>
+                </div>
+                <span class="text-2xl font-bold text-white">ScanForge 3D</span>
+            </div>
+            <p class="text-gray-400 mb-4">将实物转化为可打印的数字模型</p>
+            <p class="text-gray-500 text-sm">一个学生主导的数字制造项目</p>
+        </div>
+    </footer>
+</body>
+</html>
