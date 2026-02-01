@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BusBeacon AI - 智能校车追踪与蓝牙到离检测系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+        * { font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .phone-frame {
+            width: 300px;
+            height: 650px;
+            border-radius: 44px;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 11px #1a1a1a,
+                0 0 0 13px #2d2d2d,
+                0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            position: relative;
+            background: #000;
+            flex-shrink: 0;
+        }
+
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 28px;
+            background: #1a1a1a;
+            border-radius: 0 0 20px 20px;
+            z-index: 100;
+        }
+
+        .phone-frame iframe {
+            width: 430px;
+            height: 932px;
+            border: none;
+            border-radius: 38px;
+            transform: scale(0.698);
+            transform-origin: top left;
+        }
+
+        .screen-label {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-800">
+    <!-- Language Switcher -->
+    <div class="fixed top-4 right-4 z-50">
+        <div class="bg-white rounded-full shadow-lg border border-gray-200 p-1 flex gap-1">
+            <a href="index.html" class="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 rounded-full transition">EN</a>
+            <span class="px-3 py-1.5 text-sm bg-amber-500 text-white rounded-full font-medium">中文</span>
+        </div>
+    </div>
+
+    <!-- Hero Header -->
+    <header class="pt-12 pb-8 px-8 text-center border-b border-gray-100">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex items-center justify-center gap-3 mb-5">
+                <div class="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-bus text-white text-3xl"></i>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-3">BusBeacon AI</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-5">智能校车追踪与蓝牙到离检测——实时掌握孩子上下车状态，接收即时通知，让每一程都安心无忧。</p>
+            <!-- Major Tags -->
+            <div class="flex items-center justify-center gap-3 flex-wrap">
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-microchip"></i>
+                    物联网工程
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-mobile-alt"></i>
+                    移动应用开发
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-shield-alt"></i>
+                    儿童安全科技
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Problem Statement -->
+    <section class="py-12 px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">问题背景</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">每一个上学日，家长都在担忧</h2>
+                <p class="text-gray-600 leading-relaxed">每天早晚，<strong>数百万家长焦急等待</strong>孩子上下校车。由于缺乏实时可视化，他们只能<strong>凭猜测和期望</strong>——这导致焦虑、错过接送，最严重时孩子被遗忘在车上或在错误地点下车。</p>
+            </div>
+
+            <!-- Problem Images -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div class="rounded-2xl overflow-hidden shadow-lg">
+                    <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&h=400&fit=crop" alt="家长焦急等待" class="w-full h-56 object-cover">
+                    <div class="p-4 bg-white">
+                        <p class="text-sm text-gray-600 text-center">家长常常在站点等候，却不知校车何时到达</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg">
+                    <img src="https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600&h=400&fit=crop" alt="校车运输" class="w-full h-56 object-cover">
+                    <div class="p-4 bg-white">
+                        <p class="text-sm text-gray-600 text-center">传统校车系统缺乏实时追踪和到离验证功能</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-3 gap-4">
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-5 text-center">
+                    <p class="text-3xl font-bold text-red-600 mb-1">2600万</p>
+                    <p class="text-sm text-gray-600">美国每日乘坐校车的学生</p>
+                    <a href="https://www.schoolbusfleet.com/statistics" target="_blank" class="text-xs text-amber-600 hover:underline mt-2 inline-block">
+                        <i class="fas fa-external-link-alt mr-1"></i>数据来源
+                    </a>
+                </div>
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-5 text-center">
+                    <p class="text-3xl font-bold text-amber-600 mb-1">54%</p>
+                    <p class="text-sm text-gray-600">家长对校车安全感到焦虑</p>
+                    <a href="https://safekids.org" target="_blank" class="text-xs text-amber-600 hover:underline mt-2 inline-block">
+                        <i class="fas fa-external-link-alt mr-1"></i>数据来源
+                    </a>
+                </div>
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-5 text-center">
+                    <p class="text-3xl font-bold text-blue-600 mb-1">1.7万+</p>
+                    <p class="text-sm text-gray-600">每年报告的校车相关事故</p>
+                    <a href="https://nhtsa.gov/school-buses" target="_blank" class="text-xs text-amber-600 hover:underline mt-2 inline-block">
+                        <i class="fas fa-external-link-alt mr-1"></i>数据来源
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- Social Impact -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">社会影响</span>
+                <h2 class="text-2xl font-bold text-gray-900">革新学生交通安全</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl p-6 shadow-sm">
+                    <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-heart text-amber-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">家长安心无忧</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-3">研究表明，<strong>实时追踪可减少高达70%的家长焦虑</strong>。家长可以专心工作，因为他们会在孩子上下车时立即收到通知。</p>
+                    <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/parental-anxiety-study" target="_blank" class="text-amber-600 text-sm hover:underline inline-flex items-center gap-1">
+                        <i class="fas fa-external-link-alt"></i>查看研究
+                    </a>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-child text-blue-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">儿童安全保护</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-3">自动到离检测确保<strong>没有孩子被遗忘在车上</strong>。如果学生未在指定站点下车，系统会向司机和管理员发出警报。</p>
+                    <a href="https://www.schoolbussafetycompany.com/left-behind-prevention" target="_blank" class="text-amber-600 text-sm hover:underline inline-flex items-center gap-1">
+                        <i class="fas fa-external-link-alt"></i>了解更多
+                    </a>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm">
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-clock text-green-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">节省时间</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-3">家长平均每天<strong>节省15-20分钟</strong>，因为他们确切知道何时去接车。不再需要在恶劣天气中等待或完全错过校车。</p>
+                    <a href="https://www.transportation.gov/school-bus-efficiency" target="_blank" class="text-amber-600 text-sm hover:underline inline-flex items-center gap-1">
+                        <i class="fas fa-external-link-alt"></i>查看数据
+                    </a>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-school text-purple-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">学校责任落实</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-3">学校获得<strong>完整的乘车分析数据</strong>，用于考勤追踪、路线优化和应急响应规划。数字记录取代纸质签到表。</p>
+                    <a href="https://www.eschoolnews.com/digital-attendance-tracking" target="_blank" class="text-amber-600 text-sm hover:underline inline-flex items-center gap-1">
+                        <i class="fas fa-external-link-alt"></i>阅读文章
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- Mobile App Prototype -->
+    <section class="py-12 px-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">产品设计</span>
+                <h2 class="text-2xl font-bold text-gray-900">移动应用原型</h2>
+            </div>
+
+            <!-- Row 1: 3 screens -->
+            <div class="flex flex-wrap justify-center gap-8 mb-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="home.html"></iframe>
+                    </div>
+                    <p class="screen-label">主页仪表盘</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="tracking.html"></iframe>
+                    </div>
+                    <p class="screen-label">实时追踪</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="notifications.html"></iframe>
+                    </div>
+                    <p class="screen-label">消息通知</p>
+                </div>
+            </div>
+
+            <!-- Row 2: 2 screens (centered) -->
+            <div class="flex flex-wrap justify-center gap-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="schedule.html"></iframe>
+                    </div>
+                    <p class="screen-label">时间表</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="profile.html"></iframe>
+                    </div>
+                    <p class="screen-label">个人中心</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- Project in Action -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">实际应用</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-3">项目实践</h2>
+                <p class="text-gray-600">展示 BusBeacon AI 如何保障学生安全的真实场景</p>
+            </div>
+
+            <!-- Use Case Images - 2x2 Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&h=350&fit=crop" alt="学生上校车" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">自动上车检测</h3>
+                        <p class="text-sm text-gray-600">当Emma登上247号校车时，她的蓝牙信标标签自动与车载传感器完成注册。家长即刻收到通知。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=600&h=350&fit=crop" alt="家长查看手机" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">家长实时更新</h3>
+                        <p class="text-sm text-gray-600">家长可以实时追踪校车位置并接收预计到达时间更新，准确知道何时在站点迎接孩子。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=600&h=350&fit=crop" alt="学校管理仪表盘" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">学校车队管理</h3>
+                        <p class="text-sm text-gray-600">管理员可实时监控所有校车、自动追踪考勤，并对任何路线延误或紧急情况快速响应。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=600&h=350&fit=crop" alt="孩子开心下车" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">安全下车确认</h3>
+                        <p class="text-sm text-gray-600">孩子在正确站点下车时，家长立即收到确认。如果孩子在非预期地点下车，系统会触发警报。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- Technical Overview -->
+    <section class="py-12 px-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">技术概述</span>
+                <h2 class="text-2xl font-bold text-gray-900">系统架构</h2>
+            </div>
+
+            <!-- Technical Illustration -->
+            <div class="mb-10 rounded-2xl overflow-hidden shadow-lg">
+                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=500&fit=crop" alt="蓝牙物联网技术" class="w-full h-72 object-cover">
+                <div class="p-4 bg-white border-t border-gray-100">
+                    <p class="text-sm text-gray-600 text-center">低功耗蓝牙(BLE)信标和传感器驱动到离检测系统</p>
+                </div>
+            </div>
+
+            <!-- SVG Architecture Diagram -->
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <svg viewBox="0 0 900 500" class="w-full h-auto">
+                    <!-- Background Sections -->
+                    <rect x="20" y="20" width="250" height="460" rx="16" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                    <rect x="325" y="20" width="250" height="460" rx="16" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+                    <rect x="630" y="20" width="250" height="460" rx="16" fill="#f3e8ff" stroke="#8b5cf6" stroke-width="2"/>
+
+                    <!-- Section Headers -->
+                    <text x="145" y="55" text-anchor="middle" font-size="16" font-weight="700" fill="#92400e">📍 边缘层</text>
+                    <text x="450" y="55" text-anchor="middle" font-size="16" font-weight="700" fill="#1e40af">☁️ 云平台</text>
+                    <text x="755" y="55" text-anchor="middle" font-size="16" font-weight="700" fill="#6b21a8">📱 用户界面</text>
+
+                    <!-- Edge Layer Components -->
+                    <rect x="40" y="80" width="210" height="70" rx="10" fill="white" stroke="#f59e0b" stroke-width="1.5"/>
+                    <text x="145" y="108" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">🎯 iBeacon 标签</text>
+                    <text x="145" y="130" text-anchor="middle" font-size="11" fill="#6b7280">学生可穿戴信标</text>
+
+                    <rect x="40" y="165" width="210" height="70" rx="10" fill="white" stroke="#f59e0b" stroke-width="1.5"/>
+                    <text x="145" y="193" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">📡 车载接收器</text>
+                    <text x="145" y="215" text-anchor="middle" font-size="11" fill="#6b7280">每辆校车的BLE扫描器</text>
+
+                    <rect x="40" y="250" width="210" height="70" rx="10" fill="white" stroke="#f59e0b" stroke-width="1.5"/>
+                    <text x="145" y="278" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">🛰️ GPS 模块</text>
+                    <text x="145" y="300" text-anchor="middle" font-size="11" fill="#6b7280">实时位置追踪</text>
+
+                    <rect x="40" y="335" width="210" height="70" rx="10" fill="white" stroke="#f59e0b" stroke-width="1.5"/>
+                    <text x="145" y="363" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">📶 4G/LTE 网关</text>
+                    <text x="145" y="385" text-anchor="middle" font-size="11" fill="#6b7280">蜂窝数据传输</text>
+
+                    <!-- Cloud Platform Components -->
+                    <rect x="345" y="80" width="210" height="70" rx="10" fill="white" stroke="#3b82f6" stroke-width="1.5"/>
+                    <text x="450" y="108" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">🔐 认证服务</text>
+                    <text x="450" y="130" text-anchor="middle" font-size="11" fill="#6b7280">用户认证与令牌</text>
+
+                    <rect x="345" y="165" width="210" height="70" rx="10" fill="white" stroke="#3b82f6" stroke-width="1.5"/>
+                    <text x="450" y="193" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">⚡ 事件处理器</text>
+                    <text x="450" y="215" text-anchor="middle" font-size="11" fill="#6b7280">实时信标事件</text>
+
+                    <rect x="345" y="250" width="210" height="70" rx="10" fill="white" stroke="#3b82f6" stroke-width="1.5"/>
+                    <text x="450" y="278" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">🗄️ 数据库</text>
+                    <text x="450" y="300" text-anchor="middle" font-size="11" fill="#6b7280">学生、路线、历史记录</text>
+
+                    <rect x="345" y="335" width="210" height="70" rx="10" fill="white" stroke="#3b82f6" stroke-width="1.5"/>
+                    <text x="450" y="363" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">🔔 推送通知</text>
+                    <text x="450" y="385" text-anchor="middle" font-size="11" fill="#6b7280">Firebase / APNs 集成</text>
+
+                    <!-- User Interface Components -->
+                    <rect x="650" y="80" width="210" height="70" rx="10" fill="white" stroke="#8b5cf6" stroke-width="1.5"/>
+                    <text x="755" y="108" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">👨‍👩‍👧 家长应用</text>
+                    <text x="755" y="130" text-anchor="middle" font-size="11" fill="#6b7280">iOS 和 Android 移动应用</text>
+
+                    <rect x="650" y="165" width="210" height="70" rx="10" fill="white" stroke="#8b5cf6" stroke-width="1.5"/>
+                    <text x="755" y="193" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">🚌 司机应用</text>
+                    <text x="755" y="215" text-anchor="middle" font-size="11" fill="#6b7280">路线和考勤视图</text>
+
+                    <rect x="650" y="250" width="210" height="70" rx="10" fill="white" stroke="#8b5cf6" stroke-width="1.5"/>
+                    <text x="755" y="278" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">🏫 管理后台</text>
+                    <text x="755" y="300" text-anchor="middle" font-size="11" fill="#6b7280">车队管理门户</text>
+
+                    <rect x="650" y="335" width="210" height="70" rx="10" fill="white" stroke="#8b5cf6" stroke-width="1.5"/>
+                    <text x="755" y="363" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">📊 数据分析</text>
+                    <text x="755" y="385" text-anchor="middle" font-size="11" fill="#6b7280">乘车报告与洞察</text>
+
+                    <!-- Data Flow Arrows -->
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+                        </marker>
+                    </defs>
+
+                    <line x1="255" y1="200" x2="320" y2="200" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <text x="287" y="190" text-anchor="middle" font-size="10" fill="#6b7280">信标数据</text>
+
+                    <line x1="560" y1="200" x2="625" y2="200" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <text x="592" y="190" text-anchor="middle" font-size="10" fill="#6b7280">推送更新</text>
+
+                    <!-- Legend -->
+                    <rect x="20" y="430" width="860" height="45" rx="8" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1"/>
+                    <circle cx="60" cy="452" r="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                    <text x="80" y="457" font-size="11" fill="#374151">硬件层</text>
+                    <circle cx="180" cy="452" r="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+                    <text x="200" y="457" font-size="11" fill="#374151">云服务</text>
+                    <circle cx="300" cy="452" r="8" fill="#f3e8ff" stroke="#8b5cf6" stroke-width="2"/>
+                    <text x="320" y="457" font-size="11" fill="#374151">应用程序</text>
+                    <line x1="420" y1="452" x2="460" y2="452" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <text x="500" y="457" font-size="11" fill="#374151">数据流</text>
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- Growth Path -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">发展路径</span>
+                <h2 class="text-2xl font-bold text-gray-900">从试点到平台</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-2xl p-6 shadow-sm relative">
+                    <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-lg mb-4">1</div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">单校试点</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">与当地小学合作，在2-3辆校车上测试系统。收集家长、司机和管理员的反馈，完善应用和信标硬件。</p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm relative">
+                    <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg mb-4">2</div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">扩展到学区</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">扩展到整个学区，实现全车队部署。与现有学校管理系统集成，实现无缝考勤追踪和家长沟通。</p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm relative">
+                    <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg mb-4">3</div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">区域平台</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">将 BusBeacon AI 作为 SaaS 平台提供给多个学区。添加AI路线优化、预测性ETA和多语言支持等高级功能。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- Your Journey -->
+    <section class="py-12 px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">你的旅程</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">从热爱到使命</h2>
+                <p class="text-gray-600">你的技术经验和社区关怀如何塑造安全解决方案</p>
+            </div>
+
+            <!-- Timeline -->
+            <div class="relative">
+                <!-- Vertical Line -->
+                <div class="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-gray-200"></div>
+
+                <!-- Stage 1 -->
+                <div class="relative flex items-center mb-12">
+                    <div class="w-1/2 pr-8 text-right">
+                        <div class="bg-green-50 rounded-2xl p-5 inline-block">
+                            <p class="font-bold text-green-700 mb-1">基础积累</p>
+                            <p class="text-gray-600 text-sm italic">"我一直对蓝牙和传感器的工作原理着迷——搭建Arduino项目，摆弄各种物联网设备。"</p>
+                        </div>
+                    </div>
+                    <div class="absolute left-1/2 transform -translate-x-1/2 w-14 h-14 bg-green-500 rounded-full flex items-center justify-center z-10 shadow-lg">
+                        <i class="fas fa-seedling text-white text-xl"></i>
+                    </div>
+                    <div class="w-1/2 pl-8"></div>
+                </div>
+
+                <!-- Stage 2 -->
+                <div class="relative flex items-center mb-12">
+                    <div class="w-1/2 pr-8"></div>
+                    <div class="absolute left-1/2 transform -translate-x-1/2 w-14 h-14 bg-amber-500 rounded-full flex items-center justify-center z-10 shadow-lg">
+                        <i class="fas fa-eye text-white text-xl"></i>
+                    </div>
+                    <div class="w-1/2 pl-8">
+                        <div class="bg-amber-50 rounded-2xl p-5 inline-block">
+                            <p class="font-bold text-amber-700 mb-1">问题发现</p>
+                            <p class="text-gray-600 text-sm italic">"我注意到弟弟妹妹的家长总是担心校车时刻表，还听说过有孩子被遗忘在车上或在错误站点下车的故事。"</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stage 3 -->
+                <div class="relative flex items-center mb-12">
+                    <div class="w-1/2 pr-8 text-right">
+                        <div class="bg-blue-50 rounded-2xl p-5 inline-block">
+                            <p class="font-bold text-blue-700 mb-1">灵感迸发</p>
+                            <p class="text-gray-600 text-sm italic">"如果我们能用简单的蓝牙信标自动检测学生上下车，就像商店追踪库存那样呢？"</p>
+                        </div>
+                    </div>
+                    <div class="absolute left-1/2 transform -translate-x-1/2 w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center z-10 shadow-lg">
+                        <i class="fas fa-lightbulb text-white text-xl"></i>
+                    </div>
+                    <div class="w-1/2 pl-8"></div>
+                </div>
+
+                <!-- Stage 4 -->
+                <div class="relative flex items-center">
+                    <div class="w-1/2 pr-8"></div>
+                    <div class="absolute left-1/2 transform -translate-x-1/2 w-14 h-14 bg-purple-500 rounded-full flex items-center justify-center z-10 shadow-lg">
+                        <i class="fas fa-rocket text-white text-xl"></i>
+                    </div>
+                    <div class="w-1/2 pl-8">
+                        <div class="bg-purple-50 rounded-2xl p-5 inline-block">
+                            <p class="font-bold text-purple-700 mb-1">创新诞生</p>
+                            <p class="text-gray-600 text-sm italic">"BusBeacon AI 应运而生——将我对嵌入式系统的热爱与移动应用开发相结合，为家庭创造完整的安全解决方案。"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 py-10 px-8">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="flex items-center justify-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-bus text-white text-xl"></i>
+                </div>
+                <span class="text-xl font-bold text-white">BusBeacon AI</span>
+            </div>
+            <p class="text-gray-400 mb-2">实时掌握孩子上下车状态——每一程都安心无忧</p>
+            <p class="text-gray-500 text-sm">学生主导的物联网与儿童安全创新项目</p>
+        </div>
+    </footer>
+</body>
+</html>
