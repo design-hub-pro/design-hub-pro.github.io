@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusLens AI - ADHD学生学习监测Chrome扩展</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+        * { font-family: 'Noto Sans SC', 'Inter', sans-serif; }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .phone-frame {
+            width: 300px;
+            height: 650px;
+            border-radius: 44px;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 11px #1a1a1a,
+                0 0 0 13px #2d2d2d,
+                0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            position: relative;
+            background: #000;
+            flex-shrink: 0;
+        }
+
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 28px;
+            background: #1a1a1a;
+            border-radius: 0 0 20px 20px;
+            z-index: 100;
+        }
+
+        .phone-frame iframe {
+            width: 430px;
+            height: 932px;
+            border: none;
+            border-radius: 38px;
+            transform: scale(0.698);
+            transform-origin: top left;
+        }
+
+        .screen-label {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-800">
+
+    <!-- Language Switcher -->
+    <div class="fixed top-4 right-4 z-50">
+        <div class="bg-white rounded-full shadow-lg border border-gray-200 p-1 flex gap-1">
+            <a href="index.html" class="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 rounded-full transition">EN</a>
+            <span class="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-full font-medium">中文</span>
+        </div>
+    </div>
+
+    <!-- Section 1: Hero Header -->
+    <header class="pt-12 pb-8 px-8 text-center border-b border-gray-100">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex items-center justify-center gap-3 mb-5">
+                <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-brain text-white text-3xl"></i>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-3">FocusLens AI</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-5">一款AI驱动的Chrome扩展程序，通过分析键盘和鼠标行为模式，帮助ADHD学生理解自己的专注力规律，建立更好的学习习惯。</p>
+            <div class="flex items-center justify-center gap-3 flex-wrap">
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-laptop-code"></i>
+                    计算机科学
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-brain"></i>
+                    心理学
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-teal-50 text-teal-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-universal-access"></i>
+                    特殊教育
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Section 2: Problem Statement -->
+    <section class="py-12 px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">问题背景</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">ADHD学生正在被教育系统忽视</h2>
+                <p class="text-gray-600 leading-relaxed">美国有超过<strong>710万儿童</strong>被诊断为ADHD，但传统教育工具并没有为他们独特的学习需求而设计。ADHD学生<strong>大学辍学率是普通学生的3倍</strong>，且与同龄人相比存在持续的GPA差距。没有实时、个性化的支持，这些学生只能默默挣扎。</p>
+            </div>
+
+            <!-- Problem Images -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div class="rounded-2xl overflow-hidden shadow-lg">
+                    <img src="https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=600&h=400&fit=crop" alt="学生难以集中注意力" class="w-full h-56 object-cover">
+                    <div class="p-4 bg-white">
+                        <p class="text-sm text-gray-600 text-center">ADHD学生在长时间学习过程中常常难以保持专注</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg">
+                    <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&h=400&fit=crop" alt="数字环境中的干扰" class="w-full h-56 object-cover">
+                    <div class="p-4 bg-white">
+                        <p class="text-sm text-gray-600 text-center">数字环境中无数的干扰因素对ADHD学习者的影响尤为严重</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-3 gap-4">
+                <div class="bg-red-50 rounded-2xl p-5 text-center">
+                    <p class="text-3xl font-extrabold text-red-600 mb-2">11.4%</p>
+                    <p class="text-sm text-gray-600">美国儿童（710万）被诊断为ADHD</p>
+                    <p class="text-xs text-gray-400 mt-2">来源：CDC, 2022</p>
+                </div>
+                <div class="bg-amber-50 rounded-2xl p-5 text-center">
+                    <p class="text-3xl font-extrabold text-amber-600 mb-2">3倍</p>
+                    <p class="text-sm text-gray-600">相比非ADHD同龄人更可能大学辍学</p>
+                    <p class="text-xs text-gray-400 mt-2">来源：DuPaul等, 2021</p>
+                </div>
+                <div class="bg-indigo-50 rounded-2xl p-5 text-center">
+                    <p class="text-3xl font-extrabold text-indigo-600 mb-2">15%</p>
+                    <p class="text-sm text-gray-600">ADHD成人获得学士学位，非ADHD为48%</p>
+                    <p class="text-xs text-gray-400 mt-2">来源：Kuriyan等, 2013</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: Social Impact -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">社会影响</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">大规模赋能神经多样性学习者</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-dollar-sign text-red-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">年经济损失1228亿美元</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed mb-3">未得到治疗的成人ADHD每年给美国经济造成1228亿美元的损失，包括失业、生产力下降和医疗费用。教育干预可以大幅减少这一负担。</p>
+                    <a href="https://www.jmcp.org/doi/10.18553/jmcp.2021.21290" target="_blank" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                        JMCP, 2021 <i class="fas fa-external-link-alt ml-1"></i>
+                    </a>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-briefcase text-amber-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">收入差距达33%</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed mb-3">童年ADHD患者成年后收入减少约33%，就业率差距达10-14个百分点——超过许多种族和性别收入差距。</p>
+                    <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6714576/" target="_blank" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                        Health Economics, 2013 <i class="fas fa-external-link-alt ml-1"></i>
+                    </a>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-graduation-cap text-green-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">教育是关键中介因素</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed mb-3">研究表明，教育水平能调节ADHD对就业和收入负面影响的14-58%。每一步学业成功都直接转化为更好的人生结果。</p>
+                    <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7968636/" target="_blank" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                        PLOS ONE, 2021 <i class="fas fa-external-link-alt ml-1"></i>
+                    </a>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">任务完成率提升42%</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed mb-3">一项针对2000多名神经多样性学生的研究发现，匹配的数字工具使任务完成率提高了42%。ADHD学生从专注力管理工具中受益最大。</p>
+                    <a href="https://www.accessiblelearning.in/neurodivergent-learners-and-digital-tools-what-works-in-2025" target="_blank" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                        Accessible Learning, 2025 <i class="fas fa-external-link-alt ml-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: Mobile App Prototype -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">产品设计</span>
+                <h2 class="text-2xl font-bold text-gray-900">移动应用原型</h2>
+            </div>
+
+            <!-- Row 1: 3 screens -->
+            <div class="flex flex-wrap justify-center gap-8 mb-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="home.html"></iframe>
+                    </div>
+                    <p class="screen-label">首页</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="analytics.html"></iframe>
+                    </div>
+                    <p class="screen-label">数据分析</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="insights.html"></iframe>
+                    </div>
+                    <p class="screen-label">AI洞察</p>
+                </div>
+            </div>
+
+            <!-- Row 2: 2 screens (centered) -->
+            <div class="flex flex-wrap justify-center gap-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="extension.html"></iframe>
+                    </div>
+                    <p class="screen-label">扩展设置</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="profile.html"></iframe>
+                    </div>
+                    <p class="screen-label">个人中心</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 5: Project in Action -->
+    <section class="py-12 px-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">实际应用</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-3">项目实践</h2>
+                <p class="text-gray-600">展示FocusLens AI如何在真实场景中支持ADHD学生</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=600&h=400&fit=crop" alt="学生使用Chrome扩展学习" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">实时专注力监测</h3>
+                        <p class="text-sm text-gray-600">Chrome扩展程序静默追踪打字节奏和鼠标模式，在学生注意力开始漂移时检测到变化，在完全分心之前提供温和提醒。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&h=400&fit=crop" alt="学生查看专注力分析" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">个性化学习洞察</h3>
+                        <p class="text-sm text-gray-600">每次学习结束后，学生可以回顾自己的专注力模式，识别注意力最集中的时段，了解哪些学习策略最有效。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=400&fit=crop" alt="教师查看学生分析数据" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">教育者仪表板支持</h3>
+                        <p class="text-sm text-gray-600">教师和辅导员可以访问匿名化的聚合专注力趋势，以提供更好的教学调整，识别需要额外支持的学生。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=600&h=400&fit=crop" alt="家长查看学生进步" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">家长-学生协作</h3>
+                        <p class="text-sm text-gray-600">家长无需侵入式监控即可了解学习习惯。共享报告促进关于学习策略的建设性对话，而非屏幕时间的争论。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 6: Technical Overview -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">技术概述</span>
+                <h2 class="text-2xl font-bold text-gray-900">系统架构</h2>
+            </div>
+
+            <!-- Technical Illustration Image -->
+            <div class="mb-10 rounded-2xl overflow-hidden shadow-lg">
+                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=500&fit=crop" alt="数据分析与可视化" class="w-full h-72 object-cover">
+                <div class="p-4 bg-white border-t border-gray-100">
+                    <p class="text-sm text-gray-600 text-center">从行为数据采集到AI驱动的洞察——全部在学生设备本地处理</p>
+                </div>
+            </div>
+
+            <!-- SVG Architecture Diagram -->
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <svg viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg" class="w-full">
+                    <!-- Layer 1 -->
+                    <rect x="20" y="20" width="260" height="460" rx="16" fill="#EEF2FF" stroke="#C7D2FE" stroke-width="2"/>
+                    <text x="150" y="55" text-anchor="middle" font-size="16" font-weight="700" fill="#4338CA">🔌 Chrome扩展</text>
+                    <text x="150" y="75" text-anchor="middle" font-size="11" fill="#6366F1">数据采集层</text>
+
+                    <rect x="40" y="95" width="220" height="55" rx="10" fill="white" stroke="#C7D2FE" stroke-width="1.5"/>
+                    <text x="150" y="118" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">⌨️ 键盘监听器</text>
+                    <text x="150" y="138" text-anchor="middle" font-size="10" fill="#6B7280">打字速度、节奏、停顿</text>
+
+                    <rect x="40" y="165" width="220" height="55" rx="10" fill="white" stroke="#C7D2FE" stroke-width="1.5"/>
+                    <text x="150" y="188" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">🖱️ 鼠标追踪器</text>
+                    <text x="150" y="208" text-anchor="middle" font-size="10" fill="#6B7280">移动轨迹、点击、空闲时间</text>
+
+                    <rect x="40" y="235" width="220" height="55" rx="10" fill="white" stroke="#C7D2FE" stroke-width="1.5"/>
+                    <text x="150" y="258" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">📜 滚动监测器</text>
+                    <text x="150" y="278" text-anchor="middle" font-size="10" fill="#6B7280">速度、方向、深度</text>
+
+                    <rect x="40" y="305" width="220" height="55" rx="10" fill="white" stroke="#C7D2FE" stroke-width="1.5"/>
+                    <text x="150" y="328" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">🗂️ 标签页活动</text>
+                    <text x="150" y="348" text-anchor="middle" font-size="10" fill="#6B7280">切换次数、停留时间</text>
+
+                    <rect x="40" y="375" width="220" height="55" rx="10" fill="white" stroke="#C7D2FE" stroke-width="1.5"/>
+                    <text x="150" y="398" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">⏸️ 空闲检测</text>
+                    <text x="150" y="418" text-anchor="middle" font-size="10" fill="#6B7280">不活动阈值</text>
+
+                    <defs>
+                        <marker id="arrowhead-zh" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#6366F1"/>
+                        </marker>
+                    </defs>
+                    <line x1="290" y1="250" x2="320" y2="250" stroke="#6366F1" stroke-width="2.5" marker-end="url(#arrowhead-zh)"/>
+                    <text x="305" y="240" text-anchor="middle" font-size="9" fill="#6366F1" font-weight="600">原始事件</text>
+
+                    <!-- Layer 2 -->
+                    <rect x="325" y="20" width="250" height="460" rx="16" fill="#F5F3FF" stroke="#DDD6FE" stroke-width="2"/>
+                    <text x="450" y="55" text-anchor="middle" font-size="16" font-weight="700" fill="#7C3AED">🧠 AI引擎</text>
+                    <text x="450" y="75" text-anchor="middle" font-size="11" fill="#8B5CF6">本地处理层</text>
+
+                    <rect x="345" y="95" width="210" height="55" rx="10" fill="white" stroke="#DDD6FE" stroke-width="1.5"/>
+                    <text x="450" y="118" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">📊 基线构建器</text>
+                    <text x="450" y="138" text-anchor="middle" font-size="10" fill="#6B7280">每位学生的个性化标准</text>
+
+                    <rect x="345" y="165" width="210" height="55" rx="10" fill="white" stroke="#DDD6FE" stroke-width="1.5"/>
+                    <text x="450" y="188" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">🔍 异常检测器</text>
+                    <text x="450" y="208" text-anchor="middle" font-size="10" fill="#6B7280">分心与专注信号</text>
+
+                    <rect x="345" y="235" width="210" height="55" rx="10" fill="white" stroke="#DDD6FE" stroke-width="1.5"/>
+                    <text x="450" y="258" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">🎯 专注力评分器</text>
+                    <text x="450" y="278" text-anchor="middle" font-size="10" fill="#6B7280">实时注意力指标</text>
+
+                    <rect x="345" y="305" width="210" height="55" rx="10" fill="white" stroke="#DDD6FE" stroke-width="1.5"/>
+                    <text x="450" y="328" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">💡 提醒引擎</text>
+                    <text x="450" y="348" text-anchor="middle" font-size="10" fill="#6B7280">温和干预触发</text>
+
+                    <rect x="345" y="375" width="210" height="55" rx="10" fill="white" stroke="#DDD6FE" stroke-width="1.5"/>
+                    <text x="450" y="398" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">📈 模式学习器</text>
+                    <text x="450" y="418" text-anchor="middle" font-size="10" fill="#6B7280">每周趋势自适应</text>
+
+                    <line x1="585" y1="250" x2="615" y2="250" stroke="#8B5CF6" stroke-width="2.5" marker-end="url(#arrowhead-zh)"/>
+                    <text x="600" y="240" text-anchor="middle" font-size="9" fill="#8B5CF6" font-weight="600">洞察</text>
+
+                    <!-- Layer 3 -->
+                    <rect x="620" y="20" width="260" height="460" rx="16" fill="#ECFDF5" stroke="#A7F3D0" stroke-width="2"/>
+                    <text x="750" y="55" text-anchor="middle" font-size="16" font-weight="700" fill="#059669">📱 用户界面</text>
+                    <text x="750" y="75" text-anchor="middle" font-size="11" fill="#10B981">展示层</text>
+
+                    <rect x="640" y="95" width="220" height="55" rx="10" fill="white" stroke="#A7F3D0" stroke-width="1.5"/>
+                    <text x="750" y="118" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">🏠 专注力仪表板</text>
+                    <text x="750" y="138" text-anchor="middle" font-size="10" fill="#6B7280">实时评分与会话状态</text>
+
+                    <rect x="640" y="165" width="220" height="55" rx="10" fill="white" stroke="#A7F3D0" stroke-width="1.5"/>
+                    <text x="750" y="188" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">📊 分析视图</text>
+                    <text x="750" y="208" text-anchor="middle" font-size="10" fill="#6B7280">趋势、细分、图表</text>
+
+                    <rect x="640" y="235" width="220" height="55" rx="10" fill="white" stroke="#A7F3D0" stroke-width="1.5"/>
+                    <text x="750" y="258" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">🔔 智能提醒</text>
+                    <text x="750" y="278" text-anchor="middle" font-size="10" fill="#6B7280">非侵入式提示</text>
+
+                    <rect x="640" y="305" width="220" height="55" rx="10" fill="white" stroke="#A7F3D0" stroke-width="1.5"/>
+                    <text x="750" y="328" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">🔒 隐私控制</text>
+                    <text x="750" y="348" text-anchor="middle" font-size="10" fill="#6B7280">本地优先，数据所有权</text>
+
+                    <rect x="640" y="375" width="220" height="55" rx="10" fill="white" stroke="#A7F3D0" stroke-width="1.5"/>
+                    <text x="750" y="398" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">👨‍👩‍👦 共享报告</text>
+                    <text x="750" y="418" text-anchor="middle" font-size="10" fill="#6B7280">家长与教育者视图</text>
+
+                    <!-- Legend -->
+                    <rect x="20" y="490" width="12" height="12" rx="3" fill="#EEF2FF" stroke="#C7D2FE"/>
+                    <text x="38" y="500" font-size="10" fill="#6B7280">数据采集</text>
+                    <rect x="120" y="490" width="12" height="12" rx="3" fill="#F5F3FF" stroke="#DDD6FE"/>
+                    <text x="138" y="500" font-size="10" fill="#6B7280">AI处理（本地）</text>
+                    <rect x="250" y="490" width="12" height="12" rx="3" fill="#ECFDF5" stroke="#A7F3D0"/>
+                    <text x="268" y="500" font-size="10" fill="#6B7280">用户界面</text>
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 7: Growth Path -->
+    <section class="py-12 px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">发展路径</span>
+                <h2 class="text-2xl font-bold text-gray-900">从原型到平台</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                        <span class="text-green-700 font-bold">1</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">构建Chrome扩展</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">使用Manifest V3开发隐私优先的Chrome扩展程序，捕获键盘和鼠标事件指标（而非内容）。从学校中10-20名ADHD学生的小型试点开始，建立行为基线。</p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                        <span class="text-blue-700 font-bold">2</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">训练AI模型</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">使用TensorFlow.js构建轻量级的设备端ML模型，学习每位学生独特的专注力模式。与学校特殊教育部门合作，根据临床评估验证模型的提醒效果。</p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                        <span class="text-purple-700 font-bold">3</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">推广到学区</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">创建显示匿名化聚合专注力趋势的教育者仪表板。提交到Chrome Web Store并在教育技术会议上展示成果。与大学残障服务办公室合作以实现更广泛的采用。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 8: Your Journey -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-violet-100 text-violet-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">你的旅程</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-3">从热爱到使命</h2>
+                <p class="text-gray-600">一位学生如何从关注神经多样性学习者出发，构建FocusLens AI</p>
+            </div>
+
+            <div class="relative">
+                <div class="absolute left-1/2 transform -translate-x-1/2 w-0.5 bg-gray-200 h-full hidden md:block"></div>
+
+                <!-- Stage 1 -->
+                <div class="flex flex-col md:flex-row items-center mb-12">
+                    <div class="md:w-5/12 md:text-right md:pr-8 mb-4 md:mb-0">
+                        <h3 class="text-lg font-bold text-green-700">萌芽</h3>
+                        <p class="text-sm text-gray-600 italic mt-2">"我一直很好奇，为什么有些同学在网上做作业时那么挣扎，尽管他们显然很聪明。我开始阅读关于ADHD和神经多样性的资料。"</p>
+                    </div>
+                    <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center z-10 border-4 border-white shadow">
+                        <i class="fas fa-seedling text-green-600 text-xl"></i>
+                    </div>
+                    <div class="md:w-5/12 md:pl-8"></div>
+                </div>
+
+                <!-- Stage 2 -->
+                <div class="flex flex-col md:flex-row items-center mb-12">
+                    <div class="md:w-5/12 md:pr-8 order-2 md:order-1"></div>
+                    <div class="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center z-10 border-4 border-white shadow order-1 md:order-2">
+                        <i class="fas fa-eye text-amber-600 text-xl"></i>
+                    </div>
+                    <div class="md:w-5/12 md:pl-8 mb-4 md:mb-0 order-3">
+                        <h3 class="text-lg font-bold text-amber-700">观察</h3>
+                        <p class="text-sm text-gray-600 italic mt-2">"在远程学习期间，我注意到我患有ADHD的朋友不断切换标签页、反复重新开始打字、丢失作业进度。没有任何工具在帮助她保持专注。"</p>
+                    </div>
+                </div>
+
+                <!-- Stage 3 -->
+                <div class="flex flex-col md:flex-row items-center mb-12">
+                    <div class="md:w-5/12 md:text-right md:pr-8 mb-4 md:mb-0">
+                        <h3 class="text-lg font-bold text-blue-700">洞察</h3>
+                        <p class="text-sm text-gray-600 italic mt-2">"我意识到键盘和鼠标行为可以揭示很多关于注意力的信息。如果我们能在不记录实际内容的情况下追踪这些模式，就能构建一个非侵入式的专注力助手。"</p>
+                    </div>
+                    <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center z-10 border-4 border-white shadow">
+                        <i class="fas fa-lightbulb text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="md:w-5/12 md:pl-8"></div>
+                </div>
+
+                <!-- Stage 4 -->
+                <div class="flex flex-col md:flex-row items-center">
+                    <div class="md:w-5/12 md:pr-8 order-2 md:order-1"></div>
+                    <div class="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center z-10 border-4 border-white shadow order-1 md:order-2">
+                        <i class="fas fa-rocket text-purple-600 text-xl"></i>
+                    </div>
+                    <div class="md:w-5/12 md:pl-8 mb-4 md:mb-0 order-3">
+                        <h3 class="text-lg font-bold text-purple-700">创新</h3>
+                        <p class="text-sm text-gray-600 italic mt-2">"FocusLens AI成为了我的使命——一款帮助ADHD学生理解自己专注力模式的Chrome扩展。它不评判，它赋能。而且它让每一字节的数据都保留在学生的设备上。"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 9: Footer -->
+    <footer class="bg-gray-900 py-8 px-8">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="flex items-center justify-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-brain text-white text-lg"></i>
+                </div>
+                <span class="text-xl font-bold text-white">FocusLens AI</span>
+            </div>
+            <p class="text-gray-400 mb-2">赋能ADHD学生理解并驾驭自己独特的专注力模式。</p>
+            <p class="text-gray-500 text-sm">一项学生主导的神经多样性与无障碍倡议</p>
+        </div>
+    </footer>
+
+</body>
+</html>
