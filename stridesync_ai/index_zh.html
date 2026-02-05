@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StrideSync AI - 智能马匹运动监测系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+        * { font-family: 'Noto Sans SC', 'Inter', sans-serif; }
+
+        .phone-frame {
+            width: 280px;
+            height: 605px;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 10px #1a1a1a,
+                0 0 0 12px #2d2d2d,
+                0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            position: relative;
+            background: #000;
+            flex-shrink: 0;
+        }
+
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 24px;
+            background: #1a1a1a;
+            border-radius: 0 0 18px 18px;
+            z-index: 100;
+        }
+
+        .phone-frame iframe {
+            width: 430px;
+            height: 932px;
+            border: none;
+            border-radius: 30px;
+            transform: scale(0.649);
+            transform-origin: top left;
+        }
+
+        .screen-label {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen">
+
+    <!-- Language Switcher -->
+    <div class="fixed top-4 right-4 z-50">
+        <div class="bg-white rounded-full shadow-lg border border-gray-200 p-1 flex gap-1">
+            <a href="index.html" class="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 rounded-full transition">EN</a>
+            <span class="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded-full font-medium">中文</span>
+        </div>
+    </div>
+
+    <!-- Hero Header -->
+    <header class="pt-12 pb-8 px-8 text-center border-b border-gray-100">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex items-center justify-center gap-3 mb-5">
+                <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-horse text-white text-3xl"></i>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-3">StrideSync AI</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-5">智能脚踝传感器系统，实时追踪马匹步态模式，检测早期跛行迹象，并通过AI分析为骑手提供实时运动表现反馈。</p>
+            <!-- Major Tags -->
+            <div class="flex items-center justify-center gap-3 flex-wrap">
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-microchip"></i>
+                    IoT与嵌入式系统
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-paw"></i>
+                    马匹科学
+                </span>
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">
+                    <i class="fas fa-brain"></i>
+                    AI与数据科学
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Section Divider -->
+    <div class="section-divider"></div>
+
+    <!-- Problem Statement -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">问题背景</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">马匹伤病未被及时发现的隐性代价</h2>
+            </div>
+
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-8">
+                <p class="text-gray-600 leading-relaxed text-center">跛行是马匹产业中<strong>代价最高的健康问题</strong>，但大多数病例在出现明显症状之前都未被发现。骑手和教练依赖于主观的视觉判断，往往<strong>错过在严重伤病之前出现的细微步态变化</strong>。当一匹马出现明显跛行时，潜在问题通常已经显著恶化，导致<strong>更长的恢复时间、更高的兽医费用以及本可避免的痛苦</strong>。</p>
+            </div>
+
+            <!-- Problem Images -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div class="rounded-2xl overflow-hidden shadow-lg">
+                    <img src="https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=600&h=400&fit=crop" alt="马匹接受兽医检查" class="w-full h-56 object-cover">
+                    <div class="p-4 bg-white">
+                        <p class="text-sm text-gray-600 text-center">跛行诊断往往来得太迟，此时可见症状已经出现</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg">
+                    <img src="https://images.unsplash.com/photo-1516466723877-e4ec1d736c8a?w=600&h=400&fit=crop" alt="马匹训练与表现" class="w-full h-56 object-cover">
+                    <div class="p-4 bg-white">
+                        <p class="text-sm text-gray-600 text-center">主观视觉评估无法检测到伤病前的细微步态变化</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="grid md:grid-cols-3 gap-4">
+                <div class="stat-card rounded-xl p-5 text-center">
+                    <p class="text-3xl font-bold text-red-600 mb-1">60%</p>
+                    <p class="text-sm text-gray-600">的马匹每年会经历跛行问题，是最常见的健康问题</p>
+                    <p class="text-xs text-gray-400 mt-2">来源：AVMA / USDA APHIS</p>
+                </div>
+                <div class="stat-card rounded-xl p-5 text-center">
+                    <p class="text-3xl font-bold text-red-600 mb-1">90%</p>
+                    <p class="text-sm text-gray-600">的灾难性骨折事故存在可检测的先兆伤病但被忽略</p>
+                    <p class="text-xs text-gray-400 mt-2">来源：加州赛马委员会</p>
+                </div>
+                <div class="stat-card rounded-xl p-5 text-center">
+                    <p class="text-3xl font-bold text-red-600 mb-1">$10亿+</p>
+                    <p class="text-sm text-gray-600">美国马匹产业每年因跛行问题造成的经济损失</p>
+                    <p class="text-xs text-gray-400 mt-2">来源：USDA APHIS马匹研究</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Divider -->
+    <div class="section-divider"></div>
+
+    <!-- Social Impact -->
+    <section class="py-12 px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">社会影响</span>
+                <h2 class="text-2xl font-bold text-gray-900">为什么马匹健康科技至关重要</h2>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Impact Card 1 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-dollar-sign text-red-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">1770亿美元产业面临风险</h3>
+                    <p class="text-sm text-gray-600 mb-3">美国马匹产业为经济贡献了1770亿美元，支撑220万个就业岗位。可预防的伤病威胁着马匹、从业者生计以及依赖马术活动的整个社区。</p>
+                    <a href="https://horsecouncil.org/project/results-from-the-2023-national-equine-economic-impact-study-released/" target="_blank" class="text-xs text-emerald-600 hover:underline">美国马匹协会 2023 <i class="fas fa-external-link-alt ml-1"></i></a>
+                </div>
+
+                <!-- Impact Card 2 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-heartbeat text-amber-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">33%的赛马因可预防伤病被淘汰</h3>
+                    <p class="text-sm text-gray-600 mb-3">据估计，每年有33%的赛马因伤病被提前处死或退役。穿戴式传感器可以在伤病变为灾难之前检测到应力指标。</p>
+                    <a href="https://en.wikipedia.org/wiki/Racehorse_injuries" target="_blank" class="text-xs text-emerald-600 hover:underline">Thomson et al. 2014 <i class="fas fa-external-link-alt ml-1"></i></a>
+                </div>
+
+                <!-- Impact Card 3 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-hand-holding-heart text-blue-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">马术治疗依赖健康马匹</h3>
+                    <p class="text-sm text-gray-600 mb-3">马术辅助治疗产生15.5亿美元的经济影响，支撑近15,000个岗位，服务于弱势群体。健全、健康的治疗用马的稳定供应至关重要。</p>
+                    <a href="https://horsecouncil.org/economic-impact-study/" target="_blank" class="text-xs text-emerald-600 hover:underline">美国马匹协会 2023 <i class="fas fa-external-link-alt ml-1"></i></a>
+                </div>
+
+                <!-- Impact Card 4 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">2033年可穿戴市场将达3.15亿美元</h3>
+                    <p class="text-sm text-gray-600 mb-3">马匹跛行检测可穿戴设备市场预计从9800万美元增长至2033年的3.15亿美元（年复合增长率13.5%）。国际马术联合会已允许比赛中佩戴生物传感器。</p>
+                    <a href="https://marketintelo.com/report/equine-lameness-detection-wearables-market" target="_blank" class="text-xs text-emerald-600 hover:underline">MarketIntelo研究报告 <i class="fas fa-external-link-alt ml-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Divider -->
+    <div class="section-divider"></div>
+
+    <!-- Mobile App Prototype -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">产品设计</span>
+                <h2 class="text-2xl font-bold text-gray-900">移动应用原型</h2>
+            </div>
+
+            <!-- Row 1: 3 screens -->
+            <div class="flex flex-wrap justify-center gap-8 mb-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="home.html"></iframe>
+                    </div>
+                    <p class="screen-label">首页仪表盘</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="analytics.html"></iframe>
+                    </div>
+                    <p class="screen-label">性能分析</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="gait.html"></iframe>
+                    </div>
+                    <p class="screen-label">步态分析</p>
+                </div>
+            </div>
+
+            <!-- Row 2: 2 screens (centered) -->
+            <div class="flex flex-wrap justify-center gap-8">
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="alerts.html"></iframe>
+                    </div>
+                    <p class="screen-label">智能警报</p>
+                </div>
+                <div>
+                    <div class="phone-frame">
+                        <iframe src="profile.html"></iframe>
+                    </div>
+                    <p class="screen-label">个人设置</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Divider -->
+    <div class="section-divider"></div>
+
+    <!-- Project in Action -->
+    <section class="py-12 px-8">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">实际应用</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-3">项目实践</h2>
+                <p class="text-gray-600">展示 StrideSync AI 如何在真实场景中保护马匹运动员</p>
+            </div>
+
+            <!-- Use Case Images - 2x2 Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&h=400&fit=crop" alt="马匹训练传感器" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">日常训练监测</h3>
+                        <p class="text-sm text-gray-600">脚踝绑带上的传感器在盛装舞步、跳跃和野外骑行训练中实时采集步态数据。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://images.unsplash.com/photo-1450052590821-8bf91254a353?w=600&h=400&fit=crop" alt="骑手查看手机应用" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">即时骑手反馈</h3>
+                        <p class="text-sm text-gray-600">每次训练后，应用提供AI生成的分析报告，突出表现趋势和改进方向。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://images.unsplash.com/photo-1596003903608-51d40a2bca25?w=600&h=400&fit=crop" alt="兽医检查马匹" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">早期跛行检测</h3>
+                        <p class="text-sm text-gray-600">AI算法在可见症状出现数周前标记细微步态不对称，实现预防性兽医干预。</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-lg bg-white">
+                    <img src="https://images.unsplash.com/photo-1515462263230-db5ef6f29f2d?w=600&h=400&fit=crop" alt="马匹比赛" class="w-full h-52 object-cover">
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 mb-2">比赛准备评估</h3>
+                        <p class="text-sm text-gray-600">追踪巅峰表现期和恢复周期，优化比赛安排和训练强度。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Divider -->
+    <div class="section-divider"></div>
+
+    <!-- Technical Overview -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">技术概述</span>
+                <h2 class="text-2xl font-bold text-gray-900">系统架构</h2>
+            </div>
+
+            <!-- Technical Illustration Image -->
+            <div class="mb-10 rounded-2xl overflow-hidden shadow-lg">
+                <img src="https://images.unsplash.com/photo-1573164713988-8665fc963095?w=1200&h=500&fit=crop" alt="IoT传感器技术" class="w-full h-72 object-cover">
+                <div class="p-4 bg-white border-t border-gray-100">
+                    <p class="text-sm text-gray-600 text-center">从脚踝传感器到AI智能分析 &mdash; 完整的马匹健康监测流程</p>
+                </div>
+            </div>
+
+            <!-- SVG Architecture Diagram -->
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                <svg viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+                            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000015"/>
+                        </filter>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+                        </marker>
+                        <marker id="arrowhead2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/>
+                        </marker>
+                        <marker id="arrowhead3" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+                        </marker>
+                    </defs>
+
+                    <!-- Background -->
+                    <rect width="900" height="420" fill="#fafafa" rx="12"/>
+
+                    <!-- Layer 1: Sensor Hardware -->
+                    <g>
+                        <rect x="20" y="30" width="250" height="350" rx="12" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5" filter="url(#shadow)"/>
+                        <text x="145" y="60" text-anchor="middle" fill="#059669" font-weight="700" font-size="14">传感器硬件</text>
+
+                        <rect x="40" y="80" width="210" height="55" rx="8" fill="white" stroke="#d1fae5" stroke-width="1"/>
+                        <text x="55" y="100" fill="#374151" font-size="12" font-weight="600">IMU传感器（9轴）</text>
+                        <text x="55" y="118" fill="#6b7280" font-size="10">加速度计 + 陀螺仪 + 磁力计</text>
+
+                        <rect x="40" y="145" width="210" height="55" rx="8" fill="white" stroke="#d1fae5" stroke-width="1"/>
+                        <text x="55" y="165" fill="#374151" font-size="12" font-weight="600">压力传感器</text>
+                        <text x="55" y="183" fill="#6b7280" font-size="10">力量分布与冲击检测</text>
+
+                        <rect x="40" y="210" width="210" height="55" rx="8" fill="white" stroke="#d1fae5" stroke-width="1"/>
+                        <text x="55" y="230" fill="#374151" font-size="12" font-weight="600">温度传感器</text>
+                        <text x="55" y="248" fill="#6b7280" font-size="10">关节表面温度监测</text>
+
+                        <rect x="40" y="275" width="210" height="55" rx="8" fill="white" stroke="#d1fae5" stroke-width="1"/>
+                        <text x="55" y="295" fill="#374151" font-size="12" font-weight="600">ESP32 + BLE 5.0</text>
+                        <text x="55" y="313" fill="#6b7280" font-size="10">低功耗蓝牙连接手机</text>
+
+                        <rect x="40" y="340" width="210" height="30" rx="6" fill="#d1fae5"/>
+                        <text x="145" y="360" text-anchor="middle" fill="#059669" font-size="11" font-weight="600">电池续航：72小时</text>
+                    </g>
+
+                    <!-- Arrow -->
+                    <line x1="275" y1="205" x2="320" y2="205" stroke="#10b981" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+                    <text x="298" y="195" text-anchor="middle" fill="#10b981" font-size="9" font-weight="600">BLE</text>
+
+                    <!-- Layer 2: Cloud Backend -->
+                    <g>
+                        <rect x="325" y="30" width="250" height="350" rx="12" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow)"/>
+                        <text x="450" y="60" text-anchor="middle" fill="#2563eb" font-weight="700" font-size="14">云端后台</text>
+
+                        <rect x="345" y="80" width="210" height="55" rx="8" fill="white" stroke="#bfdbfe" stroke-width="1"/>
+                        <text x="360" y="100" fill="#374151" font-size="12" font-weight="600">时序数据库</text>
+                        <text x="360" y="118" fill="#6b7280" font-size="10">InfluxDB步态数据存储</text>
+
+                        <rect x="345" y="145" width="210" height="55" rx="8" fill="white" stroke="#bfdbfe" stroke-width="1"/>
+                        <text x="360" y="165" fill="#374151" font-size="12" font-weight="600">AI/ML引擎</text>
+                        <text x="360" y="183" fill="#6b7280" font-size="10">跛行检测模型</text>
+
+                        <rect x="345" y="210" width="210" height="55" rx="8" fill="white" stroke="#bfdbfe" stroke-width="1"/>
+                        <text x="360" y="230" fill="#374151" font-size="12" font-weight="600">步态分析流水线</text>
+                        <text x="360" y="248" fill="#6b7280" font-size="10">步幅对称性与模式评分</text>
+
+                        <rect x="345" y="275" width="210" height="55" rx="8" fill="white" stroke="#bfdbfe" stroke-width="1"/>
+                        <text x="360" y="295" fill="#374151" font-size="12" font-weight="600">REST API</text>
+                        <text x="360" y="313" fill="#6b7280" font-size="10">实时数据 + 推送警报</text>
+
+                        <rect x="345" y="340" width="210" height="30" rx="6" fill="#bfdbfe"/>
+                        <text x="450" y="360" text-anchor="middle" fill="#2563eb" font-size="11" font-weight="600">警报引擎：智能阈值</text>
+                    </g>
+
+                    <!-- Arrow -->
+                    <line x1="580" y1="205" x2="625" y2="205" stroke="#3b82f6" stroke-width="2.5" marker-end="url(#arrowhead2)"/>
+                    <text x="603" y="195" text-anchor="middle" fill="#3b82f6" font-size="9" font-weight="600">API</text>
+
+                    <!-- Layer 3: Mobile App -->
+                    <g>
+                        <rect x="630" y="30" width="250" height="350" rx="12" fill="#faf5ff" stroke="#8b5cf6" stroke-width="1.5" filter="url(#shadow)"/>
+                        <text x="755" y="60" text-anchor="middle" fill="#7c3aed" font-weight="700" font-size="14">移动应用</text>
+
+                        <rect x="650" y="80" width="210" height="55" rx="8" fill="white" stroke="#e9d5ff" stroke-width="1"/>
+                        <text x="665" y="100" fill="#374151" font-size="12" font-weight="600">健康仪表盘</text>
+                        <text x="665" y="118" fill="#6b7280" font-size="10">实时评分与肢体图谱</text>
+
+                        <rect x="650" y="145" width="210" height="55" rx="8" fill="white" stroke="#e9d5ff" stroke-width="1"/>
+                        <text x="665" y="165" fill="#374151" font-size="12" font-weight="600">性能分析</text>
+                        <text x="665" y="183" fill="#6b7280" font-size="10">图表、趋势与AI洞察</text>
+
+                        <rect x="650" y="210" width="210" height="55" rx="8" fill="white" stroke="#e9d5ff" stroke-width="1"/>
+                        <text x="665" y="230" fill="#374151" font-size="12" font-weight="600">步态分析视图</text>
+                        <text x="665" y="248" fill="#6b7280" font-size="10">对称指数与模式评分</text>
+
+                        <rect x="650" y="275" width="210" height="55" rx="8" fill="white" stroke="#e9d5ff" stroke-width="1"/>
+                        <text x="665" y="295" fill="#374151" font-size="12" font-weight="600">智能警报</text>
+                        <text x="665" y="313" fill="#6b7280" font-size="10">伤病风险与兽医通知</text>
+
+                        <rect x="650" y="340" width="210" height="30" rx="6" fill="#e9d5ff"/>
+                        <text x="755" y="360" text-anchor="middle" fill="#7c3aed" font-size="11" font-weight="600">兽医报告分享</text>
+                    </g>
+
+                    <!-- Feedback Loop -->
+                    <path d="M755 385 L755 405 L145 405 L145 385" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrowhead3)"/>
+                    <text x="450" y="418" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="600">反馈回路：训练优化建议</text>
+                </svg>
+
+                <!-- Legend -->
+                <div class="mt-6 pt-6 border-t border-gray-100">
+                    <div class="flex flex-wrap justify-center gap-6 text-sm">
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 rounded bg-emerald-100 border border-emerald-400"></div>
+                            <span class="text-gray-600">传感器硬件</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 rounded bg-blue-100 border border-blue-400"></div>
+                            <span class="text-gray-600">云端后台</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 rounded bg-purple-100 border border-purple-400"></div>
+                            <span class="text-gray-600">移动应用</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 rounded bg-amber-100 border border-amber-400"></div>
+                            <span class="text-gray-600">反馈回路</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Divider -->
+    <div class="section-divider"></div>
+
+    <!-- Growth Path -->
+    <section class="py-12 px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">发展路径</span>
+                <h2 class="text-2xl font-bold text-gray-900">从马厩到赛场</h2>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Step 1 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <span class="text-green-700 font-bold text-lg">1</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-1">与本地马术中心合作试点</h3>
+                            <p class="text-sm text-gray-600">与3-5家本地马术学校和训练场合作，在不同品种和项目的马匹上测试传感器原型。收集基线步态数据，并将AI检测模型与专业兽医评估进行交叉验证。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <span class="text-blue-700 font-bold text-lg">2</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-1">拓展至竞技赛事</h3>
+                            <p class="text-sm text-gray-600">将StrideSync AI引入区域性盛装舞步、场地障碍和三日赛比赛。为教练提供数据驱动的优势，优化训练计划并确保马匹在最佳时机达到巅峰状态。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <span class="text-purple-700 font-bold text-lg">3</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-1">构建开放式马匹健康平台</h3>
+                            <p class="text-sm text-gray-600">创建匿名化步态模式的开放数据库，供兽医研究人员和马匹科学家使用。与兽医学校合作，推动跛行研究并开发品种专属检测模型。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Divider -->
+    <div class="section-divider"></div>
+
+    <!-- Your Journey -->
+    <section class="py-12 px-8 bg-gray-50">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">你的旅程</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-3">从热爱到使命</h2>
+                <p class="text-gray-600">你对马匹的热爱与技术如何汇聚在一起，创造有意义的影响</p>
+            </div>
+
+            <div class="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-8 border border-emerald-100">
+                <div class="relative">
+                    <!-- Timeline Line -->
+                    <div class="absolute left-6 top-8 bottom-8 w-0.5 bg-emerald-200"></div>
+
+                    <div class="space-y-6">
+                        <!-- Stage 1 -->
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 z-10">
+                                <i class="fas fa-seedling text-white"></i>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 flex-1 shadow-sm">
+                                <p class="font-semibold text-emerald-700">启蒙</p>
+                                <p class="text-sm text-gray-600 mt-1 italic">"在马匹身边长大，我学会了解读它们的身体语言。但我一直希望能理解它们无法告诉我的事——什么时候开始感到疼痛。"</p>
+                            </div>
+                        </div>
+
+                        <!-- Stage 2 -->
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center flex-shrink-0 z-10">
+                                <i class="fas fa-eye text-white"></i>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 flex-1 shadow-sm">
+                                <p class="font-semibold text-amber-700">观察</p>
+                                <p class="text-sm text-gray-600 mt-1 italic">"我亲眼看到一匹马厩里最受欢迎的马，从轻微的点头到严重的肌腱损伤只用了三周。兽医说迹象早就有了——只是没人量化它。"</p>
+                            </div>
+                        </div>
+
+                        <!-- Stage 3 -->
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 z-10">
+                                <i class="fas fa-lightbulb text-white"></i>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 flex-1 shadow-sm">
+                                <p class="font-semibold text-blue-700">洞察</p>
+                                <p class="text-sm text-gray-600 mt-1 italic">"如果马匹脚踝上的传感器能捕捉到人眼遗漏的变化呢？如果AI能学习每匹马独特的步态，在最微小的偏差成为危机之前发出警报呢？"</p>
+                            </div>
+                        </div>
+
+                        <!-- Stage 4 -->
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 z-10">
+                                <i class="fas fa-rocket text-white"></i>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 flex-1 shadow-sm">
+                                <p class="font-semibold text-purple-700">创新</p>
+                                <p class="text-sm text-gray-600 mt-1 italic">"StrideSync AI就是我的答案——一个可穿戴系统，让每个骑手都能用数据而非猜测来保护马匹健康。用科技守护人与马之间的纽带。"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 px-8 border-t border-gray-100">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="flex items-center justify-center gap-2 mb-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-horse text-white text-sm"></i>
+                </div>
+                <span class="font-semibold text-gray-900">StrideSync AI</span>
+            </div>
+            <p class="text-sm text-gray-500">通过智能运动传感技术保护马匹运动员</p>
+            <p class="text-xs text-gray-400 mt-2">一项由学生主导的马匹健康科技计划</p>
+        </div>
+    </footer>
+
+</body>
+</html>
