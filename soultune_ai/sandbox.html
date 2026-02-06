@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulTune AI - Sandbox</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { scrollbar-width: none; width: 100%; height: 100%; overflow-x: hidden; font-family: 'Inter', -apple-system, sans-serif; background: #0a0a0f; color: #fff; }
+
+  .status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; position: sticky; top: 0; z-index: 100; background: #0a0a0f; }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .page-header h1 { font-size: 26px; font-weight: 700; }
+  .header-icon { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; color: #f472b6; }
+
+  .ai-intro { margin-top: 20px; text-align: center; padding: 20px; }
+  .ai-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a78bfa, #ec4899); display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto; box-shadow: 0 0 30px rgba(99,102,241,0.3); position: relative; }
+  .ai-avatar::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid rgba(129,140,248,0.2); animation: pulse-ring 2s ease-in-out infinite; }
+  @keyframes pulse-ring { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.08); } }
+  .ai-name { font-size: 18px; font-weight: 700; margin-top: 12px; }
+  .ai-desc { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+
+  .chat-area { margin-top: 20px; }
+  .chat-bubble { margin-bottom: 14px; max-width: 88%; }
+  .chat-bubble.ai { margin-right: auto; }
+  .chat-bubble.user { margin-left: auto; }
+  .bubble-content { padding: 14px 16px; border-radius: 18px; font-size: 14px; line-height: 1.6; }
+  .chat-bubble.ai .bubble-content { background: linear-gradient(135deg, #141420, #1a1a2e); border: 1px solid rgba(255,255,255,0.04); border-bottom-left-radius: 4px; }
+  .chat-bubble.user .bubble-content { background: linear-gradient(135deg, #4338ca, #6366f1); border-bottom-right-radius: 4px; }
+  .bubble-time { font-size: 10px; color: #475569; margin-top: 4px; padding: 0 4px; }
+  .chat-bubble.user .bubble-time { text-align: right; }
+
+  .soundscape-card { margin: 16px 0; background: linear-gradient(135deg, #0f172a, #1e1b4b); border-radius: 18px; padding: 16px; border: 1px solid rgba(129,140,248,0.1); }
+  .sc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .sc-icon { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #6366f1, #a78bfa); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .sc-title { font-size: 14px; font-weight: 600; }
+  .sc-sub { font-size: 11px; color: #64748b; }
+  .sc-wave { display: flex; align-items: center; gap: 2px; height: 32px; }
+  .sc-wave .w-bar { width: 3px; border-radius: 2px; background: linear-gradient(to top, #6366f1, #a78bfa); }
+  .sc-controls { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+  .sc-play { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #818cf8); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .sc-duration { font-size: 11px; color: #64748b; }
+  .sc-progress { width: 100%; height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; margin-top: 10px; }
+  .sc-progress-fill { width: 35%; height: 100%; background: linear-gradient(90deg, #6366f1, #a78bfa); border-radius: 2px; }
+
+  .quick-prompts { margin-top: 16px; }
+  .qp-label { font-size: 11px; color: #475569; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .qp-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+  .qp-chip { white-space: nowrap; font-size: 12px; padding: 8px 14px; border-radius: 20px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); color: #94a3b8; flex-shrink: 0; }
+
+  .input-area { margin-top: 20px; background: rgba(255,255,255,0.04); border-radius: 24px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.06); }
+  .input-area input { flex: 1; background: none; border: none; outline: none; color: #fff; font-size: 14px; font-family: inherit; }
+  .input-area input::placeholder { color: #475569; }
+  .input-actions { display: flex; gap: 8px; }
+  .input-btn { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .btn-mic { background: rgba(244,114,182,0.15); color: #f472b6; }
+  .btn-send { background: linear-gradient(135deg, #6366f1, #818cf8); color: #fff; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(10,10,15,0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: #555; }
+  .tab-item.active { color: #818cf8; }
+  .tab-item i { font-size: 20px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal" style="font-size:14px"></i>
+      <i class="fas fa-wifi" style="font-size:14px"></i>
+      <i class="fas fa-battery-full" style="font-size:14px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-header">
+      <h1>AI Sandbox</h1>
+      <div class="header-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+    </div>
+
+    <div class="ai-intro">
+      <div class="ai-avatar">🎧</div>
+      <div class="ai-name">SoulTune Companion</div>
+      <div class="ai-desc">Your AI music therapist · Always listening</div>
+    </div>
+
+    <!-- Chat -->
+    <div class="chat-area">
+      <div class="chat-bubble user">
+        <div class="bubble-content">I bombed my midterm today and feel really overwhelmed. Everything feels chaotic.</div>
+        <div class="bubble-time">2:34 PM</div>
+      </div>
+
+      <div class="chat-bubble ai">
+        <div class="bubble-content">I hear you. That sounds really stressful. 💜 Based on your music profile, I've created a calming soundscape to help ease that chaos. Gentle synth pads in A minor — your comfort zone.</div>
+        <div class="bubble-time">2:34 PM</div>
+      </div>
+
+      <!-- Generated Soundscape -->
+      <div class="soundscape-card">
+        <div class="sc-header">
+          <div class="sc-icon">🌊</div>
+          <div>
+            <div class="sc-title">Calm After Storm</div>
+            <div class="sc-sub">AI-generated · A minor · 72 BPM</div>
+          </div>
+        </div>
+        <div class="sc-wave">
+          <div class="w-bar" style="height:30%"></div>
+          <div class="w-bar" style="height:50%"></div>
+          <div class="w-bar" style="height:40%"></div>
+          <div class="w-bar" style="height:70%"></div>
+          <div class="w-bar" style="height:55%"></div>
+          <div class="w-bar" style="height:80%"></div>
+          <div class="w-bar" style="height:60%"></div>
+          <div class="w-bar" style="height:45%"></div>
+          <div class="w-bar" style="height:75%"></div>
+          <div class="w-bar" style="height:35%"></div>
+          <div class="w-bar" style="height:65%"></div>
+          <div class="w-bar" style="height:50%"></div>
+          <div class="w-bar" style="height:85%"></div>
+          <div class="w-bar" style="height:40%"></div>
+          <div class="w-bar" style="height:60%"></div>
+          <div class="w-bar" style="height:45%"></div>
+          <div class="w-bar" style="height:70%"></div>
+          <div class="w-bar" style="height:55%"></div>
+          <div class="w-bar" style="height:80%"></div>
+          <div class="w-bar" style="height:30%"></div>
+          <div class="w-bar" style="height:65%"></div>
+          <div class="w-bar" style="height:50%"></div>
+          <div class="w-bar" style="height:75%"></div>
+          <div class="w-bar" style="height:40%"></div>
+          <div class="w-bar" style="height:60%"></div>
+          <div class="w-bar" style="height:85%"></div>
+          <div class="w-bar" style="height:45%"></div>
+          <div class="w-bar" style="height:70%"></div>
+        </div>
+        <div class="sc-progress"><div class="sc-progress-fill"></div></div>
+        <div class="sc-controls">
+          <div class="sc-play"><i class="fas fa-play" style="margin-left:2px"></i></div>
+          <div class="sc-duration">1:42 / 4:30</div>
+        </div>
+      </div>
+
+      <div class="chat-bubble ai">
+        <div class="bubble-content">Want me to also pick healing tracks from your library? Or would you prefer to create your own vibe in the studio?</div>
+        <div class="bubble-time">2:35 PM</div>
+      </div>
+    </div>
+
+    <!-- Quick Prompts -->
+    <div class="quick-prompts">
+      <div class="qp-label">Try saying</div>
+      <div class="qp-scroll">
+        <div class="qp-chip">😴 I can't sleep</div>
+        <div class="qp-chip">📚 Help me focus</div>
+        <div class="qp-chip">💪 Pump me up</div>
+        <div class="qp-chip">🌧️ Feeling down</div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-area">
+      <input type="text" placeholder="Tell me how you're feeling..." />
+      <div class="input-actions">
+        <div class="input-btn btn-mic"><i class="fas fa-microphone"></i></div>
+        <div class="input-btn btn-send"><i class="fas fa-arrow-up"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-brain"></i>
+      <span>Soul</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-heart-pulse"></i>
+      <span>Mood</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-users"></i>
+      <span>Social</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>

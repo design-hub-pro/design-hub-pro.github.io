@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulTune AI - Recommend</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { scrollbar-width: none; width: 100%; height: 100%; overflow-x: hidden; font-family: 'Inter', -apple-system, sans-serif; background: #0a0a0f; color: #fff; }
+
+  .status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; position: sticky; top: 0; z-index: 100; background: #0a0a0f; }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+
+  .page-header { margin-top: 8px; }
+  .page-header h1 { font-size: 26px; font-weight: 700; }
+  .page-header p { font-size: 13px; color: #64748b; margin-top: 4px; }
+
+  .prompt-card { margin-top: 20px; background: linear-gradient(135deg, #1a0a2e, #0f1a3e); border-radius: 20px; padding: 18px; border: 1px solid rgba(129,140,248,0.1); }
+  .prompt-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .prompt-icon { width: 36px; height: 36px; border-radius: 12px; background: linear-gradient(135deg, #6366f1, #a78bfa); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .prompt-label { font-size: 13px; font-weight: 600; }
+  .prompt-text { background: rgba(0,0,0,0.3); border-radius: 14px; padding: 14px; font-size: 13px; color: #c4b5fd; line-height: 1.6; font-style: italic; border: 1px solid rgba(139,92,246,0.1); }
+
+  .section-title { font-size: 16px; font-weight: 700; margin-top: 24px; margin-bottom: 14px; }
+
+  .heal-track { background: linear-gradient(135deg, #141420, #1a1a2e); border-radius: 18px; padding: 16px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.04); }
+  .ht-top { display: flex; align-items: center; gap: 12px; }
+  .ht-cover { width: 56px; height: 56px; border-radius: 14px; background-size: cover; background-position: center; flex-shrink: 0; position: relative; }
+  .ht-play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); border-radius: 14px; opacity: 0.8; }
+  .ht-play i { font-size: 16px; }
+  .ht-info { flex: 1; }
+  .ht-info h4 { font-size: 14px; font-weight: 600; }
+  .ht-info .ht-artist { font-size: 12px; color: #64748b; margin-top: 1px; }
+  .ht-info .ht-mood { font-size: 10px; padding: 3px 8px; border-radius: 8px; display: inline-block; margin-top: 4px; }
+  .ht-analysis { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.04); }
+  .ht-analysis p { font-size: 12px; color: #94a3b8; line-height: 1.6; }
+  .ht-analysis .highlight { color: #c4b5fd; font-weight: 500; }
+  .ht-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .ht-tags span { font-size: 10px; background: rgba(255,255,255,0.04); padding: 3px 8px; border-radius: 8px; color: #64748b; }
+
+  .ai-insight { margin-top: 20px; background: linear-gradient(135deg, #0f172a, #1e1b4b); border-radius: 18px; padding: 18px; border: 1px solid rgba(99,102,241,0.1); }
+  .ai-insight .header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .ai-insight .header i { color: #818cf8; }
+  .ai-insight .header h4 { font-size: 14px; font-weight: 600; }
+  .ai-insight p { font-size: 13px; color: #94a3b8; line-height: 1.7; }
+  .ai-insight .highlight { color: #c4b5fd; font-weight: 600; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(10,10,15,0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: #555; }
+  .tab-item.active { color: #818cf8; }
+  .tab-item i { font-size: 20px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal" style="font-size:14px"></i>
+      <i class="fas fa-wifi" style="font-size:14px"></i>
+      <i class="fas fa-battery-full" style="font-size:14px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-header">
+      <h1>Healing Picks</h1>
+      <p>AI-curated tracks from your library</p>
+    </div>
+
+    <!-- User Prompt -->
+    <div class="prompt-card">
+      <div class="prompt-header">
+        <div class="prompt-icon"><i class="fas fa-quote-left"></i></div>
+        <span class="prompt-label">Your Request</span>
+      </div>
+      <div class="prompt-text">"Going through a breakup. Find healing songs from my library and explain why they'll help."</div>
+    </div>
+
+    <!-- Healing Tracks -->
+    <div class="section-title">Selected for You</div>
+
+    <div class="heal-track">
+      <div class="ht-top">
+        <div class="ht-cover" style="background-image:url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=120&h=120&fit=crop')">
+          <div class="ht-play"><i class="fas fa-play"></i></div>
+        </div>
+        <div class="ht-info">
+          <h4>Holocene</h4>
+          <div class="ht-artist">Bon Iver</div>
+          <span class="ht-mood" style="background:rgba(52,211,153,0.15);color:#34d399;">Healing</span>
+        </div>
+      </div>
+      <div class="ht-analysis">
+        <p>The <span class="highlight">slow tempo (92 BPM)</span> and <span class="highlight">open-tuned guitar</span> create a spacious, cathedral-like atmosphere. The falsetto vocal sits gently in the mix, providing emotional distance that allows safe processing of grief.</p>
+        <div class="ht-tags">
+          <span>A major</span>
+          <span>92 BPM</span>
+          <span>Acoustic</span>
+          <span>Spacious reverb</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="heal-track">
+      <div class="ht-top">
+        <div class="ht-cover" style="background-image:url('https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120&h=120&fit=crop')">
+          <div class="ht-play"><i class="fas fa-play"></i></div>
+        </div>
+        <div class="ht-info">
+          <h4>re: Stacks</h4>
+          <div class="ht-artist">Bon Iver</div>
+          <span class="ht-mood" style="background:rgba(129,140,248,0.15);color:#a5b4fc;">Reflective</span>
+        </div>
+      </div>
+      <div class="ht-analysis">
+        <p>The <span class="highlight">fingerpicked guitar pattern</span> in <span class="highlight">C major</span> provides harmonic stability. The stripped-down arrangement mirrors vulnerability, helping you acknowledge emotions without overwhelm.</p>
+        <div class="ht-tags">
+          <span>C major</span>
+          <span>78 BPM</span>
+          <span>Fingerpicked</span>
+          <span>Minimal</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="heal-track">
+      <div class="ht-top">
+        <div class="ht-cover" style="background-image:url('https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=120&h=120&fit=crop')">
+          <div class="ht-play"><i class="fas fa-play"></i></div>
+        </div>
+        <div class="ht-info">
+          <h4>On The Nature Of Daylight</h4>
+          <div class="ht-artist">Max Richter</div>
+          <span class="ht-mood" style="background:rgba(244,114,182,0.15);color:#f472b6;">Cathartic</span>
+        </div>
+      </div>
+      <div class="ht-analysis">
+        <p>The <span class="highlight">layered string arrangement</span> builds gradually, mirroring the waves of emotion during heartbreak. The <span class="highlight">B-flat minor</span> tonality provides permission to feel deeply while the rising melody offers hope.</p>
+        <div class="ht-tags">
+          <span>B♭ minor</span>
+          <span>64 BPM</span>
+          <span>Strings</span>
+          <span>Orchestral</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Insight -->
+    <div class="ai-insight">
+      <div class="header"><i class="fas fa-lightbulb"></i><h4>Why These Songs Heal</h4></div>
+      <p>These selections share a common thread: <span class="highlight">slow tempos (64-92 BPM)</span> that match a resting heart rate, <span class="highlight">spacious arrangements</span> that give your mind room to breathe, and <span class="highlight">warm tonalities</span> that activate the brain's comfort centers. Music at these frequencies has been clinically shown to reduce cortisol levels by up to 25%.</p>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-brain"></i>
+      <span>Soul</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-heart-pulse"></i>
+      <span>Mood</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-users"></i>
+      <span>Social</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>

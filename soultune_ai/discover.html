@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulTune AI - Discover</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { scrollbar-width: none; width: 100%; height: 100%; overflow-x: hidden; font-family: 'Inter', -apple-system, sans-serif; background: #0a0a0f; color: #fff; }
+
+  .status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; position: sticky; top: 0; z-index: 100; background: #0a0a0f; }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .page-header h1 { font-size: 26px; font-weight: 700; }
+  .header-actions { display: flex; gap: 8px; }
+  .h-btn { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 14px; color: #94a3b8; }
+
+  .match-section { margin-top: 20px; }
+  .match-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .match-title { font-size: 16px; font-weight: 700; }
+  .match-see-all { font-size: 12px; color: #818cf8; font-weight: 500; }
+
+  .match-card { background: linear-gradient(135deg, #1a0a2e 0%, #151530 50%, #0f1a3e 100%); border-radius: 22px; padding: 20px; margin-bottom: 12px; position: relative; overflow: hidden; }
+  .match-card::before { content: ''; position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(168,85,247,0.2), transparent); }
+  .mc-top { display: flex; align-items: center; gap: 14px; }
+  .mc-avatar { width: 56px; height: 56px; border-radius: 50%; background-size: cover; background-position: center; flex-shrink: 0; border: 2px solid rgba(139,92,246,0.3); }
+  .mc-info h3 { font-size: 16px; font-weight: 600; }
+  .mc-info .match-pct { font-size: 12px; font-weight: 700; margin-top: 2px; }
+  .mc-info .mc-tags { display: flex; gap: 5px; margin-top: 6px; flex-wrap: wrap; }
+  .mc-info .mc-tags span { font-size: 10px; background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 8px; color: #94a3b8; }
+  .mc-shared { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.04); }
+  .mc-shared-covers { display: flex; }
+  .mc-shared-covers .sc { width: 28px; height: 28px; border-radius: 6px; background-size: cover; background-position: center; margin-left: -6px; border: 2px solid #1a0a2e; }
+  .mc-shared-covers .sc:first-child { margin-left: 0; }
+  .mc-shared-text { font-size: 11px; color: #94a3b8; }
+  .mc-connect { margin-top: 14px; display: flex; gap: 8px; }
+  .mc-btn { flex: 1; padding: 10px; border-radius: 14px; text-align: center; font-size: 12px; font-weight: 600; }
+  .mc-btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
+  .mc-btn-secondary { background: rgba(255,255,255,0.06); color: #94a3b8; }
+
+  .section-title { font-size: 16px; font-weight: 700; margin-top: 24px; margin-bottom: 14px; }
+
+  .events-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; }
+  .event-card { min-width: 220px; border-radius: 18px; overflow: hidden; flex-shrink: 0; position: relative; }
+  .event-img { width: 100%; height: 120px; background-size: cover; background-position: center; position: relative; }
+  .event-img::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); }
+  .event-badge { position: absolute; top: 10px; left: 10px; font-size: 10px; padding: 4px 10px; border-radius: 10px; font-weight: 600; }
+  .event-body { background: linear-gradient(135deg, #141420, #1a1a2e); padding: 14px; }
+  .event-body h4 { font-size: 13px; font-weight: 600; }
+  .event-body .ev-meta { font-size: 11px; color: #64748b; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+  .event-avatars { display: flex; margin-top: 8px; }
+  .event-avatars .ea { width: 22px; height: 22px; border-radius: 50%; background-size: cover; margin-left: -6px; border: 2px solid #141420; }
+  .event-avatars .ea:first-child { margin-left: 0; }
+  .event-count { font-size: 10px; color: #64748b; margin-left: 6px; display: flex; align-items: center; }
+
+  .project-card { background: linear-gradient(135deg, #141420, #1a1a2e); border-radius: 18px; padding: 18px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.04); }
+  .pj-header { display: flex; align-items: center; gap: 12px; }
+  .pj-icon { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .pj-info h4 { font-size: 14px; font-weight: 600; }
+  .pj-info p { font-size: 11px; color: #64748b; margin-top: 2px; }
+  .pj-progress { margin-top: 12px; }
+  .pj-bar-bg { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; }
+  .pj-bar-fill { height: 100%; border-radius: 2px; }
+  .pj-stats { display: flex; justify-content: space-between; margin-top: 6px; }
+  .pj-stat { font-size: 10px; color: #64748b; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(10,10,15,0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: #555; }
+  .tab-item.active { color: #818cf8; }
+  .tab-item i { font-size: 20px; }
+  .tab-item .dot { width: 4px; height: 4px; border-radius: 50%; background: #818cf8; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal" style="font-size:14px"></i>
+      <i class="fas fa-wifi" style="font-size:14px"></i>
+      <i class="fas fa-battery-full" style="font-size:14px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-header">
+      <h1>Community</h1>
+      <div class="header-actions">
+        <div class="h-btn"><i class="fas fa-bell"></i></div>
+        <div class="h-btn"><i class="fas fa-plus"></i></div>
+      </div>
+    </div>
+
+    <!-- Soul Matches -->
+    <div class="match-section">
+      <div class="match-header">
+        <div class="match-title">Soul Matches</div>
+        <span class="match-see-all">See All</span>
+      </div>
+
+      <div class="match-card">
+        <div class="mc-top">
+          <div class="mc-avatar" style="background-image:url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop')"></div>
+          <div class="mc-info">
+            <h3>Emma Chen</h3>
+            <div class="match-pct" style="color:#34d399;">89% Match</div>
+            <div class="mc-tags">
+              <span>Synthwave</span>
+              <span>Lo-fi</span>
+              <span>Dream Pop</span>
+            </div>
+          </div>
+        </div>
+        <div class="mc-shared">
+          <div class="mc-shared-covers">
+            <div class="sc" style="background-image:url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=60&h=60&fit=crop')"></div>
+            <div class="sc" style="background-image:url('https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=60&h=60&fit=crop')"></div>
+            <div class="sc" style="background-image:url('https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=60&h=60&fit=crop')"></div>
+          </div>
+          <span class="mc-shared-text">24 shared favorites</span>
+        </div>
+        <div class="mc-connect">
+          <div class="mc-btn mc-btn-primary"><i class="fas fa-handshake" style="margin-right:4px;font-size:11px;"></i> Connect</div>
+          <div class="mc-btn mc-btn-secondary">View Profile</div>
+        </div>
+      </div>
+
+      <div class="match-card">
+        <div class="mc-top">
+          <div class="mc-avatar" style="background-image:url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop')"></div>
+          <div class="mc-info">
+            <h3>Marcus Liu</h3>
+            <div class="match-pct" style="color:#818cf8;">76% Match</div>
+            <div class="mc-tags">
+              <span>Indie</span>
+              <span>Post-Rock</span>
+              <span>Ambient</span>
+            </div>
+          </div>
+        </div>
+        <div class="mc-shared">
+          <div class="mc-shared-covers">
+            <div class="sc" style="background-image:url('https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=60&h=60&fit=crop')"></div>
+            <div class="sc" style="background-image:url('https://images.unsplash.com/photo-1506157786151-b8491531f063?w=60&h=60&fit=crop')"></div>
+          </div>
+          <span class="mc-shared-text">18 shared favorites</span>
+        </div>
+        <div class="mc-connect">
+          <div class="mc-btn mc-btn-primary"><i class="fas fa-handshake" style="margin-right:4px;font-size:11px;"></i> Connect</div>
+          <div class="mc-btn mc-btn-secondary">View Profile</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Events -->
+    <div class="section-title">Upcoming Events</div>
+    <div class="events-scroll">
+      <div class="event-card">
+        <div class="event-img" style="background-image:url('https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=200&fit=crop')">
+          <div class="event-badge" style="background:rgba(99,102,241,0.9);">Online</div>
+        </div>
+        <div class="event-body">
+          <h4>Synth & Soul Night</h4>
+          <div class="ev-meta"><i class="fas fa-calendar" style="font-size:10px;"></i> Feb 12, 8 PM</div>
+          <div style="display:flex;align-items:center;gap:4px;margin-top:8px;">
+            <div class="event-avatars">
+              <div class="ea" style="background-image:url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=40&h=40&fit=crop')"></div>
+              <div class="ea" style="background-image:url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop')"></div>
+              <div class="ea" style="background-image:url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop')"></div>
+            </div>
+            <span class="event-count">+28 going</span>
+          </div>
+        </div>
+      </div>
+      <div class="event-card">
+        <div class="event-img" style="background-image:url('https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=400&h=200&fit=crop')">
+          <div class="event-badge" style="background:rgba(236,72,153,0.9);">In Person</div>
+        </div>
+        <div class="event-body">
+          <h4>Lo-fi Listening Club</h4>
+          <div class="ev-meta"><i class="fas fa-map-pin" style="font-size:10px;"></i> Berkeley, CA</div>
+          <div style="display:flex;align-items:center;gap:4px;margin-top:8px;">
+            <div class="event-avatars">
+              <div class="ea" style="background-image:url('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop')"></div>
+              <div class="ea" style="background-image:url('https://images.unsplash.com/photo-1580489944761-15a19d654956?w=40&h=40&fit=crop')"></div>
+            </div>
+            <span class="event-count">+12 going</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Projects -->
+    <div class="section-title">Music Projects</div>
+    <div class="project-card">
+      <div class="pj-header">
+        <div class="pj-icon" style="background:rgba(139,92,246,0.15);color:#a78bfa;">🎹</div>
+        <div class="pj-info">
+          <h4>Retro Synth Music Research</h4>
+          <p>AI-assisted study of vintage synthesizer sounds</p>
+        </div>
+      </div>
+      <div class="pj-progress">
+        <div class="pj-bar-bg"><div class="pj-bar-fill" style="width:65%;background:linear-gradient(90deg,#8b5cf6,#a78bfa);"></div></div>
+        <div class="pj-stats">
+          <span class="pj-stat">65% complete</span>
+          <span class="pj-stat">4 collaborators</span>
+        </div>
+      </div>
+    </div>
+    <div class="project-card">
+      <div class="pj-header">
+        <div class="pj-icon" style="background:rgba(56,189,248,0.15);color:#38bdf8;">🌍</div>
+        <div class="pj-info">
+          <h4>Global Indie Mapping</h4>
+          <p>Mapping indie music scenes worldwide</p>
+        </div>
+      </div>
+      <div class="pj-progress">
+        <div class="pj-bar-bg"><div class="pj-bar-fill" style="width:32%;background:linear-gradient(90deg,#0ea5e9,#38bdf8);"></div></div>
+        <div class="pj-stats">
+          <span class="pj-stat">32% complete</span>
+          <span class="pj-stat">8 collaborators</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-brain"></i>
+      <span>Soul</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-heart-pulse"></i>
+      <span>Mood</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-users"></i>
+      <span>Social</span>
+      <div class="dot"></div>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulTune AI - Stress</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { scrollbar-width: none; width: 100%; height: 100%; overflow-x: hidden; font-family: 'Inter', -apple-system, sans-serif; background: #0a0a0f; color: #fff; }
+
+  .status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; position: sticky; top: 0; z-index: 100; background: #0a0a0f; }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+
+  .page-header { margin-top: 8px; }
+  .page-header h1 { font-size: 26px; font-weight: 700; }
+  .page-header p { font-size: 13px; color: #64748b; margin-top: 4px; }
+
+  .wellness-score { margin-top: 20px; background: linear-gradient(135deg, #0a1628, #0f2840); border-radius: 24px; padding: 24px; text-align: center; position: relative; overflow: hidden; }
+  .wellness-score::before { content: ''; position: absolute; top: -40px; left: 50%; transform: translateX(-50%); width: 200px; height: 200px; background: radial-gradient(circle, rgba(52,211,153,0.2), transparent 70%); }
+  .score-ring { width: 140px; height: 140px; margin: 0 auto; position: relative; }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-ring .bg-ring { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 8; }
+  .score-ring .fg-ring { fill: none; stroke-width: 8; stroke-linecap: round; }
+  .score-value { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+  .score-num { font-size: 36px; font-weight: 800; }
+  .score-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+  .ws-status { font-size: 16px; font-weight: 600; margin-top: 12px; color: #34d399; position: relative; }
+  .ws-sub { font-size: 12px; color: #64748b; margin-top: 4px; position: relative; }
+
+  .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+  .metric-card { background: rgba(255,255,255,0.03); border-radius: 16px; padding: 16px; }
+  .metric-icon { font-size: 22px; margin-bottom: 8px; }
+  .metric-val { font-size: 24px; font-weight: 800; }
+  .metric-label { font-size: 11px; color: #64748b; margin-top: 2px; }
+  .metric-trend { font-size: 10px; margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+
+  .section-title { font-size: 16px; font-weight: 700; margin-top: 24px; margin-bottom: 14px; }
+
+  .alert-card { background: linear-gradient(135deg, #1c1917, #292524); border-radius: 18px; padding: 16px; border-left: 3px solid #fbbf24; margin-bottom: 10px; }
+  .alert-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .alert-header .alert-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .alert-header h4 { font-size: 13px; font-weight: 600; }
+  .alert-desc { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+
+  .weekly-chart { background: rgba(255,255,255,0.02); border-radius: 18px; padding: 18px; margin-top: 14px; }
+  .wc-bars { display: flex; align-items: flex-end; justify-content: space-between; height: 100px; gap: 10px; }
+  .wc-day { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+  .wc-bar { width: 100%; max-width: 24px; border-radius: 6px 6px 2px 2px; }
+  .wc-day-label { font-size: 10px; color: #475569; }
+
+  .resources { margin-top: 14px; }
+  .resource-item { background: linear-gradient(135deg, #141420, #1a1a2e); border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.04); }
+  .resource-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .resource-info { flex: 1; }
+  .resource-info h4 { font-size: 13px; font-weight: 600; }
+  .resource-info p { font-size: 11px; color: #64748b; margin-top: 2px; }
+  .resource-arrow { color: #475569; font-size: 12px; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(10,10,15,0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: #555; }
+  .tab-item.active { color: #818cf8; }
+  .tab-item i { font-size: 20px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal" style="font-size:14px"></i>
+      <i class="fas fa-wifi" style="font-size:14px"></i>
+      <i class="fas fa-battery-full" style="font-size:14px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-header">
+      <h1>Wellness Check</h1>
+      <p>Non-invasive emotional insights from your music</p>
+    </div>
+
+    <!-- Wellness Score -->
+    <div class="wellness-score">
+      <div class="score-ring">
+        <svg width="140" height="140" viewBox="0 0 140 140">
+          <circle class="bg-ring" cx="70" cy="70" r="58"/>
+          <circle class="fg-ring" cx="70" cy="70" r="58" stroke="url(#scoreGrad)" stroke-dasharray="364.4" stroke-dashoffset="72.9"/>
+          <defs>
+            <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#34d399"/>
+              <stop offset="100%" style="stop-color:#6ee7b7"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="score-value">
+          <div class="score-num" style="color:#34d399;">78</div>
+          <div class="score-label">Wellness</div>
+        </div>
+      </div>
+      <div class="ws-status">Stable & Balanced</div>
+      <div class="ws-sub">Based on 7 days of listening patterns</div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-icon">😴</div>
+        <div class="metric-val" style="color:#818cf8;">6.2h</div>
+        <div class="metric-label">Late Night Listening</div>
+        <div class="metric-trend" style="color:#fbbf24;"><i class="fas fa-arrow-up" style="font-size:8px;"></i> 18% vs last week</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">🎵</div>
+        <div class="metric-val" style="color:#a78bfa;">3.1</div>
+        <div class="metric-label">Mood Variance</div>
+        <div class="metric-trend" style="color:#34d399;"><i class="fas fa-arrow-down" style="font-size:8px;"></i> 8% — more stable</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">🔄</div>
+        <div class="metric-val" style="color:#f472b6;">12</div>
+        <div class="metric-label">Loop Repeats</div>
+        <div class="metric-trend" style="color:#94a3b8;">Normal range</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">📊</div>
+        <div class="metric-val" style="color:#38bdf8;">94</div>
+        <div class="metric-label">Avg. BPM</div>
+        <div class="metric-trend" style="color:#fbbf24;"><i class="fas fa-arrow-down" style="font-size:8px;"></i> Slightly slower</div>
+      </div>
+    </div>
+
+    <!-- Weekly Stress Chart -->
+    <div class="section-title">Weekly Stress Forecast</div>
+    <div class="weekly-chart">
+      <div class="wc-bars">
+        <div class="wc-day">
+          <div class="wc-bar" style="height:60%;background:linear-gradient(to top,#fbbf24,#fde68a);"></div>
+          <span class="wc-day-label">Mon</span>
+        </div>
+        <div class="wc-day">
+          <div class="wc-bar" style="height:45%;background:linear-gradient(to top,#34d399,#6ee7b7);"></div>
+          <span class="wc-day-label">Tue</span>
+        </div>
+        <div class="wc-day">
+          <div class="wc-bar" style="height:75%;background:linear-gradient(to top,#f87171,#fca5a5);"></div>
+          <span class="wc-day-label">Wed</span>
+        </div>
+        <div class="wc-day">
+          <div class="wc-bar" style="height:35%;background:linear-gradient(to top,#34d399,#6ee7b7);"></div>
+          <span class="wc-day-label">Thu</span>
+        </div>
+        <div class="wc-day">
+          <div class="wc-bar" style="height:20%;background:linear-gradient(to top,#34d399,#6ee7b7);opacity:0.4;"></div>
+          <span class="wc-day-label">Fri</span>
+        </div>
+        <div class="wc-day">
+          <div class="wc-bar" style="height:25%;background:linear-gradient(to top,#34d399,#6ee7b7);opacity:0.4;"></div>
+          <span class="wc-day-label">Sat</span>
+        </div>
+        <div class="wc-day">
+          <div class="wc-bar" style="height:30%;background:linear-gradient(to top,#34d399,#6ee7b7);opacity:0.4;"></div>
+          <span class="wc-day-label">Sun</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="section-title">Insights</div>
+    <div class="alert-card" style="border-left-color:#fbbf24;">
+      <div class="alert-header">
+        <div class="alert-dot" style="background:#fbbf24;"></div>
+        <h4>Increased Late-Night Listening</h4>
+      </div>
+      <div class="alert-desc">You've been listening 18% more between 11 PM - 2 AM. Sad/slow tracks dominant. Consider a wind-down routine.</div>
+    </div>
+    <div class="alert-card" style="border-left-color:#34d399;">
+      <div class="alert-header">
+        <div class="alert-dot" style="background:#34d399;"></div>
+        <h4>Positive Shift Detected</h4>
+      </div>
+      <div class="alert-desc">Today's afternoon transition to upbeat tracks suggests improved mood. Your music taste is naturally self-healing!</div>
+    </div>
+
+    <!-- Resources -->
+    <div class="section-title">Support</div>
+    <div class="resources">
+      <div class="resource-item">
+        <div class="resource-icon" style="background:rgba(129,140,248,0.15);color:#818cf8;"><i class="fas fa-brain"></i></div>
+        <div class="resource-info">
+          <h4>Quick Self-Assessment</h4>
+          <p>2-min wellness check-in</p>
+        </div>
+        <i class="fas fa-chevron-right resource-arrow"></i>
+      </div>
+      <div class="resource-item">
+        <div class="resource-icon" style="background:rgba(52,211,153,0.15);color:#34d399;"><i class="fas fa-phone"></i></div>
+        <div class="resource-info">
+          <h4>Talk to Someone</h4>
+          <p>Connect with counselors</p>
+        </div>
+        <i class="fas fa-chevron-right resource-arrow"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-brain"></i>
+      <span>Soul</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-heart-pulse"></i>
+      <span>Mood</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-users"></i>
+      <span>Social</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>

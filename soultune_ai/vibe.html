@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulTune AI - Vibe Creator</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { scrollbar-width: none; width: 100%; height: 100%; overflow-x: hidden; font-family: 'Inter', -apple-system, sans-serif; background: #0a0a0f; color: #fff; }
+
+  .status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; position: sticky; top: 0; z-index: 100; background: #0a0a0f; }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .page-header h1 { font-size: 26px; font-weight: 700; }
+  .save-btn { font-size: 13px; color: #818cf8; font-weight: 600; padding: 6px 14px; background: rgba(129,140,248,0.1); border-radius: 16px; }
+
+  .visualizer { margin-top: 20px; height: 160px; background: linear-gradient(135deg, #0f0a2e, #1a0533); border-radius: 24px; display: flex; align-items: center; justify-content: center; gap: 3px; overflow: hidden; position: relative; }
+  .visualizer::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(99,102,241,0.15) 0%, transparent 70%); }
+  .viz-bar { width: 4px; border-radius: 4px; background: linear-gradient(to top, #6366f1, #a78bfa, #c4b5fd); animation: vizPulse 1.5s ease-in-out infinite alternate; }
+  @keyframes vizPulse { 0% { transform: scaleY(0.3); opacity: 0.6; } 100% { transform: scaleY(1); opacity: 1; } }
+
+  .mood-selector { margin-top: 20px; }
+  .ms-label { font-size: 13px; font-weight: 600; margin-bottom: 10px; color: #94a3b8; }
+  .ms-options { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+  .ms-chip { white-space: nowrap; padding: 10px 16px; border-radius: 16px; font-size: 13px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; display: flex; align-items: center; gap: 6px; }
+  .ms-chip.active { background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2)); border-color: rgba(129,140,248,0.3); color: #c4b5fd; }
+
+  .controls-section { margin-top: 24px; }
+  .ctrl-title { font-size: 14px; font-weight: 600; margin-bottom: 14px; }
+
+  .slider-group { margin-bottom: 18px; }
+  .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .slider-name { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+  .slider-val { font-size: 12px; color: #818cf8; font-weight: 600; }
+  .slider-track { width: 100%; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; position: relative; }
+  .slider-fill { height: 100%; border-radius: 3px; position: relative; }
+  .slider-thumb { width: 18px; height: 18px; border-radius: 50%; background: #fff; position: absolute; right: -9px; top: -6px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+  .instruments { margin-top: 24px; }
+  .inst-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+  .inst-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .inst-item { text-align: center; padding: 14px 6px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.04); }
+  .inst-item.active { background: rgba(99,102,241,0.1); border-color: rgba(129,140,248,0.2); }
+  .inst-icon { font-size: 24px; margin-bottom: 4px; }
+  .inst-name { font-size: 10px; color: #94a3b8; }
+  .inst-item.active .inst-name { color: #c4b5fd; }
+
+  .gen-btn { margin-top: 24px; width: 100%; padding: 16px; border-radius: 18px; background: linear-gradient(135deg, #6366f1, #8b5cf6); text-align: center; font-size: 16px; font-weight: 700; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .gen-btn i { font-size: 14px; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(10,10,15,0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: #555; }
+  .tab-item.active { color: #818cf8; }
+  .tab-item i { font-size: 20px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal" style="font-size:14px"></i>
+      <i class="fas fa-wifi" style="font-size:14px"></i>
+      <i class="fas fa-battery-full" style="font-size:14px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-header">
+      <h1>Vibe Creator</h1>
+      <div class="save-btn"><i class="fas fa-bookmark"></i> Save</div>
+    </div>
+
+    <!-- Visualizer -->
+    <div class="visualizer">
+      <div class="viz-bar" style="height:30%;animation-delay:0s"></div>
+      <div class="viz-bar" style="height:55%;animation-delay:0.1s"></div>
+      <div class="viz-bar" style="height:40%;animation-delay:0.2s"></div>
+      <div class="viz-bar" style="height:75%;animation-delay:0.3s"></div>
+      <div class="viz-bar" style="height:50%;animation-delay:0.4s"></div>
+      <div class="viz-bar" style="height:90%;animation-delay:0.5s"></div>
+      <div class="viz-bar" style="height:60%;animation-delay:0.6s"></div>
+      <div class="viz-bar" style="height:45%;animation-delay:0.7s"></div>
+      <div class="viz-bar" style="height:80%;animation-delay:0.8s"></div>
+      <div class="viz-bar" style="height:35%;animation-delay:0.9s"></div>
+      <div class="viz-bar" style="height:70%;animation-delay:1.0s"></div>
+      <div class="viz-bar" style="height:55%;animation-delay:1.1s"></div>
+      <div class="viz-bar" style="height:85%;animation-delay:1.2s"></div>
+      <div class="viz-bar" style="height:40%;animation-delay:1.3s"></div>
+      <div class="viz-bar" style="height:65%;animation-delay:0s"></div>
+      <div class="viz-bar" style="height:50%;animation-delay:0.1s"></div>
+      <div class="viz-bar" style="height:78%;animation-delay:0.2s"></div>
+      <div class="viz-bar" style="height:42%;animation-delay:0.3s"></div>
+      <div class="viz-bar" style="height:60%;animation-delay:0.4s"></div>
+      <div class="viz-bar" style="height:88%;animation-delay:0.5s"></div>
+      <div class="viz-bar" style="height:48%;animation-delay:0.6s"></div>
+      <div class="viz-bar" style="height:72%;animation-delay:0.7s"></div>
+      <div class="viz-bar" style="height:38%;animation-delay:0.8s"></div>
+      <div class="viz-bar" style="height:62%;animation-delay:0.9s"></div>
+      <div class="viz-bar" style="height:82%;animation-delay:1.0s"></div>
+      <div class="viz-bar" style="height:46%;animation-delay:1.1s"></div>
+      <div class="viz-bar" style="height:68%;animation-delay:1.2s"></div>
+      <div class="viz-bar" style="height:52%;animation-delay:1.3s"></div>
+    </div>
+
+    <!-- Mood Selector -->
+    <div class="mood-selector">
+      <div class="ms-label">Select Your Mood</div>
+      <div class="ms-options">
+        <div class="ms-chip active">😌 Calm</div>
+        <div class="ms-chip">⚡ Energetic</div>
+        <div class="ms-chip">🌧️ Melancholy</div>
+        <div class="ms-chip">🔥 Intense</div>
+        <div class="ms-chip">🌈 Hopeful</div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-section">
+      <div class="ctrl-title">Shape Your Sound</div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-name"><i class="fas fa-drum" style="color:#818cf8;font-size:12px;"></i> Tempo (BPM)</span>
+          <span class="slider-val">82</span>
+        </div>
+        <div class="slider-track">
+          <div class="slider-fill" style="width:35%;background:linear-gradient(90deg,#6366f1,#818cf8);">
+            <div class="slider-thumb"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-name"><i class="fas fa-volume-high" style="color:#a78bfa;font-size:12px;"></i> Bass Depth</span>
+          <span class="slider-val">64%</span>
+        </div>
+        <div class="slider-track">
+          <div class="slider-fill" style="width:64%;background:linear-gradient(90deg,#8b5cf6,#a78bfa);">
+            <div class="slider-thumb"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-name"><i class="fas fa-water" style="color:#38bdf8;font-size:12px;"></i> Reverb</span>
+          <span class="slider-val">78%</span>
+        </div>
+        <div class="slider-track">
+          <div class="slider-fill" style="width:78%;background:linear-gradient(90deg,#0ea5e9,#38bdf8);">
+            <div class="slider-thumb"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-name"><i class="fas fa-sun" style="color:#fbbf24;font-size:12px;"></i> Warmth</span>
+          <span class="slider-val">51%</span>
+        </div>
+        <div class="slider-track">
+          <div class="slider-fill" style="width:51%;background:linear-gradient(90deg,#f59e0b,#fbbf24);">
+            <div class="slider-thumb"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instruments -->
+    <div class="instruments">
+      <div class="inst-title">Instruments</div>
+      <div class="inst-grid">
+        <div class="inst-item active">
+          <div class="inst-icon">🎹</div>
+          <div class="inst-name">Synth Pad</div>
+        </div>
+        <div class="inst-item active">
+          <div class="inst-icon">🎸</div>
+          <div class="inst-name">Guitar</div>
+        </div>
+        <div class="inst-item">
+          <div class="inst-icon">🥁</div>
+          <div class="inst-name">Drums</div>
+        </div>
+        <div class="inst-item active">
+          <div class="inst-icon">🎻</div>
+          <div class="inst-name">Strings</div>
+        </div>
+        <div class="inst-item">
+          <div class="inst-icon">🎺</div>
+          <div class="inst-name">Brass</div>
+        </div>
+        <div class="inst-item">
+          <div class="inst-icon">🎤</div>
+          <div class="inst-name">Vocal</div>
+        </div>
+        <div class="inst-item">
+          <div class="inst-icon">🪘</div>
+          <div class="inst-name">Percussion</div>
+        </div>
+        <div class="inst-item">
+          <div class="inst-icon">🎵</div>
+          <div class="inst-name">Piano</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gen-btn">
+      <i class="fas fa-wand-magic-sparkles"></i>
+      Generate Soundscape
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-brain"></i>
+      <span>Soul</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-heart-pulse"></i>
+      <span>Mood</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-users"></i>
+      <span>Social</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulTune AI - Personality</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { scrollbar-width: none; width: 100%; height: 100%; overflow-x: hidden; font-family: 'Inter', -apple-system, sans-serif; background: #0a0a0f; color: #fff; }
+
+  .status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; position: sticky; top: 0; z-index: 100; background: #0a0a0f; }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .page-header h1 { font-size: 26px; font-weight: 700; }
+  .share-btn { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; color: #818cf8; font-size: 14px; }
+
+  .persona-card { margin-top: 20px; border-radius: 24px; padding: 28px 22px; text-align: center; position: relative; overflow: hidden; background: linear-gradient(145deg, #1a0533 0%, #0d1b3e 40%, #0a2540 100%); }
+  .persona-card::before { content: ''; position: absolute; top: -60px; left: -60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(139,92,246,0.3), transparent 70%); }
+  .persona-card::after { content: ''; position: absolute; bottom: -40px; right: -40px; width: 160px; height: 160px; background: radial-gradient(circle, rgba(59,130,246,0.2), transparent 70%); }
+  .persona-emoji { font-size: 64px; position: relative; z-index: 1; }
+  .persona-title { font-size: 24px; font-weight: 800; margin-top: 12px; position: relative; z-index: 1; background: linear-gradient(135deg, #c4b5fd, #818cf8, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .persona-sub { font-size: 13px; color: #94a3b8; margin-top: 6px; position: relative; z-index: 1; }
+  .persona-tags { display: flex; justify-content: center; gap: 8px; margin-top: 16px; flex-wrap: wrap; position: relative; z-index: 1; }
+  .persona-tags span { font-size: 11px; background: rgba(139,92,246,0.15); color: #c4b5fd; padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(139,92,246,0.1); }
+
+  .radar-section { margin-top: 24px; }
+  .radar-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .radar-chart { position: relative; width: 260px; height: 260px; margin: 0 auto; }
+  .radar-bg { position: absolute; inset: 0; }
+  .radar-bg .hex { position: absolute; top: 50%; left: 50%; border: 1px solid rgba(255,255,255,0.05); border-radius: 50%; }
+  .hex-1 { width: 260px; height: 260px; margin: -130px 0 0 -130px; }
+  .hex-2 { width: 195px; height: 195px; margin: -97.5px 0 0 -97.5px; }
+  .hex-3 { width: 130px; height: 130px; margin: -65px 0 0 -65px; }
+  .hex-4 { width: 65px; height: 65px; margin: -32.5px 0 0 -32.5px; }
+  .radar-label { position: absolute; font-size: 11px; color: #94a3b8; font-weight: 500; white-space: nowrap; }
+  .rl-top { top: -6px; left: 50%; transform: translateX(-50%); }
+  .rl-tr { top: 25%; right: -16px; }
+  .rl-br { bottom: 25%; right: -20px; }
+  .rl-bottom { bottom: -6px; left: 50%; transform: translateX(-50%); }
+  .rl-bl { bottom: 25%; left: -24px; }
+  .rl-tl { top: 25%; left: -12px; }
+  .radar-shape { position: absolute; top: 50%; left: 50%; }
+  .radar-shape svg { overflow: visible; }
+
+  .trait-bars { margin-top: 24px; }
+  .trait-item { margin-bottom: 14px; }
+  .trait-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .trait-header .name { font-size: 13px; font-weight: 500; }
+  .trait-header .val { font-size: 13px; font-weight: 700; color: #a78bfa; }
+  .trait-bar-bg { height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+  .trait-bar-fill { height: 100%; border-radius: 3px; }
+
+  .analysis-card { margin-top: 24px; background: linear-gradient(135deg, #141420, #1a1a2e); border-radius: 18px; padding: 18px; border: 1px solid rgba(255,255,255,0.04); }
+  .analysis-card .header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .analysis-card .header i { color: #818cf8; }
+  .analysis-card .header h4 { font-size: 14px; font-weight: 600; }
+  .analysis-card p { font-size: 13px; color: #94a3b8; line-height: 1.7; }
+  .analysis-card .highlight { color: #c4b5fd; font-weight: 600; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(10,10,15,0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: #555; }
+  .tab-item.active { color: #818cf8; }
+  .tab-item i { font-size: 20px; }
+  .tab-item .dot { width: 4px; height: 4px; border-radius: 50%; background: #818cf8; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal" style="font-size:14px"></i>
+      <i class="fas fa-wifi" style="font-size:14px"></i>
+      <i class="fas fa-battery-full" style="font-size:14px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-header">
+      <h1>Music Soul</h1>
+      <div class="share-btn"><i class="fas fa-share-nodes"></i></div>
+    </div>
+
+    <!-- Persona Card -->
+    <div class="persona-card">
+      <div class="persona-emoji">🎭</div>
+      <div class="persona-title">Melancholic Cyber Poet</div>
+      <div class="persona-sub">Based on 2,847 tracks across 3 platforms</div>
+      <div class="persona-tags">
+        <span>🌙 Nocturnal</span>
+        <span>🎹 Synth-Driven</span>
+        <span>💭 Introspective</span>
+        <span>🌊 Atmospheric</span>
+      </div>
+    </div>
+
+    <!-- Radar Chart -->
+    <div class="radar-section">
+      <div class="radar-title">Sound DNA</div>
+      <div class="radar-chart">
+        <div class="radar-bg">
+          <div class="hex hex-1"></div>
+          <div class="hex hex-2"></div>
+          <div class="hex hex-3"></div>
+          <div class="hex hex-4"></div>
+        </div>
+        <span class="radar-label rl-top">Energy</span>
+        <span class="radar-label rl-tr">Complexity</span>
+        <span class="radar-label rl-br">Warmth</span>
+        <span class="radar-label rl-bottom">Rhythm</span>
+        <span class="radar-label rl-bl">Lyrical</span>
+        <span class="radar-label rl-tl">Mood</span>
+        <div class="radar-shape">
+          <svg width="0" height="0" style="position:absolute">
+            <defs>
+              <linearGradient id="radarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#818cf8;stop-opacity:0.4" />
+                <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:0.2" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <svg width="260" height="260" viewBox="-130 -130 260 260" style="position:absolute;top:-130px;left:-130px;">
+            <polygon points="0,-78 95,-40 85,55 0,100 -75,60 -90,-35" fill="url(#radarGrad)" stroke="#818cf8" stroke-width="1.5" opacity="0.8"/>
+            <circle cx="0" cy="-78" r="4" fill="#818cf8"/>
+            <circle cx="95" cy="-40" r="4" fill="#818cf8"/>
+            <circle cx="85" cy="55" r="4" fill="#818cf8"/>
+            <circle cx="0" cy="100" r="4" fill="#818cf8"/>
+            <circle cx="-75" cy="60" r="4" fill="#818cf8"/>
+            <circle cx="-90" cy="-35" r="4" fill="#818cf8"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trait Bars -->
+    <div class="trait-bars">
+      <div class="trait-item">
+        <div class="trait-header"><span class="name">🎹 Synth Affinity</span><span class="val">92%</span></div>
+        <div class="trait-bar-bg"><div class="trait-bar-fill" style="width:92%;background:linear-gradient(90deg,#818cf8,#a78bfa)"></div></div>
+      </div>
+      <div class="trait-item">
+        <div class="trait-header"><span class="name">🌙 Nocturnal Listening</span><span class="val">87%</span></div>
+        <div class="trait-bar-bg"><div class="trait-bar-fill" style="width:87%;background:linear-gradient(90deg,#6366f1,#818cf8)"></div></div>
+      </div>
+      <div class="trait-item">
+        <div class="trait-header"><span class="name">💭 Lyrical Depth</span><span class="val">74%</span></div>
+        <div class="trait-bar-bg"><div class="trait-bar-fill" style="width:74%;background:linear-gradient(90deg,#8b5cf6,#a78bfa)"></div></div>
+      </div>
+      <div class="trait-item">
+        <div class="trait-header"><span class="name">⚡ Tempo Range</span><span class="val">68%</span></div>
+        <div class="trait-bar-bg"><div class="trait-bar-fill" style="width:68%;background:linear-gradient(90deg,#7c3aed,#8b5cf6)"></div></div>
+      </div>
+      <div class="trait-item">
+        <div class="trait-header"><span class="name">🎸 Acoustic Warmth</span><span class="val">45%</span></div>
+        <div class="trait-bar-bg"><div class="trait-bar-fill" style="width:45%;background:linear-gradient(90deg,#6d28d9,#7c3aed)"></div></div>
+      </div>
+    </div>
+
+    <!-- AI Analysis -->
+    <div class="analysis-card">
+      <div class="header"><i class="fas fa-wand-magic-sparkles"></i><h4>Why You're Drawn to This Sound</h4></div>
+      <p>Your playlist reveals a deep affinity for <span class="highlight">layered synthesizers</span> and <span class="highlight">reverb-heavy atmospheres</span>. The recurring preference for minor keys (73% of tracks) combined with electronic textures suggests you seek music as an <span class="highlight">emotional cocoon</span> — immersive soundscapes that mirror internal reflections.</p>
+    </div>
+
+    <div class="analysis-card" style="margin-top:12px;">
+      <div class="header"><i class="fas fa-music"></i><h4>Key & Instrument Breakdown</h4></div>
+      <p>Top keys: <span class="highlight">A minor</span> (18%), <span class="highlight">E minor</span> (14%), <span class="highlight">C major</span> (11%). Dominant instruments: synthesizer pads, arpeggiated keys, programmed drums. Your sound gravitates toward <span class="highlight">post-rock textures meets electronic minimalism</span>.</p>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-brain"></i>
+      <span>Soul</span>
+      <div class="dot"></div>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-heart-pulse"></i>
+      <span>Mood</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-users"></i>
+      <span>Social</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>

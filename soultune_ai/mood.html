@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulTune AI - Mood</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { scrollbar-width: none; width: 100%; height: 100%; overflow-x: hidden; font-family: 'Inter', -apple-system, sans-serif; background: #0a0a0f; color: #fff; }
+
+  .status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; position: sticky; top: 0; z-index: 100; background: #0a0a0f; }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+
+  .page-header { margin-top: 8px; }
+  .page-header h1 { font-size: 26px; font-weight: 700; }
+  .page-header .date { font-size: 13px; color: #64748b; margin-top: 4px; }
+
+  .emotion-summary { margin-top: 20px; background: linear-gradient(135deg, #1a0a2e, #0f1a3e, #0a1628); border-radius: 24px; padding: 22px; position: relative; overflow: hidden; }
+  .emotion-summary::before { content: ''; position: absolute; top: -30px; right: -30px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(236,72,153,0.25), transparent); border-radius: 50%; }
+  .es-top { display: flex; justify-content: space-between; align-items: center; }
+  .es-label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+  .es-badge { font-size: 11px; background: rgba(236,72,153,0.15); color: #f9a8d4; padding: 4px 10px; border-radius: 12px; }
+  .es-emoji { font-size: 48px; margin: 14px 0 6px; }
+  .es-title { font-size: 22px; font-weight: 700; }
+  .es-desc { font-size: 12px; color: #94a3b8; margin-top: 4px; line-height: 1.5; }
+
+  .chart-section { margin-top: 24px; }
+  .chart-label { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .emotion-chart { background: rgba(255,255,255,0.02); border-radius: 18px; padding: 18px; }
+  .chart-grid { display: flex; align-items: flex-end; gap: 6px; height: 140px; justify-content: space-between; }
+  .chart-col { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+  .chart-bar { width: 100%; max-width: 28px; border-radius: 6px 6px 2px 2px; position: relative; min-height: 8px; }
+  .chart-time { font-size: 9px; color: #475569; }
+  .chart-legend { display: flex; justify-content: center; gap: 16px; margin-top: 14px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #94a3b8; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .emotion-timeline { margin-top: 24px; }
+  .tl-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+  .tl-item { display: flex; gap: 14px; margin-bottom: 16px; position: relative; }
+  .tl-line { position: absolute; left: 19px; top: 38px; bottom: -16px; width: 2px; background: rgba(255,255,255,0.04); }
+  .tl-dot-wrap { width: 40px; height: 40px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; position: relative; z-index: 1; }
+  .tl-content { flex: 1; }
+  .tl-content h4 { font-size: 14px; font-weight: 600; }
+  .tl-content .tl-time { font-size: 11px; color: #475569; margin-top: 1px; }
+  .tl-content .tl-songs { display: flex; gap: 6px; margin-top: 8px; }
+  .tl-song { width: 36px; height: 36px; border-radius: 8px; background-size: cover; background-position: center; }
+
+  .bpm-section { margin-top: 24px; }
+  .bpm-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+  .bpm-card { background: linear-gradient(135deg, #141420, #1a1a2e); border-radius: 18px; padding: 18px; display: flex; align-items: center; gap: 16px; }
+  .bpm-visual { width: 64px; height: 64px; border-radius: 50%; border: 3px solid #818cf8; display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative; }
+  .bpm-visual::before { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 1px solid rgba(129,140,248,0.15); }
+  .bpm-num { font-size: 22px; font-weight: 800; color: #818cf8; }
+  .bpm-info h4 { font-size: 14px; font-weight: 600; }
+  .bpm-info p { font-size: 12px; color: #94a3b8; margin-top: 3px; line-height: 1.5; }
+
+  .weekly-strip { margin-top: 24px; }
+  .ws-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+  .ws-row { display: flex; gap: 8px; }
+  .ws-day { flex: 1; text-align: center; }
+  .ws-day .emoji { font-size: 24px; margin-bottom: 4px; display: block; }
+  .ws-day .day-name { font-size: 10px; color: #64748b; }
+  .ws-day.today { background: rgba(129,140,248,0.1); border-radius: 12px; padding: 8px 0; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(10,10,15,0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: #555; }
+  .tab-item.active { color: #818cf8; }
+  .tab-item i { font-size: 20px; }
+  .tab-item .dot { width: 4px; height: 4px; border-radius: 50%; background: #818cf8; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal" style="font-size:14px"></i>
+      <i class="fas fa-wifi" style="font-size:14px"></i>
+      <i class="fas fa-battery-full" style="font-size:14px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-header">
+      <h1>Mood Diary</h1>
+      <div class="date">Thursday, Feb 6, 2026</div>
+    </div>
+
+    <!-- Emotion Summary -->
+    <div class="emotion-summary">
+      <div class="es-top">
+        <span class="es-label">Emotion Report</span>
+        <span class="es-badge">🧠 AI Analyzed</span>
+      </div>
+      <div class="es-emoji">🌤️</div>
+      <div class="es-title">Reflective Calm</div>
+      <div class="es-desc">Your music shifted from introspective lo-fi to gentle acoustic guitar, suggesting a move toward emotional resolution.</div>
+    </div>
+
+    <!-- Weekly Mood Strip -->
+    <div class="weekly-strip">
+      <div class="ws-title">This Week</div>
+      <div class="ws-row">
+        <div class="ws-day"><span class="emoji">😔</span><span class="day-name">Mon</span></div>
+        <div class="ws-day"><span class="emoji">😐</span><span class="day-name">Tue</span></div>
+        <div class="ws-day"><span class="emoji">🌧️</span><span class="day-name">Wed</span></div>
+        <div class="ws-day today"><span class="emoji">🌤️</span><span class="day-name">Thu</span></div>
+        <div class="ws-day"><span class="emoji">—</span><span class="day-name">Fri</span></div>
+        <div class="ws-day"><span class="emoji">—</span><span class="day-name">Sat</span></div>
+        <div class="ws-day"><span class="emoji">—</span><span class="day-name">Sun</span></div>
+      </div>
+    </div>
+
+    <!-- Emotion Chart -->
+    <div class="chart-section">
+      <div class="chart-label">Today's Emotion Flow</div>
+      <div class="emotion-chart">
+        <div class="chart-grid">
+          <div class="chart-col">
+            <div class="chart-bar" style="height:55%;background:linear-gradient(to top,#6366f1,#818cf8);"></div>
+            <span class="chart-time">8am</span>
+          </div>
+          <div class="chart-col">
+            <div class="chart-bar" style="height:40%;background:linear-gradient(to top,#6366f1,#818cf8);"></div>
+            <span class="chart-time">10</span>
+          </div>
+          <div class="chart-col">
+            <div class="chart-bar" style="height:65%;background:linear-gradient(to top,#8b5cf6,#a78bfa);"></div>
+            <span class="chart-time">12</span>
+          </div>
+          <div class="chart-col">
+            <div class="chart-bar" style="height:30%;background:linear-gradient(to top,#ec4899,#f9a8d4);"></div>
+            <span class="chart-time">2pm</span>
+          </div>
+          <div class="chart-col">
+            <div class="chart-bar" style="height:80%;background:linear-gradient(to top,#34d399,#6ee7b7);"></div>
+            <span class="chart-time">4</span>
+          </div>
+          <div class="chart-col">
+            <div class="chart-bar" style="height:70%;background:linear-gradient(to top,#34d399,#6ee7b7);"></div>
+            <span class="chart-time">6</span>
+          </div>
+          <div class="chart-col">
+            <div class="chart-bar" style="height:50%;background:linear-gradient(to top,#6366f1,#818cf8);"></div>
+            <span class="chart-time">8</span>
+          </div>
+          <div class="chart-col">
+            <div class="chart-bar" style="height:45%;background:linear-gradient(to top,#8b5cf6,#a78bfa);"></div>
+            <span class="chart-time">Now</span>
+          </div>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#818cf8;"></div>Calm</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#ec4899;"></div>Low</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#34d399;"></div>Uplifted</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="emotion-timeline">
+      <div class="tl-title">Emotion Timeline</div>
+
+      <div class="tl-item">
+        <div class="tl-line"></div>
+        <div class="tl-dot-wrap" style="background:rgba(99,102,241,0.15);">😌</div>
+        <div class="tl-content">
+          <h4>Morning Calm</h4>
+          <div class="tl-time">8:30 AM · Lo-fi ambient</div>
+          <div class="tl-songs">
+            <div class="tl-song" style="background-image:url('https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=80&h=80&fit=crop')"></div>
+            <div class="tl-song" style="background-image:url('https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=80&h=80&fit=crop')"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-line"></div>
+        <div class="tl-dot-wrap" style="background:rgba(236,72,153,0.15);">😢</div>
+        <div class="tl-content">
+          <h4>Midday Dip</h4>
+          <div class="tl-time">1:45 PM · Sad ballads on repeat</div>
+          <div class="tl-songs">
+            <div class="tl-song" style="background-image:url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=80&h=80&fit=crop')"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot-wrap" style="background:rgba(52,211,153,0.15);">😊</div>
+        <div class="tl-content">
+          <h4>Afternoon Lift</h4>
+          <div class="tl-time">3:20 PM · Shifted to indie pop</div>
+          <div class="tl-songs">
+            <div class="tl-song" style="background-image:url('https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=80&h=80&fit=crop')"></div>
+            <div class="tl-song" style="background-image:url('https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=80&h=80&fit=crop')"></div>
+            <div class="tl-song" style="background-image:url('https://images.unsplash.com/photo-1506157786151-b8491531f063?w=80&h=80&fit=crop')"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BPM Insight -->
+    <div class="bpm-section">
+      <div class="bpm-title">BPM Insight</div>
+      <div class="bpm-card">
+        <div class="bpm-visual"><span class="bpm-num">98</span></div>
+        <div class="bpm-info">
+          <h4>Avg. Tempo Today</h4>
+          <p>Slightly below your usual 112 BPM — your body is seeking slower, more soothing rhythms today.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-brain"></i>
+      <span>Soul</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-heart-pulse"></i>
+      <span>Mood</span>
+      <div class="dot"></div>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-users"></i>
+      <span>Social</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>

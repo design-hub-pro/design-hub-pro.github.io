@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulTune AI - Sync</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { scrollbar-width: none; width: 100%; height: 100%; overflow-x: hidden; font-family: 'Inter', -apple-system, sans-serif; background: #0a0a0f; color: #fff; }
+
+  .status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; position: sticky; top: 0; z-index: 100; background: #0a0a0f; }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+  .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; margin: 0 auto; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+
+  .page-header { margin-top: 8px; }
+  .page-header h1 { font-size: 26px; font-weight: 700; }
+  .page-header p { font-size: 13px; color: #64748b; margin-top: 4px; line-height: 1.5; }
+
+  .sync-visual { margin-top: 24px; display: flex; justify-content: center; align-items: center; position: relative; height: 160px; }
+  .sync-orb { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a78bfa); display: flex; align-items: center; justify-content: center; font-size: 36px; position: relative; z-index: 2; box-shadow: 0 0 40px rgba(99,102,241,0.4); }
+  .sync-ring { position: absolute; border: 1px solid rgba(99,102,241,0.15); border-radius: 50%; }
+  .ring-1 { width: 140px; height: 140px; animation: pulse 3s ease-in-out infinite; }
+  .ring-2 { width: 180px; height: 180px; animation: pulse 3s ease-in-out infinite 0.5s; }
+  .ring-3 { width: 220px; height: 220px; animation: pulse 3s ease-in-out infinite 1s; }
+  @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.05); } }
+
+  .orbit-icon { position: absolute; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; z-index: 3; }
+  .orbit-1 { top: 15px; left: 60px; background: #1DB954; }
+  .orbit-2 { top: 10px; right: 70px; background: #fc3c44; }
+  .orbit-3 { bottom: 20px; left: 50px; background: #e72d2d; }
+  .orbit-4 { bottom: 15px; right: 60px; background: #31c27c; }
+
+  .section-label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-top: 28px; margin-bottom: 12px; font-weight: 600; }
+
+  .platform-card { background: linear-gradient(135deg, #141420, #1a1a2e); border-radius: 18px; padding: 18px; display: flex; align-items: center; gap: 14px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.04); }
+  .platform-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .platform-info { flex: 1; }
+  .platform-info h4 { font-size: 15px; font-weight: 600; }
+  .platform-info p { font-size: 11px; color: #64748b; margin-top: 2px; }
+  .platform-status { font-size: 11px; padding: 5px 12px; border-radius: 20px; font-weight: 600; }
+  .status-connected { background: rgba(52,211,153,0.15); color: #34d399; }
+  .status-connect { background: rgba(129,140,248,0.15); color: #a5b4fc; }
+
+  .privacy-card { margin-top: 20px; background: linear-gradient(135deg, #0f172a, #1e293b); border-radius: 18px; padding: 18px; border: 1px solid rgba(99,102,241,0.1); }
+  .privacy-card .header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .privacy-card .header i { color: #34d399; font-size: 18px; }
+  .privacy-card .header h4 { font-size: 14px; font-weight: 600; }
+  .privacy-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #94a3b8; margin-top: 8px; }
+  .privacy-item i { color: #34d399; font-size: 10px; }
+
+  .sync-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; }
+  .stat-box { background: rgba(255,255,255,0.03); border-radius: 14px; padding: 14px; text-align: center; }
+  .stat-box .num { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #818cf8, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .stat-box .label { font-size: 10px; color: #64748b; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(10,10,15,0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: #555; }
+  .tab-item.active { color: #818cf8; }
+  .tab-item i { font-size: 20px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal" style="font-size:14px"></i>
+      <i class="fas fa-wifi" style="font-size:14px"></i>
+      <i class="fas fa-battery-full" style="font-size:14px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-header">
+      <h1>Universal Sync</h1>
+      <p>Connect your platforms to decode your sound DNA</p>
+    </div>
+
+    <div class="sync-visual">
+      <div class="sync-ring ring-1"></div>
+      <div class="sync-ring ring-2"></div>
+      <div class="sync-ring ring-3"></div>
+      <div class="sync-orb">🎵</div>
+      <div class="orbit-icon orbit-1"><i class="fab fa-spotify"></i></div>
+      <div class="orbit-icon orbit-2"><i class="fab fa-apple"></i></div>
+      <div class="orbit-icon orbit-3"><i class="fas fa-cloud"></i></div>
+      <div class="orbit-icon orbit-4"><i class="fas fa-music"></i></div>
+    </div>
+
+    <div class="sync-stats">
+      <div class="stat-box">
+        <div class="num">2,847</div>
+        <div class="label">Tracks</div>
+      </div>
+      <div class="stat-box">
+        <div class="num">156</div>
+        <div class="label">Playlists</div>
+      </div>
+      <div class="stat-box">
+        <div class="num">3</div>
+        <div class="label">Sources</div>
+      </div>
+    </div>
+
+    <div class="section-label">Connected Platforms</div>
+
+    <div class="platform-card">
+      <div class="platform-icon" style="background:rgba(30,215,96,0.15);color:#1DB954;"><i class="fab fa-spotify"></i></div>
+      <div class="platform-info">
+        <h4>Spotify</h4>
+        <p>1,432 tracks · Synced 5 min ago</p>
+      </div>
+      <span class="platform-status status-connected">Connected</span>
+    </div>
+
+    <div class="platform-card">
+      <div class="platform-icon" style="background:rgba(252,60,68,0.15);color:#fc3c44;"><i class="fab fa-apple"></i></div>
+      <div class="platform-info">
+        <h4>Apple Music</h4>
+        <p>891 tracks · Synced 1 hr ago</p>
+      </div>
+      <span class="platform-status status-connected">Connected</span>
+    </div>
+
+    <div class="platform-card">
+      <div class="platform-icon" style="background:rgba(231,45,45,0.15);color:#e72d2d;"><i class="fas fa-cloud-arrow-up"></i></div>
+      <div class="platform-info">
+        <h4>NetEase Cloud</h4>
+        <p>524 tracks · Synced 3 hrs ago</p>
+      </div>
+      <span class="platform-status status-connected">Connected</span>
+    </div>
+
+    <div class="section-label">Add More</div>
+
+    <div class="platform-card">
+      <div class="platform-icon" style="background:rgba(49,194,124,0.15);color:#31c27c;"><i class="fas fa-music"></i></div>
+      <div class="platform-info">
+        <h4>QQ Music</h4>
+        <p>Import via playlist link</p>
+      </div>
+      <span class="platform-status status-connect">Connect</span>
+    </div>
+
+    <div class="platform-card">
+      <div class="platform-icon" style="background:rgba(255,0,80,0.15);color:#ff0050;"><i class="fab fa-youtube"></i></div>
+      <div class="platform-info">
+        <h4>YouTube Music</h4>
+        <p>OAuth authorization</p>
+      </div>
+      <span class="platform-status status-connect">Connect</span>
+    </div>
+
+    <div class="privacy-card">
+      <div class="header">
+        <i class="fas fa-shield-halved"></i>
+        <h4>Privacy First</h4>
+      </div>
+      <div class="privacy-item"><i class="fas fa-check-circle"></i> Only reads song metadata (title, artist, plays)</div>
+      <div class="privacy-item"><i class="fas fa-check-circle"></i> No account passwords stored</div>
+      <div class="privacy-item"><i class="fas fa-check-circle"></i> End-to-end encrypted data transfer</div>
+      <div class="privacy-item"><i class="fas fa-check-circle"></i> Delete your data anytime</div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item active">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-brain"></i>
+      <span>Soul</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-heart-pulse"></i>
+      <span>Mood</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-users"></i>
+      <span>Social</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>
