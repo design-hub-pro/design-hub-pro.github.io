@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GrillMaster AI - Cook Setup</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { scrollbar-width: none; width: 100%; height: 100%; overflow-x: hidden; font-family: 'Inter', -apple-system, sans-serif; background: #0f0f0f; color: #fff; }
+
+  .status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; position: sticky; top: 0; z-index: 100; background: #0f0f0f; }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+  .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; margin: 0 auto; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; overflow-y: auto; }
+
+  .page-header { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
+  .page-header .back { width: 36px; height: 36px; border-radius: 12px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 14px; color: #ccc; }
+  .page-header h1 { font-size: 22px; font-weight: 700; }
+
+  .section-label { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 24px; margin-bottom: 12px; font-weight: 600; }
+
+  .meat-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+  .meat-chip { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 76px; padding: 14px 10px; border-radius: 18px; background: rgba(255,255,255,0.04); border: 1.5px solid transparent; cursor: pointer; transition: all 0.2s; }
+  .meat-chip.selected { background: rgba(249,115,22,0.12); border-color: #f97316; }
+  .meat-chip .meat-icon { font-size: 28px; }
+  .meat-chip .meat-name { font-size: 11px; font-weight: 500; color: #94a3b8; }
+  .meat-chip.selected .meat-name { color: #f97316; }
+
+  .cut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cut-card { padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,0.04); border: 1.5px solid transparent; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .cut-card.selected { background: rgba(249,115,22,0.1); border-color: #f97316; }
+  .cut-card h4 { font-size: 14px; font-weight: 600; }
+  .cut-card p { font-size: 11px; color: #64748b; margin-top: 2px; }
+  .cut-card.selected h4 { color: #f97316; }
+
+  .thickness-slider { margin-top: 8px; }
+  .thickness-display { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; }
+  .thickness-value { font-size: 36px; font-weight: 800; color: #f97316; line-height: 1; }
+  .thickness-unit { font-size: 14px; color: #888; margin-left: 4px; }
+  .slider-track { width: 100%; height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; position: relative; }
+  .slider-fill { height: 100%; width: 55%; background: linear-gradient(90deg, #f97316, #fbbf24); border-radius: 4px; }
+  .slider-thumb { width: 24px; height: 24px; background: #fff; border-radius: 50%; position: absolute; top: -8px; left: 53%; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+  .slider-labels { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: #555; }
+
+  .doneness-row { display: flex; justify-content: space-between; gap: 6px; }
+  .doneness-item { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; flex: 1; }
+  .doneness-circle { width: 48px; height: 48px; border-radius: 50%; border: 2.5px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .doneness-item.selected .doneness-circle { border-color: #f97316; box-shadow: 0 0 16px rgba(249,115,22,0.3); }
+  .doneness-label { font-size: 10px; color: #888; font-weight: 500; text-align: center; line-height: 1.2; }
+  .doneness-item.selected .doneness-label { color: #f97316; font-weight: 600; }
+  .doneness-temp { font-size: 9px; color: #555; }
+
+  .ai-card { margin-top: 22px; background: linear-gradient(135deg, #0a1520, #0e1a28); border-radius: 18px; padding: 18px; border: 1px solid rgba(56,189,248,0.15); }
+  .ai-card .ai-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .ai-card .ai-icon { width: 30px; height: 30px; border-radius: 10px; background: rgba(56,189,248,0.15); display: flex; align-items: center; justify-content: center; font-size: 14px; color: #38bdf8; }
+  .ai-card .ai-title { font-size: 13px; font-weight: 600; color: #38bdf8; }
+  .ai-card p { font-size: 13px; color: #94a3b8; line-height: 1.5; }
+  .ai-card .ai-stats { display: flex; gap: 16px; margin-top: 12px; }
+  .ai-card .ai-stat { display: flex; align-items: center; gap: 6px; }
+  .ai-card .ai-stat .val { font-size: 16px; font-weight: 700; color: #fff; }
+  .ai-card .ai-stat .label { font-size: 10px; color: #64748b; }
+
+  .start-btn { margin-top: 24px; width: 100%; padding: 18px; border: none; border-radius: 18px; background: linear-gradient(135deg, #f97316, #ea580c); color: #fff; font-size: 17px; font-weight: 700; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(15,15,15,0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; z-index: 100; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: #555; }
+  .tab-item.active { color: #f97316; }
+  .tab-item i { font-size: 20px; }
+  .tab-item .dot { width: 4px; height: 4px; border-radius: 50%; background: #f97316; margin-top: -2px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal" style="font-size:14px"></i>
+      <i class="fas fa-wifi" style="font-size:14px"></i>
+      <i class="fas fa-battery-full" style="font-size:14px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-header">
+      <div class="back"><i class="fas fa-chevron-left"></i></div>
+      <h1>New Cook Session</h1>
+    </div>
+
+    <!-- Meat Type -->
+    <div class="section-label">Select Meat</div>
+    <div class="meat-scroll">
+      <div class="meat-chip selected">
+        <div class="meat-icon">🥩</div>
+        <div class="meat-name">Steak</div>
+      </div>
+      <div class="meat-chip">
+        <div class="meat-icon">🍔</div>
+        <div class="meat-name">Burger</div>
+      </div>
+      <div class="meat-chip">
+        <div class="meat-icon">🍗</div>
+        <div class="meat-name">Chicken</div>
+      </div>
+      <div class="meat-chip">
+        <div class="meat-icon">🐟</div>
+        <div class="meat-name">Fish</div>
+      </div>
+      <div class="meat-chip">
+        <div class="meat-icon">🥓</div>
+        <div class="meat-name">Pork</div>
+      </div>
+      <div class="meat-chip">
+        <div class="meat-icon">🌭</div>
+        <div class="meat-name">Sausage</div>
+      </div>
+    </div>
+
+    <!-- Cut Selection -->
+    <div class="section-label">Choose Cut</div>
+    <div class="cut-grid">
+      <div class="cut-card selected">
+        <h4>Ribeye</h4>
+        <p>Rich & marbled</p>
+      </div>
+      <div class="cut-card">
+        <h4>NY Strip</h4>
+        <p>Lean & tender</p>
+      </div>
+      <div class="cut-card">
+        <h4>Filet Mignon</h4>
+        <p>Ultra tender</p>
+      </div>
+      <div class="cut-card">
+        <h4>T-Bone</h4>
+        <p>Best of both</p>
+      </div>
+    </div>
+
+    <!-- Thickness -->
+    <div class="section-label">Thickness</div>
+    <div class="thickness-slider">
+      <div class="thickness-display">
+        <div class="thickness-value">1.5<span class="thickness-unit">inches</span></div>
+      </div>
+      <div class="slider-track">
+        <div class="slider-fill"></div>
+        <div class="slider-thumb"></div>
+      </div>
+      <div class="slider-labels">
+        <span>0.5"</span>
+        <span>1.0"</span>
+        <span>1.5"</span>
+        <span>2.0"</span>
+        <span>2.5"</span>
+      </div>
+    </div>
+
+    <!-- Doneness -->
+    <div class="section-label">Doneness</div>
+    <div class="doneness-row">
+      <div class="doneness-item">
+        <div class="doneness-circle" style="background:rgba(220,38,38,0.3);"><div style="width:22px;height:22px;border-radius:50%;background:#dc2626;"></div></div>
+        <div class="doneness-label">Rare</div>
+        <div class="doneness-temp">125°F</div>
+      </div>
+      <div class="doneness-item selected">
+        <div class="doneness-circle" style="background:rgba(239,68,68,0.3);"><div style="width:22px;height:22px;border-radius:50%;background:#ef4444;"></div></div>
+        <div class="doneness-label">Med-Rare</div>
+        <div class="doneness-temp">135°F</div>
+      </div>
+      <div class="doneness-item">
+        <div class="doneness-circle" style="background:rgba(249,115,22,0.3);"><div style="width:22px;height:22px;border-radius:50%;background:#f97316;"></div></div>
+        <div class="doneness-label">Medium</div>
+        <div class="doneness-temp">145°F</div>
+      </div>
+      <div class="doneness-item">
+        <div class="doneness-circle" style="background:rgba(180,83,9,0.3);"><div style="width:22px;height:22px;border-radius:50%;background:#b45309;"></div></div>
+        <div class="doneness-label">Med-Well</div>
+        <div class="doneness-temp">155°F</div>
+      </div>
+      <div class="doneness-item">
+        <div class="doneness-circle" style="background:rgba(120,53,15,0.3);"><div style="width:22px;height:22px;border-radius:50%;background:#78350f;"></div></div>
+        <div class="doneness-label">Well</div>
+        <div class="doneness-temp">165°F</div>
+      </div>
+    </div>
+
+    <!-- AI Recommendation -->
+    <div class="ai-card">
+      <div class="ai-header">
+        <div class="ai-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+        <div class="ai-title">AI Recommendation</div>
+      </div>
+      <p>Medium-Rare is ideal for 1.5" Ribeye at current grill temp of 452°F.</p>
+      <div class="ai-stats">
+        <div class="ai-stat">
+          <div class="val">8:15</div>
+          <div class="label">Total Time</div>
+        </div>
+        <div class="ai-stat">
+          <div class="val">4</div>
+          <div class="label">Flips</div>
+        </div>
+        <div class="ai-stat">
+          <div class="val">94%</div>
+          <div class="label">Confidence</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Start Button -->
+    <button class="start-btn">
+      <i class="fas fa-fire"></i>
+      Start Grilling
+    </button>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item active"><i class="fas fa-fire-burner"></i><div class="dot"></div><span>Cook</span></div>
+    <div class="tab-item"><i class="fas fa-gauge-high"></i><span>Monitor</span></div>
+    <div class="tab-item"><i class="fas fa-clock-rotate-left"></i><span>History</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</body>
+</html>
