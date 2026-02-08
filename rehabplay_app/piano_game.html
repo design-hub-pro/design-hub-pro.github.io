@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RehabPlay - Piano Game</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  * { scrollbar-width: none; }
+  body { width: 100%; height: 100%; margin: 0; padding: 0; background: #1A1025; overflow-x: hidden; }
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; }
+  .status-bar { height: 59px; }
+  .content-area { padding-left: 28px; padding-right: 28px; }
+  .dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 20px; margin: 0 auto; margin-top: 14px; }
+  .piano-key-white { transition: all 0.15s; background: linear-gradient(180deg, #FFFFFF 0%, #F0F0F0 100%); }
+  .piano-key-white:active { background: linear-gradient(180deg, #E0E0E0 0%, #D0D0D0 100%); transform: scaleY(0.98); }
+  .piano-key-black { transition: all 0.15s; background: linear-gradient(180deg, #2D2D2D 0%, #1A1A1A 100%); }
+  .piano-key-black:active { background: linear-gradient(180deg, #3D3D3D 0%, #2A2A2A 100%); }
+  .note-hit { box-shadow: 0 0 20px rgba(168, 85, 247, 0.6); }
+  .falling-note { animation: fall 2s linear infinite; }
+  @keyframes fall { 0% { transform: translateY(-100%); } 100% { transform: translateY(400%); } }
+  .glow-line { box-shadow: 0 0 15px rgba(168, 85, 247, 0.8), 0 0 30px rgba(168, 85, 247, 0.4); }
+  @keyframes ripple { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(2); opacity: 0; } }
+  .note-perfect { color: #A855F7; text-shadow: 0 0 10px rgba(168, 85, 247, 0.5); }
+</style>
+</head>
+<body class="bg-[#1A1025]">
+  <!-- Status Bar -->
+  <div class="status-bar bg-[#1A1025] flex items-end justify-between px-8 pb-2">
+    <div class="dynamic-island"></div>
+  </div>
+  <div class="flex justify-between items-center px-7 pt-1 pb-2">
+    <span class="text-xs font-medium text-gray-400">9:41</span>
+    <div class="flex items-center gap-1.5">
+      <i class="fas fa-signal text-xs text-gray-400"></i>
+      <i class="fas fa-wifi text-xs text-gray-400"></i>
+      <i class="fas fa-battery-full text-xs text-gray-400"></i>
+    </div>
+  </div>
+
+  <!-- Top Nav -->
+  <div class="content-area flex items-center justify-between pt-1 pb-2">
+    <div class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+      <i class="fas fa-arrow-left text-white text-sm"></i>
+    </div>
+    <div class="text-center">
+      <p class="text-white font-bold text-sm">Twinkle Twinkle</p>
+      <p class="text-gray-500 text-xs">Easy Mode</p>
+    </div>
+    <div class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+      <i class="fas fa-pause text-white text-sm"></i>
+    </div>
+  </div>
+
+  <!-- Score Bar -->
+  <div class="content-area flex items-center justify-between mb-3">
+    <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1 bg-purple-500/20 px-3 py-1.5 rounded-full">
+        <i class="fas fa-star text-yellow-400 text-xs"></i>
+        <span class="text-purple-300 text-xs font-bold">1,240</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="flex gap-1">
+        <div class="w-2 h-2 rounded-full bg-purple-400"></div>
+        <div class="w-2 h-2 rounded-full bg-purple-400"></div>
+        <div class="w-2 h-2 rounded-full bg-purple-400"></div>
+        <div class="w-2 h-2 rounded-full bg-gray-600"></div>
+        <div class="w-2 h-2 rounded-full bg-gray-600"></div>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full">
+      <i class="fas fa-fire text-orange-400 text-xs"></i>
+      <span class="text-white text-xs font-bold">x8</span>
+    </div>
+  </div>
+
+  <!-- Falling Notes Area -->
+  <div class="mx-4 relative bg-gradient-to-b from-purple-900/20 to-transparent rounded-t-2xl overflow-hidden" style="height: 340px;">
+    <!-- Lane Dividers -->
+    <div class="absolute inset-0 flex">
+      <div class="flex-1 border-r border-white/5"></div>
+      <div class="flex-1 border-r border-white/5"></div>
+      <div class="flex-1 border-r border-white/5"></div>
+      <div class="flex-1 border-r border-white/5"></div>
+      <div class="flex-1 border-r border-white/5"></div>
+      <div class="flex-1 border-r border-white/5"></div>
+      <div class="flex-1"></div>
+    </div>
+
+    <!-- Falling Notes -->
+    <div class="absolute" style="left: 14.28%; width: 14.28%; top: 5%;">
+      <div class="mx-1 h-16 bg-gradient-to-b from-purple-400 to-purple-600 rounded-lg opacity-90 shadow-lg shadow-purple-500/30"></div>
+    </div>
+    <div class="absolute" style="left: 28.56%; width: 14.28%; top: 20%;">
+      <div class="mx-1 h-12 bg-gradient-to-b from-pink-400 to-pink-600 rounded-lg opacity-90 shadow-lg shadow-pink-500/30"></div>
+    </div>
+    <div class="absolute" style="left: 42.84%; width: 14.28%; top: 38%;">
+      <div class="mx-1 h-16 bg-gradient-to-b from-blue-400 to-blue-600 rounded-lg opacity-90 shadow-lg shadow-blue-500/30"></div>
+    </div>
+    <div class="absolute" style="left: 57.12%; width: 14.28%; top: 55%;">
+      <div class="mx-1 h-10 bg-gradient-to-b from-emerald-400 to-emerald-600 rounded-lg opacity-90 shadow-lg shadow-emerald-500/30"></div>
+    </div>
+    <div class="absolute" style="left: 71.4%; width: 14.28%; top: 15%;">
+      <div class="mx-1 h-14 bg-gradient-to-b from-amber-400 to-amber-600 rounded-lg opacity-90 shadow-lg shadow-amber-500/30"></div>
+    </div>
+    <div class="absolute" style="left: 0%; width: 14.28%; top: 42%;">
+      <div class="mx-1 h-12 bg-gradient-to-b from-rose-400 to-rose-600 rounded-lg opacity-90 shadow-lg shadow-rose-500/30"></div>
+    </div>
+
+    <!-- Hit Line -->
+    <div class="absolute bottom-0 left-0 right-0 h-1 bg-purple-500 glow-line"></div>
+
+    <!-- Perfect/Good/Miss Feedback -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2">
+      <p class="note-perfect text-2xl font-extrabold tracking-wider">PERFECT!</p>
+    </div>
+  </div>
+
+  <!-- Piano Keys -->
+  <div class="mx-4 relative" style="height: 200px;">
+    <div class="flex h-full gap-0.5">
+      <!-- White Keys -->
+      <div class="piano-key-white flex-1 rounded-b-xl flex flex-col items-center justify-end pb-4 relative">
+        <span class="text-gray-400 text-xs font-bold">C</span>
+      </div>
+      <div class="piano-key-white flex-1 rounded-b-xl flex flex-col items-center justify-end pb-4 note-hit relative">
+        <span class="text-purple-500 text-xs font-bold">D</span>
+      </div>
+      <div class="piano-key-white flex-1 rounded-b-xl flex flex-col items-center justify-end pb-4 relative">
+        <span class="text-gray-400 text-xs font-bold">E</span>
+      </div>
+      <div class="piano-key-white flex-1 rounded-b-xl flex flex-col items-center justify-end pb-4 relative">
+        <span class="text-gray-400 text-xs font-bold">F</span>
+      </div>
+      <div class="piano-key-white flex-1 rounded-b-xl flex flex-col items-center justify-end pb-4 relative">
+        <span class="text-gray-400 text-xs font-bold">G</span>
+      </div>
+      <div class="piano-key-white flex-1 rounded-b-xl flex flex-col items-center justify-end pb-4 relative">
+        <span class="text-gray-400 text-xs font-bold">A</span>
+      </div>
+      <div class="piano-key-white flex-1 rounded-b-xl flex flex-col items-center justify-end pb-4 relative">
+        <span class="text-gray-400 text-xs font-bold">B</span>
+      </div>
+    </div>
+    <!-- Black Keys -->
+    <div class="absolute top-0 left-0 right-0 h-[55%] flex pointer-events-none">
+      <div class="flex-1 flex justify-end">
+        <div class="piano-key-black w-[65%] h-full rounded-b-lg pointer-events-auto" style="margin-right: -32.5%"></div>
+      </div>
+      <div class="flex-1 flex justify-end">
+        <div class="piano-key-black w-[65%] h-full rounded-b-lg pointer-events-auto" style="margin-right: -32.5%"></div>
+      </div>
+      <div class="flex-1"></div>
+      <div class="flex-1 flex justify-end">
+        <div class="piano-key-black w-[65%] h-full rounded-b-lg pointer-events-auto" style="margin-right: -32.5%"></div>
+      </div>
+      <div class="flex-1 flex justify-end">
+        <div class="piano-key-black w-[65%] h-full rounded-b-lg pointer-events-auto" style="margin-right: -32.5%"></div>
+      </div>
+      <div class="flex-1 flex justify-end">
+        <div class="piano-key-black w-[65%] h-full rounded-b-lg pointer-events-auto" style="margin-right: -32.5%"></div>
+      </div>
+      <div class="flex-1"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Controls -->
+  <div class="content-area flex items-center justify-between pt-4 pb-28">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
+        <i class="fas fa-hand text-purple-300 text-xs"></i>
+      </div>
+      <div>
+        <p class="text-white text-xs font-semibold">Left Hand</p>
+        <p class="text-gray-500 text-[10px]">Active</p>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <div class="px-3 py-1.5 bg-purple-500/20 rounded-full">
+        <span class="text-purple-300 text-xs font-medium">Tempo: 80</span>
+      </div>
+      <div class="px-3 py-1.5 bg-white/10 rounded-full">
+        <span class="text-gray-400 text-xs font-medium">Guide: On</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar bg-[#1A1025]/95 backdrop-blur-xl border-t border-white/5 px-6 pb-8 pt-3">
+    <div class="flex justify-around items-center">
+      <div class="flex flex-col items-center gap-1">
+        <i class="fas fa-home text-gray-500 text-xl"></i>
+        <span class="text-[10px] font-medium text-gray-500">Home</span>
+      </div>
+      <div class="flex flex-col items-center gap-1">
+        <i class="fas fa-gamepad text-purple-400 text-xl"></i>
+        <span class="text-[10px] font-semibold text-purple-400">Games</span>
+      </div>
+      <div class="flex flex-col items-center gap-1">
+        <i class="fas fa-chart-line text-gray-500 text-xl"></i>
+        <span class="text-[10px] font-medium text-gray-500">Progress</span>
+      </div>
+      <div class="flex flex-col items-center gap-1">
+        <i class="fas fa-user text-gray-500 text-xl"></i>
+        <span class="text-[10px] font-medium text-gray-500">Profile</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
