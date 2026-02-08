@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stretch Detail</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { scrollbar-width: none; width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', -apple-system, sans-serif; background: #0a0a1a; color: #fff; }
+
+  .status-bar { display: flex; justify-content: space-between; align-items: center; padding: 14px 28px 0; height: 59px; position: relative; z-index: 10; }
+  .status-bar-time { font-size: 17px; font-weight: 600; }
+  .dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 20px; position: absolute; left: 50%; transform: translateX(-50%); top: 10px; }
+  .status-bar-icons { display: flex; gap: 6px; align-items: center; }
+  .status-bar-icons i { font-size: 14px; }
+
+  .screen { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+  .content { flex: 1; overflow-y: auto; padding: 0 0 120px; }
+
+  .back-btn {
+    position: absolute; top: 68px; left: 28px; z-index: 10;
+    width: 42px; height: 42px; border-radius: 14px;
+    background: rgba(0,0,0,0.4); backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center; font-size: 16px; color: #fff;
+  }
+
+  .hero-section {
+    height: 340px; position: relative; overflow: hidden;
+    background: linear-gradient(180deg, rgba(88,92,255,0.15) 0%, rgba(0,210,180,0.1) 50%, #0a0a1a 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .hero-icon { font-size: 80px; margin-bottom: 16px; opacity: 0.7; }
+  .hero-step {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: rgba(255,255,255,0.08); border: 2px solid rgba(88,92,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 800; color: #585cff;
+  }
+  .hero-badge {
+    position: absolute; bottom: 20px; left: 28px;
+    background: linear-gradient(135deg, #585cff, #00d2b4);
+    border-radius: 12px; padding: 6px 14px;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .exercise-content { padding: 0 28px; }
+  .exercise-title { font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+  .exercise-subtitle { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
+
+  .meta-row { display: flex; gap: 16px; margin-bottom: 24px; }
+  .meta-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; color: rgba(255,255,255,0.5);
+  }
+  .meta-item i { color: #585cff; font-size: 14px; }
+
+  .timer-section { text-align: center; margin-bottom: 28px; }
+  .timer-display {
+    width: 180px; height: 180px; border-radius: 50%; margin: 0 auto 20px;
+    background: rgba(88,92,255,0.06); border: 3px solid rgba(88,92,255,0.2);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .timer-display::before {
+    content: ''; position: absolute; inset: -8px; border-radius: 50%;
+    border: 2px dashed rgba(88,92,255,0.1);
+  }
+  .timer-big { font-size: 44px; font-weight: 800; background: linear-gradient(135deg, #585cff, #00d2b4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .timer-sub { font-size: 12px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  .controls { display: flex; gap: 16px; justify-content: center; }
+  .btn-ctrl {
+    width: 56px; height: 56px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; border: none; cursor: pointer; font-family: 'Inter', sans-serif;
+  }
+  .btn-ctrl.secondary { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
+  .btn-ctrl.primary {
+    background: linear-gradient(135deg, #585cff, #00d2b4);
+    color: #fff; box-shadow: 0 6px 20px rgba(88,92,255,0.3);
+    width: 68px; height: 68px; font-size: 24px;
+  }
+
+  .steps-section { margin-top: 28px; }
+  .steps-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; padding: 0 28px; }
+  .step-list { padding: 0 28px; }
+  .step-item { display: flex; gap: 14px; margin-bottom: 20px; position: relative; }
+  .step-item::before {
+    content: ''; position: absolute; left: 17px; top: 36px; bottom: -12px;
+    width: 2px; background: rgba(255,255,255,0.06);
+  }
+  .step-item:last-child::before { display: none; }
+  .step-num {
+    width: 36px; height: 36px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+  }
+  .step-num.active { background: linear-gradient(135deg, #585cff, #00d2b4); color: #fff; }
+  .step-num.pending { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.3); }
+  .step-num.done { background: rgba(0,210,180,0.15); color: #00d2b4; }
+  .step-text { padding-top: 6px; }
+  .step-name { font-size: 15px; font-weight: 600; }
+  .step-desc { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 3px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="status-bar">
+    <div class="status-bar-time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="status-bar-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+  <div class="back-btn"><i class="fas fa-chevron-left"></i></div>
+  <div class="content">
+    <div class="hero-section">
+      <div class="hero-icon">🧘</div>
+      <div class="hero-step">2</div>
+      <div class="hero-badge"><i class="fas fa-wand-magic-sparkles"></i> AI Guided</div>
+    </div>
+
+    <div class="exercise-content">
+      <div class="exercise-title">Lower Back Relief</div>
+      <div class="exercise-subtitle">Step 2 of 5 — Seated Spinal Twist</div>
+      <div class="meta-row">
+        <div class="meta-item"><i class="far fa-clock"></i> 5:30 total</div>
+        <div class="meta-item"><i class="fas fa-fire"></i> 12 cal</div>
+        <div class="meta-item"><i class="fas fa-signal"></i> Easy</div>
+      </div>
+    </div>
+
+    <div class="timer-section">
+      <div class="timer-display">
+        <div class="timer-big">0:28</div>
+        <div class="timer-sub">Hold</div>
+      </div>
+      <div class="controls">
+        <button class="btn-ctrl secondary"><i class="fas fa-backward-step"></i></button>
+        <button class="btn-ctrl primary"><i class="fas fa-pause"></i></button>
+        <button class="btn-ctrl secondary"><i class="fas fa-forward-step"></i></button>
+      </div>
+    </div>
+
+    <div class="steps-section">
+      <div class="steps-title">Exercise Steps</div>
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-num done"><i class="fas fa-check" style="font-size:12px"></i></div>
+          <div class="step-text">
+            <div class="step-name">Cat-Cow Stretch</div>
+            <div class="step-desc">Arch and round your back slowly</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num active">2</div>
+          <div class="step-text">
+            <div class="step-name">Seated Spinal Twist</div>
+            <div class="step-desc">Rotate torso gently to each side</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num pending">3</div>
+          <div class="step-text">
+            <div class="step-name">Figure-4 Stretch</div>
+            <div class="step-desc">Cross ankle over knee, lean forward</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num pending">4</div>
+          <div class="step-text">
+            <div class="step-name">Hip Circles</div>
+            <div class="step-desc">Rotate hips in circular motion</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num pending">5</div>
+          <div class="step-text">
+            <div class="step-name">Standing Forward Fold</div>
+            <div class="step-desc">Bend forward, let arms hang loose</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
