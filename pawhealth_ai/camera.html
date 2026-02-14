@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PawHealth AI - Camera</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+html, body { width: 100%; height: 100%; overflow: hidden; scrollbar-width: none; background: #000; }
+
+.status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; color: #fff; position: relative; z-index: 10; }
+.status-time { font-size: 17px; font-weight: 600; }
+.status-icons { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+.dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 20px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 20; }
+
+.camera-view { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+.camera-view img { width: 100%; height: 100%; object-fit: cover; opacity: 0.85; }
+
+.camera-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; z-index: 5; }
+
+.top-controls { display: flex; justify-content: space-between; align-items: center; padding: 70px 28px 0; }
+.top-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; }
+
+.scan-frame { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.scan-box { width: 280px; height: 280px; position: relative; }
+.scan-corner { position: absolute; width: 40px; height: 40px; }
+.scan-corner::before, .scan-corner::after { content: ''; position: absolute; background: #007aff; border-radius: 2px; }
+.scan-corner.tl { top: 0; left: 0; }
+.scan-corner.tl::before { width: 40px; height: 4px; top: 0; left: 0; }
+.scan-corner.tl::after { width: 4px; height: 40px; top: 0; left: 0; }
+.scan-corner.tr { top: 0; right: 0; }
+.scan-corner.tr::before { width: 40px; height: 4px; top: 0; right: 0; }
+.scan-corner.tr::after { width: 4px; height: 40px; top: 0; right: 0; }
+.scan-corner.bl { bottom: 0; left: 0; }
+.scan-corner.bl::before { width: 40px; height: 4px; bottom: 0; left: 0; }
+.scan-corner.bl::after { width: 4px; height: 40px; bottom: 0; left: 0; }
+.scan-corner.br { bottom: 0; right: 0; }
+.scan-corner.br::before { width: 40px; height: 4px; bottom: 0; right: 0; }
+.scan-corner.br::after { width: 4px; height: 40px; bottom: 0; right: 0; }
+
+.scan-text { position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 500; white-space: nowrap; text-align: center; }
+.scan-pulse { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; border-radius: 50%; border: 2px solid rgba(0,122,255,0.4); animation: pulse 2s infinite; }
+@keyframes pulse { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; } }
+
+.mode-selector { display: flex; justify-content: center; gap: 6px; padding: 0 28px; margin-bottom: 24px; }
+.mode-pill { padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.5); }
+.mode-pill.active { background: rgba(0,122,255,0.8); color: #fff; }
+
+.bottom-controls { padding: 0 28px 50px; }
+.capture-row { display: flex; align-items: center; justify-content: space-between; }
+.gallery-thumb { width: 48px; height: 48px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.4); overflow: hidden; }
+.gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.capture-btn { width: 76px; height: 76px; border-radius: 50%; border: 4px solid #fff; background: transparent; display: flex; align-items: center; justify-content: center; position: relative; }
+.capture-inner { width: 62px; height: 62px; border-radius: 50%; background: #fff; }
+.flip-btn { width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; }
+
+.ai-badge { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,122,255,0.85); backdrop-filter: blur(10px); color: #fff; padding: 8px 18px; border-radius: 14px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; z-index: 6; }
+.ai-badge .spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="camera-view">
+  <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800&q=80" alt="Camera view">
+</div>
+
+<div style="position: relative;"><div class="dynamic-island"></div></div>
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <span class="status-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></span>
+</div>
+
+<div class="camera-overlay">
+  <div class="top-controls">
+    <div class="top-btn"><i class="fas fa-xmark"></i></div>
+    <div class="top-btn"><i class="fas fa-bolt"></i></div>
+    <div class="top-btn"><i class="fas fa-gear"></i></div>
+  </div>
+
+  <div class="scan-frame">
+    <div class="scan-box">
+      <div class="scan-corner tl"></div>
+      <div class="scan-corner tr"></div>
+      <div class="scan-corner bl"></div>
+      <div class="scan-corner br"></div>
+      <div class="scan-pulse"></div>
+      <div class="scan-text">Point camera at your dog</div>
+    </div>
+  </div>
+
+  <div class="ai-badge"><div class="spinner"></div> AI Ready to Scan</div>
+
+  <div class="mode-selector">
+    <div class="mode-pill">Food</div>
+    <div class="mode-pill">Stool</div>
+    <div class="mode-pill active">Mood</div>
+    <div class="mode-pill">Video</div>
+  </div>
+
+  <div class="bottom-controls">
+    <div class="capture-row">
+      <div class="gallery-thumb">
+        <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=100&q=80" alt="Gallery">
+      </div>
+      <div class="capture-btn"><div class="capture-inner"></div></div>
+      <div class="flip-btn"><i class="fas fa-rotate"></i></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
