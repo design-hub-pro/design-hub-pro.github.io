@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PawHealth AI - Lost Dog Detail</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+html, body { width: 100%; height: 100%; overflow-y: auto; scrollbar-width: none; background: #fff; }
+
+.status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; position: relative; z-index: 10; color: #fff; }
+.status-time { font-size: 17px; font-weight: 600; }
+.status-icons { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+.dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 20px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 20; }
+
+.hero { position: relative; height: 380px; }
+.hero img { width: 100%; height: 100%; object-fit: cover; }
+.hero-nav { position: absolute; top: 62px; left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 20px; z-index: 10; }
+.hero-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; }
+.hero-label { position: absolute; bottom: 16px; left: 16px; display: flex; gap: 8px; }
+.hero-tag { padding: 6px 14px; border-radius: 10px; font-size: 12px; font-weight: 700; color: #fff; }
+.hero-tag.lost { background: rgba(255,59,48,0.9); }
+.hero-tag.time { background: rgba(0,0,0,0.5); }
+
+.sheet { background: #fff; border-radius: 28px 28px 0 0; margin-top: -28px; position: relative; z-index: 5; padding: 24px 28px 40px; }
+
+.name-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+.dog-name { font-size: 28px; font-weight: 800; color: #1c1c1e; }
+.reward-badge { background: linear-gradient(135deg, #ff9500, #ff6b00); color: #fff; padding: 6px 14px; border-radius: 12px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+.dog-desc { font-size: 14px; color: #8e8e93; margin-bottom: 16px; }
+
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+.detail-item { background: #f2f2f7; border-radius: 16px; padding: 14px; text-align: center; }
+.detail-item .emoji { font-size: 22px; margin-bottom: 6px; }
+.detail-item .val { font-size: 14px; font-weight: 700; color: #1c1c1e; }
+.detail-item .lbl { font-size: 10px; color: #8e8e93; margin-top: 2px; }
+
+.section-title { font-size: 18px; font-weight: 700; color: #1c1c1e; margin-bottom: 12px; }
+
+.location-card { background: linear-gradient(135deg, #fff5f5, #ffe8e8); border-radius: 20px; padding: 18px; margin-bottom: 20px; }
+.location-card h4 { font-size: 15px; font-weight: 700; color: #1c1c1e; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.location-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.location-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.location-dot.red { background: #ff3b30; }
+.location-dot.orange { background: #ff9500; }
+.location-info { font-size: 13px; color: #48484a; }
+.location-time { font-size: 11px; color: #aeaeb2; margin-left: auto; flex-shrink: 0; }
+
+.identify-card { background: #f2f2f7; border-radius: 20px; padding: 18px; margin-bottom: 20px; }
+.identify-card h4 { font-size: 15px; font-weight: 700; color: #1c1c1e; margin-bottom: 12px; }
+.id-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.id-row:last-child { margin-bottom: 0; }
+.id-icon { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.id-icon.red { background: #fce8ee; color: #ff3b30; }
+.id-icon.blue { background: #e8f0ff; color: #007aff; }
+.id-icon.green { background: #e8f8ee; color: #34c759; }
+.id-label { font-size: 13px; color: #636366; flex: 1; }
+.id-value { font-size: 13px; font-weight: 600; color: #1c1c1e; }
+
+.sightings { margin-bottom: 24px; }
+.sighting-item { display: flex; gap: 12px; background: #f2f2f7; border-radius: 16px; padding: 12px 14px; margin-bottom: 8px; align-items: center; }
+.sighting-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #007aff, #5856d6); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.sighting-info h6 { font-size: 13px; font-weight: 600; color: #1c1c1e; }
+.sighting-info p { font-size: 11px; color: #8e8e93; margin-top: 2px; }
+.sighting-time { margin-left: auto; font-size: 11px; color: #aeaeb2; flex-shrink: 0; }
+
+.action-buttons { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+.btn-primary { width: 100%; padding: 16px; background: linear-gradient(135deg, #ff3b30, #ff6961); color: #fff; border: none; border-radius: 16px; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(255,59,48,0.35); }
+.btn-row { display: flex; gap: 10px; }
+.btn-secondary { flex: 1; padding: 14px; background: #f2f2f7; border: none; border-radius: 14px; font-size: 14px; font-weight: 600; color: #007aff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+.contact-owner { display: flex; gap: 14px; background: linear-gradient(135deg, #f0f4ff, #e8ecff); border-radius: 18px; padding: 14px; margin-bottom: 20px; align-items: center; }
+.owner-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #5856d6, #007aff); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+.owner-info h5 { font-size: 15px; font-weight: 600; color: #1c1c1e; }
+.owner-info p { font-size: 12px; color: #8e8e93; margin-top: 2px; }
+.owner-call { width: 42px; height: 42px; border-radius: 50%; background: #34c759; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; margin-left: auto; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div style="position: relative;"><div class="dynamic-island"></div></div>
+
+<div class="hero">
+  <img src="https://images.unsplash.com/photo-1477884213360-7e9d7dcc8f9b?w=800&q=80" alt="Rocky">
+  <div class="status-bar" style="position:absolute; top:0; left:0; right:0;">
+    <span class="status-time">9:41</span>
+    <span class="status-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></span>
+  </div>
+  <div class="hero-nav">
+    <div class="hero-btn"><i class="fas fa-chevron-left"></i></div>
+    <div class="hero-btn"><i class="fas fa-share-from-square"></i></div>
+  </div>
+  <div class="hero-label">
+    <div class="hero-tag lost"><i class="fas fa-triangle-exclamation"></i> LOST</div>
+    <div class="hero-tag time"><i class="fas fa-clock"></i> 2 hrs ago</div>
+  </div>
+</div>
+
+<div class="sheet">
+  <div class="name-row">
+    <div class="dog-name">Rocky</div>
+    <div class="reward-badge"><i class="fas fa-gift"></i> $500</div>
+  </div>
+  <div class="dog-desc">German Shepherd · Brown & Black · Male · 4 years old</div>
+
+  <div class="detail-grid">
+    <div class="detail-item">
+      <div class="emoji">🏷️</div>
+      <div class="val">Red</div>
+      <div class="lbl">Collar</div>
+    </div>
+    <div class="detail-item">
+      <div class="emoji">📡</div>
+      <div class="val">Yes</div>
+      <div class="lbl">Microchip</div>
+    </div>
+    <div class="detail-item">
+      <div class="emoji">⚖️</div>
+      <div class="val">75 lbs</div>
+      <div class="lbl">Weight</div>
+    </div>
+  </div>
+
+  <div class="location-card">
+    <h4><i class="fas fa-location-dot" style="color:#ff3b30;"></i> Last Known Location</h4>
+    <div class="location-row">
+      <div class="location-dot red"></div>
+      <span class="location-info">Oak Park, Central Ave & 5th St</span>
+      <span class="location-time">2:30 PM</span>
+    </div>
+    <div class="location-row">
+      <div class="location-dot orange"></div>
+      <span class="location-info">Spotted near Elm Street Market</span>
+      <span class="location-time">3:15 PM</span>
+    </div>
+  </div>
+
+  <div class="identify-card">
+    <h4>Identification</h4>
+    <div class="id-row">
+      <div class="id-icon red"><i class="fas fa-tag"></i></div>
+      <span class="id-label">Collar</span>
+      <span class="id-value">Red with silver tag</span>
+    </div>
+    <div class="id-row">
+      <div class="id-icon blue"><i class="fas fa-microchip"></i></div>
+      <span class="id-label">Microchip ID</span>
+      <span class="id-value">985***4721</span>
+    </div>
+    <div class="id-row">
+      <div class="id-icon green"><i class="fas fa-star"></i></div>
+      <span class="id-label">Unique mark</span>
+      <span class="id-value">White chest patch</span>
+    </div>
+  </div>
+
+  <div class="section-title">Community Sightings</div>
+  <div class="sightings">
+    <div class="sighting-item">
+      <div class="sighting-avatar">JS</div>
+      <div class="sighting-info">
+        <h6>Jane S. spotted Rocky</h6>
+        <p>Near Elm Street, heading south</p>
+      </div>
+      <span class="sighting-time">45 min</span>
+    </div>
+    <div class="sighting-item">
+      <div class="sighting-avatar">MK</div>
+      <div class="sighting-info">
+        <h6>Mike K. saw a similar dog</h6>
+        <p>Riverside Park area, looked friendly</p>
+      </div>
+      <span class="sighting-time">1.5 hrs</span>
+    </div>
+  </div>
+
+  <div class="contact-owner">
+    <div class="owner-avatar">SR</div>
+    <div class="owner-info">
+      <h5>Sarah R. (Owner)</h5>
+      <p>Posted 2 hours ago</p>
+    </div>
+    <div class="owner-call"><i class="fas fa-phone"></i></div>
+  </div>
+
+  <div class="action-buttons">
+    <button class="btn-primary"><i class="fas fa-eye"></i> I Spotted This Dog</button>
+    <div class="btn-row">
+      <button class="btn-secondary"><i class="fas fa-share-nodes"></i> Share</button>
+      <button class="btn-secondary"><i class="fas fa-bell"></i> Get Alerts</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

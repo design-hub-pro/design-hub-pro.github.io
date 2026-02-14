@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PawHealth AI - Dog Detail</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+html, body { width: 100%; height: 100%; overflow-y: auto; scrollbar-width: none; background: #fff; }
+
+.status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; position: relative; z-index: 10; }
+.status-time { font-size: 17px; font-weight: 600; color: #fff; }
+.status-icons { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #fff; }
+.dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 20px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 20; }
+
+.hero-photo { position: relative; height: 420px; }
+.hero-photo img { width: 100%; height: 100%; object-fit: cover; }
+.hero-nav { position: absolute; top: 62px; left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 20px; z-index: 10; }
+.hero-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; }
+.hero-dots { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; }
+.hero-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.4); }
+.hero-dot.active { background: #fff; width: 20px; border-radius: 4px; }
+
+.info-sheet { background: #fff; border-radius: 28px 28px 0 0; margin-top: -28px; position: relative; z-index: 5; padding: 24px 28px 120px; }
+
+.name-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.dog-name { font-size: 28px; font-weight: 800; color: #1c1c1e; }
+.heart-btn { width: 48px; height: 48px; border-radius: 50%; background: #fce8ee; display: flex; align-items: center; justify-content: center; color: #ff2d55; font-size: 22px; }
+.dog-breed { font-size: 14px; color: #8e8e93; margin-bottom: 16px; }
+
+.tags-row { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.info-tag { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 12px; background: #f2f2f7; font-size: 13px; font-weight: 600; color: #636366; }
+.info-tag i { font-size: 14px; }
+.info-tag.orange i { color: #ff9500; }
+.info-tag.blue i { color: #007aff; }
+.info-tag.green i { color: #34c759; }
+.info-tag.purple i { color: #8b5cf6; }
+
+.about-section { margin-bottom: 24px; }
+.section-title { font-size: 18px; font-weight: 700; color: #1c1c1e; margin-bottom: 10px; }
+.about-text { font-size: 14px; color: #636366; line-height: 1.6; }
+
+.traits-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+.trait-card { background: #f2f2f7; border-radius: 16px; padding: 14px; }
+.trait-label { font-size: 11px; color: #8e8e93; font-weight: 500; margin-bottom: 4px; }
+.trait-bar { height: 6px; background: #e5e5ea; border-radius: 3px; overflow: hidden; }
+.trait-fill { height: 100%; border-radius: 3px; }
+.trait-value { font-size: 13px; font-weight: 600; color: #1c1c1e; margin-top: 6px; }
+
+.health-check { background: linear-gradient(135deg, #e8f8ee, #d4f0e0); border-radius: 20px; padding: 18px; margin-bottom: 24px; }
+.health-check h4 { font-size: 15px; font-weight: 700; color: #1c1c1e; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.health-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.health-row:last-child { margin-bottom: 0; }
+.health-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.health-dot.green { background: #34c759; }
+.health-label { font-size: 13px; color: #48484a; flex: 1; }
+.health-status { font-size: 12px; font-weight: 600; color: #34c759; }
+
+.shelter-info { display: flex; gap: 14px; background: #f2f2f7; border-radius: 18px; padding: 14px; margin-bottom: 24px; align-items: center; }
+.shelter-logo { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, #ff9500, #ff6b00); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; flex-shrink: 0; }
+.shelter-detail h5 { font-size: 15px; font-weight: 600; color: #1c1c1e; }
+.shelter-detail p { font-size: 12px; color: #8e8e93; margin-top: 2px; }
+.shelter-action { margin-left: auto; font-size: 12px; color: #007aff; font-weight: 600; flex-shrink: 0; }
+
+.btn-row { display: flex; gap: 10px; }
+.adopt-btn { flex: 1; padding: 16px; background: linear-gradient(135deg, #ff9500, #ff6b00); color: #fff; border: none; border-radius: 16px; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(255,149,0,0.35); }
+.contact-btn { width: 56px; height: 56px; background: #f2f2f7; border: none; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #007aff; font-size: 22px; cursor: pointer; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div style="position: relative;"><div class="dynamic-island"></div></div>
+
+<div class="hero-photo">
+  <img src="https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=800&q=80" alt="Max">
+  <div class="status-bar" style="position:absolute; top:0; left:0; right:0;">
+    <span class="status-time">9:41</span>
+    <span class="status-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></span>
+  </div>
+  <div class="hero-nav">
+    <div class="hero-btn"><i class="fas fa-chevron-left"></i></div>
+    <div class="hero-btn"><i class="fas fa-share-from-square"></i></div>
+  </div>
+  <div class="hero-dots">
+    <div class="hero-dot active"></div>
+    <div class="hero-dot"></div>
+    <div class="hero-dot"></div>
+    <div class="hero-dot"></div>
+  </div>
+</div>
+
+<div class="info-sheet">
+  <div class="name-row">
+    <div class="dog-name">Max</div>
+    <div class="heart-btn"><i class="fas fa-heart"></i></div>
+  </div>
+  <div class="dog-breed">Labrador Retriever Mix · Happy Paws Shelter</div>
+
+  <div class="tags-row">
+    <div class="info-tag orange"><i class="fas fa-cake-candles"></i> 2 years</div>
+    <div class="info-tag blue"><i class="fas fa-weight-scale"></i> 55 lbs</div>
+    <div class="info-tag green"><i class="fas fa-mars"></i> Male</div>
+    <div class="info-tag purple"><i class="fas fa-ruler"></i> Medium</div>
+  </div>
+
+  <div class="about-section">
+    <div class="section-title">About Max</div>
+    <div class="about-text">Max is a friendly and well-trained Labrador mix who loves long walks and playing fetch. He's great with children and other dogs. He was found as a stray and has been at the shelter for 3 weeks.</div>
+  </div>
+
+  <div class="section-title">Personality</div>
+  <div class="traits-grid">
+    <div class="trait-card">
+      <div class="trait-label">Energy Level</div>
+      <div class="trait-bar"><div class="trait-fill" style="width:75%; background:linear-gradient(90deg,#ff9500,#ffcc00);"></div></div>
+      <div class="trait-value">Active</div>
+    </div>
+    <div class="trait-card">
+      <div class="trait-label">Friendliness</div>
+      <div class="trait-bar"><div class="trait-fill" style="width:92%; background:linear-gradient(90deg,#34c759,#30d158);"></div></div>
+      <div class="trait-value">Very Friendly</div>
+    </div>
+    <div class="trait-card">
+      <div class="trait-label">Training</div>
+      <div class="trait-bar"><div class="trait-fill" style="width:80%; background:linear-gradient(90deg,#007aff,#5ac8fa);"></div></div>
+      <div class="trait-value">Well Trained</div>
+    </div>
+    <div class="trait-card">
+      <div class="trait-label">Kid Friendly</div>
+      <div class="trait-bar"><div class="trait-fill" style="width:95%; background:linear-gradient(90deg,#8b5cf6,#a78bfa);"></div></div>
+      <div class="trait-value">Excellent</div>
+    </div>
+  </div>
+
+  <div class="health-check">
+    <h4><i class="fas fa-shield-heart" style="color:#34c759;"></i> Health Status</h4>
+    <div class="health-row">
+      <div class="health-dot green"></div>
+      <span class="health-label">Vaccinations up to date</span>
+      <span class="health-status">✓</span>
+    </div>
+    <div class="health-row">
+      <div class="health-dot green"></div>
+      <span class="health-label">Spayed / Neutered</span>
+      <span class="health-status">✓</span>
+    </div>
+    <div class="health-row">
+      <div class="health-dot green"></div>
+      <span class="health-label">Microchipped</span>
+      <span class="health-status">✓</span>
+    </div>
+    <div class="health-row">
+      <div class="health-dot green"></div>
+      <span class="health-label">Dewormed</span>
+      <span class="health-status">✓</span>
+    </div>
+  </div>
+
+  <div class="shelter-info">
+    <div class="shelter-logo"><i class="fas fa-house-chimney"></i></div>
+    <div class="shelter-detail">
+      <h5>Happy Paws Shelter</h5>
+      <p>3.2 miles · Open until 6 PM</p>
+    </div>
+    <span class="shelter-action">Directions →</span>
+  </div>
+
+  <div class="btn-row">
+    <button class="adopt-btn"><i class="fas fa-heart"></i> Start Adoption</button>
+    <button class="contact-btn"><i class="fas fa-phone"></i></button>
+  </div>
+</div>
+</body>
+</html>

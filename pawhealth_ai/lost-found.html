@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PawHealth AI - Lost & Found</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+html, body { width: 100%; height: 100%; overflow-y: auto; scrollbar-width: none; background: #fff; }
+
+.status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; }
+.status-time { font-size: 17px; font-weight: 600; }
+.status-icons { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+.dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 20px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+.content { padding: 0 28px 120px; }
+
+.page-title { font-size: 32px; font-weight: 800; color: #1c1c1e; padding: 8px 0 4px; }
+.page-sub { font-size: 14px; color: #8e8e93; margin-bottom: 20px; }
+
+.toggle-tabs { display: flex; background: #f2f2f7; border-radius: 14px; padding: 4px; margin-bottom: 20px; }
+.toggle-tab { flex: 1; padding: 10px; border-radius: 11px; font-size: 14px; font-weight: 600; text-align: center; color: #636366; }
+.toggle-tab.active-lost { background: linear-gradient(135deg, #ff3b30, #ff6961); color: #fff; box-shadow: 0 2px 10px rgba(255,59,48,0.3); }
+.toggle-tab.active-found { background: linear-gradient(135deg, #34c759, #30d158); color: #fff; box-shadow: 0 2px 10px rgba(52,199,89,0.3); }
+
+.alert-banner { display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg, #ff3b30, #ff6961); border-radius: 18px; padding: 16px; margin-bottom: 20px; color: #fff; }
+.alert-pulse { width: 12px; height: 12px; border-radius: 50%; background: #fff; animation: pulse2 1.5s infinite; flex-shrink: 0; }
+@keyframes pulse2 { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.3); } }
+.alert-text h5 { font-size: 14px; font-weight: 700; }
+.alert-text p { font-size: 12px; opacity: 0.9; margin-top: 2px; }
+.alert-count { margin-left: auto; font-size: 28px; font-weight: 800; }
+
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.section-title { font-size: 20px; font-weight: 700; color: #1c1c1e; }
+.section-link { font-size: 13px; color: #007aff; font-weight: 500; }
+
+.lost-card { border-radius: 20px; overflow: hidden; background: #f2f2f7; margin-bottom: 14px; }
+.lost-card-img { position: relative; height: 180px; }
+.lost-card-img img { width: 100%; height: 100%; object-fit: cover; }
+.urgency-badge { position: absolute; top: 12px; left: 12px; padding: 5px 12px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+.urgency-badge.high { background: rgba(255,59,48,0.9); color: #fff; }
+.urgency-badge.medium { background: rgba(255,149,0,0.9); color: #fff; }
+.urgency-badge.found { background: rgba(52,199,89,0.9); color: #fff; }
+.time-badge { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); color: #fff; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; }
+.lost-card-body { padding: 14px 16px; }
+.lost-card-body h5 { font-size: 16px; font-weight: 700; color: #1c1c1e; }
+.lost-card-body p { font-size: 12px; color: #8e8e93; margin-top: 3px; }
+.lost-meta { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.lost-loc { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #636366; font-weight: 500; }
+.lost-loc i { color: #ff3b30; font-size: 12px; }
+.lost-dist { font-size: 11px; color: #aeaeb2; margin-left: auto; }
+.reward-tag { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 8px; background: #fff3e0; color: #ff9500; }
+
+.map-preview { border-radius: 20px; overflow: hidden; height: 180px; margin-bottom: 20px; position: relative; background: linear-gradient(135deg, #e8f0ff, #d4e2ff); }
+.map-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.map-placeholder i { font-size: 36px; color: #007aff; margin-bottom: 8px; }
+.map-placeholder span { font-size: 14px; color: #636366; font-weight: 600; }
+.map-pins { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+.map-pin { position: absolute; width: 32px; height: 32px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.map-pin i { transform: rotate(45deg); color: #fff; }
+.map-pin.red { background: #ff3b30; top: 30%; left: 25%; }
+.map-pin.red2 { background: #ff3b30; top: 55%; left: 65%; }
+.map-pin.orange { background: #ff9500; top: 40%; left: 50%; }
+.map-pin.green { background: #34c759; top: 65%; left: 30%; }
+
+.report-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #ff3b30, #ff6961); color: #fff; border: none; border-radius: 16px; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(255,59,48,0.35); }
+
+.tips-card { background: linear-gradient(135deg, #f0f4ff, #e8ecff); border-radius: 20px; padding: 18px; margin-bottom: 24px; }
+.tips-card h4 { font-size: 15px; font-weight: 700; color: #1c1c1e; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.tip-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.tip-item:last-child { margin-bottom: 0; }
+.tip-icon { width: 24px; height: 24px; border-radius: 8px; background: rgba(0,122,255,0.15); display: flex; align-items: center; justify-content: center; color: #007aff; font-size: 11px; flex-shrink: 0; margin-top: 1px; }
+.tip-text { font-size: 13px; color: #48484a; line-height: 1.4; }
+
+.tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 90px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 0.5px solid rgba(0,0,0,0.08); display: flex; align-items: flex-start; justify-content: space-around; padding-top: 10px; }
+.tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: #8e8e93; font-weight: 500; }
+.tab-item i { font-size: 22px; }
+.tab-scan { width: 52px; height: 52px; background: linear-gradient(135deg, #007aff, #5856d6); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; margin-top: -10px; box-shadow: 0 4px 15px rgba(0,122,255,0.4); }
+</style>
+</head>
+<body>
+<div style="position: relative;"><div class="dynamic-island"></div></div>
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <span class="status-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></span>
+</div>
+
+<div class="content">
+  <div class="page-title">Lost & Found</div>
+  <div class="page-sub">Help reunite dogs with their families</div>
+
+  <div class="toggle-tabs">
+    <div class="toggle-tab active-lost">Lost Dogs</div>
+    <div class="toggle-tab">Found Dogs</div>
+  </div>
+
+  <div class="alert-banner">
+    <div class="alert-pulse"></div>
+    <div class="alert-text">
+      <h5>Active Alerts Near You</h5>
+      <p>Within 10 miles radius</p>
+    </div>
+    <div class="alert-count">5</div>
+  </div>
+
+  <div class="map-preview">
+    <div class="map-placeholder">
+      <i class="fas fa-map-location-dot"></i>
+      <span>Tap to open full map</span>
+    </div>
+    <div class="map-pins">
+      <div class="map-pin red"><i class="fas fa-paw"></i></div>
+      <div class="map-pin red2"><i class="fas fa-paw"></i></div>
+      <div class="map-pin orange"><i class="fas fa-paw"></i></div>
+      <div class="map-pin green"><i class="fas fa-paw"></i></div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <span class="section-title">Recent Reports</span>
+    <span class="section-link">Filter →</span>
+  </div>
+
+  <div class="lost-card">
+    <div class="lost-card-img">
+      <img src="https://images.unsplash.com/photo-1477884213360-7e9d7dcc8f9b?w=800&q=80" alt="Lost dog">
+      <div class="urgency-badge high"><i class="fas fa-triangle-exclamation"></i> LOST</div>
+      <div class="time-badge">2 hrs ago</div>
+    </div>
+    <div class="lost-card-body">
+      <h5>Rocky — German Shepherd</h5>
+      <p>Brown & black, 4 yrs, wearing red collar with tag</p>
+      <div class="lost-meta">
+        <div class="lost-loc"><i class="fas fa-location-dot"></i> Oak Park, Central Ave</div>
+        <span class="reward-tag">$500 Reward</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="lost-card">
+    <div class="lost-card-img">
+      <img src="https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?w=800&q=80" alt="Lost dog">
+      <div class="urgency-badge medium"><i class="fas fa-triangle-exclamation"></i> LOST</div>
+      <div class="time-badge">8 hrs ago</div>
+    </div>
+    <div class="lost-card-body">
+      <h5>Daisy — Pomeranian</h5>
+      <p>White, 2 yrs, microchipped, last seen near the park</p>
+      <div class="lost-meta">
+        <div class="lost-loc"><i class="fas fa-location-dot"></i> Riverside Park</div>
+        <span class="lost-dist">1.4 mi</span>
+      </div>
+    </div>
+  </div>
+
+  <button class="report-btn"><i class="fas fa-bullhorn"></i> Report Lost / Found Dog</button>
+
+  <div class="tips-card">
+    <h4><i class="fas fa-lightbulb" style="color:#ff9500;"></i> What to Do</h4>
+    <div class="tip-item">
+      <div class="tip-icon"><i class="fas fa-camera"></i></div>
+      <span class="tip-text">Upload a clear photo — our AI will match against found dogs in the area</span>
+    </div>
+    <div class="tip-item">
+      <div class="tip-icon"><i class="fas fa-bell"></i></div>
+      <span class="tip-text">Enable radius alerts to get notified of sightings nearby</span>
+    </div>
+    <div class="tip-item">
+      <div class="tip-icon"><i class="fas fa-share-nodes"></i></div>
+      <span class="tip-text">Share the report to social media for wider reach</span>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+  <div class="tab-item"><i class="fas fa-chart-line"></i><span>Insights</span></div>
+  <div class="tab-scan"><i class="fas fa-camera"></i></div>
+  <div class="tab-item"><i class="fas fa-clock-rotate-left"></i><span>History</span></div>
+  <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+</div>
+</body>
+</html>
