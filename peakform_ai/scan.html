@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>PeakForm AI - Nutrition Scanner</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+  background: #0A0E1A; color: #FFFFFF;
+  width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; scrollbar-width: none;
+}
+
+@keyframes scanLine {
+  0% { top: 10%; }
+  50% { top: 85%; }
+  100% { top: 10%; }
+}
+
+@keyframes framePulse {
+  0%, 100% { opacity: 0.7; box-shadow: 0 0 20px rgba(79,127,255,0.1); }
+  50% { opacity: 1; box-shadow: 0 0 35px rgba(79,127,255,0.25); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<!-- Status Bar -->
+<div style="height: 59px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 10;">
+  <span style="font-size: 15px; font-weight: 600; letter-spacing: 0.5px;">9:41</span>
+  <div style="width: 126px; height: 37px; background: #000; border-radius: 20px; position: absolute; left: 50%; transform: translateX(-50%); top: 10px;"></div>
+  <div style="display: flex; gap: 6px; align-items: center;">
+    <i class="fas fa-signal" style="font-size: 13px;"></i>
+    <i class="fas fa-wifi" style="font-size: 14px;"></i>
+    <i class="fas fa-battery-full" style="font-size: 15px;"></i>
+  </div>
+</div>
+
+<!-- Top Navigation -->
+<div style="padding: 0 28px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+  <a href="nutrition.html" style="width: 40px; height: 40px; background: #141929; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; color: #fff; border: 1px solid rgba(255,255,255,0.06);">
+    <i class="fas fa-arrow-left" style="font-size: 15px;"></i>
+  </a>
+  <span style="font-size: 17px; font-weight: 700;">Scan Label</span>
+  <button style="width: 40px; height: 40px; background: #141929; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.06); color: #FFD700; cursor: pointer;">
+    <i class="fas fa-bolt" style="font-size: 15px;"></i>
+  </button>
+</div>
+
+<!-- Camera Viewfinder -->
+<div style="width: 100%; height: 42vh; background: #080B14; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+  <!-- Subtle grid pattern -->
+  <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(rgba(79,127,255,0.04) 1px, transparent 1px); background-size: 24px 24px;"></div>
+
+  <!-- Scanning Frame -->
+  <div style="width: 280px; height: 200px; position: relative; animation: framePulse 2.5s ease-in-out infinite;">
+    <!-- Corner pieces - Top Left -->
+    <div style="position: absolute; top: -2px; left: -2px; width: 35px; height: 35px; border-top: 3.5px solid #4F7FFF; border-left: 3.5px solid #4F7FFF; border-radius: 8px 0 0 0;"></div>
+    <!-- Corner pieces - Top Right -->
+    <div style="position: absolute; top: -2px; right: -2px; width: 35px; height: 35px; border-top: 3.5px solid #4F7FFF; border-right: 3.5px solid #4F7FFF; border-radius: 0 8px 0 0;"></div>
+    <!-- Corner pieces - Bottom Left -->
+    <div style="position: absolute; bottom: -2px; left: -2px; width: 35px; height: 35px; border-bottom: 3.5px solid #4F7FFF; border-left: 3.5px solid #4F7FFF; border-radius: 0 0 0 8px;"></div>
+    <!-- Corner pieces - Bottom Right -->
+    <div style="position: absolute; bottom: -2px; right: -2px; width: 35px; height: 35px; border-bottom: 3.5px solid #4F7FFF; border-right: 3.5px solid #4F7FFF; border-radius: 0 0 8px 0;"></div>
+
+    <!-- Dashed border -->
+    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; border: 1.5px dashed rgba(79,127,255,0.25); border-radius: 12px;"></div>
+
+    <!-- Scanning line -->
+    <div style="position: absolute; left: 10px; right: 10px; height: 2px; background: linear-gradient(90deg, transparent, #4F7FFF, #00D4AA, #4F7FFF, transparent); animation: scanLine 2.5s ease-in-out infinite; box-shadow: 0 0 15px rgba(79,127,255,0.5);"></div>
+  </div>
+
+  <!-- Instruction text -->
+  <div style="position: absolute; bottom: 20px; width: 100%; text-align: center;">
+    <span style="font-size: 14px; color: #8892B0;">Point camera at nutrition label</span>
+  </div>
+</div>
+
+<!-- Content -->
+<div style="padding: 0 28px 40px 28px;">
+
+  <!-- Scan Result Preview -->
+  <div style="background: #141929; border-radius: 20px; padding: 20px; margin-top: 20px; border: 1px solid rgba(255,255,255,0.06); animation: fadeInUp 0.5s ease-out;">
+    <!-- Product header -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(0,212,170,0.15); display: flex; align-items: center; justify-content: center;">
+          <i class="fas fa-check" style="font-size: 13px; color: #00D4AA;"></i>
+        </div>
+        <div>
+          <div style="font-size: 16px; font-weight: 700;">Greek Yogurt</div>
+          <div style="font-size: 12px; color: #8892B0; margin-top: 1px;">Chobani</div>
+        </div>
+      </div>
+      <div style="font-size: 11px; color: #00D4AA; background: rgba(0,212,170,0.1); padding: 4px 10px; border-radius: 20px; font-weight: 600;">Scanned</div>
+    </div>
+
+    <!-- Macro Pills -->
+    <div style="display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap;">
+      <div style="background: rgba(255,107,53,0.12); border: 1px solid rgba(255,107,53,0.2); padding: 8px 14px; border-radius: 14px; display: flex; align-items: center; gap: 6px;">
+        <i class="fas fa-fire" style="font-size: 11px; color: #FF6B35;"></i>
+        <span style="font-size: 13px; font-weight: 600; color: #FF6B35;">150 cal</span>
+      </div>
+      <div style="background: rgba(0,212,170,0.12); border: 1px solid rgba(0,212,170,0.2); padding: 8px 14px; border-radius: 14px;">
+        <span style="font-size: 13px; font-weight: 600; color: #00D4AA;">15g protein</span>
+      </div>
+      <div style="background: rgba(79,127,255,0.12); border: 1px solid rgba(79,127,255,0.2); padding: 8px 14px; border-radius: 14px;">
+        <span style="font-size: 13px; font-weight: 600; color: #4F7FFF;">12g carbs</span>
+      </div>
+      <div style="background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.2); padding: 8px 14px; border-radius: 14px;">
+        <span style="font-size: 13px; font-weight: 600; color: #8B5CF6;">4g fat</span>
+      </div>
+    </div>
+
+    <!-- Add Button -->
+    <button style="width: 100%; padding: 15px; border: none; border-radius: 16px; background: linear-gradient(135deg, #4F7FFF, #8B5CF6); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; letter-spacing: 0.3px;">
+      <i class="fas fa-plus" style="margin-right: 8px; font-size: 13px;"></i>Add to Today's Log
+    </button>
+  </div>
+
+  <!-- Recent Scans -->
+  <div style="margin-top: 28px;">
+    <div style="font-size: 18px; font-weight: 700; margin-bottom: 14px;">Recent Scans</div>
+    <div style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none;">
+      <!-- Protein Bar -->
+      <div style="min-width: 130px; background: #141929; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06);">
+        <img src="https://images.unsplash.com/photo-1622484212850-eb596d769edc?w=100&h=100&fit=crop" style="width: 100%; height: 80px; object-fit: cover; display: block;">
+        <div style="padding: 10px 12px;">
+          <div style="font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Protein Bar</div>
+          <div style="font-size: 12px; color: #8892B0; margin-top: 2px;">220 cal</div>
+        </div>
+      </div>
+      <!-- Banana -->
+      <div style="min-width: 130px; background: #141929; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06);">
+        <img src="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=100&h=100&fit=crop" style="width: 100%; height: 80px; object-fit: cover; display: block;">
+        <div style="padding: 10px 12px;">
+          <div style="font-size: 13px; font-weight: 600;">Banana</div>
+          <div style="font-size: 12px; color: #8892B0; margin-top: 2px;">105 cal</div>
+        </div>
+      </div>
+      <!-- Chicken Breast -->
+      <div style="min-width: 130px; background: #141929; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06);">
+        <img src="https://images.unsplash.com/photo-1604503468506-a8da13d82571?w=100&h=100&fit=crop" style="width: 100%; height: 80px; object-fit: cover; display: block;">
+        <div style="padding: 10px 12px;">
+          <div style="font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Chicken Breast</div>
+          <div style="font-size: 12px; color: #8892B0; margin-top: 2px;">165 cal</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Add -->
+  <div style="margin-top: 28px;">
+    <div style="font-size: 18px; font-weight: 700; margin-bottom: 14px;">Quick Add</div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px;">
+      <div style="background: #141929; border-radius: 20px; padding: 18px 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.06); cursor: pointer;">
+        <span style="font-size: 28px;">💧</span>
+        <span style="font-size: 11px; color: #8892B0; font-weight: 500;">Water</span>
+      </div>
+      <div style="background: #141929; border-radius: 20px; padding: 18px 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.06); cursor: pointer;">
+        <div style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
+          <i class="fas fa-blender" style="font-size: 22px; color: #8B5CF6;"></i>
+        </div>
+        <span style="font-size: 11px; color: #8892B0; font-weight: 500;">Shake</span>
+      </div>
+      <div style="background: #141929; border-radius: 20px; padding: 18px 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.06); cursor: pointer;">
+        <span style="font-size: 28px;">🍎</span>
+        <span style="font-size: 11px; color: #8892B0; font-weight: 500;">Fruit</span>
+      </div>
+      <div style="background: #141929; border-radius: 20px; padding: 18px 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.06); cursor: pointer;">
+        <div style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
+          <i class="fas fa-utensils" style="font-size: 22px; color: #FF6B35;"></i>
+        </div>
+        <span style="font-size: 11px; color: #8892B0; font-weight: 500;">Meal</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
