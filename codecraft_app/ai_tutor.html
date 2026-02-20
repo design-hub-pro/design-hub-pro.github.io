@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=460, initial-scale=1.0">
+<title>CodeCraft - AI Tutor</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+*::-webkit-scrollbar{display:none;}
+html,body{width:100%;height:100%;overflow-x:hidden;scrollbar-width:none;font-family:'Inter',sans-serif;background:#0A0E1A;color:#fff;}
+body{overflow-y:auto;display:flex;flex-direction:column;}
+
+.status-bar{height:59px;display:flex;align-items:center;justify-content:space-between;padding:14px 28px 0;position:sticky;top:0;z-index:100;background:#0A0E1A;flex-shrink:0;}
+.status-time{font-size:16px;font-weight:600;letter-spacing:-0.3px;}
+.status-icons{display:flex;align-items:center;gap:6px;}
+.status-icons i{font-size:13px;}
+.dynamic-island{width:126px;height:37px;background:#000;border-radius:22px;position:absolute;top:12px;left:50%;transform:translateX(-50%);}
+
+.chat-header{display:flex;align-items:center;gap:12px;padding:8px 28px 14px;border-bottom:1px solid rgba(255,255,255,0.04);flex-shrink:0;}
+.chat-back{color:#7C6BFF;font-size:16px;background:none;border:none;cursor:pointer;}
+.ai-avatar{width:40px;height:40px;border-radius:14px;background:linear-gradient(135deg,#7C6BFF,#5B4AE0);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.ai-info h4{font-size:15px;font-weight:700;}
+.ai-info p{font-size:11px;color:#00E5BF;display:flex;align-items:center;gap:4px;}
+.ai-info p::before{content:'';width:6px;height:6px;border-radius:50%;background:#00E5BF;}
+
+.chat-area{flex:1;overflow-y:auto;padding:16px 28px 16px;}
+
+.msg{display:flex;gap:10px;margin-bottom:18px;}
+.msg-avatar{width:30px;height:30px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.msg-avatar.ai{background:linear-gradient(135deg,#7C6BFF,#5B4AE0);}
+.msg-avatar.user{background:linear-gradient(135deg,#FF6B35,#FF8F5E);}
+.msg-bubble{max-width:85%;padding:14px 16px;border-radius:18px;font-size:13px;line-height:1.6;color:rgba(255,255,255,0.8);}
+.msg-bubble.ai{background:#12172B;border-top-left-radius:4px;}
+.msg-bubble.user{background:linear-gradient(135deg,#7C6BFF,#5B4AE0);border-top-right-radius:4px;margin-left:auto;color:#fff;}
+.msg.user-msg{flex-direction:row-reverse;}
+.msg.user-msg .msg-avatar{display:none;}
+
+.msg-code{background:#080C18;border-radius:10px;padding:12px;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;overflow-x:auto;border:1px solid rgba(255,255,255,0.04);}
+.msg-code .kw{color:#C678DD;}
+.msg-code .fn{color:#61AFEF;}
+.msg-code .str{color:#98C379;}
+.msg-code .cm{color:#5C6370;}
+.msg-code .op{color:#56B6C2;}
+.msg-code .var{color:#E5C07B;}
+.msg-code .num{color:#D19A66;}
+
+.msg-actions{display:flex;gap:6px;margin-top:8px;}
+.msg-action{padding:4px 10px;border-radius:8px;font-size:10px;font-weight:600;border:none;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:4px;}
+.msg-action.copy{background:rgba(124,107,255,0.1);color:#A78BFA;}
+.msg-action.explain{background:rgba(0,229,191,0.1);color:#00E5BF;}
+
+.suggestions{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.suggestion{padding:6px 12px;border-radius:10px;font-size:11px;font-weight:500;background:rgba(124,107,255,0.08);color:#A78BFA;border:1px solid rgba(124,107,255,0.15);cursor:pointer;}
+
+.typing-indicator{display:flex;gap:4px;padding:10px 16px;align-items:center;}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.3);animation:typing 1.4s infinite;}
+.typing-dot:nth-child(2){animation-delay:0.2s;}
+.typing-dot:nth-child(3){animation-delay:0.4s;}
+@keyframes typing{0%,60%,100%{opacity:0.3;transform:translateY(0);}30%{opacity:1;transform:translateY(-4px);}}
+
+.chat-input{padding:12px 28px 36px;background:#0A0E1A;border-top:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:10px;flex-shrink:0;position:absolute;bottom:0;left:0;right:0;}
+.input-field{flex:1;background:#12172B;border:none;border-radius:14px;padding:12px 16px;font-size:14px;color:#fff;font-family:'Inter',sans-serif;outline:none;}
+.input-field::placeholder{color:rgba(255,255,255,0.25);}
+.send-btn{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#7C6BFF,#5B4AE0);border:none;color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.attach-btn{width:40px;height:40px;border-radius:12px;background:#12172B;border:none;color:rgba(255,255,255,0.4);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="status-bar">
+<span class="status-time">9:41</span>
+<div class="dynamic-island"></div>
+<div class="status-icons">
+<i class="fas fa-signal"></i>
+<i class="fas fa-wifi"></i>
+<i class="fas fa-battery-full"></i>
+</div>
+</div>
+
+<div class="chat-header">
+<button class="chat-back"><i class="fas fa-chevron-left"></i></button>
+<div class="ai-avatar"><i class="fas fa-wand-magic-sparkles"></i></div>
+<div class="ai-info">
+<h4>CodeCraft AI</h4>
+<p>Online</p>
+</div>
+</div>
+
+<div class="chat-area">
+<div class="msg">
+<div class="msg-avatar ai"><i class="fas fa-wand-magic-sparkles"></i></div>
+<div>
+<div class="msg-bubble ai">
+Hey Alex! I'm your AI coding tutor. I can help you understand concepts, debug code, or explain solutions. What would you like to learn today?
+</div>
+<div class="suggestions">
+<span class="suggestion">Explain recursion</span>
+<span class="suggestion">Debug my code</span>
+<span class="suggestion">Big O notation</span>
+</div>
+</div>
+</div>
+
+<div class="msg user-msg">
+<div class="msg-avatar user"><i class="fas fa-user"></i></div>
+<div class="msg-bubble user">Can you explain how binary search works and show me an implementation?</div>
+</div>
+
+<div class="msg">
+<div class="msg-avatar ai"><i class="fas fa-wand-magic-sparkles"></i></div>
+<div>
+<div class="msg-bubble ai">
+Binary search works by repeatedly dividing the search space in half. It requires a <strong style="color:#fff;">sorted array</strong> and runs in <strong style="color:#A78BFA;">O(log n)</strong> time.
+<br><br>Here's how it works:
+<br>1. Compare target with middle element
+<br>2. If equal, we found it
+<br>3. If target is smaller, search left half
+<br>4. If target is larger, search right half
+
+<div class="msg-code">
+<span class="kw">def</span> <span class="fn">binary_search</span>(<span class="var">arr</span>, <span class="var">target</span>):<br>
+&nbsp;&nbsp;<span class="var">left</span>, <span class="var">right</span> <span class="op">=</span> <span class="num">0</span>, <span class="fn">len</span>(<span class="var">arr</span>) <span class="op">-</span> <span class="num">1</span><br>
+&nbsp;&nbsp;<span class="kw">while</span> <span class="var">left</span> <span class="op">&lt;=</span> <span class="var">right</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="var">mid</span> <span class="op">=</span> (<span class="var">left</span> <span class="op">+</span> <span class="var">right</span>) <span class="op">//</span> <span class="num">2</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> <span class="var">arr</span>[<span class="var">mid</span>] <span class="op">==</span> <span class="var">target</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="var">mid</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">elif</span> <span class="var">arr</span>[<span class="var">mid</span>] <span class="op">&lt;</span> <span class="var">target</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="var">left</span> <span class="op">=</span> <span class="var">mid</span> <span class="op">+</span> <span class="num">1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">else</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="var">right</span> <span class="op">=</span> <span class="var">mid</span> <span class="op">-</span> <span class="num">1</span><br>
+&nbsp;&nbsp;<span class="kw">return</span> <span class="op">-</span><span class="num">1</span>
+</div>
+<div class="msg-actions">
+<button class="msg-action copy"><i class="fas fa-copy"></i> Copy</button>
+<button class="msg-action explain"><i class="fas fa-play"></i> Run</button>
+</div>
+</div>
+</div>
+</div>
+
+<div class="msg user-msg">
+<div class="msg-avatar user"><i class="fas fa-user"></i></div>
+<div class="msg-bubble user">What happens if the array isn't sorted?</div>
+</div>
+
+<div class="msg">
+<div class="msg-avatar ai"><i class="fas fa-wand-magic-sparkles"></i></div>
+<div>
+<div class="msg-bubble ai">
+Great question! If the array isn't sorted, binary search will give <strong style="color:#FF4D6D;">incorrect results</strong> because the assumption that elements are ordered breaks down.
+<br><br>You'd need to either:
+<br>&#8226; Sort first: O(n log n) + O(log n)
+<br>&#8226; Use linear search: O(n)
+</div>
+<div class="suggestions">
+<span class="suggestion">Sorting algorithms</span>
+<span class="suggestion">Try a practice problem</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="chat-input">
+<button class="attach-btn"><i class="fas fa-paperclip"></i></button>
+<input class="input-field" type="text" placeholder="Ask me anything...">
+<button class="send-btn"><i class="fas fa-paper-plane"></i></button>
+</div>
+</body>
+</html>

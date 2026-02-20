@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=460, initial-scale=1.0">
+<title>CodeCraft - Explore</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+*::-webkit-scrollbar{display:none;}
+html,body{width:100%;height:100%;overflow-x:hidden;scrollbar-width:none;font-family:'Inter',sans-serif;background:#0A0E1A;color:#fff;}
+body{overflow-y:auto;}
+
+.status-bar{height:59px;display:flex;align-items:center;justify-content:space-between;padding:14px 28px 0;position:sticky;top:0;z-index:100;background:#0A0E1A;}
+.status-time{font-size:16px;font-weight:600;letter-spacing:-0.3px;}
+.status-icons{display:flex;align-items:center;gap:6px;}
+.status-icons i{font-size:13px;}
+.dynamic-island{width:126px;height:37px;background:#000;border-radius:22px;position:absolute;top:12px;left:50%;transform:translateX(-50%);}
+
+.content{padding:0 28px 120px;}
+.page-title{font-size:28px;font-weight:800;margin-top:8px;letter-spacing:-0.5px;}
+
+.search-bar{margin-top:16px;background:#12172B;border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:10px;}
+.search-bar i{color:rgba(255,255,255,0.3);font-size:16px;}
+.search-bar input{background:none;border:none;outline:none;color:#fff;font-size:15px;font-family:'Inter',sans-serif;width:100%;}
+.search-bar input::placeholder{color:rgba(255,255,255,0.3);}
+
+.filter-pills{display:flex;gap:8px;margin-top:16px;overflow-x:auto;padding-bottom:4px;}
+.pill{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;white-space:nowrap;background:#12172B;color:rgba(255,255,255,0.5);border:none;cursor:pointer;}
+.pill.active{background:linear-gradient(135deg,#7C6BFF,#5B4AE0);color:#fff;}
+
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-top:24px;margin-bottom:14px;}
+.section-header h3{font-size:18px;font-weight:700;}
+.section-header a{font-size:13px;color:#7C6BFF;text-decoration:none;font-weight:500;}
+
+.lang-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;}
+.lang-card{min-width:130px;background:#12172B;border-radius:18px;padding:18px 16px;text-align:center;flex-shrink:0;}
+.lang-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 10px;}
+.lang-name{font-size:14px;font-weight:700;}
+.lang-count{font-size:11px;color:rgba(255,255,255,0.4);margin-top:3px;}
+
+.path-card{background:#12172B;border-radius:20px;overflow:hidden;margin-bottom:14px;}
+.path-image{height:130px;position:relative;overflow:hidden;}
+.path-image img{width:100%;height:100%;object-fit:cover;}
+.path-overlay{position:absolute;inset:0;background:linear-gradient(0deg,#12172B 5%,transparent 60%);}
+.path-level{position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.5);backdrop-filter:blur(10px);padding:4px 10px;border-radius:8px;font-size:11px;font-weight:600;}
+.path-content{padding:0 18px 16px;}
+.path-title{font-size:16px;font-weight:700;margin-bottom:4px;}
+.path-desc{font-size:12px;color:rgba(255,255,255,0.45);line-height:1.4;margin-bottom:10px;}
+.path-meta{display:flex;align-items:center;gap:12px;}
+.path-meta-item{display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,0.4);}
+.path-meta-item i{font-size:12px;color:#7C6BFF;}
+.path-avatars{display:flex;margin-left:auto;}
+.path-avatars img{width:22px;height:22px;border-radius:50%;border:2px solid #12172B;margin-left:-6px;object-fit:cover;}
+.path-avatars span{font-size:10px;color:rgba(255,255,255,0.4);margin-left:6px;align-self:center;}
+
+.featured-card{background:linear-gradient(135deg,#1A1040,#2D1B69);border-radius:20px;padding:22px;margin-bottom:14px;border:1px solid rgba(124,107,255,0.2);position:relative;overflow:hidden;}
+.featured-card::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(124,107,255,0.2),transparent);border-radius:50%;}
+.featured-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(124,107,255,0.2);color:#A78BFA;font-size:10px;font-weight:700;padding:4px 10px;border-radius:8px;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;}
+.featured-title{font-size:20px;font-weight:800;margin-bottom:6px;position:relative;}
+.featured-desc{font-size:13px;color:rgba(255,255,255,0.5);line-height:1.5;margin-bottom:14px;position:relative;}
+.featured-btn{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#7C6BFF,#5B4AE0);color:#fff;border:none;padding:10px 20px;border-radius:12px;font-size:13px;font-weight:600;position:relative;cursor:pointer;}
+
+.tab-bar{position:absolute;bottom:0;left:0;right:0;height:88px;background:rgba(10,14,26,0.95);backdrop-filter:blur(20px);display:flex;align-items:flex-start;justify-content:space-around;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);}
+.tab-item{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:rgba(255,255,255,0.35);text-decoration:none;}
+.tab-item i{font-size:20px;}
+.tab-item.active{color:#7C6BFF;}
+.tab-item.active i{filter:drop-shadow(0 0 8px rgba(124,107,255,0.5));}
+</style>
+</head>
+<body>
+<div class="status-bar">
+<span class="status-time">9:41</span>
+<div class="dynamic-island"></div>
+<div class="status-icons">
+<i class="fas fa-signal"></i>
+<i class="fas fa-wifi"></i>
+<i class="fas fa-battery-full"></i>
+</div>
+</div>
+
+<div class="content">
+<div class="page-title">Explore</div>
+
+<div class="search-bar">
+<i class="fas fa-search"></i>
+<input type="text" placeholder="Search languages, topics...">
+</div>
+
+<div class="filter-pills">
+<button class="pill active">All</button>
+<button class="pill">Popular</button>
+<button class="pill">New</button>
+<button class="pill">AI/ML</button>
+<button class="pill">Web Dev</button>
+<button class="pill">Mobile</button>
+</div>
+
+<div class="section-header">
+<h3>Languages</h3>
+<a href="#">See All</a>
+</div>
+
+<div class="lang-scroll">
+<div class="lang-card">
+<div class="lang-icon" style="background:linear-gradient(135deg,#3776AB,#4B8BBE);"><i class="fab fa-python"></i></div>
+<div class="lang-name">Python</div>
+<div class="lang-count">48 courses</div>
+</div>
+<div class="lang-card">
+<div class="lang-icon" style="background:linear-gradient(135deg,#F7DF1E,#E8D51A);color:#000;"><i class="fab fa-js"></i></div>
+<div class="lang-name">JavaScript</div>
+<div class="lang-count">52 courses</div>
+</div>
+<div class="lang-card">
+<div class="lang-icon" style="background:linear-gradient(135deg,#F05138,#FF6B5E);"><i class="fab fa-swift"></i></div>
+<div class="lang-name">Swift</div>
+<div class="lang-count">24 courses</div>
+</div>
+<div class="lang-card">
+<div class="lang-icon" style="background:linear-gradient(135deg,#00ADD8,#00D4FF);"><i class="fab fa-golang"></i></div>
+<div class="lang-name">Go</div>
+<div class="lang-count">18 courses</div>
+</div>
+<div class="lang-card">
+<div class="lang-icon" style="background:linear-gradient(135deg,#DEA584,#F5C06E);"><i class="fab fa-rust"></i></div>
+<div class="lang-name">Rust</div>
+<div class="lang-count">15 courses</div>
+</div>
+</div>
+
+<div class="section-header">
+<h3>Featured</h3>
+</div>
+
+<div class="featured-card">
+<div class="featured-badge"><i class="fas fa-sparkles"></i> AI-Powered</div>
+<div class="featured-title">Build with AI</div>
+<div class="featured-desc">Learn to build intelligent apps using LLMs, prompt engineering, and AI APIs</div>
+<button class="featured-btn"><i class="fas fa-play"></i> Start Learning</button>
+</div>
+
+<div class="section-header">
+<h3>Learning Paths</h3>
+<a href="#">See All</a>
+</div>
+
+<div class="path-card">
+<div class="path-image">
+<img src="https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&q=80" alt="React">
+<div class="path-overlay"></div>
+<div class="path-level" style="color:#00E5BF;">Beginner</div>
+</div>
+<div class="path-content">
+<div class="path-title">Full-Stack Web Developer</div>
+<div class="path-desc">HTML, CSS, JavaScript, React, Node.js, and MongoDB</div>
+<div class="path-meta">
+<div class="path-meta-item"><i class="fas fa-book"></i> 36 lessons</div>
+<div class="path-meta-item"><i class="fas fa-clock"></i> 40 hours</div>
+<div class="path-avatars">
+<img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80" alt="">
+<img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80" alt="">
+<img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80" alt="">
+<span>+2.4k</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="path-card">
+<div class="path-image">
+<img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80" alt="ML">
+<div class="path-overlay"></div>
+<div class="path-level" style="color:#FFD93D;">Intermediate</div>
+</div>
+<div class="path-content">
+<div class="path-title">Machine Learning Engineer</div>
+<div class="path-desc">Python, TensorFlow, neural networks, and model deployment</div>
+<div class="path-meta">
+<div class="path-meta-item"><i class="fas fa-book"></i> 42 lessons</div>
+<div class="path-meta-item"><i class="fas fa-clock"></i> 55 hours</div>
+<div class="path-avatars">
+<img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80" alt="">
+<img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80" alt="">
+<img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80" alt="">
+<span>+1.8k</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<nav class="tab-bar">
+<a href="#" class="tab-item"><i class="fas fa-house"></i><span>Home</span></a>
+<a href="#" class="tab-item active"><i class="fas fa-compass"></i><span>Explore</span></a>
+<a href="#" class="tab-item"><i class="fas fa-laptop-code"></i><span>Practice</span></a>
+<a href="#" class="tab-item"><i class="fas fa-users"></i><span>Community</span></a>
+<a href="#" class="tab-item"><i class="fas fa-user"></i><span>Profile</span></a>
+</nav>
+</body>
+</html>

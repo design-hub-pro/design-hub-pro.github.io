@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=460, initial-scale=1.0">
+<title>CodeCraft - Playground</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+*::-webkit-scrollbar{display:none;}
+html,body{width:100%;height:100%;overflow-x:hidden;scrollbar-width:none;font-family:'Inter',sans-serif;background:#0A0E1A;color:#fff;}
+body{overflow-y:auto;}
+
+.status-bar{height:59px;display:flex;align-items:center;justify-content:space-between;padding:14px 28px 0;position:sticky;top:0;z-index:100;background:#0A0E1A;}
+.status-time{font-size:16px;font-weight:600;letter-spacing:-0.3px;}
+.status-icons{display:flex;align-items:center;gap:6px;}
+.status-icons i{font-size:13px;}
+.dynamic-island{width:126px;height:37px;background:#000;border-radius:22px;position:absolute;top:12px;left:50%;transform:translateX(-50%);}
+
+.toolbar{display:flex;align-items:center;justify-content:space-between;padding:8px 28px 12px;}
+.toolbar-left{display:flex;align-items:center;gap:10px;}
+.toolbar-back{color:#7C6BFF;font-size:14px;background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;}
+.file-name{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px;}
+.file-name .dot{width:7px;height:7px;border-radius:50%;background:#00E5BF;}
+.toolbar-actions{display:flex;gap:8px;}
+.toolbar-btn{width:34px;height:34px;border-radius:10px;background:#12172B;display:flex;align-items:center;justify-content:center;border:none;color:rgba(255,255,255,0.5);font-size:13px;cursor:pointer;}
+.toolbar-btn.run{background:linear-gradient(135deg,#00E5BF,#00C9A7);color:#000;}
+
+.lang-selector{display:flex;align-items:center;gap:8px;padding:0 28px 10px;}
+.lang-pill{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;background:#12172B;color:rgba(255,255,255,0.4);border:none;cursor:pointer;}
+.lang-pill.active{background:rgba(124,107,255,0.15);color:#A78BFA;}
+
+.editor-container{margin:0 16px;border-radius:16px;overflow:hidden;background:#080C18;border:1px solid rgba(255,255,255,0.06);}
+.editor-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:rgba(255,255,255,0.02);border-bottom:1px solid rgba(255,255,255,0.04);}
+.editor-tab{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.6);}
+.editor-tab i{color:#7C6BFF;font-size:11px;}
+.editor-actions{display:flex;gap:6px;}
+.editor-action{font-size:11px;color:rgba(255,255,255,0.25);background:none;border:none;cursor:pointer;padding:2px 6px;}
+
+.code-area{padding:14px 0;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;min-height:280px;}
+.code-line{display:flex;padding:0 16px;}
+.code-line.active-line{background:rgba(124,107,255,0.06);border-left:2px solid #7C6BFF;padding-left:14px;}
+.ln{color:rgba(255,255,255,0.12);min-width:28px;text-align:right;margin-right:16px;user-select:none;font-size:12px;}
+.kw{color:#C678DD;}
+.fn{color:#61AFEF;}
+.str{color:#98C379;}
+.cm{color:#5C6370;font-style:italic;}
+.op{color:#56B6C2;}
+.var{color:#E5C07B;}
+.num{color:#D19A66;}
+.dec{color:#E06C75;}
+.cursor{display:inline-block;width:2px;height:16px;background:#7C6BFF;animation:blink 1s infinite;vertical-align:text-bottom;margin-left:1px;}
+@keyframes blink{0%,50%{opacity:1;}51%,100%{opacity:0;}}
+
+.divider{margin:12px 16px;display:flex;align-items:center;gap:8px;}
+.divider-line{flex:1;height:1px;background:rgba(255,255,255,0.06);}
+.divider-label{font-size:11px;font-weight:600;color:rgba(255,255,255,0.2);text-transform:uppercase;letter-spacing:0.5px;}
+.divider-toggle{width:28px;height:28px;border-radius:8px;background:#12172B;display:flex;align-items:center;justify-content:center;border:none;color:rgba(255,255,255,0.3);font-size:10px;cursor:pointer;}
+
+.output-container{margin:0 16px 20px;border-radius:16px;overflow:hidden;background:#080C18;border:1px solid rgba(255,255,255,0.06);}
+.output-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:rgba(255,255,255,0.02);border-bottom:1px solid rgba(255,255,255,0.04);}
+.output-tab{font-size:12px;font-weight:600;color:rgba(255,255,255,0.6);display:flex;align-items:center;gap:6px;}
+.output-tab i{color:#00E5BF;font-size:10px;}
+.output-status{font-size:10px;color:#00E5BF;font-weight:600;display:flex;align-items:center;gap:4px;}
+.output-status i{font-size:8px;}
+.output-body{padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8;}
+.output-line{color:rgba(255,255,255,0.6);}
+.output-line.success{color:#00E5BF;}
+.output-line.highlight{color:#A78BFA;}
+
+.ai-assist{margin:0 16px 20px;background:linear-gradient(135deg,rgba(124,107,255,0.08),rgba(124,107,255,0.03));border:1px solid rgba(124,107,255,0.12);border-radius:16px;padding:14px 16px;display:flex;align-items:flex-start;gap:10px;}
+.ai-icon{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#7C6BFF,#5B4AE0);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.ai-content{flex:1;}
+.ai-label{font-size:10px;font-weight:700;color:#A78BFA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
+.ai-text{font-size:12px;color:rgba(255,255,255,0.5);line-height:1.5;}
+.ai-actions{display:flex;gap:6px;margin-top:8px;}
+.ai-btn{padding:5px 10px;border-radius:8px;font-size:11px;font-weight:600;border:none;cursor:pointer;font-family:'Inter',sans-serif;}
+.ai-btn.primary{background:rgba(124,107,255,0.15);color:#A78BFA;}
+.ai-btn.secondary{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.4);}
+
+.tab-bar{position:absolute;bottom:0;left:0;right:0;height:88px;background:rgba(10,14,26,0.95);backdrop-filter:blur(20px);display:flex;align-items:flex-start;justify-content:space-around;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);}
+.tab-item{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:rgba(255,255,255,0.35);text-decoration:none;}
+.tab-item i{font-size:20px;}
+.tab-item.active{color:#7C6BFF;}
+.tab-item.active i{filter:drop-shadow(0 0 8px rgba(124,107,255,0.5));}
+</style>
+</head>
+<body>
+<div class="status-bar">
+<span class="status-time">9:41</span>
+<div class="dynamic-island"></div>
+<div class="status-icons">
+<i class="fas fa-signal"></i>
+<i class="fas fa-wifi"></i>
+<i class="fas fa-battery-full"></i>
+</div>
+</div>
+
+<div class="toolbar">
+<div class="toolbar-left">
+<button class="toolbar-back"><i class="fas fa-chevron-left"></i></button>
+<div class="file-name"><div class="dot"></div> solution.py</div>
+</div>
+<div class="toolbar-actions">
+<button class="toolbar-btn"><i class="fas fa-undo"></i></button>
+<button class="toolbar-btn"><i class="fas fa-redo"></i></button>
+<button class="toolbar-btn run"><i class="fas fa-play"></i></button>
+</div>
+</div>
+
+<div class="lang-selector">
+<button class="lang-pill active">Python</button>
+<button class="lang-pill">JavaScript</button>
+<button class="lang-pill">Java</button>
+<button class="lang-pill">C++</button>
+</div>
+
+<div class="editor-container">
+<div class="editor-header">
+<div class="editor-tab"><i class="fas fa-circle"></i> solution.py</div>
+<div class="editor-actions">
+<button class="editor-action">Format</button>
+<button class="editor-action">Copy</button>
+</div>
+</div>
+<div class="code-area">
+<div class="code-line"><span class="ln">1</span><span class="kw">def</span> <span class="fn">two_sum</span>(<span class="var">nums</span>, <span class="var">target</span>):</div>
+<div class="code-line"><span class="ln">2</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># Hash map approach</span></div>
+<div class="code-line"><span class="ln">3</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="var">seen</span> <span class="op">=</span> {}</div>
+<div class="code-line active-line"><span class="ln">4</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> <span class="var">i</span>, <span class="var">num</span> <span class="kw">in</span> <span class="fn">enumerate</span>(<span class="var">nums</span>):</div>
+<div class="code-line"><span class="ln">5</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="var">diff</span> <span class="op">=</span> <span class="var">target</span> <span class="op">-</span> <span class="var">num</span></div>
+<div class="code-line"><span class="ln">6</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> <span class="var">diff</span> <span class="kw">in</span> <span class="var">seen</span>:</div>
+<div class="code-line"><span class="ln">7</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> [<span class="var">seen</span>[<span class="var">diff</span>], <span class="var">i</span>]</div>
+<div class="code-line"><span class="ln">8</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="var">seen</span>[<span class="var">num</span>] <span class="op">=</span> <span class="var">i</span><span class="cursor"></span></div>
+<div class="code-line"><span class="ln">9</span></div>
+<div class="code-line"><span class="ln">10</span><span class="cm"># Test cases</span></div>
+<div class="code-line"><span class="ln">11</span><span class="fn">print</span>(<span class="fn">two_sum</span>([<span class="num">2</span>,<span class="num">7</span>,<span class="num">11</span>,<span class="num">15</span>], <span class="num">9</span>))</div>
+<div class="code-line"><span class="ln">12</span><span class="fn">print</span>(<span class="fn">two_sum</span>([<span class="num">3</span>,<span class="num">2</span>,<span class="num">4</span>], <span class="num">6</span>))</div>
+</div>
+</div>
+
+<div class="divider">
+<div class="divider-line"></div>
+<span class="divider-label">Output</span>
+<button class="divider-toggle"><i class="fas fa-chevron-down"></i></button>
+</div>
+
+<div class="output-container">
+<div class="output-header">
+<div class="output-tab"><i class="fas fa-circle"></i> Console</div>
+<div class="output-status"><i class="fas fa-circle"></i> Ran in 0.03s</div>
+</div>
+<div class="output-body">
+<div class="output-line highlight">>>> Running solution.py</div>
+<div class="output-line">[0, 1]</div>
+<div class="output-line">[1, 2]</div>
+<div class="output-line success">&#10004; All test cases passed</div>
+</div>
+</div>
+
+<div class="ai-assist">
+<div class="ai-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+<div class="ai-content">
+<div class="ai-label">AI Suggestion</div>
+<div class="ai-text">Your solution is O(n) time. Consider adding input validation for edge cases like empty arrays.</div>
+<div class="ai-actions">
+<button class="ai-btn primary">Apply Fix</button>
+<button class="ai-btn secondary">Dismiss</button>
+</div>
+</div>
+</div>
+
+<nav class="tab-bar">
+<a href="#" class="tab-item"><i class="fas fa-house"></i><span>Home</span></a>
+<a href="#" class="tab-item"><i class="fas fa-compass"></i><span>Explore</span></a>
+<a href="#" class="tab-item active"><i class="fas fa-laptop-code"></i><span>Practice</span></a>
+<a href="#" class="tab-item"><i class="fas fa-users"></i><span>Community</span></a>
+<a href="#" class="tab-item"><i class="fas fa-user"></i><span>Profile</span></a>
+</nav>
+</body>
+</html>

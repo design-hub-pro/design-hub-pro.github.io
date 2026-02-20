@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=460, initial-scale=1.0">
+<title>CodeCraft - Challenges</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+*::-webkit-scrollbar{display:none;}
+html,body{width:100%;height:100%;overflow-x:hidden;scrollbar-width:none;font-family:'Inter',sans-serif;background:#0A0E1A;color:#fff;}
+body{overflow-y:auto;}
+
+.status-bar{height:59px;display:flex;align-items:center;justify-content:space-between;padding:14px 28px 0;position:sticky;top:0;z-index:100;background:#0A0E1A;}
+.status-time{font-size:16px;font-weight:600;letter-spacing:-0.3px;}
+.status-icons{display:flex;align-items:center;gap:6px;}
+.status-icons i{font-size:13px;}
+.dynamic-island{width:126px;height:37px;background:#000;border-radius:22px;position:absolute;top:12px;left:50%;transform:translateX(-50%);}
+
+.content{padding:0 28px 120px;}
+.page-title{font-size:28px;font-weight:800;margin-top:8px;letter-spacing:-0.5px;}
+.page-sub{font-size:14px;color:rgba(255,255,255,0.4);margin-top:4px;}
+
+.filter-row{display:flex;gap:8px;margin-top:16px;overflow-x:auto;padding-bottom:4px;}
+.filter-chip{padding:8px 14px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap;background:#12172B;color:rgba(255,255,255,0.5);border:none;display:flex;align-items:center;gap:5px;}
+.filter-chip.active{background:linear-gradient(135deg,#7C6BFF,#5B4AE0);color:#fff;}
+.filter-chip .dot{width:6px;height:6px;border-radius:50%;}
+
+.stats-row{display:flex;gap:10px;margin-top:20px;}
+.stat-pill{flex:1;background:#12172B;border-radius:14px;padding:14px;text-align:center;}
+.stat-pill-val{font-size:24px;font-weight:800;letter-spacing:-0.5px;}
+.stat-pill-label{font-size:10px;color:rgba(255,255,255,0.35);margin-top:2px;text-transform:uppercase;letter-spacing:0.3px;}
+
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-top:24px;margin-bottom:12px;}
+.section-header h3{font-size:18px;font-weight:700;}
+
+.challenge-card{background:#12172B;border-radius:18px;padding:18px;margin-bottom:12px;display:flex;align-items:flex-start;gap:14px;}
+.challenge-diff{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.challenge-diff.easy{background:rgba(0,229,191,0.12);color:#00E5BF;}
+.challenge-diff.medium{background:rgba(255,187,0,0.12);color:#FFBB00;}
+.challenge-diff.hard{background:rgba(255,77,109,0.12);color:#FF4D6D;}
+.challenge-info{flex:1;min-width:0;}
+.challenge-title{font-size:15px;font-weight:700;margin-bottom:4px;}
+.challenge-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.challenge-tag{font-size:10px;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4);padding:3px 8px;border-radius:6px;}
+.challenge-footer{display:flex;align-items:center;gap:12px;}
+.challenge-meta{font-size:11px;color:rgba(255,255,255,0.3);display:flex;align-items:center;gap:4px;}
+.challenge-meta i{font-size:10px;}
+.challenge-xp{margin-left:auto;font-size:12px;font-weight:700;color:#7C6BFF;background:rgba(124,107,255,0.1);padding:3px 8px;border-radius:6px;}
+.challenge-status{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.challenge-status.solved{background:#00E5BF;color:#000;font-size:10px;}
+.challenge-status.unsolved{border:2px solid rgba(255,255,255,0.1);}
+
+.weekly-card{background:linear-gradient(135deg,#1A1040,#2D1B69);border-radius:20px;padding:22px;border:1px solid rgba(124,107,255,0.15);position:relative;overflow:hidden;margin-bottom:16px;}
+.weekly-card::after{content:'';position:absolute;top:-40px;right:-20px;width:140px;height:140px;background:radial-gradient(circle,rgba(124,107,255,0.15),transparent);border-radius:50%;}
+.weekly-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(255,187,0,0.15);color:#FFBB00;font-size:10px;font-weight:700;padding:4px 10px;border-radius:8px;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;}
+.weekly-title{font-size:18px;font-weight:800;margin-bottom:4px;position:relative;z-index:1;}
+.weekly-desc{font-size:12px;color:rgba(255,255,255,0.45);margin-bottom:14px;position:relative;z-index:1;}
+.weekly-progress{display:flex;align-items:center;gap:10px;position:relative;z-index:1;}
+.weekly-bar{flex:1;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;}
+.weekly-fill{height:100%;background:linear-gradient(90deg,#FFBB00,#FFD93D);border-radius:3px;}
+.weekly-count{font-size:12px;font-weight:700;color:#FFBB00;}
+
+.tab-bar{position:absolute;bottom:0;left:0;right:0;height:88px;background:rgba(10,14,26,0.95);backdrop-filter:blur(20px);display:flex;align-items:flex-start;justify-content:space-around;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);}
+.tab-item{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:rgba(255,255,255,0.35);text-decoration:none;}
+.tab-item i{font-size:20px;}
+.tab-item.active{color:#7C6BFF;}
+.tab-item.active i{filter:drop-shadow(0 0 8px rgba(124,107,255,0.5));}
+</style>
+</head>
+<body>
+<div class="status-bar">
+<span class="status-time">9:41</span>
+<div class="dynamic-island"></div>
+<div class="status-icons">
+<i class="fas fa-signal"></i>
+<i class="fas fa-wifi"></i>
+<i class="fas fa-battery-full"></i>
+</div>
+</div>
+
+<div class="content">
+<div class="page-title">Challenges</div>
+<div class="page-sub">Sharpen your skills with daily problems</div>
+
+<div class="filter-row">
+<button class="filter-chip active">All</button>
+<button class="filter-chip"><div class="dot" style="background:#00E5BF;"></div> Easy</button>
+<button class="filter-chip"><div class="dot" style="background:#FFBB00;"></div> Medium</button>
+<button class="filter-chip"><div class="dot" style="background:#FF4D6D;"></div> Hard</button>
+<button class="filter-chip">Arrays</button>
+<button class="filter-chip">Strings</button>
+</div>
+
+<div class="stats-row">
+<div class="stat-pill">
+<div class="stat-pill-val" style="color:#00E5BF;">142</div>
+<div class="stat-pill-label">Easy</div>
+</div>
+<div class="stat-pill">
+<div class="stat-pill-val" style="color:#FFBB00;">87</div>
+<div class="stat-pill-label">Medium</div>
+</div>
+<div class="stat-pill">
+<div class="stat-pill-val" style="color:#FF4D6D;">18</div>
+<div class="stat-pill-label">Hard</div>
+</div>
+</div>
+
+<div class="section-header">
+<h3>Weekly Contest</h3>
+</div>
+
+<div class="weekly-card">
+<div class="weekly-badge"><i class="fas fa-trophy"></i> Contest #47</div>
+<div class="weekly-title">Dynamic Programming Sprint</div>
+<div class="weekly-desc">Solve 5 DP problems before Sunday to win exclusive badges</div>
+<div class="weekly-progress">
+<div class="weekly-bar"><div class="weekly-fill" style="width:60%;"></div></div>
+<span class="weekly-count">3/5</span>
+</div>
+</div>
+
+<div class="section-header">
+<h3>Today's Problems</h3>
+</div>
+
+<div class="challenge-card">
+<div class="challenge-diff easy"><i class="fas fa-leaf"></i></div>
+<div class="challenge-info">
+<div class="challenge-title">Two Sum</div>
+<div class="challenge-tags">
+<span class="challenge-tag">Array</span>
+<span class="challenge-tag">Hash Table</span>
+</div>
+<div class="challenge-footer">
+<span class="challenge-meta"><i class="fas fa-check-circle"></i> 92% solved</span>
+<span class="challenge-xp">+20 XP</span>
+</div>
+</div>
+<div class="challenge-status solved"><i class="fas fa-check"></i></div>
+</div>
+
+<div class="challenge-card">
+<div class="challenge-diff medium"><i class="fas fa-fire"></i></div>
+<div class="challenge-info">
+<div class="challenge-title">Longest Substring</div>
+<div class="challenge-tags">
+<span class="challenge-tag">String</span>
+<span class="challenge-tag">Sliding Window</span>
+</div>
+<div class="challenge-footer">
+<span class="challenge-meta"><i class="fas fa-check-circle"></i> 68% solved</span>
+<span class="challenge-xp">+35 XP</span>
+</div>
+</div>
+<div class="challenge-status unsolved"></div>
+</div>
+
+<div class="challenge-card">
+<div class="challenge-diff medium"><i class="fas fa-fire"></i></div>
+<div class="challenge-info">
+<div class="challenge-title">Binary Tree Level Order</div>
+<div class="challenge-tags">
+<span class="challenge-tag">Tree</span>
+<span class="challenge-tag">BFS</span>
+</div>
+<div class="challenge-footer">
+<span class="challenge-meta"><i class="fas fa-check-circle"></i> 71% solved</span>
+<span class="challenge-xp">+35 XP</span>
+</div>
+</div>
+<div class="challenge-status unsolved"></div>
+</div>
+
+<div class="challenge-card">
+<div class="challenge-diff hard"><i class="fas fa-skull"></i></div>
+<div class="challenge-info">
+<div class="challenge-title">Merge K Sorted Lists</div>
+<div class="challenge-tags">
+<span class="challenge-tag">Linked List</span>
+<span class="challenge-tag">Heap</span>
+</div>
+<div class="challenge-footer">
+<span class="challenge-meta"><i class="fas fa-check-circle"></i> 42% solved</span>
+<span class="challenge-xp">+50 XP</span>
+</div>
+</div>
+<div class="challenge-status unsolved"></div>
+</div>
+
+<div class="challenge-card">
+<div class="challenge-diff easy"><i class="fas fa-leaf"></i></div>
+<div class="challenge-info">
+<div class="challenge-title">Valid Parentheses</div>
+<div class="challenge-tags">
+<span class="challenge-tag">Stack</span>
+<span class="challenge-tag">String</span>
+</div>
+<div class="challenge-footer">
+<span class="challenge-meta"><i class="fas fa-check-circle"></i> 89% solved</span>
+<span class="challenge-xp">+20 XP</span>
+</div>
+</div>
+<div class="challenge-status solved"><i class="fas fa-check"></i></div>
+</div>
+
+<div class="challenge-card">
+<div class="challenge-diff hard"><i class="fas fa-skull"></i></div>
+<div class="challenge-info">
+<div class="challenge-title">Trapping Rain Water</div>
+<div class="challenge-tags">
+<span class="challenge-tag">Array</span>
+<span class="challenge-tag">Two Pointer</span>
+</div>
+<div class="challenge-footer">
+<span class="challenge-meta"><i class="fas fa-check-circle"></i> 38% solved</span>
+<span class="challenge-xp">+50 XP</span>
+</div>
+</div>
+<div class="challenge-status unsolved"></div>
+</div>
+</div>
+
+<nav class="tab-bar">
+<a href="#" class="tab-item"><i class="fas fa-house"></i><span>Home</span></a>
+<a href="#" class="tab-item"><i class="fas fa-compass"></i><span>Explore</span></a>
+<a href="#" class="tab-item active"><i class="fas fa-laptop-code"></i><span>Practice</span></a>
+<a href="#" class="tab-item"><i class="fas fa-users"></i><span>Community</span></a>
+<a href="#" class="tab-item"><i class="fas fa-user"></i><span>Profile</span></a>
+</nav>
+</body>
+</html>
