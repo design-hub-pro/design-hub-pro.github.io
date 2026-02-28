@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BladeGuard - Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        html, body { width: 100%; height: 100%; overflow-x: hidden; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #080C18;
+            color: #F1F5F9;
+            -webkit-font-smoothing: antialiased;
+        }
+        .status-bar {
+            height: 59px;
+            padding: 14px 28px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        .status-time { font-size: 15px; font-weight: 600; letter-spacing: 0.5px; }
+        .status-icons { display: flex; gap: 6px; align-items: center; }
+        .status-icons i { font-size: 12px; opacity: 0.9; }
+        .dynamic-island {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 34px;
+            background: #000;
+            border-radius: 20px;
+        }
+        .content {
+            padding: 8px 28px 100px;
+            overflow-y: auto;
+        }
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 84px;
+            background: rgba(8, 12, 24, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-top: 10px;
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #475569;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        .tab-item.active { color: #22D3EE; }
+        .tab-item i { font-size: 20px; }
+
+        /* Header */
+        .greeting { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+        .date-text { font-size: 13px; color: #64748B; font-weight: 500; }
+
+        /* Training Load */
+        .load-section {
+            margin-top: 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .load-ring-container {
+            position: relative;
+            width: 130px;
+            height: 130px;
+            flex-shrink: 0;
+        }
+        .load-ring-container svg { transform: rotate(-90deg); }
+        .load-score {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .load-score .number { font-size: 36px; font-weight: 800; line-height: 1; }
+        .load-score .label { font-size: 10px; color: #64748B; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+        .load-info { flex: 1; }
+        .load-info h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+        .load-info p { font-size: 12px; color: #94A3B8; line-height: 1.5; }
+
+        .risk-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .risk-low { background: rgba(16, 185, 129, 0.15); color: #34D399; }
+        .risk-dot { width: 8px; height: 8px; border-radius: 50%; background: #10B981; }
+
+        /* Quick Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .stat-card {
+            background: #111827;
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .stat-card .stat-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .stat-card .stat-value { font-size: 24px; font-weight: 800; line-height: 1; }
+        .stat-card .stat-label { font-size: 11px; color: #64748B; font-weight: 500; margin-top: 4px; }
+
+        /* Weekly Chart */
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 28px;
+            margin-bottom: 14px;
+        }
+        .weekly-chart {
+            background: #111827;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .chart-bars {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            height: 100px;
+            gap: 8px;
+        }
+        .chart-bar-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .chart-bar {
+            width: 100%;
+            border-radius: 6px;
+            background: linear-gradient(to top, #0E7490, #22D3EE);
+            min-height: 8px;
+        }
+        .chart-bar.today { background: linear-gradient(to top, #3B82F6, #60A5FA); }
+        .chart-day { font-size: 10px; color: #64748B; font-weight: 500; }
+
+        /* Recent Sessions */
+        .sessions-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .session-card {
+            min-width: 220px;
+            background: #111827;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .session-img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            display: block;
+        }
+        .session-info { padding: 12px 14px; }
+        .session-type { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+        .session-meta { font-size: 11px; color: #64748B; display: flex; gap: 12px; }
+        .session-score {
+            font-size: 11px;
+            font-weight: 700;
+            color: #22D3EE;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <div class="greeting">Good Morning, Alex</div>
+        <div class="date-text">Thursday, February 27, 2026</div>
+
+        <!-- Training Load Score -->
+        <div class="load-section">
+            <div class="load-ring-container">
+                <svg width="130" height="130" viewBox="0 0 130 130">
+                    <circle cx="65" cy="65" r="56" fill="none" stroke="#1E293B" stroke-width="10"/>
+                    <circle cx="65" cy="65" r="56" fill="none" stroke="url(#loadGrad)" stroke-width="10" stroke-linecap="round"
+                        stroke-dasharray="352" stroke-dashoffset="98"/>
+                    <defs>
+                        <linearGradient id="loadGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#22D3EE"/>
+                            <stop offset="100%" stop-color="#3B82F6"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div class="load-score">
+                    <div class="number">72</div>
+                    <div class="label">Load</div>
+                </div>
+            </div>
+            <div class="load-info">
+                <h3>Training Load</h3>
+                <p>Optimal range. Your body is recovering well between sessions.</p>
+                <div class="risk-badge risk-low">
+                    <span class="risk-dot"></span>
+                    Low Risk
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(34,211,238,0.12); color: #22D3EE;">
+                    <i class="fas fa-crosshairs"></i>
+                </div>
+                <div class="stat-value">3</div>
+                <div class="stat-label">Sessions Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(59,130,246,0.12); color: #60A5FA;">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-value">2h 15m</div>
+                <div class="stat-label">Training Time</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(251,191,36,0.12); color: #FBBF24;">
+                    <i class="fas fa-running"></i>
+                </div>
+                <div class="stat-value">847</div>
+                <div class="stat-label">Movements</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(244,63,94,0.12); color: #FB7185;">
+                    <i class="fas fa-fire"></i>
+                </div>
+                <div class="stat-value">1,250</div>
+                <div class="stat-label">Calories</div>
+            </div>
+        </div>
+
+        <!-- Weekly Load Chart -->
+        <div class="section-title">Weekly Load</div>
+        <div class="weekly-chart">
+            <div class="chart-bars">
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" style="height: 65px;"></div>
+                    <span class="chart-day">Mon</span>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" style="height: 85px;"></div>
+                    <span class="chart-day">Tue</span>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" style="height: 45px;"></div>
+                    <span class="chart-day">Wed</span>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar today" style="height: 72px;"></div>
+                    <span class="chart-day" style="color: #60A5FA; font-weight: 600;">Thu</span>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" style="height: 0px; background: #1E293B;"></div>
+                    <span class="chart-day">Fri</span>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" style="height: 0px; background: #1E293B;"></div>
+                    <span class="chart-day">Sat</span>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" style="height: 0px; background: #1E293B;"></div>
+                    <span class="chart-day">Sun</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Sessions -->
+        <div class="section-title">Recent Sessions</div>
+        <div class="sessions-scroll">
+            <div class="session-card">
+                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=440&h=200&fit=crop" class="session-img" alt="Fencing">
+                <div class="session-info">
+                    <div class="session-type">Bout Practice</div>
+                    <div class="session-meta">
+                        <span><i class="far fa-clock"></i> 1h 12m</span>
+                        <span><i class="fas fa-bolt"></i> 312 moves</span>
+                    </div>
+                    <div class="session-score">Score: 85/100</div>
+                </div>
+            </div>
+            <div class="session-card">
+                <img src="https://images.unsplash.com/photo-1544298621-a21d05ef27a2?w=440&h=200&fit=crop" class="session-img" alt="Training">
+                <div class="session-info">
+                    <div class="session-type">Footwork Drill</div>
+                    <div class="session-meta">
+                        <span><i class="far fa-clock"></i> 45m</span>
+                        <span><i class="fas fa-bolt"></i> 189 moves</span>
+                    </div>
+                    <div class="session-score">Score: 91/100</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <div class="tab-item active">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-bolt"></i>
+            <span>Live</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-child"></i>
+            <span>Body</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-chart-line"></i>
+            <span>History</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </div>
+    </div>
+</body>
+</html>

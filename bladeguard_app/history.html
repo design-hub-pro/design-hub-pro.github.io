@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BladeGuard - History</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        html, body { width: 100%; height: 100%; overflow-x: hidden; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #080C18;
+            color: #F1F5F9;
+            -webkit-font-smoothing: antialiased;
+        }
+        .status-bar {
+            height: 59px;
+            padding: 14px 28px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        .status-time { font-size: 15px; font-weight: 600; letter-spacing: 0.5px; }
+        .status-icons { display: flex; gap: 6px; align-items: center; }
+        .status-icons i { font-size: 12px; opacity: 0.9; }
+        .dynamic-island {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 34px;
+            background: #000;
+            border-radius: 20px;
+        }
+        .content {
+            padding: 8px 28px 100px;
+            overflow-y: auto;
+        }
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 84px;
+            background: rgba(8, 12, 24, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-top: 10px;
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #475569;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        .tab-item.active { color: #22D3EE; }
+        .tab-item i { font-size: 20px; }
+
+        .page-title { font-size: 22px; font-weight: 700; margin-bottom: 16px; }
+
+        /* Week Summary */
+        .week-summary {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .week-stat {
+            flex: 1;
+            background: #111827;
+            border-radius: 14px;
+            padding: 14px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .week-stat-value { font-size: 24px; font-weight: 800; line-height: 1; }
+        .week-stat-label { font-size: 10px; color: #64748B; font-weight: 500; margin-top: 4px; }
+
+        /* Weekly Chart */
+        .chart-card {
+            background: #111827;
+            border-radius: 16px;
+            padding: 16px 16px 12px;
+            border: 1px solid rgba(255,255,255,0.04);
+            margin-bottom: 20px;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .chart-title {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .chart-period {
+            font-size: 11px;
+            color: #22D3EE;
+            font-weight: 500;
+        }
+        .bar-chart {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            height: 120px;
+            gap: 6px;
+        }
+        .bar-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            height: 100%;
+            justify-content: flex-end;
+        }
+        .bar {
+            width: 100%;
+            max-width: 32px;
+            border-radius: 6px 6px 4px 4px;
+            min-height: 4px;
+            position: relative;
+        }
+        .bar-value {
+            position: absolute;
+            top: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 9px;
+            color: #94A3B8;
+            font-weight: 600;
+        }
+        .bar-label { font-size: 10px; color: #64748B; font-weight: 500; }
+
+        /* Trend */
+        .trend-card {
+            background: #111827;
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid rgba(255,255,255,0.04);
+            margin-bottom: 20px;
+        }
+        .trend-header {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        /* Session List */
+        .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+        .session-list { display: flex; flex-direction: column; gap: 8px; }
+        .session-item {
+            background: #111827;
+            border-radius: 14px;
+            padding: 14px 16px;
+            border: 1px solid rgba(255,255,255,0.04);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .session-date-box {
+            width: 44px;
+            height: 44px;
+            background: rgba(34,211,238,0.08);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .session-date-day { font-size: 16px; font-weight: 800; color: #22D3EE; line-height: 1; }
+        .session-date-month { font-size: 8px; color: #64748B; font-weight: 600; text-transform: uppercase; }
+        .session-details { flex: 1; }
+        .session-type { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+        .session-info { font-size: 11px; color: #64748B; display: flex; gap: 12px; }
+        .session-score-badge {
+            font-size: 14px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 10px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <div class="page-title">Training History</div>
+
+        <!-- Week Summary -->
+        <div class="week-summary">
+            <div class="week-stat">
+                <div class="week-stat-value" style="color: #22D3EE;">5</div>
+                <div class="week-stat-label">Sessions</div>
+            </div>
+            <div class="week-stat">
+                <div class="week-stat-value" style="color: #60A5FA;">6.2h</div>
+                <div class="week-stat-label">Total Time</div>
+            </div>
+            <div class="week-stat">
+                <div class="week-stat-value" style="color: #10B981;">86</div>
+                <div class="week-stat-label">Avg Score</div>
+            </div>
+        </div>
+
+        <!-- Weekly Chart -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <span class="chart-title">Weekly Load</span>
+                <span class="chart-period">This Week <i class="fas fa-chevron-down" style="font-size: 9px;"></i></span>
+            </div>
+            <div class="bar-chart">
+                <div class="bar-wrapper">
+                    <div class="bar" style="height: 75px; background: linear-gradient(to top, #0E7490, #22D3EE);">
+                        <span class="bar-value">78</span>
+                    </div>
+                    <span class="bar-label">Mon</span>
+                </div>
+                <div class="bar-wrapper">
+                    <div class="bar" style="height: 95px; background: linear-gradient(to top, #0E7490, #22D3EE);">
+                        <span class="bar-value">92</span>
+                    </div>
+                    <span class="bar-label">Tue</span>
+                </div>
+                <div class="bar-wrapper">
+                    <div class="bar" style="height: 55px; background: linear-gradient(to top, #0E7490, #22D3EE);">
+                        <span class="bar-value">55</span>
+                    </div>
+                    <span class="bar-label">Wed</span>
+                </div>
+                <div class="bar-wrapper">
+                    <div class="bar" style="height: 82px; background: linear-gradient(to top, #3B82F6, #60A5FA);">
+                        <span class="bar-value">85</span>
+                    </div>
+                    <span class="bar-label" style="color: #60A5FA; font-weight: 600;">Thu</span>
+                </div>
+                <div class="bar-wrapper">
+                    <div class="bar" style="height: 4px; background: #1E293B;"></div>
+                    <span class="bar-label">Fri</span>
+                </div>
+                <div class="bar-wrapper">
+                    <div class="bar" style="height: 4px; background: #1E293B;"></div>
+                    <span class="bar-label">Sat</span>
+                </div>
+                <div class="bar-wrapper">
+                    <div class="bar" style="height: 4px; background: #1E293B;"></div>
+                    <span class="bar-label">Sun</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Trend -->
+        <div class="trend-card">
+            <div class="trend-header">Monthly Trend</div>
+            <svg width="100%" height="70" viewBox="0 0 340 70" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient id="trendFill" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#22D3EE" stop-opacity="0.15"/>
+                        <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <line x1="0" y1="23" x2="340" y2="23" stroke="#1E293B" stroke-width="0.5" stroke-dasharray="3,3"/>
+                <line x1="0" y1="46" x2="340" y2="46" stroke="#1E293B" stroke-width="0.5" stroke-dasharray="3,3"/>
+                <path d="M0,55 C20,50 40,48 60,42 S100,38 120,35 S160,28 180,32 S220,25 240,20 S280,22 300,15 S330,12 340,10" fill="none" stroke="#22D3EE" stroke-width="2" stroke-linecap="round"/>
+                <path d="M0,55 C20,50 40,48 60,42 S100,38 120,35 S160,28 180,32 S220,25 240,20 S280,22 300,15 S330,12 340,10 V70 H0 Z" fill="url(#trendFill)"/>
+                <circle cx="340" cy="10" r="4" fill="#22D3EE"/>
+                <text x="4" y="68" fill="#64748B" font-size="8" font-family="Inter">Week 1</text>
+                <text x="170" y="68" fill="#64748B" font-size="8" text-anchor="middle" font-family="Inter">Week 2</text>
+                <text x="325" y="68" fill="#64748B" font-size="8" text-anchor="end" font-family="Inter">Week 4</text>
+            </svg>
+        </div>
+
+        <!-- Session List -->
+        <div class="section-title">Recent Sessions</div>
+        <div class="session-list">
+            <div class="session-item">
+                <div class="session-date-box">
+                    <span class="session-date-day">25</span>
+                    <span class="session-date-month">Feb</span>
+                </div>
+                <div class="session-details">
+                    <div class="session-type">Bout Practice</div>
+                    <div class="session-info">
+                        <span><i class="far fa-clock"></i> 1h 12m</span>
+                        <span><i class="fas fa-bolt"></i> 312 moves</span>
+                    </div>
+                </div>
+                <div class="session-score-badge" style="background: rgba(34,211,238,0.1); color: #22D3EE;">85</div>
+            </div>
+
+            <div class="session-item">
+                <div class="session-date-box">
+                    <span class="session-date-day">24</span>
+                    <span class="session-date-month">Feb</span>
+                </div>
+                <div class="session-details">
+                    <div class="session-type">Footwork Drill</div>
+                    <div class="session-info">
+                        <span><i class="far fa-clock"></i> 45m</span>
+                        <span><i class="fas fa-bolt"></i> 189 moves</span>
+                    </div>
+                </div>
+                <div class="session-score-badge" style="background: rgba(16,185,129,0.1); color: #10B981;">91</div>
+            </div>
+
+            <div class="session-item">
+                <div class="session-date-box">
+                    <span class="session-date-day">23</span>
+                    <span class="session-date-month">Feb</span>
+                </div>
+                <div class="session-details">
+                    <div class="session-type">Sparring</div>
+                    <div class="session-info">
+                        <span><i class="far fa-clock"></i> 1h 30m</span>
+                        <span><i class="fas fa-bolt"></i> 428 moves</span>
+                    </div>
+                </div>
+                <div class="session-score-badge" style="background: rgba(251,191,36,0.1); color: #FBBF24;">78</div>
+            </div>
+
+            <div class="session-item">
+                <div class="session-date-box">
+                    <span class="session-date-day">22</span>
+                    <span class="session-date-month">Feb</span>
+                </div>
+                <div class="session-details">
+                    <div class="session-type">Technique</div>
+                    <div class="session-info">
+                        <span><i class="far fa-clock"></i> 55m</span>
+                        <span><i class="fas fa-bolt"></i> 156 moves</span>
+                    </div>
+                </div>
+                <div class="session-score-badge" style="background: rgba(34,211,238,0.1); color: #22D3EE;">88</div>
+            </div>
+
+            <div class="session-item">
+                <div class="session-date-box">
+                    <span class="session-date-day">21</span>
+                    <span class="session-date-month">Feb</span>
+                </div>
+                <div class="session-details">
+                    <div class="session-type">Bout Practice</div>
+                    <div class="session-info">
+                        <span><i class="far fa-clock"></i> 1h 05m</span>
+                        <span><i class="fas fa-bolt"></i> 287 moves</span>
+                    </div>
+                </div>
+                <div class="session-score-badge" style="background: rgba(16,185,129,0.1); color: #10B981;">90</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <div class="tab-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-bolt"></i>
+            <span>Live</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-child"></i>
+            <span>Body</span>
+        </div>
+        <div class="tab-item active">
+            <i class="fas fa-chart-line"></i>
+            <span>History</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </div>
+    </div>
+</body>
+</html>

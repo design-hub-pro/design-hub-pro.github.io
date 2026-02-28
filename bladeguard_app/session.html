@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BladeGuard - Session Detail</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        html, body { width: 100%; height: 100%; overflow-x: hidden; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #080C18;
+            color: #F1F5F9;
+            -webkit-font-smoothing: antialiased;
+        }
+        .status-bar {
+            height: 59px;
+            padding: 14px 28px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        .status-time { font-size: 15px; font-weight: 600; letter-spacing: 0.5px; }
+        .status-icons { display: flex; gap: 6px; align-items: center; }
+        .status-icons i { font-size: 12px; opacity: 0.9; }
+        .dynamic-island {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 34px;
+            background: #000;
+            border-radius: 20px;
+        }
+        .content {
+            padding: 8px 28px 100px;
+            overflow-y: auto;
+        }
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 84px;
+            background: rgba(8, 12, 24, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-top: 10px;
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #475569;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        .tab-item.active { color: #22D3EE; }
+        .tab-item i { font-size: 20px; }
+
+        /* Header */
+        .session-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+        .back-btn { color: #22D3EE; font-size: 18px; }
+        .session-title { font-size: 20px; font-weight: 700; }
+        .session-meta { font-size: 12px; color: #64748B; margin-bottom: 20px; display: flex; gap: 16px; }
+
+        /* Performance Score */
+        .score-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+        .score-ring {
+            position: relative;
+            width: 140px;
+            height: 140px;
+        }
+        .score-ring svg { transform: rotate(-90deg); }
+        .score-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .score-number { font-size: 42px; font-weight: 900; line-height: 1; }
+        .score-label { font-size: 10px; color: #64748B; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; font-weight: 600; }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .metric-item {
+            background: #111827;
+            border-radius: 14px;
+            padding: 14px;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .metric-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .metric-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .metric-name { font-size: 11px; color: #64748B; font-weight: 500; }
+        .metric-val { font-size: 22px; font-weight: 800; line-height: 1; }
+        .metric-unit { font-size: 11px; color: #64748B; }
+
+        /* Charts */
+        .chart-card {
+            background: #111827;
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid rgba(255,255,255,0.04);
+            margin-bottom: 14px;
+        }
+        .chart-title {
+            font-size: 12px;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        /* AI Insights */
+        .section-label {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ai-badge {
+            font-size: 9px;
+            background: linear-gradient(135deg, #8B5CF6, #6366F1);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .insight-card {
+            background: #111827;
+            border-radius: 14px;
+            padding: 14px;
+            border: 1px solid rgba(255,255,255,0.04);
+            margin-bottom: 10px;
+            display: flex;
+            gap: 12px;
+        }
+        .insight-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .insight-text { font-size: 12px; color: #CBD5E1; line-height: 1.5; }
+        .insight-text strong { color: #F1F5F9; }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <div class="session-header">
+            <i class="fas fa-chevron-left back-btn"></i>
+            <span class="session-title">Session Detail</span>
+        </div>
+        <div class="session-meta">
+            <span><i class="far fa-calendar"></i> Feb 25, 2026</span>
+            <span><i class="far fa-clock"></i> 1h 12m</span>
+            <span><i class="fas fa-crosshairs"></i> Bout Practice</span>
+        </div>
+
+        <!-- Performance Score -->
+        <div class="score-section">
+            <div class="score-ring">
+                <svg width="140" height="140" viewBox="0 0 140 140">
+                    <circle cx="70" cy="70" r="60" fill="none" stroke="#1E293B" stroke-width="8"/>
+                    <circle cx="70" cy="70" r="60" fill="none" stroke="url(#scoreGrad)" stroke-width="8" stroke-linecap="round"
+                        stroke-dasharray="377" stroke-dashoffset="57"/>
+                    <defs>
+                        <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#22D3EE"/>
+                            <stop offset="50%" stop-color="#3B82F6"/>
+                            <stop offset="100%" stop-color="#8B5CF6"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div class="score-center">
+                    <div class="score-number">85</div>
+                    <div class="score-label">Score</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-item">
+                <div class="metric-top">
+                    <div class="metric-icon" style="background: rgba(34,211,238,0.12); color: #22D3EE;">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <span class="metric-name">Avg Force</span>
+                </div>
+                <span class="metric-val">1.8</span>
+                <span class="metric-unit"> G</span>
+            </div>
+            <div class="metric-item">
+                <div class="metric-top">
+                    <div class="metric-icon" style="background: rgba(251,191,36,0.12); color: #FBBF24;">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <span class="metric-name">Peak Force</span>
+                </div>
+                <span class="metric-val">4.2</span>
+                <span class="metric-unit"> G</span>
+            </div>
+            <div class="metric-item">
+                <div class="metric-top">
+                    <div class="metric-icon" style="background: rgba(59,130,246,0.12); color: #60A5FA;">
+                        <i class="fas fa-running"></i>
+                    </div>
+                    <span class="metric-name">Movements</span>
+                </div>
+                <span class="metric-val">312</span>
+            </div>
+            <div class="metric-item">
+                <div class="metric-top">
+                    <div class="metric-icon" style="background: rgba(16,185,129,0.12); color: #10B981;">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    <span class="metric-name">Symmetry</span>
+                </div>
+                <span class="metric-val">94</span>
+                <span class="metric-unit">%</span>
+            </div>
+        </div>
+
+        <!-- Force Distribution -->
+        <div class="chart-card">
+            <div class="chart-title">Force Distribution</div>
+            <svg width="100%" height="90" viewBox="0 0 340 90" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient id="forceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.3"/>
+                        <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <!-- Bars -->
+                <rect x="10" y="25" width="36" height="65" rx="4" fill="url(#forceGrad)" stroke="#3B82F6" stroke-width="1"/>
+                <rect x="56" y="10" width="36" height="80" rx="4" fill="url(#forceGrad)" stroke="#3B82F6" stroke-width="1"/>
+                <rect x="102" y="40" width="36" height="50" rx="4" fill="url(#forceGrad)" stroke="#3B82F6" stroke-width="1"/>
+                <rect x="148" y="30" width="36" height="60" rx="4" fill="url(#forceGrad)" stroke="#3B82F6" stroke-width="1"/>
+                <rect x="194" y="5" width="36" height="85" rx="4" fill="url(#forceGrad)" stroke="#60A5FA" stroke-width="1.5"/>
+                <rect x="240" y="35" width="36" height="55" rx="4" fill="url(#forceGrad)" stroke="#3B82F6" stroke-width="1"/>
+                <rect x="286" y="50" width="36" height="40" rx="4" fill="url(#forceGrad)" stroke="#3B82F6" stroke-width="1"/>
+                <!-- Labels -->
+                <text x="28" y="88" fill="#64748B" font-size="8" text-anchor="middle" font-family="Inter">0-10</text>
+                <text x="74" y="88" fill="#64748B" font-size="8" text-anchor="middle" font-family="Inter">10-20</text>
+                <text x="120" y="88" fill="#64748B" font-size="8" text-anchor="middle" font-family="Inter">20-30</text>
+                <text x="166" y="88" fill="#64748B" font-size="8" text-anchor="middle" font-family="Inter">30-40</text>
+                <text x="212" y="88" fill="#60A5FA" font-size="8" text-anchor="middle" font-family="Inter" font-weight="600">40-50</text>
+                <text x="258" y="88" fill="#64748B" font-size="8" text-anchor="middle" font-family="Inter">50-60</text>
+                <text x="304" y="88" fill="#64748B" font-size="8" text-anchor="middle" font-family="Inter">60+</text>
+            </svg>
+        </div>
+
+        <!-- Fatigue Curve -->
+        <div class="chart-card">
+            <div class="chart-title">Fatigue Progression</div>
+            <svg width="100%" height="80" viewBox="0 0 340 80" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient id="fatigueGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#10B981"/>
+                        <stop offset="60%" stop-color="#FBBF24"/>
+                        <stop offset="100%" stop-color="#EF4444"/>
+                    </linearGradient>
+                    <linearGradient id="fatigueFill" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#FBBF24" stop-opacity="0.15"/>
+                        <stop offset="100%" stop-color="#FBBF24" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <line x1="0" y1="20" x2="340" y2="20" stroke="#1E293B" stroke-width="0.5" stroke-dasharray="4,4"/>
+                <line x1="0" y1="40" x2="340" y2="40" stroke="#1E293B" stroke-width="0.5" stroke-dasharray="4,4"/>
+                <line x1="0" y1="60" x2="340" y2="60" stroke="#1E293B" stroke-width="0.5" stroke-dasharray="4,4"/>
+                <path d="M0,70 C40,68 80,62 120,52 S200,30 260,22 S320,18 340,15" fill="none" stroke="url(#fatigueGrad)" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M0,70 C40,68 80,62 120,52 S200,30 260,22 S320,18 340,15 V80 H0 Z" fill="url(#fatigueFill)"/>
+                <text x="4" y="78" fill="#64748B" font-size="8" font-family="Inter">0 min</text>
+                <text x="160" y="78" fill="#64748B" font-size="8" text-anchor="middle" font-family="Inter">36 min</text>
+                <text x="320" y="78" fill="#64748B" font-size="8" text-anchor="end" font-family="Inter">72 min</text>
+            </svg>
+        </div>
+
+        <!-- AI Insights -->
+        <div class="section-label">
+            Insights
+            <span class="ai-badge">AI</span>
+        </div>
+        <div class="insight-card">
+            <div class="insight-icon" style="background: rgba(251,191,36,0.12); color: #FBBF24;">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="insight-text">
+                <strong>Right knee load elevated</strong> during lunges in the final 20 minutes. Consider reducing bout intensity late in sessions.
+            </div>
+        </div>
+        <div class="insight-card">
+            <div class="insight-icon" style="background: rgba(16,185,129,0.12); color: #10B981;">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="insight-text">
+                <strong>Symmetry improved 6%</strong> compared to last session. Footwork balance is trending positively.
+            </div>
+        </div>
+        <div class="insight-card">
+            <div class="insight-icon" style="background: rgba(59,130,246,0.12); color: #60A5FA;">
+                <i class="fas fa-lightbulb"></i>
+            </div>
+            <div class="insight-text">
+                <strong>Optimal session length:</strong> Peak performance observed between 15-45 min mark. Plan high-intensity work within this window.
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <div class="tab-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-bolt"></i>
+            <span>Live</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-child"></i>
+            <span>Body</span>
+        </div>
+        <div class="tab-item active">
+            <i class="fas fa-chart-line"></i>
+            <span>History</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </div>
+    </div>
+</body>
+</html>

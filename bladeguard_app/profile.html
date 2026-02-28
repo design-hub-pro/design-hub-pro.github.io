@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BladeGuard - Profile</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        html, body { width: 100%; height: 100%; overflow-x: hidden; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #080C18;
+            color: #F1F5F9;
+            -webkit-font-smoothing: antialiased;
+        }
+        .status-bar {
+            height: 59px;
+            padding: 14px 28px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        .status-time { font-size: 15px; font-weight: 600; letter-spacing: 0.5px; }
+        .status-icons { display: flex; gap: 6px; align-items: center; }
+        .status-icons i { font-size: 12px; opacity: 0.9; }
+        .dynamic-island {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 34px;
+            background: #000;
+            border-radius: 20px;
+        }
+        .content {
+            padding: 8px 28px 100px;
+            overflow-y: auto;
+        }
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 84px;
+            background: rgba(8, 12, 24, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-top: 10px;
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #475569;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        .tab-item.active { color: #22D3EE; }
+        .tab-item i { font-size: 20px; }
+
+        /* Profile Header */
+        .profile-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .avatar {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #22D3EE;
+            margin-bottom: 12px;
+        }
+        .profile-name { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+        .profile-subtitle { font-size: 13px; color: #64748B; }
+        .profile-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            background: rgba(34,211,238,0.1);
+            border: 1px solid rgba(34,211,238,0.2);
+            font-size: 12px;
+            font-weight: 600;
+            color: #22D3EE;
+            margin-top: 10px;
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        .stat-item {
+            background: #111827;
+            border-radius: 14px;
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .stat-value { font-size: 18px; font-weight: 800; line-height: 1; }
+        .stat-label { font-size: 9px; color: #64748B; font-weight: 500; margin-top: 4px; }
+
+        /* Goals */
+        .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+        .goals-list { margin-bottom: 24px; }
+        .goal-card {
+            background: #111827;
+            border-radius: 14px;
+            padding: 14px 16px;
+            border: 1px solid rgba(255,255,255,0.04);
+            margin-bottom: 8px;
+        }
+        .goal-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .goal-name { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .goal-progress-text { font-size: 12px; font-weight: 700; }
+        .goal-bar {
+            width: 100%;
+            height: 6px;
+            background: #1E293B;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .goal-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+
+        /* Settings Menu */
+        .settings-list { display: flex; flex-direction: column; gap: 2px; }
+        .settings-card {
+            background: #111827;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .settings-card:first-child { border-radius: 14px 14px 0 0; }
+        .settings-card:last-child { border-radius: 0 0 14px 14px; }
+        .settings-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            gap: 14px;
+        }
+        .settings-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .settings-label { font-size: 14px; font-weight: 500; flex: 1; }
+        .settings-arrow { color: #475569; font-size: 12px; }
+
+        /* Version */
+        .version-text {
+            text-align: center;
+            font-size: 11px;
+            color: #475569;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face" class="avatar" alt="Profile">
+            <div class="profile-name">Alex Chen</div>
+            <div class="profile-subtitle">Competitive Fencer &middot; Epee</div>
+            <div class="profile-badge">
+                <i class="fas fa-shield-alt"></i>
+                Training since Sep 2024
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-value" style="color: #22D3EE;">17</div>
+                <div class="stat-label">Age</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" style="color: #60A5FA;">175</div>
+                <div class="stat-label">Height (cm)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" style="color: #A78BFA;">68</div>
+                <div class="stat-label">Weight (kg)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" style="color: #10B981;">142</div>
+                <div class="stat-label">Sessions</div>
+            </div>
+        </div>
+
+        <!-- Goals -->
+        <div class="section-title">Training Goals</div>
+        <div class="goals-list">
+            <div class="goal-card">
+                <div class="goal-top">
+                    <div class="goal-name">
+                        <i class="fas fa-crosshairs" style="color: #22D3EE; font-size: 14px;"></i>
+                        Weekly Sessions
+                    </div>
+                    <span class="goal-progress-text" style="color: #22D3EE;">5/6</span>
+                </div>
+                <div class="goal-bar">
+                    <div class="goal-fill" style="width: 83%; background: linear-gradient(to right, #22D3EE, #06B6D4);"></div>
+                </div>
+            </div>
+
+            <div class="goal-card">
+                <div class="goal-top">
+                    <div class="goal-name">
+                        <i class="fas fa-shield-alt" style="color: #10B981; font-size: 14px;"></i>
+                        Knee Risk Below 25%
+                    </div>
+                    <span class="goal-progress-text" style="color: #FBBF24;">35%</span>
+                </div>
+                <div class="goal-bar">
+                    <div class="goal-fill" style="width: 65%; background: linear-gradient(to right, #FBBF24, #F59E0B);"></div>
+                </div>
+            </div>
+
+            <div class="goal-card">
+                <div class="goal-top">
+                    <div class="goal-name">
+                        <i class="fas fa-balance-scale" style="color: #A78BFA; font-size: 14px;"></i>
+                        Symmetry Score &gt;95%
+                    </div>
+                    <span class="goal-progress-text" style="color: #A78BFA;">94%</span>
+                </div>
+                <div class="goal-bar">
+                    <div class="goal-fill" style="width: 94%; background: linear-gradient(to right, #8B5CF6, #A78BFA);"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="section-title">Settings</div>
+        <div class="settings-list">
+            <div class="settings-card">
+                <div class="settings-item">
+                    <div class="settings-icon" style="background: rgba(59,130,246,0.12); color: #60A5FA;">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <span class="settings-label">Notifications</span>
+                    <i class="fas fa-chevron-right settings-arrow"></i>
+                </div>
+            </div>
+            <div class="settings-card">
+                <div class="settings-item">
+                    <div class="settings-icon" style="background: rgba(16,185,129,0.12); color: #10B981;">
+                        <i class="fas fa-file-export"></i>
+                    </div>
+                    <span class="settings-label">Data Export</span>
+                    <i class="fas fa-chevron-right settings-arrow"></i>
+                </div>
+            </div>
+            <div class="settings-card">
+                <div class="settings-item">
+                    <div class="settings-icon" style="background: rgba(251,191,36,0.12); color: #FBBF24;">
+                        <i class="fas fa-sliders-h"></i>
+                    </div>
+                    <span class="settings-label">Units & Preferences</span>
+                    <i class="fas fa-chevron-right settings-arrow"></i>
+                </div>
+            </div>
+            <div class="settings-card">
+                <div class="settings-item">
+                    <div class="settings-icon" style="background: rgba(139,92,246,0.12); color: #A78BFA;">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <span class="settings-label">About BladeGuard</span>
+                    <i class="fas fa-chevron-right settings-arrow"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="version-text">BladeGuard v1.0.0 &middot; Built with Arduino + IMU</div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <div class="tab-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-bolt"></i>
+            <span>Live</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-child"></i>
+            <span>Body</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-chart-line"></i>
+            <span>History</span>
+        </div>
+        <div class="tab-item active">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </div>
+    </div>
+</body>
+</html>

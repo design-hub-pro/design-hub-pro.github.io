@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BladeGuard - Body Map</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        html, body { width: 100%; height: 100%; overflow-x: hidden; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #080C18;
+            color: #F1F5F9;
+            -webkit-font-smoothing: antialiased;
+        }
+        .status-bar {
+            height: 59px;
+            padding: 14px 28px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        .status-time { font-size: 15px; font-weight: 600; letter-spacing: 0.5px; }
+        .status-icons { display: flex; gap: 6px; align-items: center; }
+        .status-icons i { font-size: 12px; opacity: 0.9; }
+        .dynamic-island {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 34px;
+            background: #000;
+            border-radius: 20px;
+        }
+        .content {
+            padding: 8px 28px 100px;
+            overflow-y: auto;
+        }
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 84px;
+            background: rgba(8, 12, 24, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-top: 10px;
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #475569;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        .tab-item.active { color: #22D3EE; }
+        .tab-item i { font-size: 20px; }
+
+        .page-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+        .page-subtitle { font-size: 12px; color: #64748B; margin-bottom: 20px; }
+
+        /* Body Map */
+        .body-map-container {
+            background: #111827;
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.04);
+            margin-bottom: 16px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+        .body-svg-wrapper {
+            position: relative;
+            width: 180px;
+            height: 340px;
+        }
+        /* Joint indicators */
+        .joint-indicator {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .joint-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .joint-dot-inner {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .joint-line {
+            position: absolute;
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+        }
+        .joint-tag {
+            font-size: 9px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+        @keyframes glow-high {
+            0%, 100% { box-shadow: 0 0 8px rgba(251,191,36,0.4); }
+            50% { box-shadow: 0 0 16px rgba(251,191,36,0.7); }
+        }
+        @keyframes glow-critical {
+            0%, 100% { box-shadow: 0 0 8px rgba(239,68,68,0.4); }
+            50% { box-shadow: 0 0 16px rgba(239,68,68,0.7); }
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            color: #94A3B8;
+            font-weight: 500;
+        }
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Joint Detail Cards */
+        .joint-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .joint-detail-card {
+            background: #111827;
+            border-radius: 14px;
+            padding: 14px 16px;
+            border: 1px solid rgba(255,255,255,0.04);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .joint-detail-dot {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .joint-detail-info { flex: 1; }
+        .joint-detail-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+        .joint-detail-status { font-size: 11px; color: #64748B; }
+        .joint-detail-value {
+            font-size: 20px;
+            font-weight: 800;
+            text-align: right;
+        }
+        .joint-detail-bar {
+            width: 100%;
+            height: 4px;
+            background: #1E293B;
+            border-radius: 2px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+        .joint-detail-fill {
+            height: 100%;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <div class="page-title">Body Load Map</div>
+        <div class="page-subtitle">Last updated 5 min ago</div>
+
+        <!-- Body Visualization -->
+        <div class="body-map-container">
+            <div class="body-svg-wrapper">
+                <!-- Body SVG -->
+                <svg width="180" height="340" viewBox="0 0 180 340" fill="none">
+                    <!-- Head -->
+                    <circle cx="90" cy="30" r="22" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+                    <!-- Neck -->
+                    <rect x="82" y="52" width="16" height="14" rx="4" fill="#1E293B"/>
+                    <!-- Torso -->
+                    <path d="M55 66 L125 66 L120 170 L60 170 Z" rx="8" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+                    <!-- Left Arm -->
+                    <path d="M55 70 L30 95 L18 145" stroke="#334155" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <!-- Right Arm -->
+                    <path d="M125 70 L150 95 L162 145" stroke="#334155" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <!-- Left Leg -->
+                    <path d="M72 170 L65 245 L60 320" stroke="#334155" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <!-- Right Leg -->
+                    <path d="M108 170 L115 245 L120 320" stroke="#334155" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                </svg>
+
+                <!-- Joint Indicators -->
+                <!-- Right Shoulder -->
+                <div class="joint-indicator" style="top: 64px; right: -10px;">
+                    <div class="joint-dot" style="background: rgba(16,185,129,0.2);">
+                        <div class="joint-dot-inner" style="background: #10B981;"></div>
+                    </div>
+                </div>
+
+                <!-- Left Shoulder -->
+                <div class="joint-indicator" style="top: 64px; left: -10px;">
+                    <div class="joint-dot" style="background: rgba(16,185,129,0.2);">
+                        <div class="joint-dot-inner" style="background: #10B981;"></div>
+                    </div>
+                </div>
+
+                <!-- Right Wrist -->
+                <div class="joint-indicator" style="top: 138px; right: -22px;">
+                    <div class="joint-dot" style="background: rgba(34,211,238,0.2);">
+                        <div class="joint-dot-inner" style="background: #22D3EE;"></div>
+                    </div>
+                    <span class="joint-tag" style="background: rgba(34,211,238,0.15); color: #22D3EE;">31%</span>
+                </div>
+
+                <!-- Left Wrist -->
+                <div class="joint-indicator" style="top: 138px; left: -22px; flex-direction: row-reverse;">
+                    <div class="joint-dot" style="background: rgba(16,185,129,0.2);">
+                        <div class="joint-dot-inner" style="background: #10B981;"></div>
+                    </div>
+                    <span class="joint-tag" style="background: rgba(16,185,129,0.15); color: #10B981;">18%</span>
+                </div>
+
+                <!-- Right Knee -->
+                <div class="joint-indicator" style="top: 238px; right: -16px;">
+                    <div class="joint-dot" style="background: rgba(251,191,36,0.25); animation: glow-high 2s ease-in-out infinite;">
+                        <div class="joint-dot-inner" style="background: #FBBF24;"></div>
+                    </div>
+                    <span class="joint-tag" style="background: rgba(251,191,36,0.15); color: #FBBF24;">78%</span>
+                </div>
+
+                <!-- Left Knee -->
+                <div class="joint-indicator" style="top: 238px; left: -16px; flex-direction: row-reverse;">
+                    <div class="joint-dot" style="background: rgba(34,211,238,0.2);">
+                        <div class="joint-dot-inner" style="background: #22D3EE;"></div>
+                    </div>
+                    <span class="joint-tag" style="background: rgba(34,211,238,0.15); color: #22D3EE;">42%</span>
+                </div>
+
+                <!-- Right Ankle -->
+                <div class="joint-indicator" style="top: 308px; right: -16px;">
+                    <div class="joint-dot" style="background: rgba(34,211,238,0.2);">
+                        <div class="joint-dot-inner" style="background: #22D3EE;"></div>
+                    </div>
+                    <span class="joint-tag" style="background: rgba(34,211,238,0.15); color: #22D3EE;">52%</span>
+                </div>
+
+                <!-- Left Ankle -->
+                <div class="joint-indicator" style="top: 308px; left: -16px; flex-direction: row-reverse;">
+                    <div class="joint-dot" style="background: rgba(16,185,129,0.2);">
+                        <div class="joint-dot-inner" style="background: #10B981;"></div>
+                    </div>
+                    <span class="joint-tag" style="background: rgba(16,185,129,0.15); color: #10B981;">25%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-dot" style="background: #10B981;"></div>
+                Low
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot" style="background: #22D3EE;"></div>
+                Moderate
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot" style="background: #FBBF24;"></div>
+                High
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot" style="background: #EF4444;"></div>
+                Critical
+            </div>
+        </div>
+
+        <!-- Joint Detail Cards -->
+        <div class="joint-cards">
+            <div class="joint-detail-card">
+                <div class="joint-detail-dot" style="background: rgba(251,191,36,0.12);">
+                    <i class="fas fa-exclamation-triangle" style="color: #FBBF24; font-size: 16px;"></i>
+                </div>
+                <div class="joint-detail-info">
+                    <div class="joint-detail-name">Right Knee</div>
+                    <div class="joint-detail-status">High stress - monitor closely</div>
+                    <div class="joint-detail-bar">
+                        <div class="joint-detail-fill" style="width: 78%; background: linear-gradient(to right, #FBBF24, #F59E0B);"></div>
+                    </div>
+                </div>
+                <div class="joint-detail-value" style="color: #FBBF24;">78%</div>
+            </div>
+
+            <div class="joint-detail-card">
+                <div class="joint-detail-dot" style="background: rgba(34,211,238,0.12);">
+                    <i class="fas fa-info-circle" style="color: #22D3EE; font-size: 16px;"></i>
+                </div>
+                <div class="joint-detail-info">
+                    <div class="joint-detail-name">Right Ankle</div>
+                    <div class="joint-detail-status">Moderate - within limits</div>
+                    <div class="joint-detail-bar">
+                        <div class="joint-detail-fill" style="width: 52%; background: linear-gradient(to right, #22D3EE, #06B6D4);"></div>
+                    </div>
+                </div>
+                <div class="joint-detail-value" style="color: #22D3EE;">52%</div>
+            </div>
+
+            <div class="joint-detail-card">
+                <div class="joint-detail-dot" style="background: rgba(34,211,238,0.12);">
+                    <i class="fas fa-info-circle" style="color: #22D3EE; font-size: 16px;"></i>
+                </div>
+                <div class="joint-detail-info">
+                    <div class="joint-detail-name">Left Knee</div>
+                    <div class="joint-detail-status">Moderate - normal range</div>
+                    <div class="joint-detail-bar">
+                        <div class="joint-detail-fill" style="width: 42%; background: linear-gradient(to right, #22D3EE, #06B6D4);"></div>
+                    </div>
+                </div>
+                <div class="joint-detail-value" style="color: #22D3EE;">42%</div>
+            </div>
+
+            <div class="joint-detail-card">
+                <div class="joint-detail-dot" style="background: rgba(16,185,129,0.12);">
+                    <i class="fas fa-check-circle" style="color: #10B981; font-size: 16px;"></i>
+                </div>
+                <div class="joint-detail-info">
+                    <div class="joint-detail-name">Right Wrist</div>
+                    <div class="joint-detail-status">Low stress - healthy</div>
+                    <div class="joint-detail-bar">
+                        <div class="joint-detail-fill" style="width: 31%; background: linear-gradient(to right, #10B981, #059669);"></div>
+                    </div>
+                </div>
+                <div class="joint-detail-value" style="color: #10B981;">31%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <div class="tab-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-bolt"></i>
+            <span>Live</span>
+        </div>
+        <div class="tab-item active">
+            <i class="fas fa-child"></i>
+            <span>Body</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-chart-line"></i>
+            <span>History</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </div>
+    </div>
+</body>
+</html>

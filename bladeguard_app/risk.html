@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BladeGuard - Risk Assessment</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        html, body { width: 100%; height: 100%; overflow-x: hidden; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #080C18;
+            color: #F1F5F9;
+            -webkit-font-smoothing: antialiased;
+        }
+        .status-bar {
+            height: 59px;
+            padding: 14px 28px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        .status-time { font-size: 15px; font-weight: 600; letter-spacing: 0.5px; }
+        .status-icons { display: flex; gap: 6px; align-items: center; }
+        .status-icons i { font-size: 12px; opacity: 0.9; }
+        .dynamic-island {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 34px;
+            background: #000;
+            border-radius: 20px;
+        }
+        .content {
+            padding: 8px 28px 100px;
+            overflow-y: auto;
+        }
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 84px;
+            background: rgba(8, 12, 24, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-top: 10px;
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #475569;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        .tab-item.active { color: #22D3EE; }
+        .tab-item i { font-size: 20px; }
+
+        .page-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+        .page-subtitle { font-size: 12px; color: #64748B; margin-bottom: 20px; }
+
+        /* Overall Risk Gauge */
+        .gauge-section {
+            background: #111827;
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.04);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .gauge-container {
+            position: relative;
+            width: 180px;
+            height: 100px;
+            margin: 0 auto 12px;
+            overflow: hidden;
+        }
+        .gauge-value {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        .gauge-number { font-size: 36px; font-weight: 900; color: #10B981; line-height: 1; }
+        .gauge-label-text { font-size: 10px; color: #64748B; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .risk-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            border-radius: 24px;
+            background: rgba(16,185,129,0.12);
+            font-size: 14px;
+            font-weight: 700;
+            color: #10B981;
+        }
+        .risk-status-dot { width: 10px; height: 10px; border-radius: 50%; background: #10B981; }
+
+        /* Joint Breakdown */
+        .section-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+        .joint-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .joint-row {
+            background: #111827;
+            border-radius: 14px;
+            padding: 14px 16px;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .joint-row-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .joint-name { font-size: 13px; font-weight: 600; }
+        .joint-trend {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .joint-value { font-size: 18px; font-weight: 800; }
+        .joint-bar {
+            width: 100%;
+            height: 6px;
+            background: #1E293B;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .joint-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        /* Trend Chart */
+        .chart-card {
+            background: #111827;
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid rgba(255,255,255,0.04);
+            margin-bottom: 20px;
+        }
+        .chart-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        /* Recommendations */
+        .rec-card {
+            background: #111827;
+            border-radius: 14px;
+            padding: 14px 16px;
+            border: 1px solid rgba(255,255,255,0.04);
+            margin-bottom: 10px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        .rec-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .rec-text { font-size: 12px; color: #CBD5E1; line-height: 1.5; }
+        .rec-text strong { color: #F1F5F9; }
+
+        /* Export Button */
+        .export-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #22D3EE, #3B82F6);
+            border: none;
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <div class="page-title">Risk Assessment</div>
+        <div class="page-subtitle">Updated today at 9:30 AM</div>
+
+        <!-- Overall Risk Gauge -->
+        <div class="gauge-section">
+            <div class="gauge-container">
+                <svg width="180" height="100" viewBox="0 0 180 100">
+                    <defs>
+                        <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#10B981"/>
+                            <stop offset="50%" stop-color="#FBBF24"/>
+                            <stop offset="100%" stop-color="#EF4444"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Background arc -->
+                    <path d="M15,90 A75,75 0 0,1 165,90" fill="none" stroke="#1E293B" stroke-width="12" stroke-linecap="round"/>
+                    <!-- Value arc (low risk ~ 25%) -->
+                    <path d="M15,90 A75,75 0 0,1 57,27" fill="none" stroke="url(#gaugeGrad)" stroke-width="12" stroke-linecap="round"/>
+                    <!-- Needle indicator -->
+                    <circle cx="57" cy="27" r="6" fill="#10B981" stroke="#080C18" stroke-width="3"/>
+                </svg>
+                <div class="gauge-value">
+                    <div class="gauge-number">LOW</div>
+                    <div class="gauge-label-text">Overall Risk</div>
+                </div>
+            </div>
+            <div class="risk-status">
+                <div class="risk-status-dot"></div>
+                All Systems Nominal
+            </div>
+        </div>
+
+        <!-- Joint Risk Breakdown -->
+        <div class="section-title">Joint Risk Breakdown</div>
+        <div class="joint-list">
+            <div class="joint-row">
+                <div class="joint-row-top">
+                    <span class="joint-name"><i class="fas fa-circle" style="font-size: 8px; color: #FBBF24; margin-right: 6px;"></i>Right Knee</span>
+                    <div class="joint-trend" style="color: #EF4444;">
+                        <i class="fas fa-arrow-up" style="font-size: 10px;"></i>
+                        <span>+5%</span>
+                        <span class="joint-value" style="color: #FBBF24; margin-left: 8px;">35%</span>
+                    </div>
+                </div>
+                <div class="joint-bar">
+                    <div class="joint-fill" style="width: 35%; background: linear-gradient(to right, #FBBF24, #F59E0B);"></div>
+                </div>
+            </div>
+
+            <div class="joint-row">
+                <div class="joint-row-top">
+                    <span class="joint-name"><i class="fas fa-circle" style="font-size: 8px; color: #22D3EE; margin-right: 6px;"></i>Left Ankle</span>
+                    <div class="joint-trend" style="color: #64748B;">
+                        <i class="fas fa-minus" style="font-size: 10px;"></i>
+                        <span>stable</span>
+                        <span class="joint-value" style="color: #22D3EE; margin-left: 8px;">22%</span>
+                    </div>
+                </div>
+                <div class="joint-bar">
+                    <div class="joint-fill" style="width: 22%; background: linear-gradient(to right, #22D3EE, #06B6D4);"></div>
+                </div>
+            </div>
+
+            <div class="joint-row">
+                <div class="joint-row-top">
+                    <span class="joint-name"><i class="fas fa-circle" style="font-size: 8px; color: #10B981; margin-right: 6px;"></i>Right Wrist</span>
+                    <div class="joint-trend" style="color: #10B981;">
+                        <i class="fas fa-arrow-down" style="font-size: 10px;"></i>
+                        <span>-3%</span>
+                        <span class="joint-value" style="color: #10B981; margin-left: 8px;">15%</span>
+                    </div>
+                </div>
+                <div class="joint-bar">
+                    <div class="joint-fill" style="width: 15%; background: linear-gradient(to right, #10B981, #059669);"></div>
+                </div>
+            </div>
+
+            <div class="joint-row">
+                <div class="joint-row-top">
+                    <span class="joint-name"><i class="fas fa-circle" style="font-size: 8px; color: #10B981; margin-right: 6px;"></i>Left Shoulder</span>
+                    <div class="joint-trend" style="color: #64748B;">
+                        <i class="fas fa-minus" style="font-size: 10px;"></i>
+                        <span>stable</span>
+                        <span class="joint-value" style="color: #10B981; margin-left: 8px;">12%</span>
+                    </div>
+                </div>
+                <div class="joint-bar">
+                    <div class="joint-fill" style="width: 12%; background: linear-gradient(to right, #10B981, #059669);"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7-Day Risk Trend -->
+        <div class="chart-card">
+            <div class="chart-title">7-Day Risk Trend</div>
+            <svg width="100%" height="80" viewBox="0 0 340 80" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient id="riskTrendFill" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#10B981" stop-opacity="0.15"/>
+                        <stop offset="100%" stop-color="#10B981" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <line x1="0" y1="20" x2="340" y2="20" stroke="#1E293B" stroke-width="0.5" stroke-dasharray="3,3"/>
+                <line x1="0" y1="40" x2="340" y2="40" stroke="#1E293B" stroke-width="0.5" stroke-dasharray="3,3"/>
+                <line x1="0" y1="60" x2="340" y2="60" stroke="#1E293B" stroke-width="0.5" stroke-dasharray="3,3"/>
+                <!-- Risk trend line -->
+                <path d="M0,30 L48,35 L97,28 L146,32 L195,38 L243,30 L292,25 L340,28" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M0,30 L48,35 L97,28 L146,32 L195,38 L243,30 L292,25 L340,28 V80 H0 Z" fill="url(#riskTrendFill)"/>
+                <!-- Data points -->
+                <circle cx="0" cy="30" r="3" fill="#10B981"/>
+                <circle cx="48" cy="35" r="3" fill="#10B981"/>
+                <circle cx="97" cy="28" r="3" fill="#10B981"/>
+                <circle cx="146" cy="32" r="3" fill="#10B981"/>
+                <circle cx="195" cy="38" r="3" fill="#10B981"/>
+                <circle cx="243" cy="30" r="3" fill="#10B981"/>
+                <circle cx="292" cy="25" r="3" fill="#10B981"/>
+                <circle cx="340" cy="28" r="4" fill="#10B981" stroke="#080C18" stroke-width="2"/>
+                <!-- Day labels -->
+                <text x="0" y="76" fill="#64748B" font-size="8" font-family="Inter">Mon</text>
+                <text x="97" y="76" fill="#64748B" font-size="8" text-anchor="middle" font-family="Inter">Wed</text>
+                <text x="195" y="76" fill="#64748B" font-size="8" text-anchor="middle" font-family="Inter">Fri</text>
+                <text x="340" y="76" fill="#64748B" font-size="8" text-anchor="end" font-family="Inter">Sun</text>
+            </svg>
+        </div>
+
+        <!-- AI Recommendations -->
+        <div class="section-title" style="display: flex; align-items: center; gap: 8px;">
+            Recommendations
+            <span style="font-size: 9px; background: linear-gradient(135deg, #8B5CF6, #6366F1); color: white; padding: 3px 8px; border-radius: 6px; font-weight: 700; letter-spacing: 0.5px;">AI</span>
+        </div>
+
+        <div class="rec-card">
+            <div class="rec-icon" style="background: rgba(251,191,36,0.12); color: #FBBF24;">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <div class="rec-text">
+                <strong>Reduce lunge volume by 15%</strong> this week to allow right knee recovery. Current load exceeds optimal threshold.
+            </div>
+        </div>
+
+        <div class="rec-card">
+            <div class="rec-icon" style="background: rgba(59,130,246,0.12); color: #60A5FA;">
+                <i class="fas fa-dumbbell"></i>
+            </div>
+            <div class="rec-text">
+                <strong>Add ankle mobility exercises</strong> before each session. 5 min warm-up reduces ankle stress by up to 20%.
+            </div>
+        </div>
+
+        <div class="rec-card">
+            <div class="rec-icon" style="background: rgba(34,211,238,0.12); color: #22D3EE;">
+                <i class="fas fa-eye"></i>
+            </div>
+            <div class="rec-text">
+                <strong>Monitor right knee</strong> during bout practice. Set up real-time alerts if stress exceeds 80% threshold.
+            </div>
+        </div>
+
+        <!-- Export Button -->
+        <button class="export-btn">
+            <i class="fas fa-file-download"></i>
+            Export Full Report
+        </button>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <div class="tab-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-bolt"></i>
+            <span>Live</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-child"></i>
+            <span>Body</span>
+        </div>
+        <div class="tab-item active">
+            <i class="fas fa-chart-line"></i>
+            <span>History</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </div>
+    </div>
+</body>
+</html>
