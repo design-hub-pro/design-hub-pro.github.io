@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostureLens - Monitor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        body { width: 100%; height: 100%; overflow-y: auto; background: #0F0F1A; }
+
+        .camera-feed {
+            position: relative;
+            width: 100%;
+            height: 380px;
+            border-radius: 24px;
+            overflow: hidden;
+            background: #1a1a2e;
+        }
+        .skeleton-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .posture-indicator {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 10px 16px;
+        }
+        .metric-pill {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 14px;
+        }
+        @keyframes scan-line {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+        .scan-line {
+            position: absolute;
+            left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(99,102,241,0.5), transparent);
+            animation: scan-line 3s ease-in-out infinite;
+        }
+        @keyframes glow-pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(99,102,241,0.2); }
+            50% { box-shadow: 0 0 40px rgba(99,102,241,0.4); }
+        }
+        .glow-border { animation: glow-pulse 2s ease-in-out infinite; }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div style="height: 59px; padding: 0 28px;" class="flex items-end justify-between pb-2">
+        <span class="text-sm font-semibold text-white">9:41</span>
+        <div class="w-32 h-8 bg-gray-800 rounded-full mx-auto" style="margin-top: 12px;"></div>
+        <div class="flex items-center gap-1.5">
+            <i class="fas fa-signal text-xs text-white"></i>
+            <i class="fas fa-wifi text-xs text-white"></i>
+            <i class="fas fa-battery-full text-xs text-white"></i>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="px-7 pt-2 pb-4">
+        <div class="flex items-center justify-between">
+            <h1 class="text-xl font-bold text-white">Live Monitor</h1>
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 bg-red-500 rounded-full pulse-dot" style="animation: pulse-dot 1.5s ease-in-out infinite;"></div>
+                <span class="text-xs font-medium text-red-400">REC</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Feed -->
+    <div class="px-7 mb-5">
+        <div class="camera-feed glow-border">
+            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=500&h=400&fit=crop" class="w-full h-full object-cover opacity-60" alt="student studying">
+            <div class="scan-line"></div>
+
+            <!-- Posture Skeleton Overlay -->
+            <div class="skeleton-overlay">
+                <svg width="120" height="200" viewBox="0 0 120 200" fill="none">
+                    <!-- Head -->
+                    <circle cx="60" cy="28" r="16" stroke="#6366F1" stroke-width="2.5" fill="rgba(99,102,241,0.15)"/>
+                    <!-- Spine -->
+                    <line x1="60" y1="44" x2="60" y2="110" stroke="#6366F1" stroke-width="2.5" stroke-linecap="round"/>
+                    <!-- Shoulders -->
+                    <line x1="28" y1="62" x2="92" y2="62" stroke="#6366F1" stroke-width="2.5" stroke-linecap="round"/>
+                    <!-- Left arm -->
+                    <line x1="28" y1="62" x2="18" y2="100" stroke="#6366F1" stroke-width="2.5" stroke-linecap="round"/>
+                    <!-- Right arm -->
+                    <line x1="92" y1="62" x2="102" y2="100" stroke="#6366F1" stroke-width="2.5" stroke-linecap="round"/>
+                    <!-- Hip -->
+                    <line x1="40" y1="110" x2="80" y2="110" stroke="#6366F1" stroke-width="2.5" stroke-linecap="round"/>
+                    <!-- Left leg -->
+                    <line x1="40" y1="110" x2="32" y2="160" stroke="#6366F1" stroke-width="2.5" stroke-linecap="round"/>
+                    <line x1="32" y1="160" x2="28" y2="190" stroke="#6366F1" stroke-width="2.5" stroke-linecap="round"/>
+                    <!-- Right leg -->
+                    <line x1="80" y1="110" x2="88" y2="160" stroke="#6366F1" stroke-width="2.5" stroke-linecap="round"/>
+                    <line x1="88" y1="160" x2="92" y2="190" stroke="#6366F1" stroke-width="2.5" stroke-linecap="round"/>
+                    <!-- Joints -->
+                    <circle cx="28" cy="62" r="4" fill="#6366F1"/>
+                    <circle cx="92" cy="62" r="4" fill="#6366F1"/>
+                    <circle cx="40" cy="110" r="4" fill="#10B981"/>
+                    <circle cx="80" cy="110" r="4" fill="#10B981"/>
+                    <circle cx="32" cy="160" r="4" fill="#6366F1"/>
+                    <circle cx="88" cy="160" r="4" fill="#6366F1"/>
+                </svg>
+            </div>
+
+            <!-- Status Badge -->
+            <div class="absolute top-4 left-4">
+                <div class="posture-indicator flex items-center gap-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                    <span class="text-xs font-semibold text-green-400">Good Posture</span>
+                </div>
+            </div>
+
+            <!-- Angle Badge -->
+            <div class="absolute top-4 right-4">
+                <div class="bg-black/40 backdrop-blur-md rounded-xl px-3 py-2">
+                    <p class="text-[10px] text-gray-400">Spine Angle</p>
+                    <p class="text-lg font-bold text-white">8°</p>
+                </div>
+            </div>
+
+            <!-- Bottom Info -->
+            <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                <div class="bg-black/40 backdrop-blur-md rounded-xl px-3 py-2">
+                    <p class="text-[10px] text-gray-400">Session</p>
+                    <p class="text-sm font-bold text-white">00:42:18</p>
+                </div>
+                <div class="bg-black/40 backdrop-blur-md rounded-xl px-3 py-2">
+                    <p class="text-[10px] text-gray-400">Camera</p>
+                    <p class="text-sm font-bold text-white">30 FPS</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-time Metrics -->
+    <div class="px-7 pb-28">
+        <p class="text-sm font-semibold text-gray-400 mb-3">Real-time Metrics</p>
+
+        <div class="grid grid-cols-2 gap-3 mb-4">
+            <div class="metric-pill">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 bg-indigo-500/20 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-arrows-up-down text-indigo-400 text-xs"></i>
+                    </div>
+                    <span class="text-[10px] text-gray-500">Neck Tilt</span>
+                </div>
+                <p class="text-xl font-bold text-white">12°</p>
+                <div class="w-full h-1.5 bg-gray-800 rounded-full mt-2">
+                    <div class="h-full bg-green-500 rounded-full" style="width: 80%"></div>
+                </div>
+            </div>
+            <div class="metric-pill">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 bg-cyan-500/20 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-arrows-left-right text-cyan-400 text-xs"></i>
+                    </div>
+                    <span class="text-[10px] text-gray-500">Shoulder</span>
+                </div>
+                <p class="text-xl font-bold text-white">3°</p>
+                <div class="w-full h-1.5 bg-gray-800 rounded-full mt-2">
+                    <div class="h-full bg-green-500 rounded-full" style="width: 92%"></div>
+                </div>
+            </div>
+            <div class="metric-pill">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-eye text-purple-400 text-xs"></i>
+                    </div>
+                    <span class="text-[10px] text-gray-500">Eye Distance</span>
+                </div>
+                <p class="text-xl font-bold text-white">48<span class="text-xs text-gray-500">cm</span></p>
+                <div class="w-full h-1.5 bg-gray-800 rounded-full mt-2">
+                    <div class="h-full bg-amber-500 rounded-full" style="width: 65%"></div>
+                </div>
+            </div>
+            <div class="metric-pill">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 bg-rose-500/20 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-chair text-rose-400 text-xs"></i>
+                    </div>
+                    <span class="text-[10px] text-gray-500">Lean Angle</span>
+                </div>
+                <p class="text-xl font-bold text-white">5°</p>
+                <div class="w-full h-1.5 bg-gray-800 rounded-full mt-2">
+                    <div class="h-full bg-green-500 rounded-full" style="width: 88%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Card -->
+        <div class="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-center gap-3">
+            <div class="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-bell text-amber-400"></i>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-amber-300">Break Reminder</p>
+                <p class="text-xs text-gray-500">Next break in 18 minutes</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div style="position: absolute; bottom: 0; left: 0; right: 0;" class="bg-gray-900/95 backdrop-blur border-t border-gray-800 px-6 pt-2 pb-8">
+        <div class="flex items-center justify-around">
+            <div class="flex flex-col items-center gap-0.5">
+                <i class="fas fa-home text-gray-600 text-lg"></i>
+                <span class="text-[10px] font-medium text-gray-600">Home</span>
+            </div>
+            <div class="flex flex-col items-center gap-0.5">
+                <i class="fas fa-video text-indigo-400 text-lg"></i>
+                <span class="text-[10px] font-semibold text-indigo-400">Monitor</span>
+            </div>
+            <div class="flex flex-col items-center gap-0.5">
+                <i class="fas fa-chart-line text-gray-600 text-lg"></i>
+                <span class="text-[10px] font-medium text-gray-600">Analytics</span>
+            </div>
+            <div class="flex flex-col items-center gap-0.5">
+                <i class="fas fa-dumbbell text-gray-600 text-lg"></i>
+                <span class="text-[10px] font-medium text-gray-600">Exercise</span>
+            </div>
+            <div class="flex flex-col items-center gap-0.5">
+                <i class="fas fa-user text-gray-600 text-lg"></i>
+                <span class="text-[10px] font-medium text-gray-600">Profile</span>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.3); }
+        }
+    </style>
+</body>
+</html>
