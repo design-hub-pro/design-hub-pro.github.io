@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DermaPack - Trends</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    * { scrollbar-width: none; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: #F8FAFC; width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; color: #1E293B; }
+
+    .status-bar { height: 59px; padding: 0 28px; display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 14px; position: relative; background: #F8FAFC; }
+    .dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 20px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+    .content { padding: 0 28px 40px 28px; }
+
+    .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); margin-bottom: 16px; }
+
+    .time-tabs { display: flex; gap: 6px; margin-bottom: 16px; background: #F1F5F9; border-radius: 12px; padding: 4px; }
+    .time-tab { flex: 1; padding: 8px; border-radius: 10px; text-align: center; font-size: 13px; font-weight: 600; color: #64748B; cursor: pointer; }
+    .time-tab.active { background: #fff; color: #6366F1; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+    .chart-area { height: 160px; position: relative; margin: 16px 0 8px; }
+    .chart-grid { position: absolute; top: 0; left: 30px; right: 0; bottom: 20px; }
+    .chart-line { position: absolute; left: 0; right: 0; border-top: 1px dashed #F1F5F9; }
+    .chart-y-label { position: absolute; left: 0; font-size: 10px; color: #CBD5E1; transform: translateY(-50%); }
+    .chart-x-labels { display: flex; justify-content: space-between; position: absolute; bottom: 0; left: 30px; right: 0; }
+    .chart-x-label { font-size: 10px; color: #94A3B8; }
+
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .stat-card { background: #fff; border-radius: 16px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-align: center; }
+    .stat-value { font-size: 28px; font-weight: 800; }
+    .stat-label { font-size: 12px; color: #94A3B8; margin-top: 2px; }
+    .stat-change { font-size: 11px; font-weight: 600; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 3px; }
+
+    .insight-card { background: linear-gradient(135deg, #EEF2FF, #E0E7FF); border-radius: 16px; padding: 18px; margin-bottom: 16px; border-left: 4px solid #6366F1; }
+    .insight-icon { font-size: 20px; margin-bottom: 8px; }
+    .insight-text { font-size: 14px; line-height: 1.5; color: #4338CA; font-weight: 500; }
+
+    .correlation-card { display: flex; align-items: center; gap: 14px; padding: 14px 0; }
+    .correlation-card:not(:last-child) { border-bottom: 1px solid #F1F5F9; }
+    .corr-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .corr-info { flex: 1; }
+    .corr-title { font-size: 14px; font-weight: 600; }
+    .corr-desc { font-size: 12px; color: #94A3B8; margin-top: 2px; }
+    .corr-value { font-size: 16px; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="status-bar">
+    <span style="font-size: 15px; font-weight: 600;">9:41</span>
+    <div class="dynamic-island"></div>
+    <div style="display: flex; gap: 6px; align-items: center; font-size: 13px;">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+      <div style="width: 36px; height: 36px; border-radius: 10px; background: #F1F5F9; display: flex; align-items: center; justify-content: center;">
+        <i class="fas fa-arrow-left" style="font-size: 16px; color: #64748B;"></i>
+      </div>
+      <div style="font-size: 24px; font-weight: 700;">Insights</div>
+    </div>
+
+    <!-- Time Filter -->
+    <div class="time-tabs">
+      <div class="time-tab">Week</div>
+      <div class="time-tab active">Month</div>
+      <div class="time-tab">Semester</div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-value" style="color: #10B981;">24</div>
+        <div class="stat-label">Avg Risk Score</div>
+        <div class="stat-change" style="color: #10B981;"><i class="fas fa-arrow-down" style="font-size: 9px;"></i> -12%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color: #6366F1;">2.3</div>
+        <div class="stat-label">Avg Stress Level</div>
+        <div class="stat-change" style="color: #10B981;"><i class="fas fa-arrow-down" style="font-size: 9px;"></i> -8%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color: #F97316;">3.1<span style="font-size: 14px;">h</span></div>
+        <div class="stat-label">Avg Wear Time</div>
+        <div class="stat-change" style="color: #EF4444;"><i class="fas fa-arrow-up" style="font-size: 9px;"></i> +5%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color: #06B6D4;">2</div>
+        <div class="stat-label">Skin Reports</div>
+        <div class="stat-change" style="color: #10B981;"><i class="fas fa-arrow-down" style="font-size: 9px;"></i> -50%</div>
+      </div>
+    </div>
+
+    <!-- Risk Trend Chart -->
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-size: 15px; font-weight: 600;">Risk Score Trend</span>
+        <span style="font-size: 12px; color: #10B981; font-weight: 600;"><i class="fas fa-arrow-trend-down"></i> Improving</span>
+      </div>
+      <div class="chart-area">
+        <div class="chart-y-label" style="top: 0;">80</div>
+        <div class="chart-y-label" style="top: 33%;">60</div>
+        <div class="chart-y-label" style="top: 66%;">40</div>
+        <div class="chart-y-label" style="bottom: 20px;">20</div>
+        <div class="chart-grid">
+          <div class="chart-line" style="top: 0;"></div>
+          <div class="chart-line" style="top: 33%;"></div>
+          <div class="chart-line" style="top: 66%;"></div>
+          <div class="chart-line" style="bottom: 20px;"></div>
+          <!-- SVG Chart -->
+          <svg width="100%" height="calc(100% - 20px)" viewBox="0 0 340 120" preserveAspectRatio="none" style="position: absolute; top: 0; left: 0;">
+            <defs>
+              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" style="stop-color:#6366F1; stop-opacity:0.3"/>
+                <stop offset="100%" style="stop-color:#6366F1; stop-opacity:0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,60 C20,55 40,70 60,65 C80,60 100,80 120,75 C140,70 160,50 180,45 C200,40 220,55 240,48 C260,41 280,35 300,30 C320,25 340,28 340,28 L340,120 L0,120 Z" fill="url(#areaGrad)"/>
+            <path d="M0,60 C20,55 40,70 60,65 C80,60 100,80 120,75 C140,70 160,50 180,45 C200,40 220,55 240,48 C260,41 280,35 300,30 C320,25 340,28 340,28" fill="none" stroke="#6366F1" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- Dots -->
+            <circle cx="0" cy="60" r="4" fill="#6366F1"/>
+            <circle cx="60" cy="65" r="4" fill="#6366F1"/>
+            <circle cx="120" cy="75" r="4" fill="#F59E0B"/>
+            <circle cx="180" cy="45" r="4" fill="#6366F1"/>
+            <circle cx="240" cy="48" r="4" fill="#6366F1"/>
+            <circle cx="300" cy="30" r="4" fill="#10B981"/>
+            <circle cx="340" cy="28" r="4" fill="#10B981"/>
+          </svg>
+        </div>
+        <div class="chart-x-labels">
+          <span class="chart-x-label">W1</span>
+          <span class="chart-x-label">W2</span>
+          <span class="chart-x-label">W3</span>
+          <span class="chart-x-label">W4</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Insight -->
+    <div class="insight-card">
+      <div class="insight-icon">💡</div>
+      <div class="insight-text">Your skin risk increases 2.4x on exam days. Consider loosening straps and taking breaks during stressful periods.</div>
+    </div>
+
+    <!-- Correlations -->
+    <div class="card">
+      <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Correlations</div>
+
+      <div class="correlation-card">
+        <div class="corr-icon" style="background: #FEF3C7;">📊</div>
+        <div class="corr-info">
+          <div class="corr-title">Stress → Skin Risk</div>
+          <div class="corr-desc">Higher stress correlates with risk</div>
+        </div>
+        <div class="corr-value" style="color: #F59E0B;">0.72</div>
+      </div>
+
+      <div class="correlation-card">
+        <div class="corr-icon" style="background: #FEE2E2;">⏱️</div>
+        <div class="corr-info">
+          <div class="corr-title">Wear Time → Risk</div>
+          <div class="corr-desc">Longer wear increases risk</div>
+        </div>
+        <div class="corr-value" style="color: #EF4444;">0.85</div>
+      </div>
+
+      <div class="correlation-card">
+        <div class="corr-icon" style="background: #ECFDF5;">🌡️</div>
+        <div class="corr-info">
+          <div class="corr-title">Temperature → Humidity</div>
+          <div class="corr-desc">Heat drives moisture</div>
+        </div>
+        <div class="corr-value" style="color: #10B981;">0.91</div>
+      </div>
+
+      <div class="correlation-card">
+        <div class="corr-icon" style="background: #EEF2FF;">📝</div>
+        <div class="corr-info">
+          <div class="corr-title">Exam Days → Stress</div>
+          <div class="corr-desc">Exams spike stress levels</div>
+        </div>
+        <div class="corr-value" style="color: #6366F1;">0.88</div>
+      </div>
+    </div>
+
+    <!-- Weekly Summary -->
+    <div class="card">
+      <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">This Week Summary</div>
+      <div style="display: flex; justify-content: space-between;">
+        <div style="text-align: center;">
+          <div style="font-size: 24px; font-weight: 800; color: #10B981;">5</div>
+          <div style="font-size: 11px; color: #94A3B8;">Low Risk<br>Days</div>
+        </div>
+        <div style="width: 1px; background: #F1F5F9;"></div>
+        <div style="text-align: center;">
+          <div style="font-size: 24px; font-weight: 800; color: #F59E0B;">2</div>
+          <div style="font-size: 11px; color: #94A3B8;">Elevated<br>Days</div>
+        </div>
+        <div style="width: 1px; background: #F1F5F9;"></div>
+        <div style="text-align: center;">
+          <div style="font-size: 24px; font-weight: 800; color: #6366F1;">18h</div>
+          <div style="font-size: 11px; color: #94A3B8;">Total Wear<br>Time</div>
+        </div>
+        <div style="width: 1px; background: #F1F5F9;"></div>
+        <div style="text-align: center;">
+          <div style="font-size: 24px; font-weight: 800; color: #06B6D4;">0</div>
+          <div style="font-size: 11px; color: #94A3B8;">Skin<br>Reports</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

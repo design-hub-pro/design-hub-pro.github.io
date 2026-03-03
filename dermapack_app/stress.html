@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DermaPack - Stress Log</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    * { scrollbar-width: none; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: #F8FAFC; width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; color: #1E293B; }
+
+    .status-bar { height: 59px; padding: 0 28px; display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 14px; position: relative; background: #F8FAFC; }
+    .dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 20px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+    .content { padding: 0 28px 40px 28px; }
+
+    .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); margin-bottom: 16px; }
+
+    .emoji-scale { display: flex; justify-content: space-between; margin: 20px 0; }
+    .emoji-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; padding: 12px; border-radius: 16px; transition: all 0.2s; }
+    .emoji-item.selected { background: #EEF2FF; transform: scale(1.1); }
+    .emoji-circle { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; background: #F8FAFC; border: 2px solid #E2E8F0; }
+    .emoji-item.selected .emoji-circle { border-color: #6366F1; background: #fff; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+    .emoji-label { font-size: 11px; font-weight: 600; color: #94A3B8; }
+    .emoji-item.selected .emoji-label { color: #6366F1; }
+
+    .scale-bar { display: flex; justify-content: space-between; margin-top: 4px; }
+    .scale-dot { width: 100%; height: 4px; border-radius: 2px; margin: 0 2px; }
+
+    .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; }
+    .toggle-row:not(:last-child) { border-bottom: 1px solid #F1F5F9; }
+    .toggle { width: 48px; height: 28px; border-radius: 14px; background: #E2E8F0; position: relative; cursor: pointer; }
+    .toggle.on { background: #6366F1; }
+    .toggle-knob { width: 24px; height: 24px; border-radius: 50%; background: #fff; position: absolute; top: 2px; left: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.15); transition: left 0.2s; }
+    .toggle.on .toggle-knob { left: 22px; }
+
+    .submit-btn { width: 100%; padding: 16px; border-radius: 14px; background: linear-gradient(135deg, #6366F1, #8B5CF6); color: #fff; font-size: 16px; font-weight: 600; border: none; cursor: pointer; margin-top: 8px; }
+
+    .log-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
+    .log-item:not(:last-child) { border-bottom: 1px solid #F1F5F9; }
+    .log-emoji { font-size: 24px; }
+    .log-info { flex: 1; }
+    .log-date { font-size: 13px; font-weight: 600; }
+    .log-time { font-size: 11px; color: #94A3B8; }
+    .log-level { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 8px; }
+
+    .week-chart { display: flex; justify-content: space-between; align-items: flex-end; height: 100px; padding: 0 8px; margin: 16px 0 8px; }
+    .week-bar-container { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .week-bar { width: 28px; border-radius: 8px 8px 4px 4px; min-height: 8px; }
+    .week-day { font-size: 11px; color: #94A3B8; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div class="status-bar">
+    <span style="font-size: 15px; font-weight: 600;">9:41</span>
+    <div class="dynamic-island"></div>
+    <div style="display: flex; gap: 6px; align-items: center; font-size: 13px;">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+      <div style="width: 36px; height: 36px; border-radius: 10px; background: #F1F5F9; display: flex; align-items: center; justify-content: center;">
+        <i class="fas fa-arrow-left" style="font-size: 16px; color: #64748B;"></i>
+      </div>
+      <div style="font-size: 24px; font-weight: 700;">Stress Check-in</div>
+    </div>
+
+    <!-- Stress Level Card -->
+    <div class="card">
+      <div style="text-align: center; margin-bottom: 4px;">
+        <div style="font-size: 17px; font-weight: 700;">How are you feeling?</div>
+        <div style="font-size: 13px; color: #94A3B8;">March 2, 2026 • 9:41 AM</div>
+      </div>
+
+      <div class="emoji-scale">
+        <div class="emoji-item">
+          <div class="emoji-circle">😊</div>
+          <div class="emoji-label">Great</div>
+        </div>
+        <div class="emoji-item">
+          <div class="emoji-circle">🙂</div>
+          <div class="emoji-label">Good</div>
+        </div>
+        <div class="emoji-item selected">
+          <div class="emoji-circle">😐</div>
+          <div class="emoji-label">Okay</div>
+        </div>
+        <div class="emoji-item">
+          <div class="emoji-circle">😟</div>
+          <div class="emoji-label">Stressed</div>
+        </div>
+        <div class="emoji-item">
+          <div class="emoji-circle">😫</div>
+          <div class="emoji-label">Very</div>
+        </div>
+      </div>
+
+      <div class="scale-bar" style="display: flex; gap: 3px;">
+        <div class="scale-dot" style="background: #10B981;"></div>
+        <div class="scale-dot" style="background: #22D3EE;"></div>
+        <div class="scale-dot" style="background: #F59E0B;"></div>
+        <div class="scale-dot" style="background: #F97316;"></div>
+        <div class="scale-dot" style="background: #EF4444;"></div>
+      </div>
+    </div>
+
+    <!-- Options -->
+    <div class="card">
+      <div class="toggle-row">
+        <div>
+          <div style="font-size: 15px; font-weight: 600;">Exam Today?</div>
+          <div style="font-size: 12px; color: #94A3B8;">Mark if you have an exam</div>
+        </div>
+        <div class="toggle on">
+          <div class="toggle-knob"></div>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div style="font-size: 15px; font-weight: 600;">Heavy Backpack?</div>
+          <div style="font-size: 12px; color: #94A3B8;">More books than usual</div>
+        </div>
+        <div class="toggle">
+          <div class="toggle-knob"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Note -->
+    <div class="card" style="padding: 14px 16px;">
+      <div style="font-size: 13px; color: #94A3B8; margin-bottom: 4px;">Add a note (optional)</div>
+      <div style="font-size: 14px; color: #CBD5E1;">Midterm exam today, feeling a bit anxious...</div>
+    </div>
+
+    <button class="submit-btn">Log Stress Level</button>
+
+    <!-- Weekly Overview -->
+    <div class="card" style="margin-top: 16px;">
+      <div style="font-size: 15px; font-weight: 600; margin-bottom: 4px;">This Week</div>
+      <div class="week-chart">
+        <div class="week-bar-container">
+          <div class="week-bar" style="height: 24px; background: #10B981;"></div>
+          <div class="week-day">Mon</div>
+        </div>
+        <div class="week-bar-container">
+          <div class="week-bar" style="height: 40px; background: #22D3EE;"></div>
+          <div class="week-day">Tue</div>
+        </div>
+        <div class="week-bar-container">
+          <div class="week-bar" style="height: 72px; background: #F97316;"></div>
+          <div class="week-day">Wed</div>
+        </div>
+        <div class="week-bar-container">
+          <div class="week-bar" style="height: 56px; background: #F59E0B;"></div>
+          <div class="week-day">Thu</div>
+        </div>
+        <div class="week-bar-container">
+          <div class="week-bar" style="height: 88px; background: #EF4444;"></div>
+          <div class="week-day">Fri</div>
+        </div>
+        <div class="week-bar-container">
+          <div class="week-bar" style="height: 32px; background: #10B981;"></div>
+          <div class="week-day">Sat</div>
+        </div>
+        <div class="week-bar-container">
+          <div class="week-bar" style="height: 16px; background: #10B981;"></div>
+          <div class="week-day">Sun</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Logs -->
+    <div class="card">
+      <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Recent Logs</div>
+      <div class="log-item">
+        <div class="log-emoji">😟</div>
+        <div class="log-info">
+          <div class="log-date">Yesterday</div>
+          <div class="log-time">4:30 PM • Exam day</div>
+        </div>
+        <div class="log-level" style="background: #FEF3C7; color: #F59E0B;">4/5</div>
+      </div>
+      <div class="log-item">
+        <div class="log-emoji">🙂</div>
+        <div class="log-info">
+          <div class="log-date">Feb 28</div>
+          <div class="log-time">9:15 AM</div>
+        </div>
+        <div class="log-level" style="background: #ECFDF5; color: #10B981;">2/5</div>
+      </div>
+      <div class="log-item">
+        <div class="log-emoji">😫</div>
+        <div class="log-info">
+          <div class="log-date">Feb 27</div>
+          <div class="log-time">6:00 PM • Exam day</div>
+        </div>
+        <div class="log-level" style="background: #FEE2E2; color: #EF4444;">5/5</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

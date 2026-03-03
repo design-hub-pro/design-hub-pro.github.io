@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DermaPack - Tasks</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    * { scrollbar-width: none; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: #F8FAFC; width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; color: #1E293B; }
+
+    .status-bar { height: 59px; padding: 0 28px; display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 14px; position: relative; background: #F8FAFC; }
+    .dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 20px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+    .content { padding: 0 28px 100px 28px; }
+
+    .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 85px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-top: 1px solid #E2E8F0; display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; z-index: 100; }
+    .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; font-weight: 500; color: #94A3B8; }
+    .tab-item.active { color: #6366F1; }
+    .tab-item i { font-size: 20px; }
+
+    .progress-card { background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; color: #fff; }
+    .progress-bar-bg { height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; margin-top: 12px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: #fff; border-radius: 4px; transition: width 0.5s ease; }
+
+    .filter-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .filter-tab { padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; background: #fff; color: #64748B; border: 1px solid #E2E8F0; }
+    .filter-tab.active { background: #6366F1; color: #fff; border-color: #6366F1; }
+
+    .task-card { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; gap: 14px; align-items: flex-start; }
+    .task-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #CBD5E1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+    .task-check.done { background: #10B981; border-color: #10B981; color: #fff; font-size: 12px; }
+    .task-info { flex: 1; }
+    .task-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .task-title.done { text-decoration: line-through; color: #94A3B8; }
+    .task-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .task-tag { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 6px; }
+    .task-due { font-size: 11px; color: #94A3B8; display: flex; align-items: center; gap: 4px; }
+    .priority-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    .fab { position: absolute; bottom: 100px; right: 28px; width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #6366F1, #8B5CF6); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 14px rgba(99,102,241,0.4); z-index: 101; }
+  </style>
+</head>
+<body>
+  <div class="status-bar">
+    <span style="font-size: 15px; font-weight: 600;">9:41</span>
+    <div class="dynamic-island"></div>
+    <div style="display: flex; gap: 6px; align-items: center; font-size: 13px;">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div style="font-size: 24px; font-weight: 700; margin-bottom: 16px;">My Tasks</div>
+
+    <!-- Progress Card -->
+    <div class="progress-card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-size: 28px; font-weight: 800;">4<span style="font-size: 16px; opacity: 0.7;">/7</span></div>
+          <div style="font-size: 12px; opacity: 0.8;">Completed today</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 32px; font-weight: 800;">57%</div>
+          <div style="font-size: 12px; opacity: 0.8;">Progress</div>
+        </div>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" style="width: 57%;"></div>
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+      <div class="filter-tab active">All</div>
+      <div class="filter-tab">Today</div>
+      <div class="filter-tab">Upcoming</div>
+      <div class="filter-tab">Done</div>
+    </div>
+
+    <!-- Tasks -->
+    <div class="task-card">
+      <div class="task-check done"><i class="fas fa-check"></i></div>
+      <div class="task-info">
+        <div class="task-title done">Read Chapter 5 - Biology</div>
+        <div class="task-meta">
+          <span class="task-tag" style="background: #ECFDF5; color: #10B981;">Biology</span>
+          <span class="task-due"><i class="fas fa-clock"></i> Today</span>
+        </div>
+      </div>
+      <div class="priority-dot" style="background: #10B981;"></div>
+    </div>
+
+    <div class="task-card">
+      <div class="task-check done"><i class="fas fa-check"></i></div>
+      <div class="task-info">
+        <div class="task-title done">Submit Lab Report</div>
+        <div class="task-meta">
+          <span class="task-tag" style="background: #EEF2FF; color: #6366F1;">Chemistry</span>
+          <span class="task-due"><i class="fas fa-clock"></i> Today</span>
+        </div>
+      </div>
+      <div class="priority-dot" style="background: #10B981;"></div>
+    </div>
+
+    <div class="task-card">
+      <div class="task-check"></div>
+      <div class="task-info">
+        <div class="task-title">Math Problem Set #8</div>
+        <div class="task-meta">
+          <span class="task-tag" style="background: #FEF3C7; color: #F59E0B;">Math</span>
+          <span class="task-due"><i class="fas fa-clock"></i> Due tomorrow</span>
+        </div>
+      </div>
+      <div class="priority-dot" style="background: #F59E0B;"></div>
+    </div>
+
+    <div class="task-card">
+      <div class="task-check"></div>
+      <div class="task-info">
+        <div class="task-title">History Essay Draft</div>
+        <div class="task-meta">
+          <span class="task-tag" style="background: #FEE2E2; color: #EF4444;">History</span>
+          <span class="task-due"><i class="fas fa-clock"></i> Due in 3 days</span>
+        </div>
+      </div>
+      <div class="priority-dot" style="background: #EF4444;"></div>
+    </div>
+
+    <div class="task-card">
+      <div class="task-check done"><i class="fas fa-check"></i></div>
+      <div class="task-info">
+        <div class="task-title done">Physics Homework Ch.12</div>
+        <div class="task-meta">
+          <span class="task-tag" style="background: #F0F9FF; color: #0EA5E9;">Physics</span>
+          <span class="task-due"><i class="fas fa-clock"></i> Today</span>
+        </div>
+      </div>
+      <div class="priority-dot" style="background: #10B981;"></div>
+    </div>
+
+    <div class="task-card">
+      <div class="task-check"></div>
+      <div class="task-info">
+        <div class="task-title">English Presentation Slides</div>
+        <div class="task-meta">
+          <span class="task-tag" style="background: #FCE7F3; color: #EC4899;">English</span>
+          <span class="task-due"><i class="fas fa-clock"></i> Due in 5 days</span>
+        </div>
+      </div>
+      <div class="priority-dot" style="background: #F59E0B;"></div>
+    </div>
+
+    <div class="task-card">
+      <div class="task-check done"><i class="fas fa-check"></i></div>
+      <div class="task-info">
+        <div class="task-title done">Study Group Meeting</div>
+        <div class="task-meta">
+          <span class="task-tag" style="background: #F5F3FF; color: #8B5CF6;">General</span>
+          <span class="task-due"><i class="fas fa-clock"></i> Today</span>
+        </div>
+      </div>
+      <div class="priority-dot" style="background: #10B981;"></div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <div class="fab">
+    <i class="fas fa-plus"></i>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-wifi"></i>
+      <span>Sensors</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-list-check"></i>
+      <span>Tasks</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-calendar"></i>
+      <span>Calendar</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>
