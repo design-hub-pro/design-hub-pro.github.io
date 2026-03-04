@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SlumberPad - Smart Alarm</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;
+    scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif;
+    background: #0f0a2a; color: #fff;
+  }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; z-index: 100; background: #0f0a2a;
+  }
+  .status-time { font-size: 16px; font-weight: 600; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; margin-top: 2px; }
+
+  .content { padding: 0 28px 120px; }
+
+  .header { margin-bottom: 32px; }
+  .header h1 { font-size: 22px; font-weight: 700; }
+
+  .main-alarm-card {
+    background: linear-gradient(135deg, #1e1650, #2d1b69);
+    border-radius: 28px; padding: 36px 28px; text-align: center; margin-bottom: 28px;
+    position: relative; overflow: hidden;
+    border: 1px solid rgba(139,92,246,0.15);
+  }
+  .main-alarm-card::before {
+    content: ''; position: absolute; top: -40%; right: -20%; width: 180px; height: 180px;
+    background: radial-gradient(circle, rgba(139,92,246,0.2) 0%, transparent 70%);
+  }
+  .alarm-big-time { font-size: 64px; font-weight: 800; margin-bottom: 8px; position: relative; z-index: 1;
+    background: linear-gradient(135deg, #fff, #c4b5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .alarm-period { font-size: 24px; font-weight: 300; color: rgba(255,255,255,0.5); margin-bottom: 16px; position: relative; z-index: 1; }
+  .alarm-smart-badge {
+    display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px;
+    background: rgba(139,92,246,0.2); border-radius: 20px; font-size: 13px; color: #c4b5fd;
+    position: relative; z-index: 1;
+  }
+  .alarm-smart-badge i { font-size: 12px; }
+  .alarm-days { display: flex; justify-content: center; gap: 8px; margin-top: 20px; position: relative; z-index: 1; }
+  .day-chip {
+    width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4);
+  }
+  .day-chip.active { background: #7c3aed; color: #fff; }
+
+  .section-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: rgba(255,255,255,0.7); }
+
+  .vibration-card {
+    background: rgba(255,255,255,0.06); border-radius: 20px; padding: 22px; margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .vibration-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .vibration-header-left { display: flex; align-items: center; gap: 12px; }
+  .vibration-icon {
+    width: 42px; height: 42px; border-radius: 14px;
+    background: linear-gradient(135deg, #7c3aed, #6d28d9); display: flex; align-items: center; justify-content: center;
+  }
+  .vibration-icon i { font-size: 18px; }
+  .vibration-label { font-size: 15px; font-weight: 600; }
+  .vibration-sub { font-size: 11px; color: rgba(255,255,255,0.4); }
+  .toggle {
+    width: 52px; height: 30px; border-radius: 15px; position: relative;
+  }
+  .toggle.on { background: #7c3aed; }
+  .toggle.off { background: rgba(255,255,255,0.15); }
+  .toggle::after {
+    content: ''; position: absolute; top: 3px; width: 24px; height: 24px;
+    background: #fff; border-radius: 50%;
+  }
+  .toggle.on::after { right: 3px; }
+  .toggle.off::after { left: 3px; }
+
+  .intensity-section { margin-top: 4px; }
+  .intensity-label { font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 12px; }
+  .intensity-bars { display: flex; gap: 6px; align-items: flex-end; height: 40px; }
+  .intensity-bar { flex: 1; border-radius: 4px; background: rgba(255,255,255,0.1); transition: 0.2s; }
+  .intensity-bar.active { background: linear-gradient(to top, #7c3aed, #a78bfa); }
+  .intensity-bar:nth-child(1) { height: 30%; }
+  .intensity-bar:nth-child(2) { height: 45%; }
+  .intensity-bar:nth-child(3) { height: 60%; }
+  .intensity-bar:nth-child(4) { height: 75%; }
+  .intensity-bar:nth-child(5) { height: 90%; }
+  .intensity-bar:nth-child(6) { height: 100%; }
+  .intensity-labels { display: flex; justify-content: space-between; margin-top: 8px; }
+  .intensity-labels span { font-size: 10px; color: rgba(255,255,255,0.3); }
+
+  .smart-window {
+    background: rgba(255,255,255,0.06); border-radius: 20px; padding: 22px; margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .window-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .window-header-left { display: flex; align-items: center; gap: 12px; }
+  .window-icon {
+    width: 42px; height: 42px; border-radius: 14px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb); display: flex; align-items: center; justify-content: center;
+  }
+  .window-icon i { font-size: 18px; }
+  .window-text .window-title { font-size: 15px; font-weight: 600; }
+  .window-text .window-sub { font-size: 11px; color: rgba(255,255,255,0.4); }
+  .window-options { display: flex; gap: 10px; }
+  .window-chip {
+    flex: 1; padding: 12px; border-radius: 14px; text-align: center; font-size: 14px; font-weight: 600;
+    background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);
+  }
+  .window-chip.active { background: rgba(59,130,246,0.2); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+  .window-chip span { display: block; font-size: 10px; font-weight: 400; color: rgba(255,255,255,0.3); margin-top: 2px; }
+
+  .pattern-card {
+    background: rgba(255,255,255,0.06); border-radius: 20px; padding: 22px; margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .pattern-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .pattern-icon {
+    width: 42px; height: 42px; border-radius: 14px;
+    background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center;
+  }
+  .pattern-icon i { font-size: 18px; }
+  .pattern-title { font-size: 15px; font-weight: 600; }
+  .pattern-sub { font-size: 11px; color: rgba(255,255,255,0.4); }
+  .patterns { display: flex; gap: 10px; }
+  .pattern-option {
+    flex: 1; padding: 16px 10px; border-radius: 16px; text-align: center;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+  }
+  .pattern-option.active { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.3); }
+  .pattern-option i { font-size: 24px; color: rgba(255,255,255,0.4); margin-bottom: 8px; display: block; }
+  .pattern-option.active i { color: #34d399; }
+  .pattern-option .pname { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+  .pattern-option .pdesc { font-size: 9px; color: rgba(255,255,255,0.3); }
+
+  .other-alarms-title { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.5); margin-bottom: 12px; }
+  .other-alarm {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px; background: rgba(255,255,255,0.04); border-radius: 16px;
+    margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.04);
+  }
+  .other-alarm-time { font-size: 20px; font-weight: 700; color: rgba(255,255,255,0.4); }
+  .other-alarm-label { font-size: 11px; color: rgba(255,255,255,0.25); }
+
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 90px;
+    background: rgba(15,10,42,0.95); backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: flex-start; padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: rgba(255,255,255,0.3); font-size: 10px; }
+  .tab-item i { font-size: 22px; }
+  .tab-item.active { color: #a78bfa; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <h1>Smart Alarm</h1>
+    </div>
+
+    <div class="main-alarm-card">
+      <div class="alarm-big-time">7:00</div>
+      <div class="alarm-period">AM</div>
+      <div class="alarm-smart-badge"><i class="fas fa-wand-magic-sparkles"></i> Smart Wake Window Active</div>
+      <div class="alarm-days">
+        <div class="day-chip active">M</div>
+        <div class="day-chip active">T</div>
+        <div class="day-chip active">W</div>
+        <div class="day-chip active">T</div>
+        <div class="day-chip active">F</div>
+        <div class="day-chip">S</div>
+        <div class="day-chip">S</div>
+      </div>
+    </div>
+
+    <div class="vibration-card">
+      <div class="vibration-header">
+        <div class="vibration-header-left">
+          <div class="vibration-icon"><i class="fas fa-wave-square"></i></div>
+          <div>
+            <div class="vibration-label">Vibration</div>
+            <div class="vibration-sub">Gentle pillow vibration</div>
+          </div>
+        </div>
+        <div class="toggle on"></div>
+      </div>
+      <div class="intensity-section">
+        <div class="intensity-label">Intensity Level</div>
+        <div class="intensity-bars">
+          <div class="intensity-bar active"></div>
+          <div class="intensity-bar active"></div>
+          <div class="intensity-bar active"></div>
+          <div class="intensity-bar active"></div>
+          <div class="intensity-bar"></div>
+          <div class="intensity-bar"></div>
+        </div>
+        <div class="intensity-labels">
+          <span>Gentle</span>
+          <span>Strong</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="smart-window">
+      <div class="window-header">
+        <div class="window-header-left">
+          <div class="window-icon"><i class="fas fa-clock"></i></div>
+          <div class="window-text">
+            <div class="window-title">Smart Window</div>
+            <div class="window-sub">Wake during light sleep</div>
+          </div>
+        </div>
+      </div>
+      <div class="window-options">
+        <div class="window-chip">15<span>min</span></div>
+        <div class="window-chip active">30<span>min</span></div>
+        <div class="window-chip">45<span>min</span></div>
+      </div>
+    </div>
+
+    <div class="pattern-card">
+      <div class="pattern-header">
+        <div class="pattern-icon"><i class="fas fa-waveform"></i></div>
+        <div>
+          <div class="pattern-title">Wake Pattern</div>
+          <div class="pattern-sub">Choose how vibration feels</div>
+        </div>
+      </div>
+      <div class="patterns">
+        <div class="pattern-option">
+          <i class="fas fa-water"></i>
+          <div class="pname">Wave</div>
+          <div class="pdesc">Rolling pulse</div>
+        </div>
+        <div class="pattern-option active">
+          <i class="fas fa-sun"></i>
+          <div class="pname">Sunrise</div>
+          <div class="pdesc">Gradual build</div>
+        </div>
+        <div class="pattern-option">
+          <i class="fas fa-heart-pulse"></i>
+          <div class="pname">Pulse</div>
+          <div class="pdesc">Rhythmic tap</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="other-alarms-title">Other Alarms</div>
+    <div class="other-alarm">
+      <div>
+        <div class="other-alarm-time">6:00 AM</div>
+        <div class="other-alarm-label">Weekend Run</div>
+      </div>
+      <div class="toggle off"></div>
+    </div>
+    <div class="other-alarm">
+      <div>
+        <div class="other-alarm-time">8:30 AM</div>
+        <div class="other-alarm-label">Weekend</div>
+      </div>
+      <div class="toggle off"></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-moon"></i><span>Sleep</span></div>
+    <div class="tab-item"><i class="fas fa-chart-line"></i><span>Trends</span></div>
+    <div class="tab-item active"><i class="fas fa-bell"></i><span>Alarm</span></div>
+    <div class="tab-item"><i class="fas fa-microchip"></i><span>Device</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</body>
+</html>
