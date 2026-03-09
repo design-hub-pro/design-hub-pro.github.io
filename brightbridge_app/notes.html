@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrightBridge - Notes</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #F2F2F7; width: 100%; height: 100%; overflow-x: hidden; scrollbar-width: none; }
+
+  .status-bar { width: 100%; height: 59px; padding: 0 28px; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 10px; background: #F2F2F7; position: sticky; top: 0; z-index: 100; }
+  .status-time { font-size: 16px; font-weight: 600; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 22px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .page-title { font-size: 28px; font-weight: 700; color: #1C1C1E; }
+  .new-btn { padding: 8px 16px; border-radius: 12px; background: linear-gradient(135deg, #5856D6, #AF52DE); color: #fff; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+
+  .filter-row { display: flex; gap: 8px; margin-top: 16px; overflow-x: auto; }
+  .filter-chip { padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; white-space: nowrap; background: #fff; color: #8E8E93; }
+  .filter-chip.active { background: #5856D6; color: #fff; }
+
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-top: 22px; margin-bottom: 12px; }
+  .section-title { font-size: 18px; font-weight: 700; color: #1C1C1E; }
+  .section-sub { font-size: 12px; color: #8E8E93; }
+
+  .note-card { background: #fff; border-radius: 18px; padding: 18px; margin-bottom: 12px; border-left: 4px solid; }
+  .note-top { display: flex; align-items: center; gap: 10px; }
+  .note-avatar { width: 34px; height: 34px; border-radius: 10px; object-fit: cover; }
+  .note-author { font-size: 13px; font-weight: 600; color: #1C1C1E; }
+  .note-role { font-size: 11px; color: #8E8E93; }
+  .note-time { font-size: 11px; color: #C7C7CC; margin-left: auto; }
+  .note-student { display: inline-flex; align-items: center; gap: 6px; background: #F2F2F7; border-radius: 8px; padding: 4px 10px; margin-top: 10px; }
+  .note-student-avatar { width: 20px; height: 20px; border-radius: 6px; object-fit: cover; }
+  .note-student-name { font-size: 11px; font-weight: 600; color: #3C3C43; }
+  .note-body { font-size: 13px; color: #3C3C43; line-height: 1.6; margin-top: 10px; }
+  .note-tags { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+  .note-tag { padding: 3px 10px; border-radius: 8px; font-size: 10px; font-weight: 600; }
+  .note-actions { display: flex; gap: 16px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #F2F2F7; }
+  .note-action { font-size: 12px; color: #8E8E93; display: flex; align-items: center; gap: 4px; }
+
+  .strategy-card { background: linear-gradient(135deg, #5856D6, #AF52DE); border-radius: 18px; padding: 18px; margin-bottom: 12px; color: #fff; }
+  .strategy-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
+  .strategy-title { font-size: 16px; font-weight: 700; margin-top: 6px; }
+  .strategy-steps { margin-top: 12px; }
+  .strategy-step { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+  .strategy-step-num { width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .strategy-step-text { font-size: 12px; line-height: 1.4; opacity: 0.9; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(255,255,255,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 0.5px solid rgba(0,0,0,0.08); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; z-index: 100; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; color: #8E8E93; }
+  .tab-item.active { color: #5856D6; }
+  .tab-item i { font-size: 22px; }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="content">
+  <div class="page-header">
+    <div class="page-title">Notes</div>
+    <div class="new-btn"><i class="fas fa-plus"></i> New</div>
+  </div>
+
+  <div class="filter-row">
+    <div class="filter-chip active">All Notes</div>
+    <div class="filter-chip">My Notes</div>
+    <div class="filter-chip">Strategies</div>
+    <div class="filter-chip">Observations</div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Pinned Strategy</div>
+  </div>
+
+  <div class="strategy-card">
+    <div class="strategy-label"><i class="fas fa-thumbtack"></i> Recommended Approach</div>
+    <div class="strategy-title">Calm-Down Technique for Mia</div>
+    <div class="strategy-steps">
+      <div class="strategy-step">
+        <div class="strategy-step-num">1</div>
+        <div class="strategy-step-text">Give a 5-minute warning before transitions</div>
+      </div>
+      <div class="strategy-step">
+        <div class="strategy-step-num">2</div>
+        <div class="strategy-step-text">Offer the sensory squeeze toy</div>
+      </div>
+      <div class="strategy-step">
+        <div class="strategy-step-num">3</div>
+        <div class="strategy-step-text">Use the visual countdown timer</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Recent Notes</div>
+    <div class="section-sub">12 this week</div>
+  </div>
+
+  <div class="note-card" style="border-left-color: #5856D6;">
+    <div class="note-top">
+      <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80" class="note-avatar" alt="">
+      <div>
+        <div class="note-author">Emma Wilson</div>
+        <div class="note-role">Math Tutor</div>
+      </div>
+      <div class="note-time">2h ago</div>
+    </div>
+    <div class="note-student">
+      <img src="https://images.unsplash.com/photo-1595152452543-e5fc28ebc2b8?w=100&q=80" class="note-student-avatar" alt="">
+      <span class="note-student-name">Alex Chen</span>
+    </div>
+    <div class="note-body">Great session today! Alex completed the 8x multiplication table with zero errors. He was very focused and even asked to try the 9x table. Recommend moving to division concepts next week.</div>
+    <div class="note-tags">
+      <span class="note-tag" style="background: #F2EEFF; color: #5856D6;">Math</span>
+      <span class="note-tag" style="background: #E8F8EE; color: #34C759;">Progress</span>
+    </div>
+    <div class="note-actions">
+      <div class="note-action"><i class="far fa-heart"></i> 4</div>
+      <div class="note-action"><i class="far fa-comment"></i> 2</div>
+      <div class="note-action"><i class="far fa-bookmark"></i></div>
+    </div>
+  </div>
+
+  <div class="note-card" style="border-left-color: #FF9500;">
+    <div class="note-top">
+      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80" class="note-avatar" alt="">
+      <div>
+        <div class="note-author">James Lee</div>
+        <div class="note-role">Arts Volunteer</div>
+      </div>
+      <div class="note-time">5h ago</div>
+    </div>
+    <div class="note-student">
+      <img src="https://images.unsplash.com/photo-1596464716127-f2a82984de30?w=100&q=80" class="note-student-avatar" alt="">
+      <span class="note-student-name">Ethan Park</span>
+    </div>
+    <div class="note-body">Ethan created an amazing collage today using texture materials. He was very engaged when using the fabric pieces. This sensory approach works well for him.</div>
+    <div class="note-tags">
+      <span class="note-tag" style="background: #FFF3E0; color: #FF9500;">Art</span>
+      <span class="note-tag" style="background: #F2EEFF; color: #AF52DE;">Sensory</span>
+    </div>
+    <div class="note-actions">
+      <div class="note-action"><i class="far fa-heart"></i> 6</div>
+      <div class="note-action"><i class="far fa-comment"></i> 3</div>
+      <div class="note-action"><i class="far fa-bookmark"></i></div>
+    </div>
+  </div>
+
+  <div class="note-card" style="border-left-color: #34C759;">
+    <div class="note-top">
+      <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80" class="note-avatar" alt="">
+      <div>
+        <div class="note-author">Maria Santos</div>
+        <div class="note-role">Social Coach</div>
+      </div>
+      <div class="note-time">1d ago</div>
+    </div>
+    <div class="note-student">
+      <img src="https://images.unsplash.com/photo-1590650153855-d9e808231d41?w=100&q=80" class="note-student-avatar" alt="">
+      <span class="note-student-name">Mia Johnson</span>
+    </div>
+    <div class="note-body">Mia initiated a conversation with a peer today without prompting! Big milestone. She used the conversation starter cards we practiced last week.</div>
+    <div class="note-tags">
+      <span class="note-tag" style="background: #E8F8EE; color: #34C759;">Social</span>
+      <span class="note-tag" style="background: #FFF0F5; color: #FF2D55;">Milestone</span>
+    </div>
+    <div class="note-actions">
+      <div class="note-action"><i class="fas fa-heart" style="color: #FF3B30;"></i> 12</div>
+      <div class="note-action"><i class="far fa-comment"></i> 5</div>
+      <div class="note-action"><i class="fas fa-bookmark" style="color: #5856D6;"></i></div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item">
+    <i class="fas fa-house"></i>
+    <span>Home</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-users"></i>
+    <span>Students</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-calendar-alt"></i>
+    <span>Schedule</span>
+  </div>
+  <div class="tab-item active">
+    <i class="fas fa-book-open"></i>
+    <span>Resources</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-user-circle"></i>
+    <span>Profile</span>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrightBridge - Schedule</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #F2F2F7; width: 100%; height: 100%; overflow-x: hidden; scrollbar-width: none; }
+
+  .status-bar { width: 100%; height: 59px; padding: 0 28px; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 10px; background: #F2F2F7; position: sticky; top: 0; z-index: 100; }
+  .status-time { font-size: 16px; font-weight: 600; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 22px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .page-title { font-size: 28px; font-weight: 700; color: #1C1C1E; }
+  .add-btn { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #5856D6, #AF52DE); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; }
+
+  .month-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; background: #fff; border-radius: 16px; padding: 14px 16px; }
+  .month-label { font-size: 16px; font-weight: 700; color: #1C1C1E; }
+  .month-arrow { color: #5856D6; font-size: 14px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: #F2EEFF; border-radius: 10px; }
+
+  .week-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 14px; }
+  .week-day { text-align: center; padding: 8px 0; }
+  .week-day-label { font-size: 10px; color: #8E8E93; font-weight: 600; text-transform: uppercase; }
+  .week-day-num { font-size: 16px; font-weight: 600; color: #1C1C1E; margin-top: 6px; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 6px auto 0; }
+  .week-day-num.today { background: #5856D6; color: #fff; }
+  .week-day-num.has-event::after { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #FF3B30; position: absolute; bottom: -2px; }
+  .week-day.selected .week-day-num { background: #5856D6; color: #fff; }
+  .event-dot { width: 5px; height: 5px; border-radius: 50%; margin: 4px auto 0; }
+
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-top: 22px; margin-bottom: 14px; }
+  .section-title { font-size: 18px; font-weight: 700; color: #1C1C1E; }
+  .today-badge { background: #5856D6; color: #fff; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 8px; }
+
+  .time-block { display: flex; gap: 14px; margin-bottom: 4px; }
+  .time-label { font-size: 12px; color: #8E8E93; font-weight: 500; min-width: 50px; padding-top: 14px; }
+  .time-events { flex: 1; }
+
+  .event-card { border-radius: 16px; padding: 16px; margin-bottom: 10px; position: relative; overflow: hidden; }
+  .event-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+  .event-name { font-size: 15px; font-weight: 600; color: #1C1C1E; }
+  .event-detail { font-size: 12px; color: #8E8E93; margin-top: 4px; }
+  .event-avatars { display: flex; margin-top: 10px; }
+  .event-avatars img { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; margin-left: -6px; object-fit: cover; }
+  .event-avatars img:first-child { margin-left: 0; }
+  .event-badge { position: absolute; top: 14px; right: 14px; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; }
+
+  .empty-slot { border: 2px dashed #D1D1D6; border-radius: 16px; padding: 16px; text-align: center; margin-bottom: 10px; }
+  .empty-slot i { font-size: 18px; color: #C7C7CC; }
+  .empty-slot span { font-size: 12px; color: #C7C7CC; display: block; margin-top: 4px; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(255,255,255,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 0.5px solid rgba(0,0,0,0.08); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; z-index: 100; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; color: #8E8E93; }
+  .tab-item.active { color: #5856D6; }
+  .tab-item i { font-size: 22px; }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="content">
+  <div class="page-header">
+    <div class="page-title">Schedule</div>
+    <div class="add-btn"><i class="fas fa-plus"></i></div>
+  </div>
+
+  <div class="month-nav">
+    <div class="month-arrow"><i class="fas fa-chevron-left"></i></div>
+    <div class="month-label">March 2026</div>
+    <div class="month-arrow"><i class="fas fa-chevron-right"></i></div>
+  </div>
+
+  <div class="week-row">
+    <div class="week-day">
+      <div class="week-day-label">Mon</div>
+      <div class="week-day-num">3</div>
+    </div>
+    <div class="week-day">
+      <div class="week-day-label">Tue</div>
+      <div class="week-day-num">4</div>
+    </div>
+    <div class="week-day">
+      <div class="week-day-label">Wed</div>
+      <div class="week-day-num">5</div>
+      <div class="event-dot" style="background: #FF9500;"></div>
+    </div>
+    <div class="week-day">
+      <div class="week-day-label">Thu</div>
+      <div class="week-day-num">6</div>
+    </div>
+    <div class="week-day">
+      <div class="week-day-label">Fri</div>
+      <div class="week-day-num">7</div>
+      <div class="event-dot" style="background: #5856D6;"></div>
+    </div>
+    <div class="week-day">
+      <div class="week-day-label">Sat</div>
+      <div class="week-day-num">8</div>
+    </div>
+    <div class="week-day selected">
+      <div class="week-day-label">Sun</div>
+      <div class="week-day-num today">9</div>
+      <div class="event-dot" style="background: #FF3B30;"></div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Today's Sessions</div>
+    <div class="today-badge">3 Sessions</div>
+  </div>
+
+  <div class="time-block">
+    <div class="time-label">10:00</div>
+    <div class="time-events">
+      <div class="event-card" style="background: #F2EEFF;">
+        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #5856D6; border-radius: 2px;"></div>
+        <div class="event-name">Math Fundamentals</div>
+        <div class="event-detail"><i class="fas fa-map-pin"></i> Room 102 · 1.5 hours</div>
+        <div class="event-avatars">
+          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80" alt="">
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80" alt="">
+          <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80" alt="">
+          <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80" alt="">
+        </div>
+        <div class="event-badge" style="background: rgba(88,86,214,0.15); color: #5856D6;">4 Volunteers</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="time-block">
+    <div class="time-label">13:30</div>
+    <div class="time-events">
+      <div class="event-card" style="background: #FFF3E0;">
+        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #FF9500; border-radius: 2px;"></div>
+        <div class="event-name">Social Skills Workshop</div>
+        <div class="event-detail"><i class="fas fa-map-pin"></i> Activity Hall · 2 hours</div>
+        <div class="event-avatars">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80" alt="">
+          <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&q=80" alt="">
+          <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&q=80" alt="">
+        </div>
+        <div class="event-badge" style="background: rgba(255,149,0,0.15); color: #FF9500;">6 Students</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="time-block">
+    <div class="time-label">15:30</div>
+    <div class="time-events">
+      <div class="event-card" style="background: #E8F8EE;">
+        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #34C759; border-radius: 2px;"></div>
+        <div class="event-name">Reading & Storytelling</div>
+        <div class="event-detail"><i class="fas fa-map-pin"></i> Library · 1 hour</div>
+        <div class="event-avatars">
+          <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80" alt="">
+          <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=100&q=80" alt="">
+        </div>
+        <div class="event-badge" style="background: rgba(52,199,89,0.15); color: #34C759;">3 Students</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="time-block">
+    <div class="time-label">17:00</div>
+    <div class="time-events">
+      <div class="empty-slot">
+        <i class="fas fa-plus-circle"></i>
+        <span>Add a session</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item">
+    <i class="fas fa-house"></i>
+    <span>Home</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-users"></i>
+    <span>Students</span>
+  </div>
+  <div class="tab-item active">
+    <i class="fas fa-calendar-alt"></i>
+    <span>Schedule</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-book-open"></i>
+    <span>Resources</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-user-circle"></i>
+    <span>Profile</span>
+  </div>
+</div>
+
+</body>
+</html>
