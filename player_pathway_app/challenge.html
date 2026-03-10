@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=430, height=932, initial-scale=1.0">
+    <title>Challenges - Player Pathway</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        *::-webkit-scrollbar {
+            display: none;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0F172A;
+            color: #F1F5F9;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            min-height: 932px;
+            background: #0F172A;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            height: 59px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 28px 12px;
+            position: relative;
+        }
+        .dynamic-island {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 130px;
+            height: 38px;
+            background: #000;
+            border-radius: 24px;
+        }
+        .status-bar-time {
+            font-size: 17px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .status-bar-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-bar-icons i {
+            font-size: 16px;
+            color: #fff;
+        }
+
+        /* Content */
+        .content {
+            padding: 0 28px 120px;
+        }
+
+        /* Tab Bar */
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 95px;
+            background: rgba(15, 23, 42, 0.97);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: #64748B;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .tab-item i {
+            font-size: 24px;
+        }
+        .tab-item.active {
+            color: #22C55E;
+        }
+
+        /* Hero Card */
+        .hero-card {
+            position: relative;
+            border-radius: 24px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        .hero-card img {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+        }
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(15, 23, 42, 0.98) 0%, rgba(15, 23, 42, 0.7) 40%, rgba(15, 23, 42, 0.15) 100%);
+        }
+        .hero-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 22px;
+        }
+        .hero-timer {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .hero-timer i {
+            color: #FBBF24;
+            font-size: 12px;
+        }
+
+        /* Progress bar */
+        .progress-track {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #22C55E 0%, #4ADE80 100%);
+            transition: width 0.6s ease;
+        }
+
+        /* Challenge cards */
+        .challenge-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 12px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .challenge-card:hover {
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        /* Leaderboard */
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            border-radius: 14px;
+            margin-bottom: 6px;
+            transition: background 0.2s;
+        }
+        .leaderboard-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .leaderboard-item.current-user {
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        .rank-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            margin-right: 14px;
+            flex-shrink: 0;
+        }
+        .rank-gold {
+            background: linear-gradient(135deg, #F59E0B, #FBBF24);
+            color: #78350F;
+        }
+        .rank-silver {
+            background: linear-gradient(135deg, #9CA3AF, #D1D5DB);
+            color: #374151;
+        }
+        .rank-bronze {
+            background: linear-gradient(135deg, #D97706, #F59E0B);
+            color: #78350F;
+        }
+        .rank-default {
+            background: rgba(255, 255, 255, 0.08);
+            color: #94A3B8;
+        }
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        /* Badge scroll */
+        .badge-scroll {
+            display: flex;
+            gap: 14px;
+            overflow-x: auto;
+            padding: 4px 0 8px;
+        }
+        .badge-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .badge-icon i {
+            font-size: 22px;
+        }
+        .badge-label {
+            font-size: 9px;
+            font-weight: 600;
+            margin-top: 3px;
+            text-align: center;
+            line-height: 1.1;
+        }
+
+        /* Animations */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            50% { box-shadow: 0 0 20px 4px rgba(34, 197, 94, 0.2); }
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .shimmer-text {
+            background: linear-gradient(90deg, #22C55E 0%, #4ADE80 30%, #86EFAC 50%, #4ADE80 70%, #22C55E 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s linear infinite;
+        }
+        @keyframes float-in {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in {
+            animation: float-in 0.5s ease-out forwards;
+        }
+        .delay-1 { animation-delay: 0.1s; opacity: 0; }
+        .delay-2 { animation-delay: 0.2s; opacity: 0; }
+        .delay-3 { animation-delay: 0.3s; opacity: 0; }
+        .delay-4 { animation-delay: 0.4s; opacity: 0; }
+        .delay-5 { animation-delay: 0.5s; opacity: 0; }
+    </style>
+</head>
+<body>
+    <div class="screen">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="dynamic-island"></div>
+            <span class="status-bar-time">9:41</span>
+            <div class="status-bar-icons">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0 6px;" class="animate-in">
+                <h1 style="font-size: 30px; font-weight: 800; color: #F8FAFC; letter-spacing: -0.5px;">Challenges</h1>
+                <div style="display: flex; align-items: center; gap: 8px; background: rgba(34, 197, 94, 0.12); padding: 8px 14px; border-radius: 20px; border: 1px solid rgba(34, 197, 94, 0.2);">
+                    <i class="fas fa-fire" style="color: #FBBF24; font-size: 14px;"></i>
+                    <span style="font-size: 14px; font-weight: 700; color: #4ADE80;">1,050 XP</span>
+                </div>
+            </div>
+
+            <!-- Featured Weekly Challenge -->
+            <div class="hero-card animate-in delay-1" style="margin-top: 16px;">
+                <img src="https://images.unsplash.com/photo-1551958219-acbc608c6377?w=800" alt="Crossbar Challenge">
+                <div class="hero-overlay"></div>
+                <div class="hero-timer">
+                    <i class="fas fa-clock"></i>
+                    5d 12h remaining
+                </div>
+                <div class="hero-content">
+                    <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #22C55E;">This Week's Challenge</span>
+                    <h2 style="font-size: 26px; font-weight: 800; color: #fff; margin-top: 6px; letter-spacing: -0.5px;">Crossbar Challenge</h2>
+                    <p style="font-size: 14px; color: rgba(255,255,255,0.7); margin-top: 4px;">Hit the crossbar 5 times in 10 attempts</p>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 16px; gap: 12px;">
+                        <button style="flex: 1; background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%); color: #fff; font-size: 15px; font-weight: 700; padding: 14px 0; border-radius: 14px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 24px rgba(34, 197, 94, 0.35);">
+                            <i class="fas fa-bolt" style="font-size: 14px;"></i>
+                            Accept Challenge
+                        </button>
+                        <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(8px); padding: 12px 16px; border-radius: 14px; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,0.1);">
+                            <i class="fas fa-star" style="color: #FBBF24; font-size: 14px;"></i>
+                            <span style="font-size: 14px; font-weight: 700; color: #FBBF24;">+100 XP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Challenges -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 28px; margin-bottom: 14px;" class="animate-in delay-2">
+                <h2 style="font-size: 19px; font-weight: 700; color: #F8FAFC;">Active Challenges</h2>
+                <span style="font-size: 13px; color: #22C55E; font-weight: 600; cursor: pointer;">See All</span>
+            </div>
+
+            <!-- Juggling Master -->
+            <div class="challenge-card animate-in delay-2">
+                <div style="display: flex; align-items: flex-start; gap: 14px;">
+                    <div style="width: 50px; height: 50px; border-radius: 14px; background: linear-gradient(135deg, #8B5CF6, #A78BFA); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <i class="fas fa-futbol" style="font-size: 20px; color: #fff;"></i>
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="font-size: 16px; font-weight: 700; color: #F8FAFC;">Juggling Master</h3>
+                            <span style="font-size: 12px; font-weight: 600; color: #A78BFA; background: rgba(139, 92, 246, 0.15); padding: 4px 10px; border-radius: 8px;">In Progress</span>
+                        </div>
+                        <p style="font-size: 13px; color: #94A3B8; margin-top: 3px;">Complete 50 juggles without dropping</p>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
+                            <div class="progress-track" style="flex: 1; margin-right: 12px;">
+                                <div class="progress-fill" style="width: 64%;"></div>
+                            </div>
+                            <span style="font-size: 13px; font-weight: 700; color: #4ADE80; flex-shrink: 0;">32/50</span>
+                        </div>
+                        <p style="font-size: 11px; color: #64748B; margin-top: 6px;">64% complete</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Speed Demon -->
+            <div class="challenge-card animate-in delay-3">
+                <div style="display: flex; align-items: flex-start; gap: 14px;">
+                    <div style="width: 50px; height: 50px; border-radius: 14px; background: linear-gradient(135deg, #F59E0B, #FBBF24); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <i class="fas fa-stopwatch" style="font-size: 20px; color: #fff;"></i>
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="font-size: 16px; font-weight: 700; color: #F8FAFC;">Speed Demon</h3>
+                            <span style="font-size: 12px; font-weight: 600; color: #94A3B8; background: rgba(148, 163, 184, 0.12); padding: 4px 10px; border-radius: 8px;">Not Started</span>
+                        </div>
+                        <p style="font-size: 13px; color: #94A3B8; margin-top: 3px;">Complete agility drill under 45 seconds</p>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
+                            <div class="progress-track" style="flex: 1; margin-right: 12px;">
+                                <div class="progress-fill" style="width: 0%; background: linear-gradient(90deg, #F59E0B, #FBBF24);"></div>
+                            </div>
+                            <span style="font-size: 13px; font-weight: 700; color: #94A3B8; flex-shrink: 0;">0%</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px;">
+                            <button style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.25); color: #FBBF24; font-size: 12px; font-weight: 600; padding: 7px 16px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                <i class="fas fa-play" style="font-size: 10px;"></i>
+                                Start Now
+                            </button>
+                            <span style="font-size: 12px; color: #64748B;"><i class="fas fa-star" style="color: #FBBF24; margin-right: 4px;"></i>+75 XP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaderboard -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 28px; margin-bottom: 14px;" class="animate-in delay-3">
+                <h2 style="font-size: 19px; font-weight: 700; color: #F8FAFC;">Top Players This Week</h2>
+                <i class="fas fa-medal" style="color: #FBBF24; font-size: 18px;"></i>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 8px; overflow: hidden;" class="animate-in delay-4">
+                <!-- #1 Marcus -->
+                <div class="leaderboard-item">
+                    <div class="rank-number rank-gold">1</div>
+                    <div class="avatar-circle" style="background: linear-gradient(135deg, #F59E0B, #D97706);">M</div>
+                    <div style="flex: 1;">
+                        <p style="font-size: 15px; font-weight: 600; color: #F8FAFC;">Marcus T.</p>
+                        <p style="font-size: 11px; color: #FBBF24; font-weight: 500;">Champion Streak</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-size: 15px; font-weight: 700; color: #FBBF24;">1,240</p>
+                        <p style="font-size: 11px; color: #64748B;">XP</p>
+                    </div>
+                </div>
+
+                <!-- #2 Sophie -->
+                <div class="leaderboard-item">
+                    <div class="rank-number rank-silver">2</div>
+                    <div class="avatar-circle" style="background: linear-gradient(135deg, #EC4899, #F472B6);">S</div>
+                    <div style="flex: 1;">
+                        <p style="font-size: 15px; font-weight: 600; color: #F8FAFC;">Sophie R.</p>
+                        <p style="font-size: 11px; color: #94A3B8; font-weight: 500;">Rising Star</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-size: 15px; font-weight: 700; color: #D1D5DB;">1,180</p>
+                        <p style="font-size: 11px; color: #64748B;">XP</p>
+                    </div>
+                </div>
+
+                <!-- #3 Alex (Current User) -->
+                <div class="leaderboard-item current-user">
+                    <div class="rank-number rank-bronze">3</div>
+                    <div class="avatar-circle" style="background: linear-gradient(135deg, #22C55E, #16A34A); border: 2px solid #4ADE80;">A</div>
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <p style="font-size: 15px; font-weight: 600; color: #F8FAFC;">Alex K.</p>
+                            <span style="font-size: 9px; font-weight: 700; color: #22C55E; background: rgba(34, 197, 94, 0.15); padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">You</span>
+                        </div>
+                        <p style="font-size: 11px; color: #4ADE80; font-weight: 500;">On Fire!</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-size: 15px; font-weight: 700; color: #4ADE80;">1,050</p>
+                        <p style="font-size: 11px; color: #64748B;">XP</p>
+                    </div>
+                </div>
+
+                <!-- #4 Jordan -->
+                <div class="leaderboard-item">
+                    <div class="rank-number rank-default">4</div>
+                    <div class="avatar-circle" style="background: linear-gradient(135deg, #6366F1, #818CF8);">J</div>
+                    <div style="flex: 1;">
+                        <p style="font-size: 15px; font-weight: 600; color: #F8FAFC;">Jordan M.</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-size: 15px; font-weight: 700; color: #CBD5E1;">980</p>
+                        <p style="font-size: 11px; color: #64748B;">XP</p>
+                    </div>
+                </div>
+
+                <!-- #5 Riley -->
+                <div class="leaderboard-item">
+                    <div class="rank-number rank-default">5</div>
+                    <div class="avatar-circle" style="background: linear-gradient(135deg, #0EA5E9, #38BDF8);">R</div>
+                    <div style="flex: 1;">
+                        <p style="font-size: 15px; font-weight: 600; color: #F8FAFC;">Riley P.</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-size: 15px; font-weight: 700; color: #CBD5E1;">920</p>
+                        <p style="font-size: 11px; color: #64748B;">XP</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rewards Section -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 28px; margin-bottom: 14px;" class="animate-in delay-4">
+                <h2 style="font-size: 19px; font-weight: 700; color: #F8FAFC;">Earned Rewards</h2>
+                <span style="font-size: 13px; color: #22C55E; font-weight: 600; cursor: pointer;">View All</span>
+            </div>
+
+            <div class="badge-scroll animate-in delay-5">
+                <!-- First Touch Badge -->
+                <div class="badge-icon" style="background: linear-gradient(135deg, #22C55E, #16A34A); box-shadow: 0 4px 16px rgba(34, 197, 94, 0.3);">
+                    <i class="fas fa-shoe-prints" style="color: #fff;"></i>
+                    <span class="badge-label" style="color: rgba(255,255,255,0.9);">Touch</span>
+                </div>
+                <!-- Speed Badge -->
+                <div class="badge-icon" style="background: linear-gradient(135deg, #F59E0B, #D97706); box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);">
+                    <i class="fas fa-bolt" style="color: #fff;"></i>
+                    <span class="badge-label" style="color: rgba(255,255,255,0.9);">Speed</span>
+                </div>
+                <!-- Accuracy Badge -->
+                <div class="badge-icon" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);">
+                    <i class="fas fa-bullseye" style="color: #fff;"></i>
+                    <span class="badge-label" style="color: rgba(255,255,255,0.9);">Aim</span>
+                </div>
+                <!-- Streak Badge -->
+                <div class="badge-icon" style="background: linear-gradient(135deg, #EC4899, #DB2777); box-shadow: 0 4px 16px rgba(236, 72, 153, 0.3);">
+                    <i class="fas fa-fire" style="color: #fff;"></i>
+                    <span class="badge-label" style="color: rgba(255,255,255,0.9);">Streak</span>
+                </div>
+                <!-- Team Badge -->
+                <div class="badge-icon" style="background: linear-gradient(135deg, #0EA5E9, #0284C7); box-shadow: 0 4px 16px rgba(14, 165, 233, 0.3);">
+                    <i class="fas fa-users" style="color: #fff;"></i>
+                    <span class="badge-label" style="color: rgba(255,255,255,0.9);">Team</span>
+                </div>
+                <!-- Locked Badge -->
+                <div class="badge-icon" style="background: rgba(255,255,255,0.06); border: 2px dashed rgba(255,255,255,0.15);">
+                    <i class="fas fa-lock" style="color: #475569;"></i>
+                    <span class="badge-label" style="color: #475569;">???</span>
+                </div>
+                <!-- Locked Badge 2 -->
+                <div class="badge-icon" style="background: rgba(255,255,255,0.06); border: 2px dashed rgba(255,255,255,0.15);">
+                    <i class="fas fa-lock" style="color: #475569;"></i>
+                    <span class="badge-label" style="color: #475569;">???</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <a href="#" class="tab-item">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-dumbbell"></i>
+                <span>Train</span>
+            </a>
+            <a href="#" class="tab-item active">
+                <i class="fas fa-trophy"></i>
+                <span>Challenge</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Progress</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

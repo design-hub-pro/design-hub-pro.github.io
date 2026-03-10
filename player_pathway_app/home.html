@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player Pathway - Home Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0F172A; color: #ffffff;
+    scrollbar-width: none; -ms-overflow-style: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Status Bar */
+  .status-bar {
+    height: 59px; padding: 14px 28px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    position: relative; z-index: 100; background: #0F172A;
+  }
+  .status-time { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
+  .dynamic-island {
+    width: 120px; height: 36px; background: #000000;
+    border-radius: 20px; position: absolute;
+    left: 50%; transform: translateX(-50%); top: 10px;
+  }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 14px; }
+
+  /* Scrollable Content */
+  .content-scroll {
+    position: absolute; top: 59px; bottom: 88px;
+    left: 0; right: 0; overflow-y: auto;
+    scrollbar-width: none; -ms-overflow-style: none;
+    padding: 0 28px 32px;
+  }
+  .content-scroll::-webkit-scrollbar { display: none; }
+
+  /* Streak Card */
+  .streak-card {
+    background: linear-gradient(135deg, rgba(34,197,94,0.15) 0%, rgba(74,222,128,0.08) 100%);
+    border: 1px solid rgba(34,197,94,0.2);
+    border-radius: 18px; padding: 16px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .streak-flame {
+    display: inline-flex; align-items: center; gap: 10px;
+  }
+  .streak-icon {
+    width: 44px; height: 44px; border-radius: 14px;
+    background: linear-gradient(135deg, #22C55E, #4ADE80);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    animation: flamePulse 2s ease-in-out infinite;
+  }
+  @keyframes flamePulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(34,197,94,0.3); }
+    50% { transform: scale(1.08); box-shadow: 0 0 30px rgba(34,197,94,0.5); }
+  }
+  .streak-text { font-size: 18px; font-weight: 700; }
+  .streak-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .streak-days {
+    display: flex; gap: 4px;
+  }
+  .streak-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #22C55E;
+  }
+  .streak-dot.empty { background: rgba(255,255,255,0.1); }
+
+  /* Hero Training Card */
+  .hero-card {
+    border-radius: 24px; overflow: hidden;
+    position: relative; height: 220px;
+  }
+  .hero-card img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .hero-gradient {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg,
+      rgba(15,23,42,0.2) 0%,
+      rgba(15,23,42,0.5) 40%,
+      rgba(15,23,42,0.92) 100%
+    );
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 24px;
+  }
+  .hero-label {
+    display: inline-flex; align-items: center; width: fit-content;
+    background: rgba(34,197,94,0.2); border: 1px solid rgba(34,197,94,0.3);
+    padding: 5px 12px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; color: #4ADE80;
+    text-transform: uppercase; letter-spacing: 1.2px;
+    margin-bottom: 12px;
+  }
+  .hero-title {
+    font-size: 24px; font-weight: 800; letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+  .hero-meta {
+    font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 16px;
+  }
+  .hero-meta i { margin-right: 4px; color: #4ADE80; }
+  .hero-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; background: linear-gradient(135deg, #22C55E, #16A34A);
+    color: white; border: none; border-radius: 14px;
+    padding: 14px 28px; font-size: 15px; font-weight: 700;
+    cursor: pointer; width: 100%;
+    box-shadow: 0 8px 32px rgba(34,197,94,0.35);
+    transition: all 0.2s ease;
+    font-family: inherit; letter-spacing: 0.3px;
+  }
+  .hero-btn:hover { transform: translateY(-1px); box-shadow: 0 12px 40px rgba(34,197,94,0.45); }
+
+  /* Weekly Progress */
+  .week-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 8px;
+  }
+  .day-item {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .day-label {
+    font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.35);
+    text-transform: uppercase;
+  }
+  .day-circle {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+  }
+  .day-circle.completed {
+    background: linear-gradient(135deg, #22C55E, #4ADE80);
+    color: white;
+    box-shadow: 0 4px 12px rgba(34,197,94,0.3);
+  }
+  .day-circle.today {
+    background: transparent;
+    border: 2.5px solid #22C55E;
+    color: #22C55E;
+    box-shadow: 0 0 16px rgba(34,197,94,0.25);
+  }
+  .day-circle.future {
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.25);
+  }
+
+  /* Quick Stats */
+  .stats-grid {
+    display: flex; gap: 12px;
+  }
+  .stat-card {
+    flex: 1; background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px; padding: 18px 14px; text-align: center;
+  }
+  .stat-value {
+    font-size: 26px; font-weight: 800; line-height: 1;
+    color: #ffffff;
+  }
+  .stat-value.green { color: #22C55E; }
+  .stat-unit {
+    font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.5);
+    display: block; margin-top: 1px;
+  }
+  .stat-label {
+    font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 8px;
+    text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;
+  }
+
+  /* Challenge Card */
+  .challenge-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px; padding: 20px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .challenge-icon {
+    width: 56px; height: 56px; border-radius: 16px;
+    background: linear-gradient(135deg, rgba(251,191,36,0.2), rgba(245,158,11,0.1));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: #FBBF24; flex-shrink: 0;
+  }
+  .challenge-info { flex: 1; }
+  .challenge-title { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+  .challenge-desc { font-size: 12px; color: rgba(255,255,255,0.45); margin-bottom: 6px; }
+  .challenge-timer {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; font-weight: 600; color: #FBBF24;
+  }
+  .challenge-arrow {
+    color: rgba(255,255,255,0.15); font-size: 14px;
+  }
+
+  /* Section Headers */
+  .section-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+  }
+  .section-label {
+    font-size: 17px; font-weight: 700; letter-spacing: -0.2px;
+  }
+  .section-link {
+    font-size: 13px; font-weight: 600; color: #22C55E; cursor: pointer;
+  }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(15,23,42,0.95);
+    backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; justify-content: space-around;
+    align-items: flex-start; padding-top: 12px;
+    z-index: 100;
+  }
+  .tab-item {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 4px; cursor: pointer; position: relative;
+  }
+  .tab-item i { font-size: 22px; color: rgba(255,255,255,0.3); transition: all 0.2s; }
+  .tab-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.3); transition: all 0.2s; }
+  .tab-item.active i { color: #22C55E; }
+  .tab-item.active .tab-label { color: #22C55E; }
+  .tab-item.active::before {
+    content: '';
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    width: 24px; height: 3px; border-radius: 2px;
+    background: #22C55E;
+  }
+
+  /* Utility */
+  .spacer { height: 20px; }
+  .spacer-sm { height: 14px; }
+</style>
+</head>
+<body>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <!-- Scrollable Content Area -->
+  <div class="content-scroll">
+
+    <!-- Greeting -->
+    <div style="padding: 8px 0 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <p style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">Hey, Alex! <span style="font-size: 26px;">&#x1F525;</span></p>
+          <p style="font-size: 14px; color: rgba(255,255,255,0.45); margin-top: 4px; font-weight: 500;">Ready to train today?</p>
+        </div>
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #22C55E, #4ADE80); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(34,197,94,0.3);">
+          <i class="fas fa-user" style="font-size: 18px; color: white;"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Training Streak Card -->
+    <div class="streak-card">
+      <div class="streak-flame">
+        <div class="streak-icon">
+          <i class="fas fa-fire"></i>
+        </div>
+        <div>
+          <div class="streak-text">7 Day Streak</div>
+          <div class="streak-sub">Keep it going!</div>
+        </div>
+      </div>
+      <div class="streak-days">
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+        <div class="streak-dot"></div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <!-- Today's Training Hero Card -->
+    <div class="hero-card">
+      <img src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800" alt="Soccer Training">
+      <div class="hero-gradient">
+        <div class="hero-label">
+          <i class="fas fa-bolt" style="margin-right: 5px;"></i> Today's Training
+        </div>
+        <div class="hero-title">2+2 Session</div>
+        <div class="hero-meta">
+          <i class="fas fa-clock"></i> 12 min
+          <span style="margin: 0 8px; opacity: 0.3;">|</span>
+          <i class="fas fa-futbol"></i> 4 drills
+        </div>
+        <button class="hero-btn">
+          <i class="fas fa-play" style="font-size: 13px;"></i>
+          Start Training
+        </button>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <!-- Weekly Progress -->
+    <div class="section-header">
+      <span class="section-label">Weekly Progress</span>
+      <span class="section-link">Details</span>
+    </div>
+
+    <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 18px 16px;">
+      <div class="week-row">
+        <div class="day-item">
+          <div class="day-circle completed"><i class="fas fa-check" style="font-size: 12px;"></i></div>
+          <span class="day-label">M</span>
+        </div>
+        <div class="day-item">
+          <div class="day-circle completed"><i class="fas fa-check" style="font-size: 12px;"></i></div>
+          <span class="day-label">T</span>
+        </div>
+        <div class="day-item">
+          <div class="day-circle completed"><i class="fas fa-check" style="font-size: 12px;"></i></div>
+          <span class="day-label">W</span>
+        </div>
+        <div class="day-item">
+          <div class="day-circle completed"><i class="fas fa-check" style="font-size: 12px;"></i></div>
+          <span class="day-label">T</span>
+        </div>
+        <div class="day-item">
+          <div class="day-circle today">F</div>
+          <span class="day-label" style="color: #22C55E;">F</span>
+        </div>
+        <div class="day-item">
+          <div class="day-circle future">S</div>
+          <span class="day-label">S</span>
+        </div>
+        <div class="day-item">
+          <div class="day-circle future">S</div>
+          <span class="day-label">S</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <!-- Quick Stats -->
+    <div class="section-header">
+      <span class="section-label">Quick Stats</span>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value green">156</div>
+        <span class="stat-unit">min</span>
+        <div class="stat-label">This Week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value green">12</div>
+        <span class="stat-unit">&nbsp;</span>
+        <div class="stat-label">Sessions</div>
+      </div>
+      <div class="stat-card">
+        <div style="display: flex; align-items: baseline; justify-content: center; gap: 2px;">
+          <div class="stat-value green">3</div>
+        </div>
+        <span class="stat-unit">Controller</span>
+        <div class="stat-label">Level</div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <!-- Upcoming Challenge -->
+    <div class="section-header">
+      <span class="section-label">Upcoming Challenge</span>
+      <span class="section-link">View All</span>
+    </div>
+
+    <div class="challenge-card">
+      <div class="challenge-icon">
+        <i class="fas fa-trophy"></i>
+      </div>
+      <div class="challenge-info">
+        <div class="challenge-title">Juggling Challenge</div>
+        <div class="challenge-desc">Complete 50 juggles without dropping</div>
+        <div class="challenge-timer">
+          <i class="fas fa-clock"></i>
+          2d 14h left
+        </div>
+      </div>
+      <i class="fas fa-chevron-right challenge-arrow"></i>
+    </div>
+
+    <div class="spacer"></div>
+
+  </div>
+
+  <!-- Bottom Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item active">
+      <i class="fas fa-home"></i>
+      <span class="tab-label">Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-dumbbell"></i>
+      <span class="tab-label">Train</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-trophy"></i>
+      <span class="tab-label">Challenge</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-chart-line"></i>
+      <span class="tab-label">Progress</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span class="tab-label">Profile</span>
+    </div>
+  </div>
+
+</body>
+</html>

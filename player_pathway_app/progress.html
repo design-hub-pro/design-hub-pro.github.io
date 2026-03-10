@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Pathway - Progress</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        *::-webkit-scrollbar {
+            display: none;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            background: #0F172A;
+            color: #F1F5F9;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: #0F172A;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+            scrollbar-width: none;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            height: 59px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 28px 12px;
+            position: relative;
+        }
+
+        .dynamic-island {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 130px;
+            height: 38px;
+            background: #000;
+            border-radius: 24px;
+        }
+
+        .status-bar-time {
+            font-size: 17px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .status-bar-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-bar-icons i {
+            font-size: 16px;
+            color: #fff;
+        }
+
+        /* Content */
+        .content {
+            padding: 0 28px 120px;
+        }
+
+        /* Tab Bar */
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 90px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            font-size: 10px;
+            font-weight: 500;
+            color: #64748B;
+            transition: color 0.2s;
+        }
+
+        .tab-item i {
+            font-size: 22px;
+        }
+
+        .tab-item.active {
+            color: #22C55E;
+        }
+
+        /* XP Level Card */
+        .xp-card {
+            background: linear-gradient(135deg, #1E293B 0%, #1A2332 100%);
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid rgba(34, 197, 94, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .xp-card::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, rgba(34, 197, 94, 0.12) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .xp-progress-track {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .xp-progress-fill {
+            height: 100%;
+            width: 70%;
+            background: linear-gradient(90deg, #22C55E, #4ADE80);
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .xp-progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, transparent 100%);
+            border-radius: 5px 5px 0 0;
+        }
+
+        /* Stat Cards */
+        .stat-card {
+            background: #1E293B;
+            border-radius: 16px;
+            padding: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .stat-card.blue::after { background: linear-gradient(90deg, #3B82F6, #60A5FA); }
+        .stat-card.green::after { background: linear-gradient(90deg, #22C55E, #4ADE80); }
+        .stat-card.orange::after { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
+        .stat-card.purple::after { background: linear-gradient(90deg, #8B5CF6, #A78BFA); }
+
+        /* Skill Progress Bars */
+        .skill-bar-track {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .skill-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease-out;
+            position: relative;
+        }
+
+        .skill-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 100%);
+            border-radius: 4px 4px 0 0;
+        }
+
+        .skill-bar-fill.green { background: linear-gradient(90deg, #22C55E, #4ADE80); }
+        .skill-bar-fill.blue { background: linear-gradient(90deg, #3B82F6, #60A5FA); }
+        .skill-bar-fill.orange { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
+        .skill-bar-fill.red { background: linear-gradient(90deg, #EF4444, #F87171); }
+        .skill-bar-fill.purple { background: linear-gradient(90deg, #8B5CF6, #A78BFA); }
+
+        /* Weekly Activity Chart */
+        .chart-bar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+        }
+
+        .chart-bar-wrapper {
+            width: 100%;
+            height: 100px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .chart-bar {
+            width: 24px;
+            border-radius: 6px 6px 3px 3px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: height 0.6s ease-out;
+            position: relative;
+        }
+
+        .chart-bar.active {
+            background: linear-gradient(180deg, #4ADE80, #22C55E);
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);
+        }
+
+        .chart-bar.filled {
+            background: linear-gradient(180deg, rgba(74, 222, 128, 0.4), rgba(34, 197, 94, 0.25));
+        }
+
+        .chart-bar-label {
+            font-size: 11px;
+            color: #64748B;
+            font-weight: 500;
+        }
+
+        .chart-bar-value {
+            font-size: 10px;
+            color: #94A3B8;
+            font-weight: 600;
+        }
+
+        /* Achievement Badges */
+        .badge-card {
+            flex-shrink: 0;
+            width: 130px;
+            background: #1E293B;
+            border-radius: 18px;
+            padding: 20px 16px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .badge-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 24px;
+        }
+
+        .badge-icon.gold {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.1));
+            color: #FBBF24;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+        }
+
+        .badge-icon.green-badge {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(74, 222, 128, 0.1));
+            color: #4ADE80;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.15);
+        }
+
+        .badge-icon.blue-badge {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(96, 165, 250, 0.1));
+            color: #60A5FA;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+        }
+
+        /* Section Header */
+        .section-label {
+            font-size: 18px;
+            font-weight: 700;
+            color: #F1F5F9;
+            letter-spacing: -0.3px;
+        }
+
+        /* Level Badge */
+        .level-badge {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #22C55E, #16A34A);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 8px 24px rgba(34, 197, 94, 0.3);
+            position: relative;
+        }
+
+        .level-badge::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Scroll container for badges */
+        .badges-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin: 0 -28px;
+            padding-left: 28px;
+            padding-right: 28px;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="screen">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="dynamic-island"></div>
+            <span class="status-bar-time">9:41</span>
+            <div class="status-bar-icons">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+
+            <!-- Header -->
+            <div style="padding: 12px 0 20px;">
+                <h1 style="font-size: 28px; font-weight: 800; color: #F8FAFC; letter-spacing: -0.5px;">My Progress</h1>
+            </div>
+
+            <!-- XP Level Card -->
+            <div class="xp-card">
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                    <div class="level-badge">
+                        <i class="fas fa-shield-halved"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 22px; font-weight: 700; color: #F8FAFC;">Level 3</span>
+                            <span style="font-size: 14px; color: #64748B; font-weight: 500;">&mdash;</span>
+                            <span style="font-size: 16px; font-weight: 600; color: #4ADE80;">Controller</span>
+                        </div>
+                        <p style="font-size: 13px; color: #64748B; margin-top: 4px;">Keep training to level up!</p>
+                    </div>
+                </div>
+
+                <!-- XP Progress Bar -->
+                <div style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 13px; font-weight: 600; color: #94A3B8;">XP Progress</span>
+                        <span style="font-size: 13px; font-weight: 700; color: #4ADE80;">1,050 / 1,500 XP</span>
+                    </div>
+                    <div class="xp-progress-track">
+                        <div class="xp-progress-fill"></div>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-arrow-up" style="font-size: 11px; color: #22C55E;"></i>
+                    <span style="font-size: 12px; color: #64748B;">450 XP to <span style="color: #F8FAFC; font-weight: 600;">Level 4 — Playmaker</span></span>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px;">
+                <!-- Total Training -->
+                <div class="stat-card blue">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                        <div style="width: 36px; height: 36px; background: rgba(59, 130, 246, 0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-clock" style="font-size: 16px; color: #60A5FA;"></i>
+                        </div>
+                        <span style="font-size: 12px; color: #64748B; font-weight: 500;">Total Training</span>
+                    </div>
+                    <div style="font-size: 28px; font-weight: 800; color: #F8FAFC; letter-spacing: -0.5px;">156 <span style="font-size: 14px; font-weight: 500; color: #64748B;">min</span></div>
+                </div>
+
+                <!-- Sessions Done -->
+                <div class="stat-card green">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                        <div style="width: 36px; height: 36px; background: rgba(34, 197, 94, 0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-check" style="font-size: 16px; color: #4ADE80;"></i>
+                        </div>
+                        <span style="font-size: 12px; color: #64748B; font-weight: 500;">Sessions Done</span>
+                    </div>
+                    <div style="font-size: 28px; font-weight: 800; color: #F8FAFC; letter-spacing: -0.5px;">24</div>
+                </div>
+
+                <!-- Best Streak -->
+                <div class="stat-card orange">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                        <div style="width: 36px; height: 36px; background: rgba(245, 158, 11, 0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-fire" style="font-size: 16px; color: #FBBF24;"></i>
+                        </div>
+                        <span style="font-size: 12px; color: #64748B; font-weight: 500;">Best Streak</span>
+                    </div>
+                    <div style="font-size: 28px; font-weight: 800; color: #F8FAFC; letter-spacing: -0.5px;">7 <span style="font-size: 14px; font-weight: 500; color: #64748B;">days</span></div>
+                </div>
+
+                <!-- Challenges Won -->
+                <div class="stat-card purple">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                        <div style="width: 36px; height: 36px; background: rgba(139, 92, 246, 0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-trophy" style="font-size: 16px; color: #A78BFA;"></i>
+                        </div>
+                        <span style="font-size: 12px; color: #64748B; font-weight: 500;">Challenges Won</span>
+                    </div>
+                    <div style="font-size: 28px; font-weight: 800; color: #F8FAFC; letter-spacing: -0.5px;">12</div>
+                </div>
+            </div>
+
+            <!-- Skill Progress -->
+            <div style="margin-top: 28px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <span class="section-label">Skill Progress</span>
+                    <span style="font-size: 13px; color: #22C55E; font-weight: 500;">View All</span>
+                </div>
+
+                <!-- Ball Mastery -->
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 30px; height: 30px; background: rgba(34, 197, 94, 0.12); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-futbol" style="font-size: 13px; color: #4ADE80;"></i>
+                            </div>
+                            <span style="font-size: 14px; font-weight: 600; color: #E2E8F0;">Ball Mastery</span>
+                        </div>
+                        <span style="font-size: 13px; font-weight: 700; color: #4ADE80;">72%</span>
+                    </div>
+                    <div class="skill-bar-track">
+                        <div class="skill-bar-fill green" style="width: 72%;"></div>
+                    </div>
+                </div>
+
+                <!-- Speed & Agility -->
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 30px; height: 30px; background: rgba(59, 130, 246, 0.12); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-person-running" style="font-size: 13px; color: #60A5FA;"></i>
+                            </div>
+                            <span style="font-size: 14px; font-weight: 600; color: #E2E8F0;">Speed & Agility</span>
+                        </div>
+                        <span style="font-size: 13px; font-weight: 700; color: #60A5FA;">58%</span>
+                    </div>
+                    <div class="skill-bar-track">
+                        <div class="skill-bar-fill blue" style="width: 58%;"></div>
+                    </div>
+                </div>
+
+                <!-- 1v1 Moves -->
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 30px; height: 30px; background: rgba(245, 158, 11, 0.12); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-people-arrows" style="font-size: 13px; color: #FBBF24;"></i>
+                            </div>
+                            <span style="font-size: 14px; font-weight: 600; color: #E2E8F0;">1v1 Moves</span>
+                        </div>
+                        <span style="font-size: 13px; font-weight: 700; color: #FBBF24;">45%</span>
+                    </div>
+                    <div class="skill-bar-track">
+                        <div class="skill-bar-fill orange" style="width: 45%;"></div>
+                    </div>
+                </div>
+
+                <!-- Shooting -->
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 30px; height: 30px; background: rgba(239, 68, 68, 0.12); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-bullseye" style="font-size: 13px; color: #F87171;"></i>
+                            </div>
+                            <span style="font-size: 14px; font-weight: 600; color: #E2E8F0;">Shooting</span>
+                        </div>
+                        <span style="font-size: 13px; font-weight: 700; color: #F87171;">38%</span>
+                    </div>
+                    <div class="skill-bar-track">
+                        <div class="skill-bar-fill red" style="width: 38%;"></div>
+                    </div>
+                </div>
+
+                <!-- Game Intelligence -->
+                <div style="margin-bottom: 4px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 30px; height: 30px; background: rgba(139, 92, 246, 0.12); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-brain" style="font-size: 13px; color: #A78BFA;"></i>
+                            </div>
+                            <span style="font-size: 14px; font-weight: 600; color: #E2E8F0;">Game Intelligence</span>
+                        </div>
+                        <span style="font-size: 13px; font-weight: 700; color: #A78BFA;">65%</span>
+                    </div>
+                    <div class="skill-bar-track">
+                        <div class="skill-bar-fill purple" style="width: 65%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weekly Activity -->
+            <div style="margin-top: 28px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <span class="section-label">Weekly Activity</span>
+                    <span style="font-size: 12px; color: #64748B; font-weight: 500;">This Week</span>
+                </div>
+
+                <div style="background: #1E293B; border-radius: 18px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 6px;">
+                        <!-- Mon -->
+                        <div class="chart-bar-container">
+                            <div class="chart-bar-value">25</div>
+                            <div class="chart-bar-wrapper">
+                                <div class="chart-bar filled" style="height: 71%;"></div>
+                            </div>
+                            <span class="chart-bar-label">Mon</span>
+                        </div>
+
+                        <!-- Tue -->
+                        <div class="chart-bar-container">
+                            <div class="chart-bar-value">15</div>
+                            <div class="chart-bar-wrapper">
+                                <div class="chart-bar filled" style="height: 43%;"></div>
+                            </div>
+                            <span class="chart-bar-label">Tue</span>
+                        </div>
+
+                        <!-- Wed -->
+                        <div class="chart-bar-container">
+                            <div class="chart-bar-value">30</div>
+                            <div class="chart-bar-wrapper">
+                                <div class="chart-bar filled" style="height: 86%;"></div>
+                            </div>
+                            <span class="chart-bar-label">Wed</span>
+                        </div>
+
+                        <!-- Thu -->
+                        <div class="chart-bar-container">
+                            <div class="chart-bar-value">0</div>
+                            <div class="chart-bar-wrapper">
+                                <div class="chart-bar" style="height: 6%;"></div>
+                            </div>
+                            <span class="chart-bar-label">Thu</span>
+                        </div>
+
+                        <!-- Fri -->
+                        <div class="chart-bar-container">
+                            <div class="chart-bar-value">20</div>
+                            <div class="chart-bar-wrapper">
+                                <div class="chart-bar filled" style="height: 57%;"></div>
+                            </div>
+                            <span class="chart-bar-label">Fri</span>
+                        </div>
+
+                        <!-- Sat -->
+                        <div class="chart-bar-container">
+                            <div class="chart-bar-value">35</div>
+                            <div class="chart-bar-wrapper">
+                                <div class="chart-bar filled" style="height: 100%;"></div>
+                            </div>
+                            <span class="chart-bar-label">Sat</span>
+                        </div>
+
+                        <!-- Sun (current day - highlighted) -->
+                        <div class="chart-bar-container">
+                            <div class="chart-bar-value" style="color: #4ADE80;">12</div>
+                            <div class="chart-bar-wrapper">
+                                <div class="chart-bar active" style="height: 34%;"></div>
+                            </div>
+                            <span class="chart-bar-label" style="color: #4ADE80; font-weight: 600;">Sun</span>
+                        </div>
+                    </div>
+
+                    <!-- Summary -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.06);">
+                        <span style="font-size: 12px; color: #64748B;">Total this week</span>
+                        <span style="font-size: 14px; font-weight: 700; color: #4ADE80;">137 min</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Achievements -->
+            <div style="margin-top: 28px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <span class="section-label">Recent Achievements</span>
+                    <span style="font-size: 13px; color: #22C55E; font-weight: 500;">See All</span>
+                </div>
+
+                <div class="badges-scroll">
+                    <!-- 7 Day Streak -->
+                    <div class="badge-card">
+                        <div class="badge-icon gold">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <p style="font-size: 13px; font-weight: 700; color: #F8FAFC; margin-bottom: 4px;">7 Day Streak</p>
+                        <p style="font-size: 11px; color: #64748B;">Consistent effort</p>
+                    </div>
+
+                    <!-- Ball Master -->
+                    <div class="badge-card">
+                        <div class="badge-icon green-badge">
+                            <i class="fas fa-futbol"></i>
+                        </div>
+                        <p style="font-size: 13px; font-weight: 700; color: #F8FAFC; margin-bottom: 4px;">Ball Master</p>
+                        <p style="font-size: 11px; color: #64748B;">50 drills complete</p>
+                    </div>
+
+                    <!-- Speed Builder -->
+                    <div class="badge-card">
+                        <div class="badge-icon blue-badge">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <p style="font-size: 13px; font-weight: 700; color: #F8FAFC; margin-bottom: 4px;">Speed Builder</p>
+                        <p style="font-size: 11px; color: #64748B;">Agility pro</p>
+                    </div>
+
+                    <!-- First Challenge -->
+                    <div class="badge-card">
+                        <div class="badge-icon gold">
+                            <i class="fas fa-medal"></i>
+                        </div>
+                        <p style="font-size: 13px; font-weight: 700; color: #F8FAFC; margin-bottom: 4px;">First Win</p>
+                        <p style="font-size: 11px; color: #64748B;">Challenge champ</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <a href="#" class="tab-item">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-dumbbell"></i>
+                <span>Train</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-trophy"></i>
+                <span>Challenge</span>
+            </a>
+            <a href="#" class="tab-item active">
+                <i class="fas fa-chart-line"></i>
+                <span>Progress</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

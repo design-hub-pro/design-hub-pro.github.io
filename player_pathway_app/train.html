@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=430, height=932, initial-scale=1.0">
+    <title>Train - Player Pathway</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0F172A',
+                        darkCard: '#1E293B',
+                        darkSurface: '#162033',
+                        primary: '#22C55E',
+                        accent: '#4ADE80',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        *::-webkit-scrollbar {
+            display: none;
+        }
+
+        html, body {
+            overflow: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0F172A;
+            color: #F1F5F9;
+            font-size: 14px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            min-height: 932px;
+            background: #0F172A;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            height: 59px;
+            background: transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 28px 12px;
+            position: relative;
+        }
+
+        .status-bar-time {
+            font-size: 17px;
+            font-weight: 600;
+            color: #FFFFFF;
+        }
+
+        .status-bar-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-bar-icons i {
+            font-size: 16px;
+            color: #FFFFFF;
+        }
+
+        .dynamic-island {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 130px;
+            height: 38px;
+            background: #000;
+            border-radius: 24px;
+        }
+
+        /* Content */
+        .content {
+            padding: 0 28px 120px;
+        }
+
+        /* Tab Bar */
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 95px;
+            background: rgba(15, 23, 42, 0.97);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: #64748B;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .tab-item i {
+            font-size: 24px;
+        }
+
+        .tab-item.active {
+            color: #22C55E;
+        }
+
+        .tab-item.active i {
+            color: #22C55E;
+        }
+
+        /* Quick Train Pills */
+        .quick-pill {
+            border: 1.5px solid #22C55E;
+            color: #22C55E;
+            border-radius: 100px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+        }
+
+        .quick-pill:hover, .quick-pill.selected {
+            background: #22C55E;
+            color: #0F172A;
+        }
+
+        .quick-pill.selected {
+            box-shadow: 0 0 16px rgba(34, 197, 94, 0.35);
+        }
+
+        /* Featured Card */
+        .featured-card {
+            background: linear-gradient(135deg, #162033 0%, #1E293B 100%);
+            border-radius: 20px;
+            padding: 22px;
+            border: 1.5px solid rgba(34, 197, 94, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .featured-card::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, rgba(34, 197, 94, 0.12) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        /* Weekly Plan Card */
+        .plan-card {
+            background: #1E293B;
+            border-radius: 16px;
+            padding: 16px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all 0.2s;
+        }
+
+        .plan-card.completed {
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .plan-card.current {
+            border: 1.5px solid rgba(34, 197, 94, 0.5);
+            background: linear-gradient(135deg, #162033 0%, #1E293B 100%);
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.1);
+        }
+
+        .plan-card.locked {
+            opacity: 0.45;
+        }
+
+        .day-badge {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* Category Card */
+        .category-card {
+            flex-shrink: 0;
+            width: 120px;
+            height: 120px;
+            border-radius: 18px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .category-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .category-card .overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.1) 100%);
+        }
+
+        .category-card .cat-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .category-card .cat-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: rgba(34, 197, 94, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4ADE80;
+            font-size: 14px;
+        }
+
+        .category-card .cat-name {
+            font-size: 11px;
+            font-weight: 600;
+            color: #FFFFFF;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        /* Goal Chip */
+        .goal-chip {
+            padding: 10px 16px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            cursor: pointer;
+            border: 1.5px solid #334155;
+            color: #94A3B8;
+            background: #1E293B;
+            transition: all 0.2s;
+        }
+
+        .goal-chip.selected {
+            border-color: #22C55E;
+            color: #4ADE80;
+            background: rgba(34, 197, 94, 0.08);
+        }
+
+        /* Start Button */
+        .start-btn {
+            background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+            color: #FFFFFF;
+            font-size: 15px;
+            font-weight: 700;
+            padding: 12px 32px;
+            border-radius: 14px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(34, 197, 94, 0.3);
+            letter-spacing: 0.3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="screen">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="dynamic-island"></div>
+            <span class="status-bar-time">9:41</span>
+            <div class="status-bar-icons">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0 20px;">
+                <h1 style="font-size: 34px; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px;">Train</h1>
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <div style="width: 42px; height: 42px; border-radius: 14px; background: #1E293B; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.06);">
+                        <i class="fas fa-fire" style="color: #F97316; font-size: 18px;"></i>
+                    </div>
+                    <div style="width: 42px; height: 42px; border-radius: 14px; background: #1E293B; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.06);">
+                        <i class="fas fa-sliders" style="color: #94A3B8; font-size: 17px;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Training -->
+            <div style="margin-bottom: 24px;">
+                <p style="font-size: 13px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Quick Training</p>
+                <div style="display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none;">
+                    <div class="quick-pill">5 min</div>
+                    <div class="quick-pill selected">10 min</div>
+                    <div class="quick-pill">15 min</div>
+                    <div class="quick-pill">20 min</div>
+                </div>
+            </div>
+
+            <!-- 2+2 Session Featured Card -->
+            <div class="featured-card" style="margin-bottom: 26px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+                    <div style="width: 8px; height: 8px; border-radius: 50%; background: #22C55E; box-shadow: 0 0 8px rgba(34,197,94,0.5);"></div>
+                    <span style="font-size: 12px; font-weight: 700; color: #22C55E; text-transform: uppercase; letter-spacing: 1.2px;">Recommended</span>
+                </div>
+                <h2 style="font-size: 22px; font-weight: 800; color: #FFFFFF; margin-bottom: 4px;">2+2 Session</h2>
+                <p style="font-size: 15px; color: #94A3B8; margin-bottom: 4px;">Ball Mastery + Game Moves</p>
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 18px;">
+                    <span style="font-size: 13px; color: #64748B;"><i class="fas fa-clock" style="margin-right: 5px; color: #4ADE80;"></i>12 min</span>
+                    <span style="font-size: 13px; color: #64748B;"><i class="fas fa-layer-group" style="margin-right: 5px; color: #4ADE80;"></i>4 drills</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; gap: 6px;">
+                        <div style="width: 36px; height: 4px; border-radius: 2px; background: #22C55E;"></div>
+                        <div style="width: 36px; height: 4px; border-radius: 2px; background: #22C55E;"></div>
+                        <div style="width: 36px; height: 4px; border-radius: 2px; background: #334155;"></div>
+                        <div style="width: 36px; height: 4px; border-radius: 2px; background: #334155;"></div>
+                    </div>
+                    <button class="start-btn">
+                        <i class="fas fa-play" style="margin-right: 6px; font-size: 12px;"></i>Start
+                    </button>
+                </div>
+            </div>
+
+            <!-- Weekly Plan -->
+            <div style="margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                    <p style="font-size: 18px; font-weight: 700; color: #FFFFFF;">Weekly Plan</p>
+                    <span style="font-size: 13px; color: #4ADE80; font-weight: 500;">Week 4</span>
+                </div>
+
+                <!-- Monday - Completed -->
+                <div class="plan-card completed">
+                    <div class="day-badge" style="background: rgba(34, 197, 94, 0.15); color: #22C55E;">
+                        <i class="fas fa-check" style="font-size: 18px;"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 12px; font-weight: 700; color: #22C55E; text-transform: uppercase; letter-spacing: 0.5px;">Mon</span>
+                        </div>
+                        <p style="font-size: 15px; font-weight: 600; color: #E2E8F0; margin-top: 2px;">Ball Mastery Focus</p>
+                        <p style="font-size: 12px; color: #64748B; margin-top: 2px;">2 drills completed</p>
+                    </div>
+                    <i class="fas fa-circle-check" style="color: #22C55E; font-size: 22px;"></i>
+                </div>
+
+                <!-- Wednesday - Current -->
+                <div class="plan-card current">
+                    <div class="day-badge" style="background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%); color: #FFFFFF;">
+                        <span style="font-size: 14px;">W</span>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 12px; font-weight: 700; color: #4ADE80; text-transform: uppercase; letter-spacing: 0.5px;">Wed</span>
+                            <span style="font-size: 10px; font-weight: 600; color: #0F172A; background: #4ADE80; padding: 2px 8px; border-radius: 6px;">TODAY</span>
+                        </div>
+                        <p style="font-size: 15px; font-weight: 600; color: #FFFFFF; margin-top: 2px;">Game Moves</p>
+                        <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">2 drills ready</p>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color: #4ADE80; font-size: 16px;"></i>
+                </div>
+
+                <!-- Friday - Locked -->
+                <div class="plan-card locked">
+                    <div class="day-badge" style="background: #334155; color: #64748B;">
+                        <i class="fas fa-lock" style="font-size: 14px;"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 12px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">Fri</span>
+                        </div>
+                        <p style="font-size: 15px; font-weight: 600; color: #64748B; margin-top: 2px;">Mixed Training</p>
+                        <p style="font-size: 12px; color: #475569; margin-top: 2px;">2 drills upcoming</p>
+                    </div>
+                    <i class="fas fa-lock" style="color: #475569; font-size: 14px;"></i>
+                </div>
+            </div>
+
+            <!-- Drill Categories -->
+            <div style="margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                    <p style="font-size: 18px; font-weight: 700; color: #FFFFFF;">Drill Categories</p>
+                    <span style="font-size: 13px; color: #4ADE80; font-weight: 500;">See All</span>
+                </div>
+                <div style="display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; margin: 0 -28px; padding: 0 28px;">
+                    <!-- Ball Mastery -->
+                    <div class="category-card">
+                        <img src="https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=400" alt="Ball Mastery">
+                        <div class="overlay"></div>
+                        <div class="cat-content">
+                            <div class="cat-icon">
+                                <i class="fas fa-futbol"></i>
+                            </div>
+                            <span class="cat-name">Ball Mastery</span>
+                        </div>
+                    </div>
+
+                    <!-- Fast Footwork -->
+                    <div class="category-card">
+                        <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400" alt="Fast Footwork">
+                        <div class="overlay"></div>
+                        <div class="cat-content">
+                            <div class="cat-icon">
+                                <i class="fas fa-person-running"></i>
+                            </div>
+                            <span class="cat-name">Fast Footwork</span>
+                        </div>
+                    </div>
+
+                    <!-- 1v1 Moves -->
+                    <div class="category-card">
+                        <img src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400" alt="1v1 Moves">
+                        <div class="overlay"></div>
+                        <div class="cat-content">
+                            <div class="cat-icon">
+                                <i class="fas fa-people-arrows"></i>
+                            </div>
+                            <span class="cat-name">1v1 Moves</span>
+                        </div>
+                    </div>
+
+                    <!-- Shooting -->
+                    <div class="category-card">
+                        <img src="https://images.unsplash.com/photo-1551958219-acbc608c6377?w=400" alt="Shooting">
+                        <div class="overlay"></div>
+                        <div class="cat-content">
+                            <div class="cat-icon">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                            <span class="cat-name">Shooting</span>
+                        </div>
+                    </div>
+
+                    <!-- Speed & Agility -->
+                    <div class="category-card">
+                        <img src="https://images.unsplash.com/photo-1526232761682-d26e03ac148e?w=400" alt="Speed & Agility">
+                        <div class="overlay"></div>
+                        <div class="cat-content">
+                            <div class="cat-icon">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <span class="cat-name">Speed & Agility</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Goal-Based Training -->
+            <div style="margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                    <p style="font-size: 18px; font-weight: 700; color: #FFFFFF;">Train by Goal</p>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <div class="goal-chip selected">
+                        <i class="fas fa-hands" style="margin-right: 6px;"></i>Improve ball control
+                    </div>
+                    <div class="goal-chip">
+                        <i class="fas fa-bolt" style="margin-right: 6px;"></i>Get faster
+                    </div>
+                    <div class="goal-chip">
+                        <i class="fas fa-shield-halved" style="margin-right: 6px;"></i>Better 1v1
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <a href="#" class="tab-item">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="#" class="tab-item active">
+                <i class="fas fa-dumbbell"></i>
+                <span>Train</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-trophy"></i>
+                <span>Challenge</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Progress</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
