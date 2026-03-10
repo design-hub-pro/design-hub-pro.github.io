@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=430, height=932, initial-scale=1.0">
+    <title>Library - Player Pathway</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        *::-webkit-scrollbar {
+            display: none;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0F172A;
+            color: #F1F5F9;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            min-height: 932px;
+            background: #0F172A;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            height: 59px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 28px 12px;
+            position: relative;
+        }
+        .dynamic-island {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 130px;
+            height: 38px;
+            background: #000;
+            border-radius: 24px;
+        }
+        .status-bar-time {
+            font-size: 17px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .status-bar-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-bar-icons i {
+            font-size: 16px;
+            color: #fff;
+        }
+
+        /* Content */
+        .content {
+            padding: 0 28px 120px;
+        }
+
+        /* Tab Bar */
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 95px;
+            background: rgba(15, 23, 42, 0.97);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: #64748B;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .tab-item i {
+            font-size: 24px;
+        }
+        .tab-item.active {
+            color: #22C55E;
+        }
+
+        /* Filter Pills */
+        .filter-scroll {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 4px 0 8px;
+            scrollbar-width: none;
+        }
+        .filter-pill {
+            padding: 9px 18px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            border: 1.5px solid #334155;
+            color: #94A3B8;
+            background: #1E293B;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .filter-pill.active {
+            background: #22C55E;
+            color: #0F172A;
+            border-color: #22C55E;
+            box-shadow: 0 0 16px rgba(34, 197, 94, 0.3);
+        }
+
+        /* Video Card (Featured) */
+        .featured-video {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .featured-video img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+        .featured-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.5) 40%, rgba(15, 23, 42, 0.1) 100%);
+        }
+        .featured-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 18px;
+        }
+        .play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -60%);
+            width: 48px;
+            height: 48px;
+            background: rgba(34, 197, 94, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
+        }
+        .play-overlay i {
+            font-size: 18px;
+            color: #fff;
+            margin-left: 2px;
+        }
+        .duration-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        /* Lesson Card */
+        .lesson-card {
+            display: flex;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            align-items: center;
+        }
+        .lesson-card:last-child {
+            border-bottom: none;
+        }
+        .lesson-thumb {
+            width: 110px;
+            height: 72px;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .lesson-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .lesson-thumb .mini-play {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .lesson-thumb .mini-play i {
+            font-size: 11px;
+            color: #fff;
+            margin-left: 1px;
+        }
+        .lesson-thumb .mini-duration {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .lesson-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .lesson-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #F8FAFC;
+            margin-bottom: 4px;
+        }
+        .lesson-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .category-tag {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+        .difficulty-dots {
+            display: flex;
+            gap: 3px;
+            align-items: center;
+        }
+        .difficulty-dots .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+        .lesson-status {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Progress ring */
+        .progress-ring {
+            width: 32px;
+            height: 32px;
+            position: relative;
+        }
+        .progress-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        /* Animations */
+        @keyframes float-in {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in {
+            animation: float-in 0.5s ease-out forwards;
+        }
+        .delay-1 { animation-delay: 0.1s; opacity: 0; }
+        .delay-2 { animation-delay: 0.2s; opacity: 0; }
+        .delay-3 { animation-delay: 0.3s; opacity: 0; }
+        .delay-4 { animation-delay: 0.4s; opacity: 0; }
+        .delay-5 { animation-delay: 0.5s; opacity: 0; }
+    </style>
+</head>
+<body>
+    <div class="screen">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="dynamic-island"></div>
+            <span class="status-bar-time">9:41</span>
+            <div class="status-bar-icons">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0 6px;" class="animate-in">
+                <h1 style="font-size: 30px; font-weight: 800; color: #F8FAFC; letter-spacing: -0.5px;">Library</h1>
+                <div style="width: 42px; height: 42px; border-radius: 14px; background: #1E293B; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.06); cursor: pointer;">
+                    <i class="fas fa-search" style="color: #94A3B8; font-size: 17px;"></i>
+                </div>
+            </div>
+
+            <!-- Stats Summary -->
+            <div style="display: flex; align-items: center; gap: 6px; padding: 4px 0 16px;" class="animate-in">
+                <span style="font-size: 13px; color: #64748B;">
+                    <span style="color: #4ADE80; font-weight: 700;">24</span> lessons completed
+                    <span style="margin: 0 4px; opacity: 0.3;">·</span>
+                    <span style="color: #94A3B8; font-weight: 600;">48</span> total
+                </span>
+            </div>
+
+            <!-- Filter Pills -->
+            <div class="filter-scroll animate-in delay-1" style="margin: 0 -28px; padding-left: 28px; padding-right: 28px;">
+                <div class="filter-pill active">All</div>
+                <div class="filter-pill">Ball Mastery</div>
+                <div class="filter-pill">Fast Footwork</div>
+                <div class="filter-pill">1v1 Moves</div>
+                <div class="filter-pill">Shooting</div>
+                <div class="filter-pill">Speed & Agility</div>
+            </div>
+
+            <!-- Continue Watching -->
+            <div style="margin-top: 22px;" class="animate-in delay-2">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                    <h2 style="font-size: 19px; font-weight: 700; color: #F8FAFC;">Continue Watching</h2>
+                    <span style="font-size: 13px; color: #22C55E; font-weight: 600; cursor: pointer;">See All</span>
+                </div>
+
+                <!-- Featured Video Card 1 -->
+                <div class="featured-video">
+                    <img src="https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=800" alt="Ball Mastery Fundamentals">
+                    <div class="featured-overlay"></div>
+                    <div class="play-overlay">
+                        <i class="fas fa-play"></i>
+                    </div>
+                    <div class="duration-badge">12:30</div>
+                    <div class="featured-content">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <span class="category-tag" style="background: rgba(34, 197, 94, 0.15); color: #4ADE80;">Ball Mastery</span>
+                            <span style="font-size: 12px; color: #64748B;">Intermediate</span>
+                        </div>
+                        <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 8px;">Ball Mastery Fundamentals</h3>
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div style="flex: 1; margin-right: 14px;">
+                                <div style="height: 4px; background: rgba(255,255,255,0.12); border-radius: 2px; overflow: hidden;">
+                                    <div style="height: 100%; width: 37.5%; background: linear-gradient(90deg, #22C55E, #4ADE80); border-radius: 2px;"></div>
+                                </div>
+                            </div>
+                            <span style="font-size: 12px; font-weight: 600; color: #4ADE80; flex-shrink: 0;">3/8 completed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Featured Video Card 2 -->
+                <div class="featured-video">
+                    <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800" alt="Speed Ladder Drills">
+                    <div class="featured-overlay"></div>
+                    <div class="play-overlay">
+                        <i class="fas fa-play"></i>
+                    </div>
+                    <div class="duration-badge">8:45</div>
+                    <div class="featured-content">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <span class="category-tag" style="background: rgba(59, 130, 246, 0.15); color: #60A5FA;">Fast Footwork</span>
+                            <span style="font-size: 12px; color: #64748B;">Beginner</span>
+                        </div>
+                        <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 8px;">Speed Ladder Drills</h3>
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div style="flex: 1; margin-right: 14px;">
+                                <div style="height: 4px; background: rgba(255,255,255,0.12); border-radius: 2px; overflow: hidden;">
+                                    <div style="height: 100%; width: 66%; background: linear-gradient(90deg, #3B82F6, #60A5FA); border-radius: 2px;"></div>
+                                </div>
+                            </div>
+                            <span style="font-size: 12px; font-weight: 600; color: #60A5FA; flex-shrink: 0;">4/6 completed</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ball Mastery Lessons -->
+            <div style="margin-top: 28px;" class="animate-in delay-3">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h2 style="font-size: 19px; font-weight: 700; color: #F8FAFC;">Ball Mastery</h2>
+                    <span style="font-size: 13px; color: #22C55E; font-weight: 600; cursor: pointer;">8 lessons</span>
+                </div>
+
+                <!-- Lesson 1 - Completed -->
+                <div class="lesson-card">
+                    <div class="lesson-thumb">
+                        <img src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400" alt="Toe Taps">
+                        <div class="mini-play"><i class="fas fa-play"></i></div>
+                        <div class="mini-duration">3:20</div>
+                    </div>
+                    <div class="lesson-info">
+                        <div class="lesson-title">Toe Taps Mastery</div>
+                        <div class="lesson-meta">
+                            <span class="category-tag" style="background: rgba(34, 197, 94, 0.12); color: #4ADE80;">Ball Mastery</span>
+                            <div class="difficulty-dots">
+                                <div class="dot" style="background: #4ADE80;"></div>
+                                <div class="dot" style="background: rgba(255,255,255,0.15);"></div>
+                                <div class="dot" style="background: rgba(255,255,255,0.15);"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lesson-status" style="background: rgba(34, 197, 94, 0.15);">
+                        <i class="fas fa-check" style="font-size: 14px; color: #22C55E;"></i>
+                    </div>
+                </div>
+
+                <!-- Lesson 2 - Completed -->
+                <div class="lesson-card">
+                    <div class="lesson-thumb">
+                        <img src="https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=400" alt="Inside-Outside Touch">
+                        <div class="mini-play"><i class="fas fa-play"></i></div>
+                        <div class="mini-duration">4:15</div>
+                    </div>
+                    <div class="lesson-info">
+                        <div class="lesson-title">Inside-Outside Touch</div>
+                        <div class="lesson-meta">
+                            <span class="category-tag" style="background: rgba(34, 197, 94, 0.12); color: #4ADE80;">Ball Mastery</span>
+                            <div class="difficulty-dots">
+                                <div class="dot" style="background: #4ADE80;"></div>
+                                <div class="dot" style="background: rgba(255,255,255,0.15);"></div>
+                                <div class="dot" style="background: rgba(255,255,255,0.15);"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lesson-status" style="background: rgba(34, 197, 94, 0.15);">
+                        <i class="fas fa-check" style="font-size: 14px; color: #22C55E;"></i>
+                    </div>
+                </div>
+
+                <!-- Lesson 3 - In Progress -->
+                <div class="lesson-card">
+                    <div class="lesson-thumb">
+                        <img src="https://images.unsplash.com/photo-1551958219-acbc608c6377?w=400" alt="Roll & Pull Back">
+                        <div class="mini-play"><i class="fas fa-play"></i></div>
+                        <div class="mini-duration">5:00</div>
+                    </div>
+                    <div class="lesson-info">
+                        <div class="lesson-title">Roll & Pull Back</div>
+                        <div class="lesson-meta">
+                            <span class="category-tag" style="background: rgba(34, 197, 94, 0.12); color: #4ADE80;">Ball Mastery</span>
+                            <div class="difficulty-dots">
+                                <div class="dot" style="background: #FBBF24;"></div>
+                                <div class="dot" style="background: #FBBF24;"></div>
+                                <div class="dot" style="background: rgba(255,255,255,0.15);"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress-ring">
+                        <svg width="32" height="32" viewBox="0 0 32 32">
+                            <circle cx="16" cy="16" r="13" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+                            <circle cx="16" cy="16" r="13" fill="none" stroke="#22C55E" stroke-width="3"
+                                    stroke-dasharray="81.68" stroke-dashoffset="40.84" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Lesson 4 - Locked -->
+                <div class="lesson-card" style="opacity: 0.45;">
+                    <div class="lesson-thumb">
+                        <img src="https://images.unsplash.com/photo-1526232761682-d26e03ac148e?w=400" alt="La Croqueta">
+                        <div class="mini-duration">4:40</div>
+                    </div>
+                    <div class="lesson-info">
+                        <div class="lesson-title">La Croqueta</div>
+                        <div class="lesson-meta">
+                            <span class="category-tag" style="background: rgba(100, 116, 139, 0.12); color: #64748B;">Ball Mastery</span>
+                            <div class="difficulty-dots">
+                                <div class="dot" style="background: #64748B;"></div>
+                                <div class="dot" style="background: #64748B;"></div>
+                                <div class="dot" style="background: #64748B;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lesson-status" style="background: rgba(100, 116, 139, 0.1);">
+                        <i class="fas fa-lock" style="font-size: 12px; color: #475569;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1v1 Moves Section -->
+            <div style="margin-top: 28px;" class="animate-in delay-4">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h2 style="font-size: 19px; font-weight: 700; color: #F8FAFC;">1v1 Moves</h2>
+                    <span style="font-size: 13px; color: #22C55E; font-weight: 600; cursor: pointer;">6 lessons</span>
+                </div>
+
+                <!-- Lesson 1 - Completed -->
+                <div class="lesson-card">
+                    <div class="lesson-thumb">
+                        <img src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400" alt="Step Over Basics">
+                        <div class="mini-play"><i class="fas fa-play"></i></div>
+                        <div class="mini-duration">5:30</div>
+                    </div>
+                    <div class="lesson-info">
+                        <div class="lesson-title">Step Over Basics</div>
+                        <div class="lesson-meta">
+                            <span class="category-tag" style="background: rgba(245, 158, 11, 0.12); color: #FBBF24;">1v1 Moves</span>
+                            <div class="difficulty-dots">
+                                <div class="dot" style="background: #FBBF24;"></div>
+                                <div class="dot" style="background: rgba(255,255,255,0.15);"></div>
+                                <div class="dot" style="background: rgba(255,255,255,0.15);"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lesson-status" style="background: rgba(34, 197, 94, 0.15);">
+                        <i class="fas fa-check" style="font-size: 14px; color: #22C55E;"></i>
+                    </div>
+                </div>
+
+                <!-- Lesson 2 - In Progress -->
+                <div class="lesson-card">
+                    <div class="lesson-thumb">
+                        <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400" alt="Body Feint">
+                        <div class="mini-play"><i class="fas fa-play"></i></div>
+                        <div class="mini-duration">6:15</div>
+                    </div>
+                    <div class="lesson-info">
+                        <div class="lesson-title">Body Feint & Exit</div>
+                        <div class="lesson-meta">
+                            <span class="category-tag" style="background: rgba(245, 158, 11, 0.12); color: #FBBF24;">1v1 Moves</span>
+                            <div class="difficulty-dots">
+                                <div class="dot" style="background: #FBBF24;"></div>
+                                <div class="dot" style="background: #FBBF24;"></div>
+                                <div class="dot" style="background: rgba(255,255,255,0.15);"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress-ring">
+                        <svg width="32" height="32" viewBox="0 0 32 32">
+                            <circle cx="16" cy="16" r="13" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+                            <circle cx="16" cy="16" r="13" fill="none" stroke="#FBBF24" stroke-width="3"
+                                    stroke-dasharray="81.68" stroke-dashoffset="57.18" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Lesson 3 - Locked -->
+                <div class="lesson-card" style="opacity: 0.45;">
+                    <div class="lesson-thumb">
+                        <img src="https://images.unsplash.com/photo-1551958219-acbc608c6377?w=400" alt="Elastico">
+                        <div class="mini-duration">7:00</div>
+                    </div>
+                    <div class="lesson-info">
+                        <div class="lesson-title">The Elastico</div>
+                        <div class="lesson-meta">
+                            <span class="category-tag" style="background: rgba(100, 116, 139, 0.12); color: #64748B;">1v1 Moves</span>
+                            <div class="difficulty-dots">
+                                <div class="dot" style="background: #64748B;"></div>
+                                <div class="dot" style="background: #64748B;"></div>
+                                <div class="dot" style="background: #64748B;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lesson-status" style="background: rgba(100, 116, 139, 0.1);">
+                        <i class="fas fa-lock" style="font-size: 12px; color: #475569;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shooting Section -->
+            <div style="margin-top: 28px;" class="animate-in delay-5">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h2 style="font-size: 19px; font-weight: 700; color: #F8FAFC;">Shooting</h2>
+                    <span style="font-size: 13px; color: #22C55E; font-weight: 600; cursor: pointer;">5 lessons</span>
+                </div>
+
+                <!-- Lesson 1 - Completed -->
+                <div class="lesson-card">
+                    <div class="lesson-thumb">
+                        <img src="https://images.unsplash.com/photo-1551958219-acbc608c6377?w=400" alt="Instep Drive">
+                        <div class="mini-play"><i class="fas fa-play"></i></div>
+                        <div class="mini-duration">4:50</div>
+                    </div>
+                    <div class="lesson-info">
+                        <div class="lesson-title">Instep Drive</div>
+                        <div class="lesson-meta">
+                            <span class="category-tag" style="background: rgba(239, 68, 68, 0.12); color: #F87171;">Shooting</span>
+                            <div class="difficulty-dots">
+                                <div class="dot" style="background: #F87171;"></div>
+                                <div class="dot" style="background: rgba(255,255,255,0.15);"></div>
+                                <div class="dot" style="background: rgba(255,255,255,0.15);"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lesson-status" style="background: rgba(34, 197, 94, 0.15);">
+                        <i class="fas fa-check" style="font-size: 14px; color: #22C55E;"></i>
+                    </div>
+                </div>
+
+                <!-- Lesson 2 - Locked -->
+                <div class="lesson-card" style="opacity: 0.45;">
+                    <div class="lesson-thumb">
+                        <img src="https://images.unsplash.com/photo-1526232761682-d26e03ac148e?w=400" alt="Curving Shot">
+                        <div class="mini-duration">6:20</div>
+                    </div>
+                    <div class="lesson-info">
+                        <div class="lesson-title">Curving Shot</div>
+                        <div class="lesson-meta">
+                            <span class="category-tag" style="background: rgba(100, 116, 139, 0.12); color: #64748B;">Shooting</span>
+                            <div class="difficulty-dots">
+                                <div class="dot" style="background: #64748B;"></div>
+                                <div class="dot" style="background: #64748B;"></div>
+                                <div class="dot" style="background: rgba(255,255,255,0.15);"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lesson-status" style="background: rgba(100, 116, 139, 0.1);">
+                        <i class="fas fa-lock" style="font-size: 12px; color: #475569;"></i>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <a href="#" class="tab-item">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-dumbbell"></i>
+                <span>Train</span>
+            </a>
+            <a href="#" class="tab-item active">
+                <i class="fas fa-play-circle"></i>
+                <span>Library</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Progress</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
