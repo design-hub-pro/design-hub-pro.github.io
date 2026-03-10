@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analyzing Neural Network Training Using Differential Equations — Research Project</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap');
+
+  :root {
+    --bg: #08090e;
+    --surface: #0f1219;
+    --surface-2: #161b27;
+    --surface-3: #1e2538;
+    --border: #232d42;
+    --border-light: #33426a;
+    --text: #e4e9f2;
+    --text-secondary: #8d9bb5;
+    --text-muted: #556180;
+    --accent: #f97316;
+    --accent-2: #fb923c;
+    --accent-3: #fdba74;
+    --blue: #3b82f6;
+    --blue-2: #60a5fa;
+    --purple: #a78bfa;
+    --green: #34d399;
+    --cyan: #22d3ee;
+    --pink: #f472b6;
+    --red: #f87171;
+    --yellow: #fbbf24;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Language Switcher ── */
+  .lang-switch {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 200;
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+  }
+  .lang-btn {
+    padding: 6px 14px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all .2s;
+  }
+  .lang-btn:hover { color: var(--text-secondary); }
+  .lang-btn.active { background: var(--accent); color: #fff; }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 60px 24px;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 50% at 50% 35%, rgba(249,115,22,.07) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 50% at 20% 80%, rgba(59,130,246,.05) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 85% 25%, rgba(167,139,250,.04) 0%, transparent 60%);
+  }
+
+  /* Animated math grid */
+  .math-grid {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    opacity: 0.4;
+  }
+
+  .math-grid svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Floating equation particles */
+  .eq-particle {
+    position: absolute;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    opacity: 0;
+    animation: eqFloat 12s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .eq-particle:nth-child(1) { left: 8%; top: 15%; animation-delay: 0s; }
+  .eq-particle:nth-child(2) { left: 75%; top: 25%; animation-delay: -2s; color: var(--blue-2); }
+  .eq-particle:nth-child(3) { left: 20%; top: 65%; animation-delay: -4s; color: var(--purple); }
+  .eq-particle:nth-child(4) { left: 85%; top: 70%; animation-delay: -6s; color: var(--green); }
+  .eq-particle:nth-child(5) { left: 50%; top: 10%; animation-delay: -8s; color: var(--cyan); }
+  .eq-particle:nth-child(6) { left: 60%; top: 80%; animation-delay: -3s; color: var(--yellow); }
+  .eq-particle:nth-child(7) { left: 35%; top: 40%; animation-delay: -9s; color: var(--pink); }
+
+  @keyframes eqFloat {
+    0%, 100% { opacity: 0; transform: translateY(0) scale(0.9); }
+    15%, 85% { opacity: 0.35; }
+    50% { opacity: 0.5; transform: translateY(-30px) scale(1.05); }
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 880px;
+    text-align: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    background: rgba(249,115,22,.08);
+    border: 1px solid rgba(249,115,22,.2);
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  .badge::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .hero h1 {
+    font-size: clamp(2.2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, #fff 20%, var(--accent) 60%, var(--yellow) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero .subtitle {
+    font-size: 1.12rem;
+    color: var(--text-secondary);
+    max-width: 660px;
+    margin: 0 auto 40px;
+    line-height: 1.8;
+  }
+
+  .hero-meta {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+
+  .hero-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .hero-meta-item svg { width: 16px; height: 16px; color: var(--accent); }
+
+  /* ── Core equation showcase ── */
+  .eq-showcase {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .eq-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 16px;
+    text-align: center;
+    transition: border-color .3s, transform .2s;
+  }
+
+  .eq-card:hover { border-color: var(--border-light); transform: translateY(-2px); }
+
+  .eq-card .eq-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .eq-card:nth-child(1) .eq-label { color: var(--accent); }
+  .eq-card:nth-child(2) .eq-label { color: var(--blue-2); }
+  .eq-card:nth-child(3) .eq-label { color: var(--green); }
+
+  .eq-card .eq-math {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    color: var(--text);
+    line-height: 1.8;
+    letter-spacing: 0.3px;
+  }
+
+  .eq-card .eq-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 8px;
+  }
+
+  /* ── Nav ── */
+  .nav-strip {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(8,9,14,.88);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+  }
+
+  .nav-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .nav-inner::-webkit-scrollbar { display: none; }
+
+  .nav-link {
+    padding: 14px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all .2s;
+  }
+
+  .nav-link:hover { color: var(--text-secondary); }
+  .nav-link.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── Page ── */
+  .page-wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  section {
+    padding: 80px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  section:last-child { border-bottom: none; }
+
+  .section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  .section-label::before {
+    content: '';
+    width: 24px;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+  }
+
+  h2 {
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+    line-height: 1.25;
+  }
+
+  .section-desc {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    max-width: 680px;
+    margin-bottom: 40px;
+    line-height: 1.8;
+  }
+
+  /* ── Abstract ── */
+  .abstract-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .abstract-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--blue), var(--purple), var(--green));
+  }
+
+  .abstract-box p {
+    font-family: 'Crimson Pro', serif;
+    font-size: 1.12rem;
+    line-height: 2;
+    color: var(--text-secondary);
+  }
+
+  .abstract-box p + p { margin-top: 16px; }
+
+  /* ── RQ Cards ── */
+  .rq-grid { display: grid; gap: 16px; }
+
+  .rq-card {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 20px;
+    padding: 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    transition: border-color .3s, transform .2s;
+  }
+
+  .rq-card:hover { border-color: var(--border-light); transform: translateX(4px); }
+
+  .rq-num {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .rq-card:nth-child(1) .rq-num { background: rgba(249,115,22,.12); color: var(--accent); }
+  .rq-card:nth-child(2) .rq-num { background: rgba(59,130,246,.12); color: var(--blue); }
+  .rq-card:nth-child(3) .rq-num { background: rgba(167,139,250,.12); color: var(--purple); }
+
+  .rq-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+  .rq-text { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; }
+
+  /* ── Math Framework ── */
+  .math-grid-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  .math-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 32px;
+    transition: transform .2s, border-color .3s;
+  }
+
+  .math-card:hover { transform: translateY(-2px); border-color: var(--border-light); }
+
+  .math-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .math-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .math-card:nth-child(1) .math-card-icon { background: rgba(249,115,22,.12); }
+  .math-card:nth-child(2) .math-card-icon { background: rgba(59,130,246,.12); }
+  .math-card:nth-child(3) .math-card-icon { background: rgba(167,139,250,.12); }
+  .math-card:nth-child(4) .math-card-icon { background: rgba(52,211,153,.12); }
+
+  .math-card h4 { font-size: 0.95rem; font-weight: 600; }
+
+  .math-card .formula {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--accent-2);
+    background: rgba(249,115,22,.06);
+    border: 1px solid rgba(249,115,22,.12);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    line-height: 1.8;
+    overflow-x: auto;
+  }
+
+  .math-card p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  /* ── Pipeline ── */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding-left: 32px;
+  }
+
+  .pipeline::before {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 30px;
+    bottom: 30px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent), var(--blue), var(--purple), var(--green));
+    border-radius: 1px;
+  }
+
+  .pipeline-step {
+    position: relative;
+    padding: 24px 0 24px 32px;
+  }
+
+  .pipeline-step::before {
+    content: '';
+    position: absolute;
+    left: -26px;
+    top: 32px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 3px solid var(--accent);
+  }
+
+  .pipeline-step:nth-child(2)::before { border-color: var(--accent-2); }
+  .pipeline-step:nth-child(3)::before { border-color: var(--blue); }
+  .pipeline-step:nth-child(4)::before { border-color: var(--purple); }
+  .pipeline-step:nth-child(5)::before { border-color: var(--green); }
+
+  .pipeline-step h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .pipeline-step h4 .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: var(--surface-2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: var(--text-muted);
+  }
+
+  .pipeline-step p {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    max-width: 560px;
+  }
+
+  /* ── Experiment Matrix ── */
+  .exp-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .exp-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    text-align: center;
+    transition: transform .2s;
+  }
+
+  .exp-card:hover { transform: translateY(-3px); }
+
+  .exp-card .exp-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+
+  .exp-card:nth-child(1) .exp-icon { background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.2); }
+  .exp-card:nth-child(2) .exp-icon { background: rgba(251,191,36,.1); border: 1px solid rgba(251,191,36,.2); }
+  .exp-card:nth-child(3) .exp-icon { background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.2); }
+
+  .exp-card h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
+  .exp-card .exp-eta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  .exp-card:nth-child(1) .exp-eta { color: var(--green); }
+  .exp-card:nth-child(2) .exp-eta { color: var(--yellow); }
+  .exp-card:nth-child(3) .exp-eta { color: var(--red); }
+  .exp-card p { font-size: 0.83rem; color: var(--text-secondary); line-height: 1.6; }
+
+  /* ── Stability Diagram ── */
+  .stability-visual {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    margin-top: 32px;
+  }
+
+  .stability-bar-container {
+    position: relative;
+    height: 80px;
+    margin: 32px 0 20px;
+  }
+
+  .stability-bar {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    right: 0;
+    height: 20px;
+    border-radius: 10px;
+    background: linear-gradient(90deg,
+      rgba(52,211,153,.3) 0%,
+      rgba(52,211,153,.3) 35%,
+      rgba(251,191,36,.3) 35%,
+      rgba(251,191,36,.3) 55%,
+      rgba(248,113,113,.3) 55%,
+      rgba(248,113,113,.3) 100%
+    );
+  }
+
+  .stability-marker {
+    position: absolute;
+    top: 14px;
+    width: 2px;
+    height: 50px;
+    transform: translateX(-50%);
+  }
+
+  .stability-marker::after {
+    content: attr(data-label);
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .stability-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+
+  .stability-labels span {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* ── Expected Results ── */
+  .result-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .result-card-header {
+    padding: 20px 24px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .result-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .result-card h4 { font-size: 0.95rem; font-weight: 600; }
+
+  .result-card-body { padding: 12px 24px 20px; }
+  .result-card-body p { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.7; }
+
+  .result-chart {
+    height: 120px;
+    padding: 0 24px 16px;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .chart-bar {
+    flex: 1;
+    border-radius: 3px 3px 0 0;
+    min-height: 4px;
+    transition: height .5s;
+  }
+
+  /* ── Hypothesis Table ── */
+  .hyp-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-top: 24px;
+  }
+
+  .hyp-table th {
+    text-align: left;
+    padding: 14px 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hyp-table td {
+    padding: 16px 20px;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid rgba(35,45,66,.4);
+    line-height: 1.6;
+  }
+
+  .hyp-table tr:last-child td { border-bottom: none; }
+
+  .hyp-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  /* ── Timeline ── */
+  .timeline-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .timeline-table th {
+    text-align: left;
+    padding: 14px 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .timeline-table td {
+    padding: 16px 20px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid rgba(35,45,66,.4);
+    vertical-align: top;
+  }
+
+  .timeline-table tr:last-child td { border-bottom: none; }
+  .timeline-table .phase { font-weight: 600; color: var(--text); white-space: nowrap; }
+  .timeline-table .week {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  /* ── Contributions ── */
+  .contrib-list { display: flex; flex-direction: column; gap: 14px; }
+
+  .contrib-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 20px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .contrib-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 28px;
+    margin-top: 2px;
+  }
+
+  .contrib-item p { font-size: 0.92rem; color: var(--text-secondary); line-height: 1.7; }
+  .contrib-item strong { color: var(--text); font-weight: 600; }
+
+  /* ── References ── */
+  .ref-list { display: flex; flex-direction: column; gap: 12px; counter-reset: ref; }
+
+  .ref-item {
+    counter-increment: ref;
+    display: flex;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  .ref-item::before {
+    content: '[' counter(ref) ']';
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    min-width: 32px;
+    margin-top: 2px;
+  }
+
+  .ref-item em { font-family: 'Crimson Pro', serif; font-style: italic; color: var(--text); }
+
+  /* ── Code Block ── */
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-top: 32px;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .code-header .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .code-body {
+    padding: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .code-body .kw { color: var(--accent); }
+  .code-body .fn { color: var(--blue-2); }
+  .code-body .str { color: var(--green); }
+  .code-body .cmt { color: var(--text-muted); font-style: italic; }
+  .code-body .num { color: var(--yellow); }
+  .code-body .op { color: var(--purple); }
+
+  /* ── Tech Stack ── */
+  .tech-stack { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+
+  .tech-pill {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tech-pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-muted);
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .eq-showcase { grid-template-columns: 1fr; }
+    .exp-grid { grid-template-columns: 1fr; }
+    .math-grid-section { grid-template-columns: 1fr; }
+    section { padding: 48px 0; }
+    .lang-switch { top: 10px; right: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Language Switcher -->
+<div class="lang-switch">
+  <a href="index.html" class="lang-btn active">EN</a>
+  <a href="index_cn.html" class="lang-btn">中文</a>
+</div>
+
+<!-- ════════════════ HERO ════════════════ -->
+<section class="hero">
+  <div class="math-grid">
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+      <defs>
+        <pattern id="g" width="5" height="5" patternUnits="userSpaceOnUse">
+          <path d="M 5 0 L 0 0 0 5" fill="none" stroke="rgba(249,115,22,.04)" stroke-width="0.15"/>
+        </pattern>
+      </defs>
+      <rect width="100" height="100" fill="url(#g)"/>
+    </svg>
+  </div>
+
+  <!-- Floating equations -->
+  <div class="eq-particle">dw/dt = -∇L(w)</div>
+  <div class="eq-particle">λ_max(H)</div>
+  <div class="eq-particle">η &lt; 2/λ_max</div>
+  <div class="eq-particle">H = 2X&#7488;X</div>
+  <div class="eq-particle">L(w) = ‖Xw - y‖²</div>
+  <div class="eq-particle">w_{k+1} = w_k - η∇L</div>
+  <div class="eq-particle">∇²L = 2X&#7488;X</div>
+
+  <div class="hero-content">
+    <div class="badge">Research Project Proposal</div>
+    <h1>Analyzing Neural Network Training Using Differential Equations & Linear Algebra</h1>
+    <p class="subtitle">
+      Modeling gradient descent as a continuous dynamical system, using eigenvalue analysis of the Hessian to predict training stability, convergence, and divergence behavior.
+    </p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Dynamical Systems Theory
+      </div>
+      <div class="hero-meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        8-Week Plan
+      </div>
+      <div class="hero-meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.674M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        ODE ↔ Gradient Descent
+      </div>
+    </div>
+
+    <!-- Core equations showcase -->
+    <div class="eq-showcase">
+      <div class="eq-card">
+        <div class="eq-label">Gradient Descent</div>
+        <div class="eq-math">w<sub>k+1</sub> = w<sub>k</sub> - η ∇L(w<sub>k</sub>)</div>
+        <div class="eq-desc">Discrete update rule</div>
+      </div>
+      <div class="eq-card">
+        <div class="eq-label">ODE Model</div>
+        <div class="eq-math">dw/dt = -∇L(w) = -2X<sup>T</sup>(Xw - y)</div>
+        <div class="eq-desc">Continuous-time approximation</div>
+      </div>
+      <div class="eq-card">
+        <div class="eq-label">Stability Criterion</div>
+        <div class="eq-math">0 &lt; η &lt; 2 / λ<sub>max</sub>(H)</div>
+        <div class="eq-desc">Eigenvalue-based bound</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ NAV ════════════════ -->
+<nav class="nav-strip">
+  <div class="nav-inner">
+    <a href="#abstract" class="nav-link active">Abstract</a>
+    <a href="#questions" class="nav-link">Research Questions</a>
+    <a href="#framework" class="nav-link">Math Framework</a>
+    <a href="#methodology" class="nav-link">Methodology</a>
+    <a href="#experiments" class="nav-link">Experiments</a>
+    <a href="#results" class="nav-link">Expected Results</a>
+    <a href="#timeline" class="nav-link">Timeline</a>
+    <a href="#contributions" class="nav-link">Significance</a>
+    <a href="#references" class="nav-link">References</a>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+<!-- ════════════════ ABSTRACT ════════════════ -->
+<section id="abstract">
+  <div class="section-label">Section I</div>
+  <h2>Abstract</h2>
+  <div class="abstract-box">
+    <p>
+      Neural network training via gradient descent is typically understood as an iterative optimization procedure. However, a deeper mathematical perspective reveals that gradient descent can be modeled as a <strong>continuous-time dynamical system</strong> governed by ordinary differential equations (ODEs). This research investigates this ODE viewpoint to analyze the training dynamics of a single-layer linear neural network.
+    </p>
+    <p>
+      By computing the <strong>Hessian matrix</strong> H = 2X<sup>T</sup>X of the squared-error loss and analyzing its <strong>eigenvalue spectrum</strong>, we derive a precise stability criterion for the learning rate: convergence is guaranteed when 0 &lt; η &lt; 2/λ<sub>max</sub>(H). We validate this theoretical bound through controlled experiments comparing discrete gradient descent with continuous ODE simulation (Euler method), demonstrating three regimes — stable convergence, critical oscillation, and divergence.
+    </p>
+    <p>
+      This work bridges <strong>differential equations</strong>, <strong>linear algebra</strong>, and <strong>machine learning optimization</strong>, providing a mathematically rigorous and experimentally verifiable framework for understanding how learning rate and curvature interact to determine training success or failure.
+    </p>
+  </div>
+</section>
+
+<!-- ════════════════ RESEARCH QUESTIONS ════════════════ -->
+<section id="questions">
+  <div class="section-label">Section II</div>
+  <h2>Research Questions</h2>
+  <p class="section-desc">Three questions guide this investigation, connecting classical mathematics to modern AI training dynamics.</p>
+
+  <div class="rq-grid">
+    <div class="rq-card">
+      <div class="rq-num">RQ1</div>
+      <div>
+        <div class="rq-title">ODE Approximation Fidelity</div>
+        <div class="rq-text">How accurately does the continuous ODE model dw/dt = -∇L(w) approximate the discrete gradient descent trajectory w<sub>k+1</sub> = w<sub>k</sub> - η∇L(w<sub>k</sub>), and under what conditions (learning rate, step size) does the approximation break down?</div>
+      </div>
+    </div>
+    <div class="rq-card">
+      <div class="rq-num">RQ2</div>
+      <div>
+        <div class="rq-title">Eigenvalue-Based Stability Prediction</div>
+        <div class="rq-text">Can the eigenvalue spectrum of the Hessian matrix H = 2X<sup>T</sup>X accurately predict the critical learning rate threshold that separates stable convergence from oscillation and divergence in gradient descent?</div>
+      </div>
+    </div>
+    <div class="rq-card">
+      <div class="rq-num">RQ3</div>
+      <div>
+        <div class="rq-title">Convergence Rate Characterization</div>
+        <div class="rq-text">How do the eigenvalue distribution (condition number, spectral gap) and learning rate jointly determine the convergence rate, and what is the optimal learning rate that maximizes convergence speed without inducing instability?</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hypotheses -->
+  <table class="hyp-table">
+    <thead>
+      <tr><th style="width:80px;">ID</th><th>Hypothesis</th><th style="width:100px;">Tests</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="hyp-id">H1</span></td>
+        <td>The ODE Euler trajectory will match discrete GD within 5% relative error when η &lt; 0.5 / λ<sub>max</sub>, but diverge significantly when η approaches the stability bound.</td>
+        <td>RQ1</td>
+      </tr>
+      <tr>
+        <td><span class="hyp-id">H2</span></td>
+        <td>The theoretical stability bound η &lt; 2/λ<sub>max</sub> will correctly predict the onset of divergence with &lt;5% error on the critical threshold value.</td>
+        <td>RQ2</td>
+      </tr>
+      <tr>
+        <td><span class="hyp-id">H3</span></td>
+        <td>The optimal learning rate η* = 2/(λ<sub>max</sub> + λ<sub>min</sub>) will achieve the fastest convergence, and the convergence rate will be inversely proportional to the condition number κ = λ<sub>max</sub>/λ<sub>min</sub>.</td>
+        <td>RQ3</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════════════════ MATH FRAMEWORK ════════════════ -->
+<section id="framework">
+  <div class="section-label">Section III</div>
+  <h2>Mathematical Framework</h2>
+  <p class="section-desc">Four pillars of mathematics underpin the analysis — each connecting classical theory to neural network training behavior.</p>
+
+  <div class="math-grid-section">
+    <div class="math-card">
+      <div class="math-card-header">
+        <div class="math-card-icon">∂</div>
+        <h4>Ordinary Differential Equations</h4>
+      </div>
+      <div class="formula">dw/dt = -∇L(w) = -2X<sup>T</sup>(Xw - y)</div>
+      <p>Gradient descent is reinterpreted as a first-order autonomous ODE. The weight vector w(t) evolves continuously toward the loss minimum, with the gradient field defining the flow. Numerical integration (Euler method) bridges the continuous model to computable trajectories.</p>
+    </div>
+    <div class="math-card">
+      <div class="math-card-header">
+        <div class="math-card-icon">λ</div>
+        <h4>Eigenvalue Analysis</h4>
+      </div>
+      <div class="formula">H = 2X<sup>T</sup>X,&nbsp;&nbsp;eigenvalues λ₁ ≤ λ₂ ≤ ... ≤ λ<sub>d</sub></div>
+      <p>The Hessian's eigenvalues encode the curvature of the loss landscape along each principal direction. The largest eigenvalue λ<sub>max</sub> determines the steepest direction and sets the upper bound for stable learning rates. The condition number κ = λ<sub>max</sub>/λ<sub>min</sub> characterizes problem difficulty.</p>
+    </div>
+    <div class="math-card">
+      <div class="math-card-header">
+        <div class="math-card-icon">∇</div>
+        <h4>Optimization Theory</h4>
+      </div>
+      <div class="formula">w<sub>k+1</sub> = w<sub>k</sub> - η · 2X<sup>T</sup>(Xw<sub>k</sub> - y)</div>
+      <p>Gradient descent iteratively updates weights in the direction of steepest loss decrease. The learning rate η controls step size — too small yields slow convergence, too large causes oscillation or divergence. The quadratic loss guarantees a unique global minimum for the linear model.</p>
+    </div>
+    <div class="math-card">
+      <div class="math-card-header">
+        <div class="math-card-icon">⟨⟩</div>
+        <h4>Linear Algebra Foundation</h4>
+      </div>
+      <div class="formula">L(w) = ‖Xw - y‖² = (Xw-y)<sup>T</sup>(Xw-y)</div>
+      <p>The linear model ŷ = Xw operates in a well-understood algebraic framework. X<sup>T</sup>X is symmetric positive semi-definite, ensuring real non-negative eigenvalues. The normal equation X<sup>T</sup>Xw = X<sup>T</sup>y gives the closed-form optimum, serving as ground truth for comparing iterative methods.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ METHODOLOGY ════════════════ -->
+<section id="methodology">
+  <div class="section-label">Section IV</div>
+  <h2>Methodology</h2>
+  <p class="section-desc">A five-stage pipeline from data synthesis through eigenvalue analysis to experimental validation.</p>
+
+  <div class="pipeline">
+    <div class="pipeline-step">
+      <h4><span class="step-num">01</span> Synthetic Data Generation</h4>
+      <p>Construct a controlled dataset: X ∈ ℝ<sup>n×d</sup> (n=300 samples, d=6 features) drawn from N(0,1), with true weights w<sub>true</sub> = [2.0, -1.0, 0.5, 0.0, 1.5, -0.7] and Gaussian noise σ=0.2. This gives a known ground truth for validating convergence accuracy.</p>
+    </div>
+    <div class="pipeline-step">
+      <h4><span class="step-num">02</span> Hessian & Eigenvalue Computation</h4>
+      <p>Compute the Hessian H = 2X<sup>T</sup>X and its eigenvalue spectrum using numpy.linalg.eigvalsh. Extract λ<sub>max</sub>, λ<sub>min</sub>, condition number κ, and the theoretical stability bound η<sub>crit</sub> = 2/λ<sub>max</sub>. These quantities fully characterize the loss landscape's curvature.</p>
+    </div>
+    <div class="pipeline-step">
+      <h4><span class="step-num">03</span> Discrete Gradient Descent Simulation</h4>
+      <p>Implement standard GD: w<sub>k+1</sub> = w<sub>k</sub> - η∇L(w<sub>k</sub>). Run with three learning rates — stable (0.8 · η<sub>crit</sub>), critical (~η<sub>crit</sub>), and unstable (1.2 · η<sub>crit</sub>) — for 250 iterations. Record loss L(w<sub>k</sub>) and weight distance ‖w<sub>k</sub> - w<sub>true</sub>‖ at each step.</p>
+    </div>
+    <div class="pipeline-step">
+      <h4><span class="step-num">04</span> Continuous ODE Simulation</h4>
+      <p>Solve dw/dt = -∇L(w) numerically using Euler integration with small time step Δt. Compare the ODE trajectory to discrete GD to validate the continuous approximation. Optionally use scipy.integrate.solve_ivp (RK45) as a high-accuracy reference.</p>
+    </div>
+    <div class="pipeline-step">
+      <h4><span class="step-num">05</span> Comparative Analysis & Visualization</h4>
+      <p>Generate loss curves (log scale), weight convergence plots, phase portraits (w₁ vs w₂), and eigenvalue spectrum diagrams. Quantify GD-ODE trajectory divergence as a function of η. Validate theoretical stability bound against empirical critical threshold.</p>
+    </div>
+  </div>
+
+  <!-- Code Sample -->
+  <div class="code-block">
+    <div class="code-header">
+      <span class="dot" style="background:#f87171"></span>
+      <span class="dot" style="background:#fbbf24"></span>
+      <span class="dot" style="background:#34d399"></span>
+      experiment.py — Core Simulation
+    </div>
+    <div class="code-body"><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cmt"># Synthetic data</span>
+np.random.seed(<span class="num">0</span>)
+n, d = <span class="num">300</span>, <span class="num">6</span>
+X = np.random.randn(n, d)
+w_true = np.array([<span class="num">2.0</span>, <span class="num">-1.0</span>, <span class="num">0.5</span>, <span class="num">0.0</span>, <span class="num">1.5</span>, <span class="num">-0.7</span>])
+y = X @ w_true + <span class="num">0.2</span> <span class="op">*</span> np.random.randn(n)
+
+<span class="cmt"># Hessian eigenvalues → stability bound</span>
+H = <span class="num">2</span> <span class="op">*</span> (X.T @ X)
+lam_max = np.linalg.<span class="fn">eigvalsh</span>(H).<span class="fn">max</span>()
+eta_crit = <span class="num">2</span> / lam_max  <span class="cmt"># theoretical stability bound</span>
+
+<span class="cmt"># Three regimes</span>
+eta_stable   = <span class="num">0.8</span> <span class="op">*</span> eta_crit   <span class="cmt"># converges</span>
+eta_critical = <span class="num">1.0</span> <span class="op">*</span> eta_crit   <span class="cmt"># oscillates</span>
+eta_unstable = <span class="num">1.2</span> <span class="op">*</span> eta_crit   <span class="cmt"># diverges</span></div>
+  </div>
+
+  <!-- Tech Stack -->
+  <div class="tech-stack">
+    <div class="tech-pill"><span class="dot" style="background:var(--accent)"></span>Python 3.12</div>
+    <div class="tech-pill"><span class="dot" style="background:var(--blue)"></span>NumPy</div>
+    <div class="tech-pill"><span class="dot" style="background:var(--green)"></span>Matplotlib</div>
+    <div class="tech-pill"><span class="dot" style="background:var(--purple)"></span>SciPy (ODE Solver)</div>
+    <div class="tech-pill"><span class="dot" style="background:var(--cyan)"></span>Jupyter Notebooks</div>
+    <div class="tech-pill"><span class="dot" style="background:var(--yellow)"></span>LaTeX (Paper)</div>
+  </div>
+</section>
+
+<!-- ════════════════ EXPERIMENTS ════════════════ -->
+<section id="experiments">
+  <div class="section-label">Section V</div>
+  <h2>Experimental Design</h2>
+  <p class="section-desc">Three learning rate regimes, predicted by eigenvalue analysis, produce fundamentally different training behaviors.</p>
+
+  <div class="exp-grid">
+    <div class="exp-card">
+      <div class="exp-icon">&#10003;</div>
+      <h4>Stable Convergence</h4>
+      <div class="exp-eta">η = 0.8 · (2/λ<sub>max</sub>)</div>
+      <p>Loss decreases monotonically. Weights converge smoothly to w<sub>true</sub>. ODE and GD trajectories closely match. System is well within the stability region.</p>
+    </div>
+    <div class="exp-card">
+      <div class="exp-icon">~</div>
+      <h4>Critical Oscillation</h4>
+      <div class="exp-eta">η ≈ 2/λ<sub>max</sub></div>
+      <p>Loss oscillates around the minimum without converging cleanly. Weights exhibit damped or sustained oscillation. System sits at the stability boundary — sensitive to perturbation.</p>
+    </div>
+    <div class="exp-card">
+      <div class="exp-icon">✕</div>
+      <h4>Divergence</h4>
+      <div class="exp-eta">η = 1.2 · (2/λ<sub>max</sub>)</div>
+      <p>Loss increases exponentially. Weights diverge from optimum. Spectral radius of update matrix exceeds 1 — confirming the eigenvalue prediction of instability.</p>
+    </div>
+  </div>
+
+  <!-- Stability visualization -->
+  <div class="stability-visual">
+    <h4 style="font-size:1rem; margin-bottom:8px;">Learning Rate Stability Spectrum</h4>
+    <p style="font-size:0.85rem; color:var(--text-secondary);">The eigenvalue λ<sub>max</sub> of H = 2X<sup>T</sup>X defines the critical threshold η<sub>crit</sub> = 2/λ<sub>max</sub></p>
+
+    <div class="stability-bar-container">
+      <div class="stability-bar"></div>
+      <div class="stability-marker" style="left:0%; background:var(--text-muted);" data-label="η = 0"></div>
+      <div class="stability-marker" style="left:35%; background:var(--green);" data-label="η_optimal = 2/(λ_max + λ_min)"></div>
+      <div class="stability-marker" style="left:55%; background:var(--yellow);" data-label="η_crit = 2/λ_max"></div>
+      <div class="stability-marker" style="left:100%; background:var(--red);" data-label="η → ∞ (divergence)"></div>
+    </div>
+
+    <div class="stability-labels">
+      <span style="color:var(--green);">Stable Convergence</span>
+      <span style="color:var(--yellow);">Oscillation</span>
+      <span style="color:var(--red);">Divergence</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ EXPECTED RESULTS ════════════════ -->
+<section id="results">
+  <div class="section-label">Section VI</div>
+  <h2>Expected Results</h2>
+  <p class="section-desc">Five key findings that connect mathematical theory to observable training phenomena.</p>
+
+  <div class="result-cards">
+    <div class="result-card">
+      <div class="result-card-header">
+        <div class="result-dot" style="background:var(--accent)"></div>
+        <h4>Eigenvalue Spectrum Report</h4>
+      </div>
+      <div class="result-card-body">
+        <p>Compute and visualize all d eigenvalues of H = 2X<sup>T</sup>X. Report λ<sub>max</sub>, λ<sub>min</sub>, condition number κ, and the resulting stability bound. Expect κ ≈ 3–8 for random Gaussian data, yielding a well-conditioned but non-trivial optimization landscape.</p>
+      </div>
+      <div class="result-chart">
+        <div class="chart-bar" style="height:30%; background:var(--blue-2);"></div>
+        <div class="chart-bar" style="height:45%; background:var(--blue-2);"></div>
+        <div class="chart-bar" style="height:55%; background:var(--blue);"></div>
+        <div class="chart-bar" style="height:70%; background:var(--purple);"></div>
+        <div class="chart-bar" style="height:85%; background:var(--accent-2);"></div>
+        <div class="chart-bar" style="height:100%; background:var(--accent);"></div>
+      </div>
+    </div>
+
+    <div class="result-card">
+      <div class="result-card-header">
+        <div class="result-dot" style="background:var(--green)"></div>
+        <h4>Stability Bound Validation</h4>
+      </div>
+      <div class="result-card-body">
+        <p>Demonstrate that GD converges for η &lt; 2/λ<sub>max</sub> and diverges above. Plot empirical critical η vs. theoretical prediction. Expect &lt;5% discrepancy, confirming the eigenvalue criterion as a precise stability predictor.</p>
+      </div>
+      <div class="result-chart">
+        <div class="chart-bar" style="height:100%; background:var(--green); width:25%; flex:none;"></div>
+        <div class="chart-bar" style="height:85%; background:var(--green); width:25%; flex:none;"></div>
+        <div class="chart-bar" style="height:60%; background:var(--yellow); width:25%; flex:none;"></div>
+        <div class="chart-bar" style="height:20%; background:var(--red); width:25%; flex:none; animation: none;"></div>
+      </div>
+    </div>
+
+    <div class="result-card">
+      <div class="result-card-header">
+        <div class="result-dot" style="background:var(--blue)"></div>
+        <h4>GD vs. ODE Trajectory Comparison</h4>
+      </div>
+      <div class="result-card-body">
+        <p>Show loss curves and weight trajectories for discrete GD and continuous ODE side-by-side. At small η, curves nearly overlap; as η → η<sub>crit</sub>, discretization effects create visible trajectory splitting.</p>
+      </div>
+      <div class="result-chart">
+        <div class="chart-bar" style="height:100%; background:var(--blue-2);"></div>
+        <div class="chart-bar" style="height:82%; background:var(--blue-2);"></div>
+        <div class="chart-bar" style="height:65%; background:var(--blue);"></div>
+        <div class="chart-bar" style="height:48%; background:var(--blue);"></div>
+        <div class="chart-bar" style="height:33%; background:var(--purple);"></div>
+        <div class="chart-bar" style="height:22%; background:var(--purple);"></div>
+        <div class="chart-bar" style="height:15%; background:var(--purple);"></div>
+        <div class="chart-bar" style="height:10%; background:var(--purple);"></div>
+      </div>
+    </div>
+
+    <div class="result-card">
+      <div class="result-card-header">
+        <div class="result-dot" style="background:var(--purple)"></div>
+        <h4>Phase Portrait Analysis</h4>
+      </div>
+      <div class="result-card-body">
+        <p>2D projections (w₁ vs w₂) show spiral convergence in the stable regime, limit-cycle oscillation at criticality, and outward spiraling divergence above threshold — visually confirming dynamical systems behavior.</p>
+      </div>
+      <div class="result-chart">
+        <div class="chart-bar" style="height:40%; background:var(--purple); border-radius:50%; width:40px; flex:none; margin:0 auto;"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ TIMELINE ════════════════ -->
+<section id="timeline">
+  <div class="section-label">Section VII</div>
+  <h2>Project Timeline</h2>
+  <p class="section-desc">An 8-week execution plan from mathematical foundation through experimental validation and paper writing.</p>
+
+  <table class="timeline-table">
+    <thead>
+      <tr><th>Phase</th><th>Weeks</th><th>Activities</th><th>Deliverables</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="phase">Literature & Theory</td>
+        <td class="week">W1 – W2</td>
+        <td>Survey ODE models of optimization (gradient flow literature), eigenvalue stability theory, and neural network loss landscape analysis. Derive the stability criterion η &lt; 2/λ<sub>max</sub> from first principles.</td>
+        <td>Annotated bibliography, theoretical derivation document, mathematical proofs</td>
+      </tr>
+      <tr>
+        <td class="phase">Implementation</td>
+        <td class="week">W3 – W4</td>
+        <td>Build Python simulation: synthetic data generator, GD engine, ODE solver (Euler + RK45), Hessian/eigenvalue computation. Verify correctness against closed-form normal equation solution.</td>
+        <td>Working codebase, unit tests, baseline validation</td>
+      </tr>
+      <tr>
+        <td class="phase">Experiments</td>
+        <td class="week">W5 – W6</td>
+        <td>Run full experiment suite: sweep learning rates across stability boundary, record loss/weight trajectories, generate eigenvalue spectra. Test with varying n, d, noise levels, and condition numbers.</td>
+        <td>Raw experimental data, loss curves, phase portraits, stability diagrams</td>
+      </tr>
+      <tr>
+        <td class="phase">Analysis & Paper</td>
+        <td class="week">W7 – W8</td>
+        <td>Statistical analysis of GD-ODE divergence. Produce publication-quality figures. Write research paper (6–8 pages) covering theory, methodology, results, and discussion.</td>
+        <td>Final paper (LaTeX), presentation slides, reproducible code repository</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════════════════ SIGNIFICANCE ════════════════ -->
+<section id="contributions">
+  <div class="section-label">Section VIII</div>
+  <h2>Significance & Contributions</h2>
+  <p class="section-desc">This research bridges classical mathematics and modern AI, with both theoretical and practical implications.</p>
+
+  <div class="contrib-list">
+    <div class="contrib-item">
+      <div class="contrib-num">01</div>
+      <p><strong>Mathematical understanding of AI training</strong> — Demonstrates that neural network training is not a black box, but a dynamical system whose behavior is predictable from the eigenvalue spectrum of the loss landscape's Hessian matrix.</p>
+    </div>
+    <div class="contrib-item">
+      <div class="contrib-num">02</div>
+      <p><strong>Principled learning rate selection</strong> — Provides a computable, theory-grounded criterion (η &lt; 2/λ<sub>max</sub>) for choosing safe learning rates, replacing trial-and-error hyperparameter tuning with mathematical prediction.</p>
+    </div>
+    <div class="contrib-item">
+      <div class="contrib-num">03</div>
+      <p><strong>ODE-GD equivalence validation</strong> — Empirically quantifies when the continuous ODE model faithfully approximates discrete gradient descent, establishing the validity conditions for gradient flow analysis in optimization research.</p>
+    </div>
+    <div class="contrib-item">
+      <div class="contrib-num">04</div>
+      <p><strong>Interdisciplinary bridge</strong> — Connects differential equations (dynamical systems theory), linear algebra (eigenvalue analysis), and optimization (gradient descent) into a unified framework accessible to students from any of these backgrounds.</p>
+    </div>
+    <div class="contrib-item">
+      <div class="contrib-num">05</div>
+      <p><strong>Foundation for deeper analysis</strong> — Establishes a methodology that can be extended to non-linear networks, stochastic gradient descent (SGD), adaptive optimizers (Adam), and deep network loss landscape analysis.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ REFERENCES ════════════════ -->
+<section id="references">
+  <div class="section-label">Section IX</div>
+  <h2>Key References</h2>
+
+  <div class="ref-list">
+    <div class="ref-item">
+      <span>Su, W., Boyd, S., & Candès, E.J. (2016). <em>A Differential Equation for Modeling Nesterov's Accelerated Gradient Method: Theory and Insights.</em> Journal of Machine Learning Research, 17(153), 1–43.</span>
+    </div>
+    <div class="ref-item">
+      <span>Saxe, A.M., McClelland, J.L., & Ganguli, S. (2014). <em>Exact Solutions to the Nonlinear Dynamics of Learning in Deep Linear Neural Networks.</em> International Conference on Learning Representations (ICLR).</span>
+    </div>
+    <div class="ref-item">
+      <span>Goodfellow, I., Bengio, Y., & Courville, A. (2016). <em>Deep Learning.</em> MIT Press. Chapter 8: Optimization for Training Deep Models.</span>
+    </div>
+    <div class="ref-item">
+      <span>Strogatz, S.H. (2018). <em>Nonlinear Dynamics and Chaos: With Applications to Physics, Biology, Chemistry, and Engineering.</em> 2nd Edition, CRC Press.</span>
+    </div>
+    <div class="ref-item">
+      <span>Li, H., Xu, Z., et al. (2018). <em>Visualizing the Loss Landscape of Neural Nets.</em> Advances in Neural Information Processing Systems (NeurIPS).</span>
+    </div>
+    <div class="ref-item">
+      <span>Barrett, D.G.T. & Dherin, B. (2021). <em>Implicit Gradient Regularization.</em> International Conference on Learning Representations (ICLR). Analysis of discretization effects in gradient descent.</span>
+    </div>
+    <div class="ref-item">
+      <span>Cohen, J., Kaur, S., et al. (2021). <em>Gradient Descent on Neural Networks Typically Occurs at the Edge of Stability.</em> International Conference on Learning Representations (ICLR).</span>
+    </div>
+    <div class="ref-item">
+      <span>Arora, S., et al. (2019). <em>On the Optimization of Deep Networks: Implicit Acceleration by Overparameterization.</em> International Conference on Machine Learning (ICML).</span>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <p>Analyzing Neural Network Training Using Differential Equations & Linear Algebra — Research Project Proposal &nbsp;·&nbsp; 2026</p>
+</div>
+
+<!-- Nav highlight -->
+<script>
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

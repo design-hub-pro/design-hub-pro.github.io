@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>用微分方程与线性代数分析神经网络训练 — 研究项目计划</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --bg: #08090e;
+    --surface: #0f1219;
+    --surface-2: #161b27;
+    --surface-3: #1e2538;
+    --border: #232d42;
+    --border-light: #33426a;
+    --text: #e4e9f2;
+    --text-secondary: #8d9bb5;
+    --text-muted: #556180;
+    --accent: #f97316;
+    --accent-2: #fb923c;
+    --accent-3: #fdba74;
+    --blue: #3b82f6;
+    --blue-2: #60a5fa;
+    --purple: #a78bfa;
+    --green: #34d399;
+    --cyan: #22d3ee;
+    --pink: #f472b6;
+    --red: #f87171;
+    --yellow: #fbbf24;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans SC', 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Language Switcher ── */
+  .lang-switch {
+    position: fixed; top: 20px; right: 20px; z-index: 200;
+    display: flex; gap: 4px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px; padding: 4px;
+  }
+  .lang-btn {
+    padding: 6px 14px; border-radius: 7px; font-size: 13px; font-weight: 600;
+    color: var(--text-muted); text-decoration: none; transition: all .2s;
+  }
+  .lang-btn:hover { color: var(--text-secondary); }
+  .lang-btn.active { background: var(--accent); color: #fff; }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative; min-height: 100vh; display: flex;
+    align-items: center; justify-content: center; overflow: hidden; padding: 60px 24px;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 70% 50% at 50% 35%, rgba(249,115,22,.07) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 50% at 20% 80%, rgba(59,130,246,.05) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 85% 25%, rgba(167,139,250,.04) 0%, transparent 60%);
+  }
+
+  .math-grid {
+    position: absolute; inset: 0; overflow: hidden; opacity: 0.4;
+  }
+  .math-grid svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  .eq-particle {
+    position: absolute; font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: var(--accent); opacity: 0;
+    animation: eqFloat 12s ease-in-out infinite; pointer-events: none;
+  }
+  .eq-particle:nth-child(1) { left: 8%; top: 15%; animation-delay: 0s; }
+  .eq-particle:nth-child(2) { left: 75%; top: 25%; animation-delay: -2s; color: var(--blue-2); }
+  .eq-particle:nth-child(3) { left: 20%; top: 65%; animation-delay: -4s; color: var(--purple); }
+  .eq-particle:nth-child(4) { left: 85%; top: 70%; animation-delay: -6s; color: var(--green); }
+  .eq-particle:nth-child(5) { left: 50%; top: 10%; animation-delay: -8s; color: var(--cyan); }
+  .eq-particle:nth-child(6) { left: 60%; top: 80%; animation-delay: -3s; color: var(--yellow); }
+  .eq-particle:nth-child(7) { left: 35%; top: 40%; animation-delay: -9s; color: var(--pink); }
+
+  @keyframes eqFloat {
+    0%, 100% { opacity: 0; transform: translateY(0) scale(0.9); }
+    15%, 85% { opacity: 0.35; }
+    50% { opacity: 0.5; transform: translateY(-30px) scale(1.05); }
+  }
+
+  .hero-content { position: relative; z-index: 1; max-width: 880px; text-align: center; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px;
+    background: rgba(249,115,22,.08); border: 1px solid rgba(249,115,22,.2);
+    border-radius: 100px; font-size: 13px; font-weight: 500;
+    color: var(--accent); letter-spacing: 1px; margin-bottom: 32px;
+  }
+  .badge::before {
+    content: ''; width: 8px; height: 8px; background: var(--accent);
+    border-radius: 50%; animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; line-height: 1.3;
+    letter-spacing: -0.02em; margin-bottom: 24px;
+    background: linear-gradient(135deg, #fff 20%, var(--accent) 60%, var(--yellow) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  .hero .subtitle {
+    font-size: 1.08rem; color: var(--text-secondary);
+    max-width: 680px; margin: 0 auto 40px; line-height: 1.9;
+  }
+
+  .hero-meta {
+    display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; margin-bottom: 48px;
+  }
+  .hero-meta-item { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-muted); }
+  .hero-meta-item svg { width: 16px; height: 16px; color: var(--accent); }
+
+  .eq-showcase { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; }
+  .eq-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 24px 16px; text-align: center; transition: border-color .3s, transform .2s;
+  }
+  .eq-card:hover { border-color: var(--border-light); transform: translateY(-2px); }
+  .eq-card .eq-label { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .eq-card:nth-child(1) .eq-label { color: var(--accent); }
+  .eq-card:nth-child(2) .eq-label { color: var(--blue-2); }
+  .eq-card:nth-child(3) .eq-label { color: var(--green); }
+  .eq-card .eq-math { font-family: 'JetBrains Mono', monospace; font-size: 15px; color: var(--text); line-height: 1.8; }
+  .eq-card .eq-desc { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+
+  /* ── Nav ── */
+  .nav-strip {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(8,9,14,.88); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border); padding: 0 24px;
+  }
+  .nav-inner {
+    max-width: 1100px; margin: 0 auto; display: flex; gap: 4px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .nav-inner::-webkit-scrollbar { display: none; }
+  .nav-link {
+    padding: 14px 18px; font-size: 13px; font-weight: 500;
+    color: var(--text-muted); text-decoration: none; white-space: nowrap;
+    border-bottom: 2px solid transparent; transition: all .2s;
+  }
+  .nav-link:hover { color: var(--text-secondary); }
+  .nav-link.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── Page ── */
+  .page-wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 80px 0; border-bottom: 1px solid var(--border); }
+  section:last-child { border-bottom: none; }
+
+  .section-label {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 16px;
+  }
+  .section-label::before { content: ''; width: 24px; height: 2px; background: var(--accent); border-radius: 1px; }
+
+  h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 700; letter-spacing: -0.01em; margin-bottom: 16px; line-height: 1.35; }
+  .section-desc { font-size: 1rem; color: var(--text-secondary); max-width: 680px; margin-bottom: 40px; line-height: 1.9; }
+
+  /* ── Abstract ── */
+  .abstract-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 40px; position: relative; overflow: hidden;
+  }
+  .abstract-box::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--blue), var(--purple), var(--green));
+  }
+  .abstract-box p { font-family: 'Noto Serif SC', serif; font-size: 1.05rem; line-height: 2.1; color: var(--text-secondary); }
+  .abstract-box p + p { margin-top: 16px; }
+
+  /* ── RQ ── */
+  .rq-grid { display: grid; gap: 16px; }
+  .rq-card {
+    display: grid; grid-template-columns: 60px 1fr; gap: 20px; padding: 28px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    transition: border-color .3s, transform .2s;
+  }
+  .rq-card:hover { border-color: var(--border-light); transform: translateX(4px); }
+  .rq-num {
+    width: 52px; height: 52px; display: flex; align-items: center; justify-content: center;
+    border-radius: 14px; font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700;
+  }
+  .rq-card:nth-child(1) .rq-num { background: rgba(249,115,22,.12); color: var(--accent); }
+  .rq-card:nth-child(2) .rq-num { background: rgba(59,130,246,.12); color: var(--blue); }
+  .rq-card:nth-child(3) .rq-num { background: rgba(167,139,250,.12); color: var(--purple); }
+  .rq-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+  .rq-text { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8; }
+
+  /* ── Math Cards ── */
+  .math-grid-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+  .math-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 32px; transition: transform .2s, border-color .3s;
+  }
+  .math-card:hover { transform: translateY(-2px); border-color: var(--border-light); }
+  .math-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .math-card-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+  }
+  .math-card:nth-child(1) .math-card-icon { background: rgba(249,115,22,.12); }
+  .math-card:nth-child(2) .math-card-icon { background: rgba(59,130,246,.12); }
+  .math-card:nth-child(3) .math-card-icon { background: rgba(167,139,250,.12); }
+  .math-card:nth-child(4) .math-card-icon { background: rgba(52,211,153,.12); }
+  .math-card h4 { font-size: 0.95rem; font-weight: 600; }
+  .math-card .formula {
+    font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--accent-2);
+    background: rgba(249,115,22,.06); border: 1px solid rgba(249,115,22,.12);
+    border-radius: 8px; padding: 14px 18px; margin: 12px 0; line-height: 1.8; overflow-x: auto;
+  }
+  .math-card p { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.8; }
+
+  /* ── Pipeline ── */
+  .pipeline { display: flex; flex-direction: column; position: relative; padding-left: 32px; }
+  .pipeline::before {
+    content: ''; position: absolute; left: 11px; top: 30px; bottom: 30px; width: 2px;
+    background: linear-gradient(to bottom, var(--accent), var(--blue), var(--purple), var(--green)); border-radius: 1px;
+  }
+  .pipeline-step { position: relative; padding: 24px 0 24px 32px; }
+  .pipeline-step::before {
+    content: ''; position: absolute; left: -26px; top: 32px; width: 12px; height: 12px;
+    border-radius: 50%; background: var(--bg); border: 3px solid var(--accent);
+  }
+  .pipeline-step:nth-child(2)::before { border-color: var(--accent-2); }
+  .pipeline-step:nth-child(3)::before { border-color: var(--blue); }
+  .pipeline-step:nth-child(4)::before { border-color: var(--purple); }
+  .pipeline-step:nth-child(5)::before { border-color: var(--green); }
+  .pipeline-step h4 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+  .pipeline-step h4 .step-num {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    background: var(--surface-2); padding: 2px 8px; border-radius: 4px; color: var(--text-muted);
+  }
+  .pipeline-step p { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.8; max-width: 560px; }
+
+  /* ── Experiment Cards ── */
+  .exp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .exp-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 28px; text-align: center; transition: transform .2s;
+  }
+  .exp-card:hover { transform: translateY(-3px); }
+  .exp-card .exp-icon {
+    width: 56px; height: 56px; border-radius: 16px; margin: 0 auto 16px;
+    display: flex; align-items: center; justify-content: center; font-size: 24px;
+  }
+  .exp-card:nth-child(1) .exp-icon { background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.2); }
+  .exp-card:nth-child(2) .exp-icon { background: rgba(251,191,36,.1); border: 1px solid rgba(251,191,36,.2); }
+  .exp-card:nth-child(3) .exp-icon { background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.2); }
+  .exp-card h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
+  .exp-card .exp-eta { font-family: 'JetBrains Mono', monospace; font-size: 13px; margin-bottom: 8px; }
+  .exp-card:nth-child(1) .exp-eta { color: var(--green); }
+  .exp-card:nth-child(2) .exp-eta { color: var(--yellow); }
+  .exp-card:nth-child(3) .exp-eta { color: var(--red); }
+  .exp-card p { font-size: 0.83rem; color: var(--text-secondary); line-height: 1.7; }
+
+  /* ── Stability Visual ── */
+  .stability-visual {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 40px; margin-top: 32px;
+  }
+  .stability-bar-container { position: relative; height: 80px; margin: 32px 0 20px; }
+  .stability-bar {
+    position: absolute; top: 30px; left: 0; right: 0; height: 20px; border-radius: 10px;
+    background: linear-gradient(90deg,
+      rgba(52,211,153,.3) 0%, rgba(52,211,153,.3) 35%,
+      rgba(251,191,36,.3) 35%, rgba(251,191,36,.3) 55%,
+      rgba(248,113,113,.3) 55%, rgba(248,113,113,.3) 100%);
+  }
+  .stability-marker {
+    position: absolute; top: 14px; width: 2px; height: 50px; transform: translateX(-50%);
+  }
+  .stability-marker::after {
+    content: attr(data-label); position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; white-space: nowrap;
+  }
+  .stability-labels { display: flex; justify-content: space-between; margin-top: 8px; }
+  .stability-labels span { font-size: 12px; font-weight: 600; }
+
+  /* ── Hypothesis Table ── */
+  .hyp-table {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    overflow: hidden; margin-top: 24px;
+  }
+  .hyp-table th {
+    text-align: left; padding: 14px 20px; font-size: 12px; font-weight: 600;
+    color: var(--text-muted); background: var(--surface-2); border-bottom: 1px solid var(--border);
+  }
+  .hyp-table td {
+    padding: 16px 20px; font-size: 0.88rem; color: var(--text-secondary);
+    border-bottom: 1px solid rgba(35,45,66,.4); line-height: 1.7;
+  }
+  .hyp-table tr:last-child td { border-bottom: none; }
+  .hyp-id { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--accent); }
+
+  /* ── Timeline ── */
+  .timeline-table {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+  }
+  .timeline-table th {
+    text-align: left; padding: 14px 20px; font-size: 12px; font-weight: 600;
+    color: var(--text-muted); background: var(--surface-2); border-bottom: 1px solid var(--border);
+  }
+  .timeline-table td {
+    padding: 16px 20px; font-size: 0.9rem; color: var(--text-secondary);
+    border-bottom: 1px solid rgba(35,45,66,.4); vertical-align: top;
+  }
+  .timeline-table tr:last-child td { border-bottom: none; }
+  .timeline-table .phase { font-weight: 600; color: var(--text); white-space: nowrap; }
+  .timeline-table .week { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); white-space: nowrap; }
+
+  /* ── Contributions ── */
+  .contrib-list { display: flex; flex-direction: column; gap: 14px; }
+  .contrib-item {
+    display: flex; gap: 16px; align-items: flex-start; padding: 20px 24px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  }
+  .contrib-num { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: var(--accent); min-width: 28px; margin-top: 2px; }
+  .contrib-item p { font-size: 0.92rem; color: var(--text-secondary); line-height: 1.8; }
+  .contrib-item strong { color: var(--text); font-weight: 600; }
+
+  /* ── References ── */
+  .ref-list { display: flex; flex-direction: column; gap: 12px; counter-reset: ref; }
+  .ref-item {
+    counter-increment: ref; display: flex; gap: 12px; font-size: 0.85rem;
+    color: var(--text-secondary); line-height: 1.7; padding: 14px 18px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  }
+  .ref-item::before {
+    content: '[' counter(ref) ']'; font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--text-muted); min-width: 32px; margin-top: 2px;
+  }
+  .ref-item em { font-style: italic; color: var(--text); }
+
+  /* ── Code ── */
+  .code-block { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-top: 32px; }
+  .code-header {
+    display: flex; align-items: center; gap: 8px; padding: 12px 20px;
+    background: var(--surface-2); border-bottom: 1px solid var(--border);
+    font-size: 13px; font-weight: 600; color: var(--text-muted);
+  }
+  .code-header .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .code-body {
+    padding: 24px; font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    line-height: 1.8; color: var(--text-secondary); overflow-x: auto; white-space: pre;
+  }
+  .code-body .kw { color: var(--accent); }
+  .code-body .fn { color: var(--blue-2); }
+  .code-body .cmt { color: var(--text-muted); font-style: italic; }
+  .code-body .num { color: var(--yellow); }
+  .code-body .op { color: var(--purple); }
+
+  /* ── Tech ── */
+  .tech-stack { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+  .tech-pill {
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--text-secondary);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tech-pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ── Footer ── */
+  .footer { text-align: center; padding: 48px 24px; color: var(--text-muted); font-size: 13px; border-top: 1px solid var(--border); }
+
+  @media (max-width: 768px) {
+    .eq-showcase { grid-template-columns: 1fr; }
+    .exp-grid { grid-template-columns: 1fr; }
+    .math-grid-section { grid-template-columns: 1fr; }
+    section { padding: 48px 0; }
+    .lang-switch { top: 10px; right: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 语言切换 -->
+<div class="lang-switch">
+  <a href="index.html" class="lang-btn">EN</a>
+  <a href="index_cn.html" class="lang-btn active">中文</a>
+</div>
+
+<!-- ════════════════ HERO ════════════════ -->
+<section class="hero">
+  <div class="math-grid">
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+      <defs><pattern id="g" width="5" height="5" patternUnits="userSpaceOnUse"><path d="M 5 0 L 0 0 0 5" fill="none" stroke="rgba(249,115,22,.04)" stroke-width="0.15"/></pattern></defs>
+      <rect width="100" height="100" fill="url(#g)"/>
+    </svg>
+  </div>
+
+  <div class="eq-particle">dw/dt = -∇L(w)</div>
+  <div class="eq-particle">λ_max(H)</div>
+  <div class="eq-particle">η &lt; 2/λ_max</div>
+  <div class="eq-particle">H = 2X&#7488;X</div>
+  <div class="eq-particle">L(w) = ‖Xw - y‖²</div>
+  <div class="eq-particle">w_{k+1} = w_k - η∇L</div>
+  <div class="eq-particle">∇²L = 2X&#7488;X</div>
+
+  <div class="hero-content">
+    <div class="badge">研究项目计划</div>
+    <h1>用微分方程与线性代数<br>分析神经网络训练动力学</h1>
+    <p class="subtitle">
+      将梯度下降建模为连续动力系统，利用Hessian矩阵的特征值分析来预测训练的稳定性、收敛性与发散行为。
+    </p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        动力系统理论
+      </div>
+      <div class="hero-meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        8周研究计划
+      </div>
+      <div class="hero-meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.674M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        ODE ↔ 梯度下降对比
+      </div>
+    </div>
+
+    <div class="eq-showcase">
+      <div class="eq-card">
+        <div class="eq-label">梯度下降</div>
+        <div class="eq-math">w<sub>k+1</sub> = w<sub>k</sub> - η ∇L(w<sub>k</sub>)</div>
+        <div class="eq-desc">离散更新规则</div>
+      </div>
+      <div class="eq-card">
+        <div class="eq-label">ODE模型</div>
+        <div class="eq-math">dw/dt = -∇L(w) = -2X<sup>T</sup>(Xw - y)</div>
+        <div class="eq-desc">连续时间近似</div>
+      </div>
+      <div class="eq-card">
+        <div class="eq-label">稳定性判据</div>
+        <div class="eq-math">0 &lt; η &lt; 2 / λ<sub>max</sub>(H)</div>
+        <div class="eq-desc">基于特征值的上界</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ NAV ════════════════ -->
+<nav class="nav-strip">
+  <div class="nav-inner">
+    <a href="#abstract" class="nav-link active">摘要</a>
+    <a href="#questions" class="nav-link">研究问题</a>
+    <a href="#framework" class="nav-link">数学框架</a>
+    <a href="#methodology" class="nav-link">研究方法</a>
+    <a href="#experiments" class="nav-link">实验设计</a>
+    <a href="#results" class="nav-link">预期结果</a>
+    <a href="#timeline" class="nav-link">时间线</a>
+    <a href="#contributions" class="nav-link">研究意义</a>
+    <a href="#references" class="nav-link">参考文献</a>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+<!-- ════════════════ 摘要 ════════════════ -->
+<section id="abstract">
+  <div class="section-label">第一章</div>
+  <h2>摘要</h2>
+  <div class="abstract-box">
+    <p>
+      通过梯度下降进行的神经网络训练通常被理解为一种迭代优化过程。然而，更深层的数学视角揭示了梯度下降可以被建模为由<strong>常微分方程（ODE）</strong>控制的<strong>连续时间动力系统</strong>。本研究采用这一ODE视角来分析单层线性神经网络的训练动力学。
+    </p>
+    <p>
+      通过计算平方误差损失的<strong>Hessian矩阵</strong> H = 2X<sup>T</sup>X 及其<strong>特征值谱</strong>，我们推导出学习率的精确稳定性判据：当 0 &lt; η &lt; 2/λ<sub>max</sub>(H) 时保证收敛。我们通过对比离散梯度下降与连续ODE模拟（欧拉方法）的受控实验来验证这一理论界限，展示三种状态——稳定收敛、临界振荡和发散。
+    </p>
+    <p>
+      本工作将<strong>微分方程</strong>、<strong>线性代数</strong>和<strong>机器学习优化</strong>联系起来，为理解学习率和曲率如何共同决定训练成败提供了数学上严格且可实验验证的框架。
+    </p>
+  </div>
+</section>
+
+<!-- ════════════════ 研究问题 ════════════════ -->
+<section id="questions">
+  <div class="section-label">第二章</div>
+  <h2>研究问题</h2>
+  <p class="section-desc">三个核心问题引导本研究，将经典数学与现代AI训练动力学相连接。</p>
+
+  <div class="rq-grid">
+    <div class="rq-card">
+      <div class="rq-num">RQ1</div>
+      <div>
+        <div class="rq-title">ODE近似保真度</div>
+        <div class="rq-text">连续ODE模型 dw/dt = -∇L(w) 在多大程度上能准确近似离散梯度下降轨迹 w<sub>k+1</sub> = w<sub>k</sub> - η∇L(w<sub>k</sub>)？在何种条件（学习率、步长）下近似失效？</div>
+      </div>
+    </div>
+    <div class="rq-card">
+      <div class="rq-num">RQ2</div>
+      <div>
+        <div class="rq-title">基于特征值的稳定性预测</div>
+        <div class="rq-text">Hessian矩阵 H = 2X<sup>T</sup>X 的特征值谱能否准确预测将稳定收敛与振荡/发散分隔开的临界学习率阈值？</div>
+      </div>
+    </div>
+    <div class="rq-card">
+      <div class="rq-num">RQ3</div>
+      <div>
+        <div class="rq-title">收敛速率表征</div>
+        <div class="rq-text">特征值分布（条件数、谱间隙）与学习率如何共同决定收敛速率？最大化收敛速度而不引起不稳定性的最优学习率是什么？</div>
+      </div>
+    </div>
+  </div>
+
+  <table class="hyp-table">
+    <thead><tr><th style="width:80px;">编号</th><th>研究假设</th><th style="width:100px;">对应</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="hyp-id">H1</span></td>
+        <td>当 η &lt; 0.5/λ<sub>max</sub> 时，ODE欧拉轨迹与离散GD的相对误差将在5%以内，但当 η 接近稳定性界限时将显著偏离。</td>
+        <td>RQ1</td>
+      </tr>
+      <tr>
+        <td><span class="hyp-id">H2</span></td>
+        <td>理论稳定性界限 η &lt; 2/λ<sub>max</sub> 对发散起始点的预测误差将小于5%。</td>
+        <td>RQ2</td>
+      </tr>
+      <tr>
+        <td><span class="hyp-id">H3</span></td>
+        <td>最优学习率 η* = 2/(λ<sub>max</sub> + λ<sub>min</sub>) 将实现最快收敛，且收敛速率与条件数 κ = λ<sub>max</sub>/λ<sub>min</sub> 成反比。</td>
+        <td>RQ3</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════════════════ 数学框架 ════════════════ -->
+<section id="framework">
+  <div class="section-label">第三章</div>
+  <h2>数学框架</h2>
+  <p class="section-desc">四大数学支柱支撑本分析——每一个都将经典理论与神经网络训练行为相连接。</p>
+
+  <div class="math-grid-section">
+    <div class="math-card">
+      <div class="math-card-header">
+        <div class="math-card-icon">∂</div>
+        <h4>常微分方程</h4>
+      </div>
+      <div class="formula">dw/dt = -∇L(w) = -2X<sup>T</sup>(Xw - y)</div>
+      <p>梯度下降被重新诠释为一阶自治ODE。权重向量 w(t) 沿梯度场连续演化至损失最小值。数值积分（欧拉方法）将连续模型与可计算轨迹相桥接。</p>
+    </div>
+    <div class="math-card">
+      <div class="math-card-header">
+        <div class="math-card-icon">λ</div>
+        <h4>特征值分析</h4>
+      </div>
+      <div class="formula">H = 2X<sup>T</sup>X，特征值 λ₁ ≤ λ₂ ≤ ... ≤ λ<sub>d</sub></div>
+      <p>Hessian矩阵的特征值编码了损失曲面沿各主方向的曲率。最大特征值 λ<sub>max</sub> 决定最陡峭方向，设定稳定学习率的上界。条件数 κ = λ<sub>max</sub>/λ<sub>min</sub> 表征问题难度。</p>
+    </div>
+    <div class="math-card">
+      <div class="math-card-header">
+        <div class="math-card-icon">∇</div>
+        <h4>优化理论</h4>
+      </div>
+      <div class="formula">w<sub>k+1</sub> = w<sub>k</sub> - η · 2X<sup>T</sup>(Xw<sub>k</sub> - y)</div>
+      <p>梯度下降沿损失最速下降方向迭代更新权重。学习率 η 控制步长——太小导致收敛缓慢，太大引起振荡或发散。对于线性模型，二次损失保证唯一全局最小值。</p>
+    </div>
+    <div class="math-card">
+      <div class="math-card-header">
+        <div class="math-card-icon">⟨⟩</div>
+        <h4>线性代数基础</h4>
+      </div>
+      <div class="formula">L(w) = ‖Xw - y‖² = (Xw-y)<sup>T</sup>(Xw-y)</div>
+      <p>线性模型 ŷ = Xw 在成熟的代数框架中运作。X<sup>T</sup>X 是对称半正定矩阵，保证实数非负特征值。正规方程 X<sup>T</sup>Xw = X<sup>T</sup>y 给出闭式最优解，作为比较迭代方法的基准真值。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ 研究方法 ════════════════ -->
+<section id="methodology">
+  <div class="section-label">第四章</div>
+  <h2>研究方法</h2>
+  <p class="section-desc">从数据合成到特征值分析再到实验验证的五阶段流水线。</p>
+
+  <div class="pipeline">
+    <div class="pipeline-step">
+      <h4><span class="step-num">01</span> 合成数据生成</h4>
+      <p>构建受控数据集：X ∈ ℝ<sup>n×d</sup>（n=300样本，d=6特征），从 N(0,1) 采样，真实权重 w<sub>true</sub> = [2.0, -1.0, 0.5, 0.0, 1.5, -0.7]，高斯噪声 σ=0.2。这提供了验证收敛精度的已知基准。</p>
+    </div>
+    <div class="pipeline-step">
+      <h4><span class="step-num">02</span> Hessian与特征值计算</h4>
+      <p>计算Hessian矩阵 H = 2X<sup>T</sup>X 及其特征值谱。提取 λ<sub>max</sub>、λ<sub>min</sub>、条件数 κ 以及理论稳定性界限 η<sub>crit</sub> = 2/λ<sub>max</sub>。这些量完全表征了损失曲面的曲率。</p>
+    </div>
+    <div class="pipeline-step">
+      <h4><span class="step-num">03</span> 离散梯度下降模拟</h4>
+      <p>实现标准GD：w<sub>k+1</sub> = w<sub>k</sub> - η∇L(w<sub>k</sub>)。以三种学习率运行——稳定（0.8·η<sub>crit</sub>）、临界（~η<sub>crit</sub>）和不稳定（1.2·η<sub>crit</sub>）——迭代250步。每步记录损失 L(w<sub>k</sub>) 和权重距离 ‖w<sub>k</sub> - w<sub>true</sub>‖。</p>
+    </div>
+    <div class="pipeline-step">
+      <h4><span class="step-num">04</span> 连续ODE模拟</h4>
+      <p>使用欧拉积分法以小时间步 Δt 数值求解 dw/dt = -∇L(w)。将ODE轨迹与离散GD对比以验证连续近似。可选使用 scipy.integrate.solve_ivp（RK45）作为高精度参考。</p>
+    </div>
+    <div class="pipeline-step">
+      <h4><span class="step-num">05</span> 对比分析与可视化</h4>
+      <p>生成损失曲线（对数尺度）、权重收敛图、相图（w₁ vs w₂）和特征值谱图。量化GD-ODE轨迹偏差与 η 的关系。将理论稳定性界限与实验临界阈值进行验证。</p>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="dot" style="background:#f87171"></span>
+      <span class="dot" style="background:#fbbf24"></span>
+      <span class="dot" style="background:#34d399"></span>
+      experiment.py — 核心模拟代码
+    </div>
+    <div class="code-body"><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cmt"># 合成数据</span>
+np.random.seed(<span class="num">0</span>)
+n, d = <span class="num">300</span>, <span class="num">6</span>
+X = np.random.randn(n, d)
+w_true = np.array([<span class="num">2.0</span>, <span class="num">-1.0</span>, <span class="num">0.5</span>, <span class="num">0.0</span>, <span class="num">1.5</span>, <span class="num">-0.7</span>])
+y = X @ w_true + <span class="num">0.2</span> <span class="op">*</span> np.random.randn(n)
+
+<span class="cmt"># Hessian特征值 → 稳定性界限</span>
+H = <span class="num">2</span> <span class="op">*</span> (X.T @ X)
+lam_max = np.linalg.<span class="fn">eigvalsh</span>(H).<span class="fn">max</span>()
+eta_crit = <span class="num">2</span> / lam_max  <span class="cmt"># 理论稳定性界限</span>
+
+<span class="cmt"># 三种学习率区间</span>
+eta_stable   = <span class="num">0.8</span> <span class="op">*</span> eta_crit   <span class="cmt"># 收敛</span>
+eta_critical = <span class="num">1.0</span> <span class="op">*</span> eta_crit   <span class="cmt"># 振荡</span>
+eta_unstable = <span class="num">1.2</span> <span class="op">*</span> eta_crit   <span class="cmt"># 发散</span></div>
+  </div>
+
+  <div class="tech-stack">
+    <div class="tech-pill"><span class="dot" style="background:var(--accent)"></span>Python 3.12</div>
+    <div class="tech-pill"><span class="dot" style="background:var(--blue)"></span>NumPy</div>
+    <div class="tech-pill"><span class="dot" style="background:var(--green)"></span>Matplotlib</div>
+    <div class="tech-pill"><span class="dot" style="background:var(--purple)"></span>SciPy（ODE求解器）</div>
+    <div class="tech-pill"><span class="dot" style="background:var(--cyan)"></span>Jupyter Notebooks</div>
+    <div class="tech-pill"><span class="dot" style="background:var(--yellow)"></span>LaTeX（论文排版）</div>
+  </div>
+</section>
+
+<!-- ════════════════ 实验设计 ════════════════ -->
+<section id="experiments">
+  <div class="section-label">第五章</div>
+  <h2>实验设计</h2>
+  <p class="section-desc">由特征值分析预测的三种学习率区间产生本质不同的训练行为。</p>
+
+  <div class="exp-grid">
+    <div class="exp-card">
+      <div class="exp-icon">&#10003;</div>
+      <h4>稳定收敛</h4>
+      <div class="exp-eta">η = 0.8 · (2/λ<sub>max</sub>)</div>
+      <p>损失单调递减。权重平滑收敛至 w<sub>true</sub>。ODE与GD轨迹高度吻合。系统处于稳定区域内部。</p>
+    </div>
+    <div class="exp-card">
+      <div class="exp-icon">~</div>
+      <h4>临界振荡</h4>
+      <div class="exp-eta">η ≈ 2/λ<sub>max</sub></div>
+      <p>损失在最小值附近振荡而不能清晰收敛。权重表现出衰减或持续振荡。系统处于稳定性边界——对扰动敏感。</p>
+    </div>
+    <div class="exp-card">
+      <div class="exp-icon">✕</div>
+      <h4>发散</h4>
+      <div class="exp-eta">η = 1.2 · (2/λ<sub>max</sub>)</div>
+      <p>损失指数增长。权重偏离最优解。更新矩阵的谱半径超过1——确认了特征值对不稳定性的预测。</p>
+    </div>
+  </div>
+
+  <div class="stability-visual">
+    <h4 style="font-size:1rem; margin-bottom:8px;">学习率稳定性谱</h4>
+    <p style="font-size:0.85rem; color:var(--text-secondary);">H = 2X<sup>T</sup>X 的特征值 λ<sub>max</sub> 定义了临界阈值 η<sub>crit</sub> = 2/λ<sub>max</sub></p>
+    <div class="stability-bar-container">
+      <div class="stability-bar"></div>
+      <div class="stability-marker" style="left:0%; background:var(--text-muted);" data-label="η = 0"></div>
+      <div class="stability-marker" style="left:35%; background:var(--green);" data-label="η_最优 = 2/(λ_max + λ_min)"></div>
+      <div class="stability-marker" style="left:55%; background:var(--yellow);" data-label="η_临界 = 2/λ_max"></div>
+      <div class="stability-marker" style="left:100%; background:var(--red);" data-label="η → ∞ (发散)"></div>
+    </div>
+    <div class="stability-labels">
+      <span style="color:var(--green);">稳定收敛</span>
+      <span style="color:var(--yellow);">振荡</span>
+      <span style="color:var(--red);">发散</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ 预期结果 ════════════════ -->
+<section id="results">
+  <div class="section-label">第六章</div>
+  <h2>预期结果</h2>
+  <p class="section-desc">五项关键发现将数学理论与可观测的训练现象相连接。</p>
+
+  <div class="contrib-list">
+    <div class="contrib-item">
+      <div class="contrib-num">01</div>
+      <p><strong>特征值谱报告</strong> — 计算并可视化 H = 2X<sup>T</sup>X 的所有 d 个特征值。报告 λ<sub>max</sub>、λ<sub>min</sub>、条件数 κ 及其导出的稳定性界限。对于随机高斯数据，预计 κ ≈ 3–8。</p>
+    </div>
+    <div class="contrib-item">
+      <div class="contrib-num">02</div>
+      <p><strong>稳定性界限验证</strong> — 证明GD在 η &lt; 2/λ<sub>max</sub> 时收敛、在其上方发散。绘制实验临界 η 与理论预测的对比。预计偏差 &lt;5%。</p>
+    </div>
+    <div class="contrib-item">
+      <div class="contrib-num">03</div>
+      <p><strong>GD与ODE轨迹对比</strong> — 并列展示离散GD和连续ODE的损失曲线与权重轨迹。小 η 时曲线几乎重叠；当 η → η<sub>crit</sub> 时，离散化效应造成可见的轨迹分离。</p>
+    </div>
+    <div class="contrib-item">
+      <div class="contrib-num">04</div>
+      <p><strong>相图分析</strong> — 2D投影（w₁ vs w₂）展示稳定区间的螺旋收敛、临界点的极限环振荡、以及超过阈值的向外螺旋发散——直观确认动力系统行为。</p>
+    </div>
+    <div class="contrib-item">
+      <div class="contrib-num">05</div>
+      <p><strong>最优学习率确认</strong> — 验证 η* = 2/(λ<sub>max</sub> + λ<sub>min</sub>) 实现最快收敛，并展示收敛速率与条件数 κ 的反比关系。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ 时间线 ════════════════ -->
+<section id="timeline">
+  <div class="section-label">第七章</div>
+  <h2>项目时间线</h2>
+  <p class="section-desc">从数学理论基础到实验验证与论文撰写的8周执行计划。</p>
+
+  <table class="timeline-table">
+    <thead><tr><th>阶段</th><th>周次</th><th>活动内容</th><th>交付物</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="phase">文献与理论</td>
+        <td class="week">W1 – W2</td>
+        <td>调研优化的ODE模型（梯度流文献）、特征值稳定性理论和神经网络损失曲面分析。从第一性原理推导稳定性判据 η &lt; 2/λ<sub>max</sub>。</td>
+        <td>带注释的文献目录、理论推导文档、数学证明</td>
+      </tr>
+      <tr>
+        <td class="phase">代码实现</td>
+        <td class="week">W3 – W4</td>
+        <td>构建Python模拟系统：合成数据生成器、GD引擎、ODE求解器（欧拉+RK45）、Hessian/特征值计算。对照闭式正规方程解验证正确性。</td>
+        <td>可运行的代码库、单元测试、基线验证</td>
+      </tr>
+      <tr>
+        <td class="phase">实验执行</td>
+        <td class="week">W5 – W6</td>
+        <td>运行完整实验：在稳定性边界两侧扫描学习率，记录损失/权重轨迹，生成特征值谱。在不同 n、d、噪声水平和条件数下测试。</td>
+        <td>原始实验数据、损失曲线、相图、稳定性图</td>
+      </tr>
+      <tr>
+        <td class="phase">分析与论文</td>
+        <td class="week">W7 – W8</td>
+        <td>GD-ODE偏差的统计分析。制作出版级图表。撰写研究论文（6-8页），涵盖理论、方法、结果和讨论。</td>
+        <td>最终论文（LaTeX）、演示幻灯片、可复现代码仓库</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════════════════ 研究意义 ════════════════ -->
+<section id="contributions">
+  <div class="section-label">第八章</div>
+  <h2>研究意义与贡献</h2>
+  <p class="section-desc">本研究连接经典数学与现代AI，具有理论和实践双重意义。</p>
+
+  <div class="contrib-list">
+    <div class="contrib-item">
+      <div class="contrib-num">01</div>
+      <p><strong>AI训练的数学理解</strong> — 证明神经网络训练不是黑盒，而是一个动力系统，其行为可以从损失曲面Hessian矩阵的特征值谱来预测。</p>
+    </div>
+    <div class="contrib-item">
+      <div class="contrib-num">02</div>
+      <p><strong>有原理的学习率选择</strong> — 提供可计算的、理论驱动的判据（η &lt; 2/λ<sub>max</sub>），用数学预测替代试错式超参数调优。</p>
+    </div>
+    <div class="contrib-item">
+      <div class="contrib-num">03</div>
+      <p><strong>ODE-GD等价性验证</strong> — 实证量化连续ODE模型何时能忠实近似离散梯度下降，为优化研究中的梯度流分析建立有效性条件。</p>
+    </div>
+    <div class="contrib-item">
+      <div class="contrib-num">04</div>
+      <p><strong>跨学科桥梁</strong> — 将微分方程（动力系统理论）、线性代数（特征值分析）和优化（梯度下降）统一为一个框架，对来自任何这些背景的学生都可理解。</p>
+    </div>
+    <div class="contrib-item">
+      <div class="contrib-num">05</div>
+      <p><strong>深层分析的基础</strong> — 建立的方法论可扩展到非线性网络、随机梯度下降（SGD）、自适应优化器（Adam）以及深度网络损失曲面分析。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ 参考文献 ════════════════ -->
+<section id="references">
+  <div class="section-label">第九章</div>
+  <h2>核心参考文献</h2>
+
+  <div class="ref-list">
+    <div class="ref-item">
+      <span>Su, W., Boyd, S., & Candès, E.J. (2016). <em>A Differential Equation for Modeling Nesterov's Accelerated Gradient Method: Theory and Insights.</em> JMLR, 17(153), 1–43.</span>
+    </div>
+    <div class="ref-item">
+      <span>Saxe, A.M., McClelland, J.L., & Ganguli, S. (2014). <em>Exact Solutions to the Nonlinear Dynamics of Learning in Deep Linear Neural Networks.</em> ICLR.</span>
+    </div>
+    <div class="ref-item">
+      <span>Goodfellow, I., Bengio, Y., & Courville, A. (2016). <em>Deep Learning.</em> MIT Press. 第8章：深度模型的训练优化。</span>
+    </div>
+    <div class="ref-item">
+      <span>Strogatz, S.H. (2018). <em>Nonlinear Dynamics and Chaos.</em> 第2版，CRC Press. 非线性动力学与混沌经典教科书。</span>
+    </div>
+    <div class="ref-item">
+      <span>Li, H., Xu, Z., et al. (2018). <em>Visualizing the Loss Landscape of Neural Nets.</em> NeurIPS. 神经网络损失曲面可视化。</span>
+    </div>
+    <div class="ref-item">
+      <span>Barrett, D.G.T. & Dherin, B. (2021). <em>Implicit Gradient Regularization.</em> ICLR. 梯度下降中离散化效应的分析。</span>
+    </div>
+    <div class="ref-item">
+      <span>Cohen, J., Kaur, S., et al. (2021). <em>Gradient Descent on Neural Networks Typically Occurs at the Edge of Stability.</em> ICLR.</span>
+    </div>
+    <div class="ref-item">
+      <span>Arora, S., et al. (2019). <em>On the Optimization of Deep Networks: Implicit Acceleration by Overparameterization.</em> ICML.</span>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<div class="footer">
+  <p>用微分方程与线性代数分析神经网络训练 — 研究项目计划 &nbsp;·&nbsp; 2026</p>
+</div>
+
+<script>
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
