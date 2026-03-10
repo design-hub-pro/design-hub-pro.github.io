@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-Driven 2D Game Map Generation — Research Project Plan</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap');
+
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --surface-2: #1a2236;
+    --surface-3: #243049;
+    --border: #2a3654;
+    --border-light: #374869;
+    --text: #e8ecf4;
+    --text-secondary: #94a3c0;
+    --text-muted: #5f7093;
+    --accent: #60a5fa;
+    --accent-2: #818cf8;
+    --accent-3: #a78bfa;
+    --green: #34d399;
+    --orange: #fb923c;
+    --pink: #f472b6;
+    --red: #f87171;
+    --yellow: #fbbf24;
+    --cyan: #22d3ee;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 60px 24px;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 40%, rgba(96,165,250,.08) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 50% at 20% 80%, rgba(167,139,250,.06) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 20%, rgba(34,211,238,.05) 0%, transparent 60%);
+  }
+
+  /* Animated grid background */
+  .grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(96,165,250,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(96,165,250,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridShift 20s linear infinite;
+  }
+
+  @keyframes gridShift {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(40px, 40px); }
+  }
+
+  /* Floating map nodes */
+  .hero-particles {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  .node {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    opacity: 0.3;
+    animation: float 8s ease-in-out infinite;
+  }
+
+  .node:nth-child(2) { left: 15%; top: 20%; animation-delay: -1s; background: var(--accent-2); }
+  .node:nth-child(3) { left: 80%; top: 30%; animation-delay: -3s; background: var(--cyan); }
+  .node:nth-child(4) { left: 40%; top: 70%; animation-delay: -5s; background: var(--green); }
+  .node:nth-child(5) { left: 70%; top: 60%; animation-delay: -2s; }
+  .node:nth-child(6) { left: 25%; top: 50%; animation-delay: -4s; background: var(--accent-3); }
+  .node:nth-child(7) { left: 55%; top: 15%; animation-delay: -6s; background: var(--pink); }
+  .node:nth-child(8) { left: 90%; top: 80%; animation-delay: -7s; background: var(--yellow); }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) scale(1); opacity: 0.3; }
+    50% { transform: translateY(-20px) scale(1.5); opacity: 0.6; }
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    text-align: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    background: rgba(96,165,250,.08);
+    border: 1px solid rgba(96,165,250,.2);
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  .badge::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .hero h1 {
+    font-size: clamp(2.4rem, 5vw, 3.8rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, #fff 30%, var(--accent) 70%, var(--accent-3) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero .subtitle {
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    max-width: 640px;
+    margin: 0 auto 40px;
+    line-height: 1.8;
+    font-weight: 400;
+  }
+
+  .hero-meta {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+
+  .hero-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .hero-meta-item svg {
+    width: 16px;
+    height: 16px;
+    color: var(--accent);
+  }
+
+  .hero-images {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .hero-img-card {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .hero-img-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .hero-img-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 16px;
+    background: linear-gradient(transparent, rgba(0,0,0,.85));
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    letter-spacing: 0.3px;
+  }
+
+  /* ── Navigation ── */
+  .nav-strip {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,14,23,.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+  }
+
+  .nav-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .nav-inner::-webkit-scrollbar { display: none; }
+
+  .nav-link {
+    padding: 14px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all .2s;
+  }
+
+  .nav-link:hover { color: var(--text-secondary); }
+  .nav-link.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── Main Layout ── */
+  .page-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  section {
+    padding: 80px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  section:last-child { border-bottom: none; }
+
+  .section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  .section-label::before {
+    content: '';
+    width: 24px;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+  }
+
+  h2 {
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+    line-height: 1.25;
+  }
+
+  .section-desc {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    max-width: 680px;
+    margin-bottom: 40px;
+    line-height: 1.8;
+  }
+
+  /* ── Abstract Box ── */
+  .abstract-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .abstract-box::before {
+    content: '"';
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    font-family: 'Crimson Pro', serif;
+    font-size: 120px;
+    color: rgba(96,165,250,.08);
+    line-height: 1;
+  }
+
+  .abstract-box p {
+    font-family: 'Crimson Pro', serif;
+    font-size: 1.15rem;
+    line-height: 2;
+    color: var(--text-secondary);
+    position: relative;
+  }
+
+  .abstract-box p + p { margin-top: 16px; }
+
+  /* ── Research Questions ── */
+  .rq-grid {
+    display: grid;
+    gap: 16px;
+  }
+
+  .rq-card {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 20px;
+    padding: 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    transition: border-color .3s, transform .2s;
+  }
+
+  .rq-card:hover {
+    border-color: var(--border-light);
+    transform: translateX(4px);
+  }
+
+  .rq-num {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .rq-card:nth-child(1) .rq-num { background: rgba(96,165,250,.12); color: var(--accent); }
+  .rq-card:nth-child(2) .rq-num { background: rgba(167,139,250,.12); color: var(--accent-3); }
+  .rq-card:nth-child(3) .rq-num { background: rgba(34,211,238,.12); color: var(--cyan); }
+  .rq-card:nth-child(4) .rq-num { background: rgba(52,211,153,.12); color: var(--green); }
+
+  .rq-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .rq-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  /* ── Methodology Approach Comparison ── */
+  .approach-grid {
+    display: grid;
+    grid-template-columns: 1fr 80px 1fr;
+    gap: 0;
+    align-items: stretch;
+  }
+
+  .approach-card {
+    padding: 36px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    position: relative;
+  }
+
+  .approach-card.asp { border-top: 3px solid var(--orange); }
+  .approach-card.llm { border-top: 3px solid var(--accent-3); }
+
+  .approach-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .asp .approach-icon { background: rgba(251,146,60,.12); }
+  .llm .approach-icon { background: rgba(167,139,250,.12); }
+
+  .approach-card h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .approach-card .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+  }
+
+  .asp .tag { background: rgba(251,146,60,.1); color: var(--orange); }
+  .llm .tag { background: rgba(167,139,250,.1); color: var(--accent-3); }
+
+  .approach-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .approach-card li {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    padding-left: 20px;
+    position: relative;
+    line-height: 1.6;
+  }
+
+  .approach-card li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--text-muted);
+  }
+
+  .vs-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .vs-badge {
+    width: 48px;
+    height: 48px;
+    background: var(--surface-2);
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+  }
+
+  /* ── Pipeline ── */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+    padding-left: 32px;
+  }
+
+  .pipeline::before {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 30px;
+    bottom: 30px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent), var(--accent-3), var(--green));
+    border-radius: 1px;
+  }
+
+  .pipeline-step {
+    position: relative;
+    padding: 24px 0 24px 32px;
+  }
+
+  .pipeline-step::before {
+    content: '';
+    position: absolute;
+    left: -26px;
+    top: 32px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 3px solid var(--accent);
+  }
+
+  .pipeline-step:nth-child(2)::before { border-color: var(--accent-2); }
+  .pipeline-step:nth-child(3)::before { border-color: var(--accent-3); }
+  .pipeline-step:nth-child(4)::before { border-color: var(--cyan); }
+  .pipeline-step:nth-child(5)::before { border-color: var(--green); }
+
+  .pipeline-step h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .pipeline-step h4 .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: var(--surface-2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: var(--text-muted);
+  }
+
+  .pipeline-step p {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    max-width: 560px;
+  }
+
+  /* ── Evaluation Metrics ── */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    transition: transform .2s, border-color .3s;
+  }
+
+  .metric-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-light);
+  }
+
+  .metric-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  .metric-card:nth-child(1) .metric-icon { background: rgba(96,165,250,.12); }
+  .metric-card:nth-child(2) .metric-icon { background: rgba(251,146,60,.12); }
+  .metric-card:nth-child(3) .metric-icon { background: rgba(52,211,153,.12); }
+  .metric-card:nth-child(4) .metric-icon { background: rgba(167,139,250,.12); }
+  .metric-card:nth-child(5) .metric-icon { background: rgba(34,211,238,.12); }
+  .metric-card:nth-child(6) .metric-icon { background: rgba(244,114,182,.12); }
+
+  .metric-card h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .metric-card p {
+    font-size: 0.83rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  /* ── Timeline ── */
+  .timeline-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .timeline-table th {
+    text-align: left;
+    padding: 14px 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .timeline-table td {
+    padding: 16px 20px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid rgba(42,54,84,.4);
+    vertical-align: top;
+  }
+
+  .timeline-table tr:last-child td { border-bottom: none; }
+
+  .timeline-table .phase {
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .timeline-table .week {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .gantt-bar {
+    height: 8px;
+    border-radius: 4px;
+    min-width: 30px;
+  }
+
+  /* ── Expected Contributions ── */
+  .contrib-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .contrib-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 20px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .contrib-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 28px;
+    margin-top: 2px;
+  }
+
+  .contrib-item p {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  .contrib-item strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* ── References ── */
+  .ref-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    counter-reset: ref;
+  }
+
+  .ref-item {
+    counter-increment: ref;
+    display: flex;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  .ref-item::before {
+    content: '[' counter(ref) ']';
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    min-width: 32px;
+    margin-top: 2px;
+  }
+
+  .ref-item em { font-family: 'Crimson Pro', serif; font-style: italic; color: var(--text); }
+
+  /* ── Tech Stack Pills ── */
+  .tech-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 24px;
+  }
+
+  .tech-pill {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tech-pill .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-muted);
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+  }
+
+  .footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  /* ── Language Switcher ── */
+  .lang-switch {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 200;
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+  }
+
+  .lang-btn {
+    padding: 6px 14px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all .2s;
+  }
+
+  .lang-btn:hover { color: var(--text-secondary); }
+  .lang-btn.active { background: var(--accent); color: #fff; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .approach-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .vs-divider { display: none; }
+    .hero-images {
+      grid-template-columns: 1fr;
+    }
+    section { padding: 48px 0; }
+  }
+
+  /* ── Diagram: System Architecture ── */
+  .arch-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    margin-top: 32px;
+    overflow-x: auto;
+  }
+
+  .arch-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 600px;
+  }
+
+  .arch-block {
+    padding: 14px 22px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 120px;
+    border: 1px solid;
+  }
+
+  .arch-block.input { background: rgba(96,165,250,.1); border-color: rgba(96,165,250,.3); color: var(--accent); }
+  .arch-block.process { background: rgba(251,146,60,.1); border-color: rgba(251,146,60,.3); color: var(--orange); }
+  .arch-block.ai { background: rgba(167,139,250,.1); border-color: rgba(167,139,250,.3); color: var(--accent-3); }
+  .arch-block.output { background: rgba(52,211,153,.1); border-color: rgba(52,211,153,.3); color: var(--green); }
+  .arch-block.eval { background: rgba(34,211,238,.1); border-color: rgba(34,211,238,.3); color: var(--cyan); }
+
+  .arch-arrow {
+    color: var(--text-muted);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  /* ── Hypothesis Table ── */
+  .hyp-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-top: 24px;
+  }
+
+  .hyp-table th {
+    text-align: left;
+    padding: 14px 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hyp-table td {
+    padding: 16px 20px;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid rgba(42,54,84,.4);
+    line-height: 1.6;
+  }
+
+  .hyp-table tr:last-child td { border-bottom: none; }
+
+  .hyp-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ Language Switcher ═══ -->
+<div class="lang-switch">
+  <a href="index.html" class="lang-btn active">EN</a>
+  <a href="index_cn.html" class="lang-btn">中文</a>
+</div>
+
+<!-- ════════════════ HERO ════════════════ -->
+<section class="hero">
+  <div class="grid-bg"></div>
+  <div class="hero-particles">
+    <div class="node"></div><div class="node"></div><div class="node"></div>
+    <div class="node"></div><div class="node"></div><div class="node"></div>
+    <div class="node"></div><div class="node"></div>
+  </div>
+  <div class="hero-content">
+    <div class="badge">Research Project Plan</div>
+    <h1>AI-Driven Procedural 2D Game Map Generation</h1>
+    <p class="subtitle">
+      Designing an intelligent map generation system that combines Answer Set Programming (ASP) and Large Language Models (LLM) to automatically produce playable, engaging, and solvable 2D game maps — with a comparative study on gameplay quality, level diversity, and design efficiency.
+    </p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Procedural Content Generation
+      </div>
+      <div class="hero-meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        12-Week Plan
+      </div>
+      <div class="hero-meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.674M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        ASP vs. LLM Comparison
+      </div>
+    </div>
+    <div class="hero-images">
+      <div class="hero-img-card">
+        <img src="assets/graph_map.png" alt="Graph-based dungeon map with numbered rooms and directional connections">
+        <div class="hero-img-label">Graph-based Dungeon Map — Node-Edge Topology</div>
+      </div>
+      <div class="hero-img-card">
+        <img src="assets/cave_map.png" alt="Procedurally generated cave terrain using cellular automata">
+        <div class="hero-img-label">Procedural Cave Generation — Cellular Automata Output</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ NAV ════════════════ -->
+<nav class="nav-strip">
+  <div class="nav-inner">
+    <a href="#abstract" class="nav-link active">Abstract</a>
+    <a href="#questions" class="nav-link">Research Questions</a>
+    <a href="#methodology" class="nav-link">Methodology</a>
+    <a href="#architecture" class="nav-link">Architecture</a>
+    <a href="#evaluation" class="nav-link">Evaluation</a>
+    <a href="#timeline" class="nav-link">Timeline</a>
+    <a href="#contributions" class="nav-link">Contributions</a>
+    <a href="#references" class="nav-link">References</a>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+<!-- ════════════════ ABSTRACT ════════════════ -->
+<section id="abstract">
+  <div class="section-label">Section I</div>
+  <h2>Abstract</h2>
+  <div class="abstract-box">
+    <p>
+      Procedural Content Generation (PCG) has become an essential technique in modern game development, enabling the automatic creation of game levels, maps, and environments at scale. However, generating 2D game maps that are simultaneously <strong>playable</strong> (no softlocks or unreachable areas), <strong>engaging</strong> (varied and interesting for players), and <strong>efficient to produce</strong> (reducing manual designer workload) remains a significant open challenge.
+    </p>
+    <p>
+      This research proposes a dual-approach system for intelligent 2D map generation. The first approach leverages <strong>Answer Set Programming (ASP)</strong>, a declarative constraint-solving paradigm, to encode hard playability constraints (reachability, key-lock dependencies, difficulty progression) and generate maps that are guaranteed to be solvable. The second approach investigates <strong>Large Language Models (LLMs)</strong> as creative map generators, prompting them to produce structured map representations and evaluating their capacity for spatial reasoning and constraint satisfaction.
+    </p>
+    <p>
+      Through a rigorous comparative evaluation — spanning automated playability verification, algorithmic diversity metrics, and human player studies — this research aims to quantify the trade-offs between formal constraint satisfaction (ASP) and learned generative flexibility (LLM), and to propose a hybrid framework that combines the strengths of both paradigms for next-generation procedural map design.
+    </p>
+  </div>
+</section>
+
+<!-- ════════════════ RESEARCH QUESTIONS ════════════════ -->
+<section id="questions">
+  <div class="section-label">Section II</div>
+  <h2>Research Questions</h2>
+  <p class="section-desc">The following questions guide the investigation and define the scope of expected contributions.</p>
+
+  <div class="rq-grid">
+    <div class="rq-card">
+      <div class="rq-num">RQ1</div>
+      <div>
+        <div class="rq-title">Playability Guarantees</div>
+        <div class="rq-text">How effectively can ASP-based constraint models guarantee map solvability (reachability, no softlocks, valid key-lock chains) compared to LLM-generated maps, and what is the failure rate of each approach on formal verification?</div>
+      </div>
+    </div>
+    <div class="rq-card">
+      <div class="rq-num">RQ2</div>
+      <div>
+        <div class="rq-title">Level Diversity & Creativity</div>
+        <div class="rq-text">To what extent do LLM-generated maps exhibit greater structural diversity and creative variation (measured by tile entropy, topological distinctness, and spatial novelty) compared to ASP-generated maps under equivalent playability constraints?</div>
+      </div>
+    </div>
+    <div class="rq-card">
+      <div class="rq-num">RQ3</div>
+      <div>
+        <div class="rq-title">Player Experience Quality</div>
+        <div class="rq-text">How do human players perceive and rate the gameplay quality (fun, challenge, exploration satisfaction) of maps produced by ASP, LLM, and a proposed hybrid approach — and which factors most strongly predict positive player experience?</div>
+      </div>
+    </div>
+    <div class="rq-card">
+      <div class="rq-num">RQ4</div>
+      <div>
+        <div class="rq-title">Design Efficiency & Scalability</div>
+        <div class="rq-text">What are the computational costs, generation latency, and iteration speed of each approach, and how does a hybrid ASP+LLM pipeline compare to manual level design in terms of designer time savings?</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hypotheses -->
+  <table class="hyp-table" style="margin-top: 40px;">
+    <thead>
+      <tr><th style="width:80px;">ID</th><th>Hypothesis</th><th style="width:140px;">Tests Against</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="hyp-id">H1</span></td>
+        <td>ASP-generated maps will achieve &gt;99% solvability on automated verification, while raw LLM output will fall below 80% without post-hoc repair.</td>
+        <td>RQ1</td>
+      </tr>
+      <tr>
+        <td><span class="hyp-id">H2</span></td>
+        <td>LLM-generated maps will score significantly higher on Shannon tile-entropy and topological diversity metrics than ASP maps generated under identical room/corridor budgets.</td>
+        <td>RQ2</td>
+      </tr>
+      <tr>
+        <td><span class="hyp-id">H3</span></td>
+        <td>A hybrid pipeline (LLM draft → ASP repair) will be rated higher by players than either standalone method on a composite engagement score.</td>
+        <td>RQ3</td>
+      </tr>
+      <tr>
+        <td><span class="hyp-id">H4</span></td>
+        <td>The hybrid pipeline will reduce average map creation time by ≥60% compared to manual design, while maintaining comparable quality ratings.</td>
+        <td>RQ4</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════════════════ METHODOLOGY ════════════════ -->
+<section id="methodology">
+  <div class="section-label">Section III</div>
+  <h2>Methodology — Dual Approach</h2>
+  <p class="section-desc">
+    We compare two fundamentally different paradigms for procedural map generation, then propose a hybrid that leverages each approach's strengths.
+  </p>
+
+  <div class="approach-grid">
+    <!-- ASP -->
+    <div class="approach-card asp">
+      <div class="approach-icon">⚙️</div>
+      <h3>Answer Set Programming (ASP)</h3>
+      <span class="tag">Constraint-Based</span>
+      <ul>
+        <li><strong>Declarative constraint encoding</strong> — define reachability, key-lock dependencies, and difficulty curve as logic rules</li>
+        <li><strong>Clingo solver</strong> for exhaustive enumeration of valid map configurations within a bounded search space</li>
+        <li><strong>Graph-based room topology</strong> — rooms as nodes, corridors as edges, with connectivity guarantees (see Fig. 1)</li>
+        <li><strong>Tile-level instantiation</strong> using Wave Function Collapse (WFC) to fill room interiors once topology is fixed</li>
+        <li><strong>Formal verification</strong> — every generated map is provably solvable by construction</li>
+        <li><strong>Parameterized difficulty</strong> — control branching factor, dead-end ratio, key depth, and critical path length</li>
+      </ul>
+    </div>
+
+    <div class="vs-divider"><div class="vs-badge">VS</div></div>
+
+    <!-- LLM -->
+    <div class="approach-card llm">
+      <div class="approach-icon">🧠</div>
+      <h3>Large Language Model (LLM)</h3>
+      <span class="tag">Generative AI</span>
+      <ul>
+        <li><strong>Structured prompting</strong> — instruct LLM to output JSON/grid map representations with room types, connections, and item placements</li>
+        <li><strong>Few-shot exemplars</strong> — provide 3–5 high-quality handcrafted map examples as in-context demonstrations</li>
+        <li><strong>Chain-of-thought spatial reasoning</strong> — prompt model to reason about reachability and key-lock ordering before finalizing layout</li>
+        <li><strong>Iterative refinement</strong> — feed back verification failures as corrections and re-prompt for repair</li>
+        <li><strong>Creative diversity</strong> — temperature sampling and varied theme prompts to maximize structural novelty</li>
+        <li><strong>Multi-model comparison</strong> — evaluate GPT-4o, Claude 3.5 Sonnet, and open-weight models (Llama 3, Mistral)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Tech Stack -->
+  <div class="tech-stack">
+    <div class="tech-pill"><span class="dot" style="background:var(--orange)"></span>Clingo 5.7 (ASP Solver)</div>
+    <div class="tech-pill"><span class="dot" style="background:var(--accent-3)"></span>Python 3.12</div>
+    <div class="tech-pill"><span class="dot" style="background:var(--accent)"></span>Pygame / Phaser.js</div>
+    <div class="tech-pill"><span class="dot" style="background:var(--green)"></span>OpenAI / Anthropic API</div>
+    <div class="tech-pill"><span class="dot" style="background:var(--cyan)"></span>NetworkX (Graph Analysis)</div>
+    <div class="tech-pill"><span class="dot" style="background:var(--pink)"></span>Wave Function Collapse</div>
+    <div class="tech-pill"><span class="dot" style="background:var(--yellow)"></span>A* Pathfinding Verifier</div>
+  </div>
+</section>
+
+<!-- ════════════════ ARCHITECTURE ════════════════ -->
+<section id="architecture">
+  <div class="section-label">Section IV</div>
+  <h2>System Architecture</h2>
+  <p class="section-desc">The hybrid pipeline combines LLM creativity with ASP verification to produce maps that are both novel and provably playable.</p>
+
+  <div class="arch-diagram">
+    <div class="arch-flow">
+      <div class="arch-block input">Design<br>Parameters</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-block ai">LLM Draft<br>Generator</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-block process">ASP Constraint<br>Verifier</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-block process">Auto Repair<br>Engine</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-block output">Tile-Level<br>Instantiation</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-block eval">Playability<br>Evaluation</div>
+    </div>
+  </div>
+
+  <!-- Pipeline Details -->
+  <div class="pipeline" style="margin-top:48px;">
+    <div class="pipeline-step">
+      <h4><span class="step-num">01</span> Parameter Specification</h4>
+      <p>Designer specifies high-level constraints: map size (grid dimensions), number of rooms, difficulty target (1–10), theme (dungeon/cave/forest), required mechanics (keys, switches, bosses), and connectivity style (linear, branching, hub-spoke).</p>
+    </div>
+    <div class="pipeline-step">
+      <h4><span class="step-num">02</span> LLM Draft Generation</h4>
+      <p>An LLM receives structured prompts with few-shot examples and chain-of-thought instructions. It outputs a JSON graph (rooms, edges, item placements) representing the map topology. Multiple candidates are sampled via temperature variation.</p>
+    </div>
+    <div class="pipeline-step">
+      <h4><span class="step-num">03</span> ASP Verification & Repair</h4>
+      <p>Each LLM draft is translated into ASP facts and checked against playability constraints (reachability, key-lock ordering, no softlocks). Constraint violations trigger targeted ASP-driven repairs: adding missing edges, relocating keys, or adjusting room connectivity — preserving the LLM's creative layout as much as possible.</p>
+    </div>
+    <div class="pipeline-step">
+      <h4><span class="step-num">04</span> Tile Instantiation</h4>
+      <p>The verified graph topology is materialized into a 2D tile grid using Wave Function Collapse (WFC) or template-based room filling. Each room type maps to a set of compatible tile patterns, producing visually coherent environments.</p>
+    </div>
+    <div class="pipeline-step">
+      <h4><span class="step-num">05</span> Automated Evaluation</h4>
+      <p>Generated maps undergo automated quality checks: A* pathfinding verification, connectivity analysis (NetworkX), difficulty curve estimation (critical path length, branch complexity), and tile-entropy diversity scoring. Metrics are logged for comparative analysis.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ EVALUATION ════════════════ -->
+<section id="evaluation">
+  <div class="section-label">Section V</div>
+  <h2>Evaluation Framework</h2>
+  <p class="section-desc">A multi-dimensional evaluation combining automated metrics and human studies ensures rigorous comparison across approaches.</p>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-icon">✓</div>
+      <h4>Solvability Rate</h4>
+      <p>Percentage of generated maps that pass automated A* reachability verification from start to goal, accounting for key-lock dependencies.</p>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon">⊞</div>
+      <h4>Tile Entropy</h4>
+      <p>Shannon entropy over tile-type distributions measuring spatial variety. Higher entropy indicates more diverse and less repetitive layouts.</p>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon">◈</div>
+      <h4>Topological Diversity</h4>
+      <p>Graph edit distance between generated maps to quantify structural uniqueness. Measures how different each map is from every other generated map.</p>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon">⏱</div>
+      <h4>Generation Latency</h4>
+      <p>Wall-clock time from parameter input to verified, playable map output. Critical for real-time and interactive design workflows.</p>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon">★</div>
+      <h4>Player Engagement (MOS)</h4>
+      <p>Mean Opinion Score from human playtesters rating fun, challenge, exploration satisfaction, and willingness to replay on a 1–7 Likert scale.</p>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon">⚖</div>
+      <h4>Designer Efficiency</h4>
+      <p>Time savings vs. manual level design (measured in minutes/map), plus designer satisfaction with generated maps as starting points for refinement.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ TIMELINE ════════════════ -->
+<section id="timeline">
+  <div class="section-label">Section VI</div>
+  <h2>Project Timeline</h2>
+  <p class="section-desc">A 12-week execution plan spanning literature review through final evaluation and paper writing.</p>
+
+  <table class="timeline-table">
+    <thead>
+      <tr>
+        <th>Phase</th>
+        <th>Weeks</th>
+        <th>Activities</th>
+        <th>Deliverables</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="phase">Literature Review & Setup</td>
+        <td class="week">W1 – W2</td>
+        <td>Survey PCG literature (WFC, BSP, graph grammars, ASP-based generation, LLM spatial reasoning). Set up dev environment, Clingo, API access.</td>
+        <td>Annotated bibliography, codebase skeleton, baseline implementations</td>
+      </tr>
+      <tr>
+        <td class="phase">ASP Module Development</td>
+        <td class="week">W3 – W4</td>
+        <td>Encode playability constraints in ASP. Implement room-graph generation with Clingo. Build WFC tile filler. Validate on 5×5 to 12×12 grids.</td>
+        <td>Working ASP generator, 100+ verified test maps, constraint rule library</td>
+      </tr>
+      <tr>
+        <td class="phase">LLM Module Development</td>
+        <td class="week">W5 – W6</td>
+        <td>Design prompt templates (zero-shot, few-shot, CoT). Implement JSON schema for map output. Test across 3+ LLM providers. Build iterative repair loop.</td>
+        <td>Prompt library, LLM generation pipeline, failure taxonomy</td>
+      </tr>
+      <tr>
+        <td class="phase">Hybrid Pipeline Integration</td>
+        <td class="week">W7 – W8</td>
+        <td>Connect LLM draft → ASP verifier → repair engine. Implement tile instantiation. Build playable game demo with Pygame/Phaser for playtesting.</td>
+        <td>End-to-end hybrid pipeline, playable demo, integration tests</td>
+      </tr>
+      <tr>
+        <td class="phase">Automated Evaluation</td>
+        <td class="week">W9 – W10</td>
+        <td>Generate 500+ maps per approach. Run solvability checks, diversity metrics, latency benchmarks. Statistical analysis (t-tests, ANOVA).</td>
+        <td>Evaluation dataset, metric dashboards, statistical comparisons</td>
+      </tr>
+      <tr>
+        <td class="phase">User Study & Paper</td>
+        <td class="week">W11 – W12</td>
+        <td>Conduct player study (N≥20). Collect MOS ratings. Analyze results. Write research paper (8–10 pages, IEEE/ACM format).</td>
+        <td>User study data, final research paper, presentation slides</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════════════════ CONTRIBUTIONS ════════════════ -->
+<section id="contributions">
+  <div class="section-label">Section VII</div>
+  <h2>Expected Contributions</h2>
+  <p class="section-desc">This research aims to advance the state of procedural content generation through the following contributions.</p>
+
+  <div class="contrib-list">
+    <div class="contrib-item">
+      <div class="contrib-num">01</div>
+      <p><strong>First systematic comparison of ASP vs. LLM for 2D map generation</strong> — providing empirical evidence on the trade-offs between formal constraint satisfaction and neural generative approaches across playability, diversity, and efficiency dimensions.</p>
+    </div>
+    <div class="contrib-item">
+      <div class="contrib-num">02</div>
+      <p><strong>A novel hybrid pipeline (LLM → ASP repair)</strong> — demonstrating that combining creative LLM drafts with formal ASP verification can achieve both high map novelty and guaranteed solvability, a combination neither approach achieves alone.</p>
+    </div>
+    <div class="contrib-item">
+      <div class="contrib-num">03</div>
+      <p><strong>Open-source evaluation framework</strong> — including automated solvability verification, diversity metrics, and a playable game shell for human evaluation, enabling reproducible benchmarking of future PCG approaches.</p>
+    </div>
+    <div class="contrib-item">
+      <div class="contrib-num">04</div>
+      <p><strong>Prompt engineering guidelines for spatial content generation</strong> — documenting effective prompting strategies, failure modes, and repair patterns for using LLMs to generate structured spatial content with constraint satisfaction.</p>
+    </div>
+    <div class="contrib-item">
+      <div class="contrib-num">05</div>
+      <p><strong>Player experience insights</strong> — quantifying how different generation approaches affect perceived fun, challenge, and exploration satisfaction, providing design guidelines for PCG-driven games.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ REFERENCES ════════════════ -->
+<section id="references">
+  <div class="section-label">Section VIII</div>
+  <h2>Key References</h2>
+
+  <div class="ref-list">
+    <div class="ref-item">
+      <span>Smith, A.M., & Mateas, M. (2011). <em>Answer Set Programming for Procedural Content Generation: A Design Space Approach.</em> IEEE Transactions on Computational Intelligence and AI in Games, 3(3), 187–200.</span>
+    </div>
+    <div class="ref-item">
+      <span>Summerville, A., et al. (2018). <em>Procedural Content Generation via Machine Learning (PCGML).</em> IEEE Transactions on Games, 10(3), 257–270.</span>
+    </div>
+    <div class="ref-item">
+      <span>Gumin, M. (2016). <em>WaveFunctionCollapse.</em> GitHub Repository. Wave Function Collapse algorithm for tile-based procedural generation.</span>
+    </div>
+    <div class="ref-item">
+      <span>Todd, G., Earle, S., et al. (2023). <em>Level Generation Through Large Language Models.</em> Proceedings of the 18th International Conference on the Foundations of Digital Games (FDG '23).</span>
+    </div>
+    <div class="ref-item">
+      <span>Shaker, N., Togelius, J., & Nelson, M.J. (2016). <em>Procedural Content Generation in Games.</em> Springer. Comprehensive textbook on PCG methods and evaluation frameworks.</span>
+    </div>
+    <div class="ref-item">
+      <span>Khalifa, A., et al. (2020). <em>PCGRL: Procedural Content Generation via Reinforcement Learning.</em> Proceedings of the AAAI Conference on Artificial Intelligence and Interactive Digital Entertainment (AIIDE).</span>
+    </div>
+    <div class="ref-item">
+      <span>Neufeld, X., Mostaghim, S., & Perez-Liebana, D. (2022). <em>Procedural Level Generation with Answer Set Programming for General Video Game Playing.</em> IEEE Conference on Games (CoG).</span>
+    </div>
+    <div class="ref-item">
+      <span>Sudhakaran, S., et al. (2024). <em>MarioGPT: Open-Ended Text2Level Generation through Large Language Models.</em> Advances in Neural Information Processing Systems (NeurIPS).</span>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<!-- ════════════════ FOOTER ════════════════ -->
+<div class="footer">
+  <p>AI-Driven 2D Game Map Generation — Research Project Plan &nbsp;·&nbsp; 2026</p>
+</div>
+
+<!-- ══ Active nav highlight ══ -->
+<script>
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
