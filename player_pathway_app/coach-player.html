@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player Pathway - Player Feedback</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0F172A; color: #ffffff;
+    scrollbar-width: none; -ms-overflow-style: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Status Bar */
+  .status-bar {
+    height: 59px; padding: 14px 28px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    position: relative; z-index: 100; background: #0F172A;
+  }
+  .status-time { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
+  .dynamic-island {
+    width: 120px; height: 36px; background: #000000;
+    border-radius: 20px; position: absolute;
+    left: 50%; transform: translateX(-50%); top: 10px;
+  }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 14px; }
+
+  /* Header Nav */
+  .header-nav {
+    display: flex; align-items: center; gap: 14px;
+    padding: 6px 28px 14px;
+  }
+  .back-btn {
+    width: 36px; height: 36px; border-radius: 12px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+    color: #60A5FA; font-size: 15px; cursor: pointer;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  .back-btn:hover { background: rgba(59,130,246,0.12); }
+  .header-title {
+    font-size: 20px; font-weight: 800; letter-spacing: -0.3px;
+    flex: 1;
+  }
+  .header-level-pill {
+    background: rgba(59,130,246,0.12);
+    color: #60A5FA; font-size: 12px; font-weight: 700;
+    padding: 4px 12px; border-radius: 10px;
+    flex-shrink: 0;
+  }
+
+  /* Scrollable Content */
+  .content-scroll {
+    position: absolute; top: 110px; bottom: 140px;
+    left: 0; right: 0; overflow-y: auto;
+    scrollbar-width: none; -ms-overflow-style: none;
+    padding: 0 28px 24px;
+  }
+  .content-scroll::-webkit-scrollbar { display: none; }
+
+  /* Player Summary Card */
+  .summary-card {
+    background: linear-gradient(135deg, #1E293B 0%, #1A2332 100%);
+    border: 1px solid rgba(59,130,246,0.15);
+    border-radius: 20px; padding: 22px;
+    position: relative; overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .summary-card::before {
+    content: '';
+    position: absolute; top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .summary-top {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 18px;
+  }
+  .summary-avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: linear-gradient(135deg, #EF4444, #F87171);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 700; color: #fff;
+    flex-shrink: 0;
+    border: 3px solid rgba(59,130,246,0.3);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+  .summary-details { flex: 1; }
+  .summary-name {
+    font-size: 20px; font-weight: 800; color: #F8FAFC;
+    letter-spacing: -0.3px; margin-bottom: 2px;
+  }
+  .summary-level {
+    font-size: 14px; font-weight: 600; color: #60A5FA;
+  }
+  .summary-meta {
+    display: flex; gap: 6px; margin-top: 8px;
+  }
+  .meta-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; font-weight: 600;
+    padding: 5px 12px; border-radius: 10px;
+  }
+  .meta-chip.streak {
+    background: rgba(245,158,11,0.12); color: #FBBF24;
+  }
+  .meta-chip.xp {
+    background: rgba(59,130,246,0.12); color: #60A5FA;
+  }
+
+  /* XP Bar */
+  .xp-section { margin-bottom: 4px; }
+  .xp-label-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px;
+  }
+  .xp-label { font-size: 12px; font-weight: 600; color: #94A3B8; }
+  .xp-value { font-size: 12px; font-weight: 700; color: #60A5FA; }
+  .xp-track {
+    width: 100%; height: 8px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px; overflow: hidden;
+  }
+  .xp-fill {
+    height: 100%; width: 70%;
+    background: linear-gradient(90deg, #3B82F6, #60A5FA);
+    border-radius: 4px; position: relative;
+  }
+  .xp-fill::after {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 50%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, transparent 100%);
+    border-radius: 4px 4px 0 0;
+  }
+
+  /* Skill Snapshot */
+  .section-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .section-label {
+    font-size: 17px; font-weight: 700; letter-spacing: -0.2px;
+  }
+
+  .skill-row {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 14px;
+  }
+  .skill-icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0;
+  }
+  .skill-info { flex: 1; min-width: 0; }
+  .skill-name {
+    font-size: 13px; font-weight: 600; color: #E2E8F0;
+    margin-bottom: 6px;
+  }
+  .skill-bar-track {
+    width: 100%; height: 7px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 4px; overflow: hidden;
+  }
+  .skill-bar-fill {
+    height: 100%; border-radius: 4px; position: relative;
+  }
+  .skill-bar-fill::after {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 50%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 100%);
+    border-radius: 4px 4px 0 0;
+  }
+  .skill-bar-fill.green { background: linear-gradient(90deg, #22C55E, #4ADE80); }
+  .skill-bar-fill.blue { background: linear-gradient(90deg, #3B82F6, #60A5FA); }
+  .skill-bar-fill.orange { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
+  .skill-bar-fill.red { background: linear-gradient(90deg, #EF4444, #F87171); }
+  .skill-pct {
+    font-size: 12px; font-weight: 700; color: #94A3B8;
+    width: 36px; text-align: right; flex-shrink: 0;
+  }
+
+  /* Notes Section */
+  .note-card {
+    background: #1E293B;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px; padding: 16px;
+    margin-bottom: 10px;
+  }
+  .note-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .note-category {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 8px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .note-category.field {
+    background: rgba(34,197,94,0.12); color: #4ADE80;
+  }
+  .note-category.drill {
+    background: rgba(59,130,246,0.12); color: #60A5FA;
+  }
+  .note-category.general {
+    background: rgba(245,158,11,0.12); color: #FBBF24;
+  }
+  .note-time {
+    font-size: 11px; font-weight: 500; color: #64748B;
+  }
+  .note-text {
+    font-size: 14px; font-weight: 500; color: #CBD5E1;
+    line-height: 1.5;
+  }
+
+  /* Quick Input Area — sticky bottom */
+  .input-area {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(15,23,42,0.97);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 12px 28px 36px;
+    z-index: 100;
+  }
+  .category-selector {
+    display: flex; gap: 8px; margin-bottom: 12px;
+  }
+  .cat-pill {
+    padding: 6px 14px; border-radius: 10px;
+    font-size: 13px; font-weight: 600;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.45);
+    cursor: pointer; transition: all 0.15s;
+    font-family: inherit;
+  }
+  .cat-pill.active {
+    background: rgba(59,130,246,0.15);
+    border-color: rgba(59,130,246,0.3);
+    color: #60A5FA;
+  }
+  .input-row {
+    display: flex; gap: 10px; align-items: center;
+  }
+  .note-input {
+    flex: 1; height: 48px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 0 16px;
+    font-size: 15px; font-weight: 500; color: #F1F5F9;
+    font-family: inherit; outline: none;
+    transition: border-color 0.2s;
+  }
+  .note-input::placeholder { color: rgba(255,255,255,0.25); }
+  .note-input:focus { border-color: rgba(59,130,246,0.4); }
+  .send-btn {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    border: none; color: #fff; font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+    box-shadow: 0 4px 16px rgba(59,130,246,0.35);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .send-btn:hover {
+    transform: scale(1.06);
+    box-shadow: 0 6px 24px rgba(59,130,246,0.5);
+  }
+</style>
+</head>
+<body>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <!-- Header Nav -->
+  <div class="header-nav">
+    <div class="back-btn"><i class="fas fa-arrow-left"></i></div>
+    <span class="header-title">Alex Kim</span>
+    <span class="header-level-pill">⭐ Lvl 3</span>
+  </div>
+
+  <!-- Scrollable Content Area -->
+  <div class="content-scroll">
+
+    <!-- Player Summary Card -->
+    <div class="summary-card">
+      <div class="summary-top">
+        <div class="summary-avatar">AK</div>
+        <div class="summary-details">
+          <div class="summary-name">Alex Kim</div>
+          <div class="summary-level">⭐ Level 3 — Controller</div>
+          <div class="summary-meta">
+            <span class="meta-chip streak">🔥 7 day streak</span>
+            <span class="meta-chip xp">⚡ 1,050 XP</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- XP Bar -->
+      <div class="xp-section">
+        <div class="xp-label-row">
+          <span class="xp-label">XP Progress</span>
+          <span class="xp-value">1,050 / 1,500</span>
+        </div>
+        <div class="xp-track">
+          <div class="xp-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skill Snapshot -->
+    <div class="section-header">
+      <span class="section-label">Skill Snapshot ⚡</span>
+    </div>
+
+    <div style="margin-bottom: 24px;">
+      <!-- Ball Mastery -->
+      <div class="skill-row">
+        <div class="skill-icon" style="background: rgba(34,197,94,0.12); color: #4ADE80;">
+          <i class="fas fa-futbol"></i>
+        </div>
+        <div class="skill-info">
+          <div class="skill-name">⚽ Ball Mastery</div>
+          <div class="skill-bar-track">
+            <div class="skill-bar-fill green" style="width: 72%;"></div>
+          </div>
+        </div>
+        <span class="skill-pct">72%</span>
+      </div>
+
+      <!-- Speed -->
+      <div class="skill-row">
+        <div class="skill-icon" style="background: rgba(59,130,246,0.12); color: #60A5FA;">
+          <i class="fas fa-person-running"></i>
+        </div>
+        <div class="skill-info">
+          <div class="skill-name">🏃 Speed</div>
+          <div class="skill-bar-track">
+            <div class="skill-bar-fill blue" style="width: 58%;"></div>
+          </div>
+        </div>
+        <span class="skill-pct">58%</span>
+      </div>
+
+      <!-- 1v1 -->
+      <div class="skill-row">
+        <div class="skill-icon" style="background: rgba(245,158,11,0.12); color: #FBBF24;">
+          <i class="fas fa-people-arrows"></i>
+        </div>
+        <div class="skill-info">
+          <div class="skill-name">🤸 1v1 Moves</div>
+          <div class="skill-bar-track">
+            <div class="skill-bar-fill orange" style="width: 45%;"></div>
+          </div>
+        </div>
+        <span class="skill-pct">45%</span>
+      </div>
+
+      <!-- Shooting -->
+      <div class="skill-row">
+        <div class="skill-icon" style="background: rgba(239,68,68,0.12); color: #F87171;">
+          <i class="fas fa-bullseye"></i>
+        </div>
+        <div class="skill-info">
+          <div class="skill-name">🎯 Shooting</div>
+          <div class="skill-bar-track">
+            <div class="skill-bar-fill red" style="width: 38%;"></div>
+          </div>
+        </div>
+        <span class="skill-pct">38%</span>
+      </div>
+    </div>
+
+    <!-- Coach Notes Section -->
+    <div class="section-header">
+      <span class="section-label">Recent Notes 📝</span>
+    </div>
+
+    <!-- Note 1 -->
+    <div class="note-card">
+      <div class="note-top">
+        <span class="note-category field">🏟️ Field</span>
+        <span class="note-time">Today 3:15 PM</span>
+      </div>
+      <div class="note-text">Great first touch today, needs to look up more when receiving the ball under pressure.</div>
+    </div>
+
+    <!-- Note 2 -->
+    <div class="note-card">
+      <div class="note-top">
+        <span class="note-category drill">⚽ Drill</span>
+        <span class="note-time">Today 1:00 PM</span>
+      </div>
+      <div class="note-text">Completed juggling challenge — really improving! Hit 42 consecutive touches.</div>
+    </div>
+
+    <!-- Note 3 -->
+    <div class="note-card">
+      <div class="note-top">
+        <span class="note-category general">💡 General</span>
+        <span class="note-time">Yesterday</span>
+      </div>
+      <div class="note-text">Very focused this week, keep encouraging. Shows strong leadership with younger players.</div>
+    </div>
+
+    <div style="height: 20px;"></div>
+  </div>
+
+  <!-- Quick Input Area -->
+  <div class="input-area">
+    <div class="category-selector">
+      <button class="cat-pill active">🏟️ Field</button>
+      <button class="cat-pill">⚽ Drill</button>
+      <button class="cat-pill">💡 General</button>
+    </div>
+    <div class="input-row">
+      <input type="text" class="note-input" placeholder="Type a quick note...">
+      <button class="send-btn"><i class="fas fa-arrow-up"></i></button>
+    </div>
+  </div>
+
+</body>
+</html>
