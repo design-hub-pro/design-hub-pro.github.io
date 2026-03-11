@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=430, height=932, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KeyRestore AI - Play</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { width: 430px; height: 932px; overflow-x: hidden; }
+        .piano-key-white {
+            background: linear-gradient(180deg, #fff 0%, #f0f0f0 100%);
+            border: 1px solid #d1d5db;
+            border-radius: 0 0 8px 8px;
+            transition: all 0.15s;
+        }
+        .piano-key-white.active {
+            background: linear-gradient(180deg, #99f6e4 0%, #5eead4 100%);
+            border-color: #14b8a6;
+        }
+        .piano-key-black {
+            background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+            border-radius: 0 0 4px 4px;
+            z-index: 10;
+        }
+        .note-dot {
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Status Bar -->
+    <div class="bg-white px-6 py-2 flex justify-between items-center text-base font-medium">
+        <span>9:41</span>
+        <div class="flex items-center gap-1.5">
+            <i class="fas fa-signal text-sm"></i>
+            <i class="fas fa-wifi text-sm"></i>
+            <i class="fas fa-battery-full text-sm"></i>
+        </div>
+    </div>
+
+    <!-- Now Playing Header -->
+    <div class="bg-white px-6 pt-3 pb-4 border-b border-gray-100">
+        <div class="flex items-center justify-between">
+            <button class="w-10 h-10 flex items-center justify-center">
+                <i class="fas fa-arrow-left text-gray-600 text-lg"></i>
+            </button>
+            <div class="text-center">
+                <p class="text-lg font-semibold text-gray-900">Twinkle Twinkle</p>
+                <p class="text-sm text-teal-600 font-medium">Guided Mode</p>
+            </div>
+            <button class="w-10 h-10 flex items-center justify-center">
+                <i class="fas fa-cog text-gray-400 text-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="px-6 py-5">
+        <!-- Progress Bar -->
+        <div class="mb-5">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm text-gray-500">Progress</span>
+                <span class="text-sm font-semibold text-teal-600">62%</span>
+            </div>
+            <div class="bg-gray-200 rounded-full h-3">
+                <div class="bg-gradient-to-r from-teal-400 to-cyan-500 h-3 rounded-full w-[62%] relative">
+                    <div class="absolute right-0 top-1/2 -translate-y-1/2 w-5 h-5 bg-white rounded-full shadow-md border-2 border-teal-500"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Note Display / Sheet Music Area -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm mb-5">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-sm font-medium text-gray-500">NEXT NOTES</span>
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 bg-teal-100 text-teal-700 rounded text-sm font-medium">LED On</span>
+                    <span class="px-2 py-1 bg-amber-100 text-amber-700 rounded text-sm font-medium">Slow</span>
+                </div>
+            </div>
+            <!-- Falling notes visualization -->
+            <div class="relative h-36 bg-gray-50 rounded-xl overflow-hidden mb-3">
+                <div class="absolute left-[18%] top-2 w-10 h-10 bg-teal-400 rounded-lg flex items-center justify-center text-white font-bold note-dot">C</div>
+                <div class="absolute left-[34%] top-10 w-10 h-10 bg-teal-300 rounded-lg flex items-center justify-center text-white font-bold opacity-70">C</div>
+                <div class="absolute left-[50%] top-6 w-10 h-10 bg-cyan-400 rounded-lg flex items-center justify-center text-white font-bold opacity-80">G</div>
+                <div class="absolute left-[50%] top-20 w-10 h-10 bg-cyan-300 rounded-lg flex items-center justify-center text-white font-bold opacity-50">G</div>
+                <div class="absolute left-[58%] top-2 w-10 h-10 bg-blue-400 rounded-lg flex items-center justify-center text-white font-bold opacity-90">A</div>
+                <div class="absolute left-[58%] top-16 w-10 h-10 bg-blue-300 rounded-lg flex items-center justify-center text-white font-bold opacity-40">A</div>
+                <div class="absolute left-[50%] top-[110px] w-10 h-10 bg-purple-400 rounded-lg flex items-center justify-center text-white font-bold opacity-30">G</div>
+                <!-- Guide line -->
+                <div class="absolute bottom-0 left-0 right-0 h-1 bg-teal-500"></div>
+            </div>
+            <p class="text-center text-sm text-gray-500">Follow the LED lights on your piano pad</p>
+        </div>
+
+        <!-- Virtual Piano -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm mb-5">
+            <p class="text-sm font-medium text-gray-500 mb-3">VIRTUAL KEYBOARD</p>
+            <div class="relative h-32">
+                <!-- White keys -->
+                <div class="flex gap-0.5 h-full">
+                    <div class="piano-key-white active flex-1 flex items-end justify-center pb-2">
+                        <span class="text-sm font-bold text-teal-700">C</span>
+                    </div>
+                    <div class="piano-key-white flex-1 flex items-end justify-center pb-2">
+                        <span class="text-sm font-bold text-gray-400">D</span>
+                    </div>
+                    <div class="piano-key-white flex-1 flex items-end justify-center pb-2">
+                        <span class="text-sm font-bold text-gray-400">E</span>
+                    </div>
+                    <div class="piano-key-white flex-1 flex items-end justify-center pb-2">
+                        <span class="text-sm font-bold text-gray-400">F</span>
+                    </div>
+                    <div class="piano-key-white flex-1 flex items-end justify-center pb-2">
+                        <span class="text-sm font-bold text-gray-400">G</span>
+                    </div>
+                    <div class="piano-key-white flex-1 flex items-end justify-center pb-2">
+                        <span class="text-sm font-bold text-gray-400">A</span>
+                    </div>
+                    <div class="piano-key-white flex-1 flex items-end justify-center pb-2">
+                        <span class="text-sm font-bold text-gray-400">B</span>
+                    </div>
+                    <div class="piano-key-white flex-1 flex items-end justify-center pb-2">
+                        <span class="text-sm font-bold text-gray-400">C</span>
+                    </div>
+                </div>
+                <!-- Black keys -->
+                <div class="absolute top-0 left-0 right-0 flex h-[60%] px-2">
+                    <div class="flex-1"></div>
+                    <div class="piano-key-black w-[8%] -ml-[4%] -mr-[4%]"></div>
+                    <div class="flex-1"></div>
+                    <div class="piano-key-black w-[8%] -ml-[4%] -mr-[4%]"></div>
+                    <div class="flex-1"></div>
+                    <div class="flex-1"></div>
+                    <div class="piano-key-black w-[8%] -ml-[4%] -mr-[4%]"></div>
+                    <div class="flex-1"></div>
+                    <div class="piano-key-black w-[8%] -ml-[4%] -mr-[4%]"></div>
+                    <div class="flex-1"></div>
+                    <div class="piano-key-black w-[8%] -ml-[4%] -mr-[4%]"></div>
+                    <div class="flex-1"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Session Controls -->
+        <div class="flex items-center justify-center gap-6 mb-5">
+            <button class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-backward text-gray-600 text-lg"></i>
+            </button>
+            <button class="w-18 h-18 bg-teal-500 rounded-full flex items-center justify-center shadow-lg" style="width: 72px; height: 72px;">
+                <i class="fas fa-pause text-white text-2xl"></i>
+            </button>
+            <button class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-forward text-gray-600 text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Session Stats -->
+        <div class="grid grid-cols-3 gap-3">
+            <div class="bg-white rounded-xl p-3 text-center shadow-sm">
+                <p class="text-2xl font-bold text-teal-600">92%</p>
+                <p class="text-sm text-gray-500">Accuracy</p>
+            </div>
+            <div class="bg-white rounded-xl p-3 text-center shadow-sm">
+                <p class="text-2xl font-bold text-amber-600">3:24</p>
+                <p class="text-sm text-gray-500">Duration</p>
+            </div>
+            <div class="bg-white rounded-xl p-3 text-center shadow-sm">
+                <p class="text-2xl font-bold text-purple-600">8</p>
+                <p class="text-sm text-gray-500">Notes Hit</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Tab Bar -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-3 pb-8">
+        <div class="flex justify-around items-center">
+            <div class="flex flex-col items-center">
+                <i class="fas fa-home text-gray-400 text-2xl"></i>
+                <span class="text-sm text-gray-400 mt-1">Home</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <i class="fas fa-music text-teal-600 text-2xl"></i>
+                <span class="text-sm text-teal-600 font-medium mt-1">Play</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <i class="fas fa-chart-line text-gray-400 text-2xl"></i>
+                <span class="text-sm text-gray-400 mt-1">Progress</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <i class="fas fa-plug text-gray-400 text-2xl"></i>
+                <span class="text-sm text-gray-400 mt-1">Device</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <i class="fas fa-user text-gray-400 text-2xl"></i>
+                <span class="text-sm text-gray-400 mt-1">Profile</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="h-24"></div>
+</body>
+</html>
