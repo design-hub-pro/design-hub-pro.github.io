@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InventoryIQ - Sales Tracking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#232F3E', accent: '#FF9900', accentDark: '#E88B00', surface: '#F7F8FA',
+                        textPrimary: '#1A1A2E', textSecondary: '#6B7280', success: '#10B981',
+                        warning: '#F59E0B', danger: '#EF4444', info: '#3B82F6',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .sidebar-link.active { background: rgba(255,153,0,0.1); color: #FF9900; border-right: 3px solid #FF9900; }
+        .sidebar-link:hover { background: rgba(255,153,0,0.05); }
+        .map-dot { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body class="bg-surface min-h-screen">
+    <!-- Sidebar -->
+    <aside class="fixed left-0 top-0 h-full w-60 bg-primary text-white z-50 flex flex-col">
+        <div class="p-5 border-b border-white/10">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-accent rounded-lg flex items-center justify-center">
+                    <i class="fa-solid fa-boxes-stacked text-white text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base">InventoryIQ</h1>
+                    <p class="text-[10px] text-gray-400">AI-Powered Planning</p>
+                </div>
+            </div>
+        </div>
+        <nav class="flex-1 py-4">
+            <a href="dashboard.html" class="sidebar-link flex items-center gap-3 px-5 py-2.5 text-sm text-gray-300">
+                <i class="fa-solid fa-chart-line w-5 text-center"></i> Dashboard
+            </a>
+            <a href="sales-tracking.html" class="sidebar-link active flex items-center gap-3 px-5 py-2.5 text-sm">
+                <i class="fa-solid fa-location-dot w-5 text-center"></i> Sales Tracking
+            </a>
+            <a href="predictions.html" class="sidebar-link flex items-center gap-3 px-5 py-2.5 text-sm text-gray-300">
+                <i class="fa-solid fa-brain w-5 text-center"></i> AI Predictions
+            </a>
+            <a href="inventory.html" class="sidebar-link flex items-center gap-3 px-5 py-2.5 text-sm text-gray-300">
+                <i class="fa-solid fa-warehouse w-5 text-center"></i> Inventory
+            </a>
+            <a href="feedback.html" class="sidebar-link flex items-center gap-3 px-5 py-2.5 text-sm text-gray-300">
+                <i class="fa-solid fa-comments w-5 text-center"></i> AI Insights
+            </a>
+        </nav>
+        <div class="p-4 border-t border-white/10">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-accent/20 rounded-full flex items-center justify-center"><i class="fa-solid fa-user text-accent text-xs"></i></div>
+                <div><p class="text-xs font-medium">Alex Chen</p><p class="text-[10px] text-gray-400">Pro Seller</p></div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="ml-60">
+        <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between sticky top-0 z-40">
+            <div>
+                <h2 class="text-lg font-bold text-textPrimary">Location-Based Sales Tracking</h2>
+                <p class="text-xs text-textSecondary">Real-time sales performance by geographic region</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <select class="text-sm bg-surface border border-gray-200 rounded-lg px-3 py-2 focus:outline-none">
+                    <option>All Products</option>
+                    <option>Electronics</option>
+                    <option>Apparel</option>
+                    <option>Home & Garden</option>
+                </select>
+                <select class="text-sm bg-surface border border-gray-200 rounded-lg px-3 py-2 focus:outline-none">
+                    <option>Last 30 Days</option>
+                    <option>Last 90 Days</option>
+                    <option>This Year</option>
+                </select>
+            </div>
+        </header>
+
+        <div class="p-6 space-y-6">
+            <!-- Map Section -->
+            <div class="bg-white rounded-xl p-5 border border-gray-100">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold text-sm text-textPrimary">US Sales Heatmap</h3>
+                    <div class="flex items-center gap-4 text-xs text-textSecondary">
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-danger rounded-full"></span> High</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-warning rounded-full"></span> Medium</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-info rounded-full"></span> Low</span>
+                    </div>
+                </div>
+                <div class="relative bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl h-80 overflow-hidden">
+                    <!-- Stylized US Map with dots -->
+                    <img src="https://images.unsplash.com/photo-1589519160732-57fc6fdf5e04?w=1200&h=400&fit=crop&q=80" alt="US Map" class="w-full h-full object-cover rounded-xl opacity-20">
+                    <!-- Location Markers -->
+                    <div class="absolute top-[25%] left-[18%] map-dot cursor-pointer group">
+                        <div class="w-5 h-5 bg-danger rounded-full border-2 border-white shadow-lg"></div>
+                        <div class="absolute bottom-7 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap">Seattle: $31.8K</div>
+                    </div>
+                    <div class="absolute top-[35%] left-[14%] map-dot cursor-pointer group">
+                        <div class="w-6 h-6 bg-danger rounded-full border-2 border-white shadow-lg"></div>
+                        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap">San Francisco: $42.1K</div>
+                    </div>
+                    <div class="absolute top-[48%] left-[12%] map-dot cursor-pointer group">
+                        <div class="w-7 h-7 bg-danger rounded-full border-2 border-white shadow-lg flex items-center justify-center text-[8px] text-white font-bold">1</div>
+                        <div class="absolute bottom-9 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap">Los Angeles: $52.4K</div>
+                    </div>
+                    <div class="absolute top-[55%] left-[32%] map-dot cursor-pointer group">
+                        <div class="w-5 h-5 bg-warning rounded-full border-2 border-white shadow-lg"></div>
+                        <div class="absolute bottom-7 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap">Phoenix: $22.3K</div>
+                    </div>
+                    <div class="absolute top-[58%] left-[46%] map-dot cursor-pointer group">
+                        <div class="w-6 h-6 bg-danger rounded-full border-2 border-white shadow-lg"></div>
+                        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap">Dallas: $34.2K</div>
+                    </div>
+                    <div class="absolute top-[35%] left-[55%] map-dot cursor-pointer group">
+                        <div class="w-6 h-6 bg-danger rounded-full border-2 border-white shadow-lg"></div>
+                        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap">Chicago: $38.7K</div>
+                    </div>
+                    <div class="absolute top-[65%] left-[58%] map-dot cursor-pointer group">
+                        <div class="w-5 h-5 bg-warning rounded-full border-2 border-white shadow-lg"></div>
+                        <div class="absolute bottom-7 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap">Atlanta: $26.5K</div>
+                    </div>
+                    <div class="absolute top-[28%] left-[78%] map-dot cursor-pointer group">
+                        <div class="w-7 h-7 bg-danger rounded-full border-2 border-white shadow-lg flex items-center justify-center text-[8px] text-white font-bold">2</div>
+                        <div class="absolute bottom-9 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap">New York: $48.1K</div>
+                    </div>
+                    <div class="absolute top-[55%] left-[82%] map-dot cursor-pointer group">
+                        <div class="w-5 h-5 bg-warning rounded-full border-2 border-white shadow-lg"></div>
+                        <div class="absolute bottom-7 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap">Miami: $28.9K</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Regional Breakdown -->
+            <div class="grid grid-cols-3 gap-4">
+                <!-- West Coast -->
+                <div class="bg-white rounded-xl p-5 border border-gray-100">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-semibold text-sm text-textPrimary">West Coast</h4>
+                        <span class="text-xs text-success font-medium bg-success/10 px-2 py-0.5 rounded-full"><i class="fa-solid fa-arrow-up text-[10px]"></i> 18.2%</span>
+                    </div>
+                    <p class="text-xl font-bold text-textPrimary mb-1">$126,300</p>
+                    <p class="text-[11px] text-textSecondary mb-4">5,840 units across 3 warehouses</p>
+                    <canvas id="westChart" height="100"></canvas>
+                    <div class="mt-3 space-y-2">
+                        <div class="flex justify-between text-xs"><span class="text-textSecondary">Los Angeles</span><span class="font-medium">$52.4K</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-textSecondary">San Francisco</span><span class="font-medium">$42.1K</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-textSecondary">Seattle</span><span class="font-medium">$31.8K</span></div>
+                    </div>
+                </div>
+                <!-- East Coast -->
+                <div class="bg-white rounded-xl p-5 border border-gray-100">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-semibold text-sm text-textPrimary">East Coast</h4>
+                        <span class="text-xs text-success font-medium bg-success/10 px-2 py-0.5 rounded-full"><i class="fa-solid fa-arrow-up text-[10px]"></i> 11.5%</span>
+                    </div>
+                    <p class="text-xl font-bold text-textPrimary mb-1">$103,500</p>
+                    <p class="text-[11px] text-textSecondary mb-4">4,920 units across 3 warehouses</p>
+                    <canvas id="eastChart" height="100"></canvas>
+                    <div class="mt-3 space-y-2">
+                        <div class="flex justify-between text-xs"><span class="text-textSecondary">New York</span><span class="font-medium">$48.1K</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-textSecondary">Miami</span><span class="font-medium">$28.9K</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-textSecondary">Atlanta</span><span class="font-medium">$26.5K</span></div>
+                    </div>
+                </div>
+                <!-- Central -->
+                <div class="bg-white rounded-xl p-5 border border-gray-100">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-semibold text-sm text-textPrimary">Central</h4>
+                        <span class="text-xs text-warning font-medium bg-warning/10 px-2 py-0.5 rounded-full"><i class="fa-solid fa-minus text-[10px]"></i> 3.1%</span>
+                    </div>
+                    <p class="text-xl font-bold text-textPrimary mb-1">$95,200</p>
+                    <p class="text-[11px] text-textSecondary mb-4">4,072 units across 2 warehouses</p>
+                    <canvas id="centralChart" height="100"></canvas>
+                    <div class="mt-3 space-y-2">
+                        <div class="flex justify-between text-xs"><span class="text-textSecondary">Chicago</span><span class="font-medium">$38.7K</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-textSecondary">Dallas</span><span class="font-medium">$34.2K</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-textSecondary">Phoenix</span><span class="font-medium">$22.3K</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Table -->
+            <div class="bg-white rounded-xl p-5 border border-gray-100">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold text-sm text-textPrimary">Sales by Location — Detailed</h3>
+                    <button class="text-xs bg-accent/10 text-accent px-3 py-1.5 rounded-lg font-medium hover:bg-accent/20"><i class="fa-solid fa-download mr-1"></i> Export CSV</button>
+                </div>
+                <table class="w-full text-xs">
+                    <thead>
+                        <tr class="border-b border-gray-100 text-textSecondary">
+                            <th class="text-left py-2 font-medium">Location</th>
+                            <th class="text-left py-2 font-medium">Warehouse</th>
+                            <th class="text-right py-2 font-medium">Revenue</th>
+                            <th class="text-right py-2 font-medium">Units Sold</th>
+                            <th class="text-right py-2 font-medium">Avg Order</th>
+                            <th class="text-right py-2 font-medium">Growth</th>
+                            <th class="text-center py-2 font-medium">Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-gray-50 hover:bg-gray-50">
+                            <td class="py-2.5 font-medium text-textPrimary">Los Angeles, CA</td>
+                            <td class="py-2.5 text-textSecondary">WH-LAX-01</td>
+                            <td class="py-2.5 text-right font-semibold">$52,400</td>
+                            <td class="py-2.5 text-right">2,180</td>
+                            <td class="py-2.5 text-right">$24.04</td>
+                            <td class="py-2.5 text-right text-success font-medium">+22.1%</td>
+                            <td class="py-2.5 text-center"><i class="fa-solid fa-arrow-trend-up text-success"></i></td>
+                        </tr>
+                        <tr class="border-b border-gray-50 hover:bg-gray-50">
+                            <td class="py-2.5 font-medium text-textPrimary">New York, NY</td>
+                            <td class="py-2.5 text-textSecondary">WH-JFK-01</td>
+                            <td class="py-2.5 text-right font-semibold">$48,100</td>
+                            <td class="py-2.5 text-right">1,890</td>
+                            <td class="py-2.5 text-right">$25.45</td>
+                            <td class="py-2.5 text-right text-success font-medium">+15.3%</td>
+                            <td class="py-2.5 text-center"><i class="fa-solid fa-arrow-trend-up text-success"></i></td>
+                        </tr>
+                        <tr class="border-b border-gray-50 hover:bg-gray-50">
+                            <td class="py-2.5 font-medium text-textPrimary">Chicago, IL</td>
+                            <td class="py-2.5 text-textSecondary">WH-ORD-01</td>
+                            <td class="py-2.5 text-right font-semibold">$38,700</td>
+                            <td class="py-2.5 text-right">1,620</td>
+                            <td class="py-2.5 text-right">$23.89</td>
+                            <td class="py-2.5 text-right text-success font-medium">+8.7%</td>
+                            <td class="py-2.5 text-center"><i class="fa-solid fa-arrow-trend-up text-success"></i></td>
+                        </tr>
+                        <tr class="border-b border-gray-50 hover:bg-gray-50">
+                            <td class="py-2.5 font-medium text-textPrimary">Dallas, TX</td>
+                            <td class="py-2.5 text-textSecondary">WH-DFW-01</td>
+                            <td class="py-2.5 text-right font-semibold">$34,200</td>
+                            <td class="py-2.5 text-right">1,440</td>
+                            <td class="py-2.5 text-right">$23.75</td>
+                            <td class="py-2.5 text-right text-danger font-medium">-2.4%</td>
+                            <td class="py-2.5 text-center"><i class="fa-solid fa-arrow-trend-down text-danger"></i></td>
+                        </tr>
+                        <tr class="border-b border-gray-50 hover:bg-gray-50">
+                            <td class="py-2.5 font-medium text-textPrimary">Seattle, WA</td>
+                            <td class="py-2.5 text-textSecondary">WH-SEA-01</td>
+                            <td class="py-2.5 text-right font-semibold">$31,800</td>
+                            <td class="py-2.5 text-right">1,280</td>
+                            <td class="py-2.5 text-right">$24.84</td>
+                            <td class="py-2.5 text-right text-success font-medium">+12.6%</td>
+                            <td class="py-2.5 text-center"><i class="fa-solid fa-arrow-trend-up text-success"></i></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const chartOpts = { responsive: true, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { display: false } } };
+        new Chart(document.getElementById('westChart'), { type: 'bar', data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets: [{ data: [18,22,20,25,28,32,30], backgroundColor: '#3B82F6', borderRadius: 4 }] }, options: chartOpts });
+        new Chart(document.getElementById('eastChart'), { type: 'bar', data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets: [{ data: [15,18,22,19,24,26,23], backgroundColor: '#10B981', borderRadius: 4 }] }, options: chartOpts });
+        new Chart(document.getElementById('centralChart'), { type: 'bar', data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets: [{ data: [12,14,13,16,15,18,17], backgroundColor: '#FF9900', borderRadius: 4 }] }, options: chartOpts });
+    </script>
+</body>
+</html>
