@@ -7,282 +7,220 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-        * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
-        *::-webkit-scrollbar { display: none; }
-        * { scrollbar-width: none; }
-        html, body { width: 100%; height: 100%; overflow: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+        *::-webkit-scrollbar{display:none}*{scrollbar-width:none}
+        html,body{width:100%;height:100%;overflow:hidden}
 
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-        @keyframes sway { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-        .bounce { animation: bounce 1.5s ease-in-out infinite; }
-        .pulse-slow { animation: pulse 2s ease-in-out infinite; }
-        .sway { animation: sway 3s ease-in-out infinite; }
-        .float { animation: float 2.5s ease-in-out infinite; }
-
-        .game-scene {
-            background: linear-gradient(180deg, #1a3a2a 0%, #2d5a3f 25%, #3d7a52 50%, #2d5a3f 75%, #1a3a2a 100%);
-        }
-        .branch {
-            background: linear-gradient(90deg, #5a3a1a, #7a4a2a, #5a3a1a);
-            border-radius: 20px;
-        }
-        .collectible {
-            animation: float 2s ease-in-out infinite;
-        }
+        @keyframes sway{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(1.5deg)}}
+        @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+        @keyframes floatItem{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+        @keyframes cloudMove{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+        .sway{animation:sway 3s ease-in-out infinite}
+        .bounce{animation:bounce 1.2s ease-in-out infinite}
+        .float-item{animation:floatItem 2s ease-in-out infinite}
+        .cloud{animation:cloudMove 40s linear infinite}
     </style>
 </head>
-<body class="game-scene relative overflow-hidden">
-    <!-- Status Bar -->
-    <div class="relative z-50 flex justify-between items-center px-7 bg-transparent" style="height: 59px;">
-        <span class="text-white text-sm font-semibold">9:41</span>
-        <div class="w-32 h-8 bg-black rounded-full mx-auto"></div>
-        <div class="flex items-center gap-1.5">
-            <i class="fas fa-signal text-white text-xs"></i>
-            <i class="fas fa-wifi text-white text-xs"></i>
-            <i class="fas fa-battery-full text-white text-xs"></i>
-        </div>
+<body class="relative overflow-hidden">
+    <!-- Sky gradient background -->
+    <div class="absolute inset-0" style="background:linear-gradient(180deg,#1a3d5c 0%,#2d6b5a 25%,#3a7d44 50%,#2d5a3f 75%,#1a3a2a 100%)"></div>
+
+    <!-- Distant mountains layer -->
+    <div class="absolute bottom-0 left-0 right-0" style="height:70%">
+        <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=60"
+             class="w-full h-full object-cover opacity-15" alt="mountains">
     </div>
 
-    <!-- HUD Top -->
-    <div class="relative z-40 px-4 mb-2">
-        <!-- Top HUD Row -->
-        <div class="flex items-center justify-between mb-2">
-            <!-- Pause -->
-            <button class="w-9 h-9 bg-black/40 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/10">
-                <i class="fas fa-pause text-white text-xs"></i>
-            </button>
-            <!-- Season / Level -->
-            <div class="flex items-center gap-2 bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/10">
-                <i class="fas fa-snowflake text-blue-300 text-xs"></i>
-                <span class="text-white text-xs font-semibold">Winter</span>
-                <span class="text-white/40 text-xs">•</span>
-                <span class="text-amber-400 text-xs font-bold">Lv.7</span>
-            </div>
-            <!-- Settings -->
-            <button class="w-9 h-9 bg-black/40 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/10">
-                <i class="fas fa-cog text-white text-xs"></i>
-            </button>
-        </div>
-
-        <!-- Health & Food Bars -->
-        <div class="flex gap-2 mb-2">
-            <!-- Health -->
-            <div class="flex-1 bg-black/30 backdrop-blur rounded-full p-1 flex items-center gap-2">
-                <div class="w-6 h-6 bg-red-500/30 rounded-full flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-heart text-red-400 text-[10px]"></i>
-                </div>
-                <div class="flex-1 h-2.5 bg-black/30 rounded-full overflow-hidden">
-                    <div class="h-full rounded-full" style="width:72%; background: linear-gradient(90deg, #ef4444, #f87171);"></div>
-                </div>
-                <span class="text-white/60 text-[10px] font-bold pr-1">72</span>
-            </div>
-            <!-- Food -->
-            <div class="flex-1 bg-black/30 backdrop-blur rounded-full p-1 flex items-center gap-2">
-                <div class="w-6 h-6 bg-amber-500/30 rounded-full flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-apple-whole text-amber-400 text-[10px]"></i>
-                </div>
-                <div class="flex-1 h-2.5 bg-black/30 rounded-full overflow-hidden">
-                    <div class="h-full rounded-full" style="width:45%; background: linear-gradient(90deg, #f59e0b, #fbbf24);"></div>
-                </div>
-                <span class="text-white/60 text-[10px] font-bold pr-1">45</span>
-            </div>
-        </div>
-
-        <!-- Social & Score -->
-        <div class="flex gap-2">
-            <div class="flex items-center gap-1.5 bg-black/30 backdrop-blur rounded-full px-2.5 py-1">
-                <i class="fas fa-users text-pink-400 text-[10px]"></i>
-                <div class="flex -space-x-1">
-                    <div class="w-4 h-4 rounded-full bg-amber-600"></div>
-                    <div class="w-4 h-4 rounded-full bg-amber-700"></div>
-                    <div class="w-4 h-4 rounded-full bg-amber-500"></div>
-                </div>
-                <span class="text-white/60 text-[10px]">×5</span>
-            </div>
-            <div class="flex-1"></div>
-            <div class="flex items-center gap-1.5 bg-black/30 backdrop-blur rounded-full px-2.5 py-1">
-                <i class="fas fa-star text-amber-400 text-[10px]"></i>
-                <span class="text-amber-400 text-xs font-bold">2,450</span>
-            </div>
-            <div class="flex items-center gap-1.5 bg-black/30 backdrop-blur rounded-full px-2.5 py-1">
-                <i class="fas fa-leaf text-green-400 text-[10px]"></i>
-                <span class="text-green-400 text-xs font-bold">18</span>
-            </div>
-        </div>
+    <!-- Moving clouds -->
+    <div class="cloud absolute top-4 opacity-10" style="animation-delay:0s">
+        <div class="w-40 h-8 bg-white/30 rounded-full blur-md"></div>
+    </div>
+    <div class="cloud absolute top-12 opacity-5" style="animation-delay:-20s">
+        <div class="w-56 h-6 bg-white/20 rounded-full blur-lg"></div>
     </div>
 
-    <!-- Game Scene -->
-    <div class="relative z-10 flex-1" style="height: calc(100% - 260px);">
-        <!-- Background layers -->
-        <div class="absolute inset-0">
-            <!-- Distant mountains -->
-            <div class="absolute bottom-1/3 left-0 right-0 h-32 opacity-20"
-                 style="background: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&q=60') center/cover;"></div>
+    <!-- Mist layers -->
+    <div class="absolute top-1/3 left-0 right-0 h-12 bg-white/5 blur-xl"></div>
+    <div class="absolute bottom-1/4 left-0 right-0 h-8 bg-white/3 blur-xl"></div>
 
-            <!-- Trees background -->
-            <div class="absolute bottom-0 left-0 w-16 h-72 opacity-40" style="background: linear-gradient(0deg, #1a3a1a, transparent); border-radius: 50% 50% 0 0;"></div>
-            <div class="absolute bottom-0 right-0 w-20 h-80 opacity-30" style="background: linear-gradient(0deg, #1a3a1a, transparent); border-radius: 50% 50% 0 0;"></div>
+    <!-- === TREE / BRANCH LAYERS === -->
 
-            <!-- Mist -->
-            <div class="absolute top-1/4 left-0 right-0 h-16 bg-white/5 blur-xl"></div>
-        </div>
+    <!-- Far background trees (silhouettes) -->
+    <div class="absolute bottom-0 left-0 right-0" style="height:80%">
+        <div class="absolute bottom-0 left-[5%] w-20 h-72 opacity-20" style="background:radial-gradient(ellipse at bottom,#1a3a1a 30%,transparent 70%)"></div>
+        <div class="absolute bottom-0 left-[20%] w-24 h-80 opacity-15" style="background:radial-gradient(ellipse at bottom,#1a3a1a 30%,transparent 70%)"></div>
+        <div class="absolute bottom-0 right-[10%] w-28 h-84 opacity-20" style="background:radial-gradient(ellipse at bottom,#1a3a1a 30%,transparent 70%)"></div>
+        <div class="absolute bottom-0 right-[30%] w-16 h-64 opacity-15" style="background:radial-gradient(ellipse at bottom,#1a3a1a 30%,transparent 70%)"></div>
+    </div>
 
-        <!-- Branch Layer 1 (top) -->
-        <div class="absolute top-12 left-8 right-20 sway" style="transform-origin: left center;">
-            <div class="branch h-4 w-48"></div>
-            <!-- Leaves -->
-            <div class="absolute -top-4 left-8"><i class="fas fa-leaf text-green-600 text-xl rotate-45"></i></div>
-            <div class="absolute -top-3 left-20"><i class="fas fa-leaf text-green-500 text-lg rotate-12"></i></div>
-            <div class="absolute -top-5 left-32"><i class="fas fa-leaf text-green-700 text-2xl -rotate-12"></i></div>
-        </div>
+    <!-- Branch Layer 1 (top-left) -->
+    <div class="absolute top-[12%] left-[3%] sway" style="transform-origin:left center">
+        <div class="h-3 w-52 rounded-full" style="background:linear-gradient(90deg,#5a3a1a,#7a4a2a,#6a4020)"></div>
+        <div class="absolute -top-5 left-6"><i class="fas fa-leaf text-green-700 text-2xl rotate-45 opacity-80"></i></div>
+        <div class="absolute -top-4 left-16"><i class="fas fa-leaf text-green-600 text-xl rotate-12"></i></div>
+        <div class="absolute -top-6 left-28"><i class="fas fa-leaf text-green-800 text-3xl -rotate-12 opacity-70"></i></div>
+        <div class="absolute -top-3 left-40"><i class="fas fa-leaf text-green-500 text-lg rotate-30"></i></div>
+    </div>
 
-        <!-- Collectible - Fruit -->
-        <div class="absolute top-8 left-56 collectible" style="animation-delay: 0.5s;">
-            <div class="w-8 h-8 bg-gradient-to-b from-red-400 to-red-600 rounded-full shadow-lg flex items-center justify-center"
-                 style="box-shadow: 0 0 12px rgba(239,68,68,0.5);">
-                <i class="fas fa-apple-whole text-white text-xs"></i>
+    <!-- Branch Layer 2 (top-right) -->
+    <div class="absolute top-[8%] right-[2%] sway" style="transform-origin:right center;animation-delay:.8s">
+        <div class="h-3 w-60 rounded-full ml-auto" style="background:linear-gradient(90deg,#6a4020,#7a4a2a,#5a3a1a)"></div>
+        <div class="absolute -top-5 right-8"><i class="fas fa-leaf text-green-700 text-2xl -rotate-45 opacity-80"></i></div>
+        <div class="absolute -top-4 right-24"><i class="fas fa-leaf text-green-600 text-xl -rotate-12"></i></div>
+        <div class="absolute -top-6 right-40"><i class="fas fa-leaf text-green-800 text-2xl rotate-12 opacity-70"></i></div>
+    </div>
+
+    <!-- Branch Layer 3 (mid-left) -->
+    <div class="absolute top-[35%] left-[8%] sway" style="animation-delay:1.2s">
+        <div class="h-3.5 w-44 rounded-full" style="background:linear-gradient(90deg,#5a3a1a,#8a5a30,#6a4020)"></div>
+        <div class="absolute -top-4 left-10"><i class="fas fa-leaf text-green-600 text-xl rotate-20"></i></div>
+        <div class="absolute -top-5 left-28"><i class="fas fa-leaf text-green-700 text-2xl -rotate-30 opacity-80"></i></div>
+    </div>
+
+    <!-- Branch Layer 4 (mid-right, main monkey branch) -->
+    <div class="absolute top-[30%] right-[15%] sway" style="animation-delay:.4s;transform-origin:center">
+        <div class="h-4 w-64 rounded-full" style="background:linear-gradient(90deg,#6a4020,#8a5a30,#7a4a2a,#5a3a1a)"></div>
+        <div class="absolute -top-4 left-4"><i class="fas fa-leaf text-green-600 text-xl rotate-45"></i></div>
+        <div class="absolute -top-5 left-24"><i class="fas fa-leaf text-green-700 text-2xl -rotate-10"></i></div>
+        <div class="absolute -top-3 right-12"><i class="fas fa-leaf text-green-500 text-lg rotate-30"></i></div>
+    </div>
+
+    <!-- Branch Layer 5 (lower) -->
+    <div class="absolute bottom-[30%] left-[25%] sway" style="animation-delay:1.8s">
+        <div class="h-3 w-48 rounded-full" style="background:linear-gradient(90deg,#5a3a1a,#7a4a2a,#6a4020)"></div>
+        <div class="absolute -top-4 left-12"><i class="fas fa-seedling text-green-500 text-lg"></i></div>
+        <div class="absolute -top-5 left-32"><i class="fas fa-leaf text-green-600 text-xl rotate-60 opacity-80"></i></div>
+    </div>
+
+    <!-- Branch Layer 6 (bottom-right) -->
+    <div class="absolute bottom-[22%] right-[5%] sway" style="animation-delay:2s;transform-origin:right">
+        <div class="h-3 w-40 rounded-full" style="background:linear-gradient(90deg,#6a4020,#7a4a2a,#5a3a1a)"></div>
+        <div class="absolute -top-4 right-8"><i class="fas fa-leaf text-green-700 text-xl -rotate-30"></i></div>
+    </div>
+
+    <!-- === MONKEY CHARACTER === -->
+    <div class="absolute bounce" style="top:18%;right:28%">
+        <div class="relative">
+            <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-amber-400/50" style="box-shadow:0 0 24px rgba(255,215,0,.25)">
+                <img src="https://images.unsplash.com/photo-1540573133985-87b6da6d54a9?w=150&q=80" class="w-full h-full object-cover" alt="monkey">
             </div>
-        </div>
-
-        <!-- Branch Layer 2 -->
-        <div class="absolute top-36 right-4 sway" style="transform-origin: right center; animation-delay: 0.5s;">
-            <div class="branch h-4 w-56 ml-auto"></div>
-            <div class="absolute -top-4 right-12"><i class="fas fa-leaf text-green-600 text-xl -rotate-45"></i></div>
-            <div class="absolute -top-3 right-28"><i class="fas fa-leaf text-green-500 text-lg rotate-6"></i></div>
-        </div>
-
-        <!-- MONKEY CHARACTER -->
-        <div class="absolute top-24 left-32 bounce z-30">
-            <div class="relative">
-                <!-- Monkey body -->
-                <div class="w-14 h-14 rounded-full overflow-hidden border-2 border-amber-400/50"
-                     style="box-shadow: 0 0 20px rgba(255,215,0,0.3);">
-                    <img src="https://images.unsplash.com/photo-1540573133985-87b6da6d54a9?w=100&q=80"
-                         class="w-full h-full object-cover" alt="monkey">
-                </div>
-                <!-- Jump trail -->
-                <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                    <div class="w-1.5 h-1.5 bg-amber-400/40 rounded-full"></div>
-                    <div class="w-1 h-1 bg-amber-400/20 rounded-full"></div>
-                </div>
-                <!-- Name tag -->
-                <div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-black/50 rounded px-1.5 py-0.5">
-                    <span class="text-amber-400 text-[8px] font-bold">Kiki</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Collectible - Insect -->
-        <div class="absolute top-44 right-20 collectible" style="animation-delay: 1s;">
-            <div class="w-6 h-6 bg-gradient-to-b from-emerald-400 to-emerald-600 rounded-full shadow-lg flex items-center justify-center"
-                 style="box-shadow: 0 0 10px rgba(16,185,129,0.5);">
-                <i class="fas fa-bug text-white text-[8px]"></i>
-            </div>
-        </div>
-
-        <!-- Branch Layer 3 -->
-        <div class="absolute top-56 left-2 sway" style="animation-delay: 1s;">
-            <div class="branch h-3.5 w-44"></div>
-            <div class="absolute -top-3 left-16"><i class="fas fa-leaf text-green-500 text-lg rotate-30"></i></div>
-        </div>
-
-        <!-- Danger - Chainsaw -->
-        <div class="absolute top-64 right-8 pulse-slow">
-            <div class="bg-red-500/20 border border-red-500/30 rounded-xl px-2 py-1.5 flex items-center gap-1.5">
-                <i class="fas fa-triangle-exclamation text-red-400 text-xs"></i>
-                <span class="text-red-400 text-[9px] font-bold">DANGER</span>
-            </div>
-        </div>
-
-        <!-- Branch Layer 4 -->
-        <div class="absolute bottom-36 right-0 left-12 sway" style="animation-delay: 1.5s;">
-            <div class="branch h-4 w-52"></div>
-            <div class="absolute -top-4 left-20"><i class="fas fa-leaf text-green-600 text-xl rotate-12"></i></div>
-            <div class="absolute -top-3 left-36"><i class="fas fa-seedling text-green-400 text-lg"></i></div>
-        </div>
-
-        <!-- Collectible - Medicinal Plant -->
-        <div class="absolute bottom-44 left-20 collectible" style="animation-delay: 0.3s;">
-            <div class="w-7 h-7 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full shadow-lg flex items-center justify-center"
-                 style="box-shadow: 0 0 10px rgba(147,51,234,0.5);">
-                <i class="fas fa-seedling text-white text-[9px]"></i>
-            </div>
-            <div class="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-purple-500/40 rounded px-1 py-0.5">
-                <span class="text-white text-[7px]">+5 HP</span>
-            </div>
-        </div>
-
-        <!-- Ground -->
-        <div class="absolute bottom-16 left-0 right-0 h-20"
-             style="background: linear-gradient(0deg, #1a2a1a 0%, #2a4a2a 60%, transparent 100%);"></div>
-        <!-- Ground detail -->
-        <div class="absolute bottom-20 left-4 flex gap-3">
-            <i class="fas fa-leaf text-green-800 text-sm rotate-90"></i>
-            <i class="fas fa-seedling text-green-700 text-sm"></i>
-        </div>
-        <div class="absolute bottom-18 right-8 flex gap-2">
-            <i class="fas fa-leaf text-green-800 text-xs -rotate-45"></i>
-        </div>
-
-        <!-- Predator warning -->
-        <div class="absolute bottom-28 right-4">
-            <div class="w-10 h-10 bg-amber-900/60 rounded-full flex items-center justify-center border border-amber-600/30">
-                <i class="fas fa-crow text-amber-400 text-sm"></i>
-            </div>
-        </div>
-
-        <!-- Weather indicator -->
-        <div class="absolute top-4 left-4">
-            <div class="flex items-center gap-1 bg-blue-900/40 backdrop-blur rounded-lg px-2 py-1 border border-blue-400/20">
-                <i class="fas fa-cloud-snow text-blue-300 text-[10px]"></i>
-                <span class="text-blue-300 text-[9px]">-3°C</span>
+            <!-- Jump trail -->
+            <div class="absolute -right-3 top-1/2 flex flex-col gap-1">
+                <div class="w-2 h-2 bg-amber-400/30 rounded-full"></div>
+                <div class="w-1.5 h-1.5 bg-amber-400/15 rounded-full"></div>
             </div>
         </div>
     </div>
 
-    <!-- Bottom Controls -->
-    <div class="absolute bottom-0 left-0 right-0 z-40 px-4 pb-7 pt-3 bg-gradient-to-t from-black/60 to-transparent">
-        <div class="flex items-center justify-between">
-            <!-- D-Pad -->
-            <div class="relative w-24 h-24">
-                <button class="absolute top-0 left-1/2 -translate-x-1/2 w-9 h-9 bg-white/15 backdrop-blur rounded-xl flex items-center justify-center border border-white/20">
-                    <i class="fas fa-chevron-up text-white text-xs"></i>
-                </button>
-                <button class="absolute bottom-0 left-1/2 -translate-x-1/2 w-9 h-9 bg-white/15 backdrop-blur rounded-xl flex items-center justify-center border border-white/20">
-                    <i class="fas fa-chevron-down text-white text-xs"></i>
-                </button>
-                <button class="absolute left-0 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/15 backdrop-blur rounded-xl flex items-center justify-center border border-white/20">
-                    <i class="fas fa-chevron-left text-white text-xs"></i>
-                </button>
-                <button class="absolute right-0 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/15 backdrop-blur rounded-xl flex items-center justify-center border border-white/20">
-                    <i class="fas fa-chevron-right text-white text-xs"></i>
-                </button>
-            </div>
-
-            <!-- Action hint -->
-            <div class="bg-black/40 backdrop-blur rounded-full px-3 py-1.5 border border-white/10">
-                <span class="text-white/50 text-[10px]">Tap branch to grab</span>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex flex-col gap-2 items-end">
-                <button class="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg"
-                        style="box-shadow: 0 4px 16px rgba(255,140,0,0.4);">
-                    <i class="fas fa-arrow-up text-white text-lg -rotate-45"></i>
-                </button>
-                <div class="flex gap-2">
-                    <button class="w-9 h-9 bg-green-500/30 rounded-full flex items-center justify-center border border-green-400/30">
-                        <i class="fas fa-hand text-green-400 text-xs"></i>
-                    </button>
-                    <button class="w-9 h-9 bg-blue-500/30 rounded-full flex items-center justify-center border border-blue-400/30">
-                        <i class="fas fa-magnifying-glass text-blue-400 text-xs"></i>
-                    </button>
-                </div>
-            </div>
+    <!-- === COLLECTIBLES === -->
+    <!-- Fruit -->
+    <div class="absolute float-item" style="top:10%;left:50%">
+        <div class="w-8 h-8 bg-gradient-to-b from-red-400 to-red-600 rounded-full flex items-center justify-center" style="box-shadow:0 0 15px rgba(239,68,68,.5)">
+            <i class="fas fa-apple-whole text-white text-xs"></i>
         </div>
     </div>
+    <!-- Insect -->
+    <div class="absolute float-item" style="top:42%;left:60%;animation-delay:.7s">
+        <div class="w-6 h-6 bg-gradient-to-b from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center" style="box-shadow:0 0 10px rgba(16,185,129,.5)">
+            <i class="fas fa-bug text-white text-[8px]"></i>
+        </div>
+    </div>
+    <!-- Medicinal plant -->
+    <div class="absolute float-item" style="bottom:35%;left:35%;animation-delay:1.2s">
+        <div class="w-7 h-7 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full flex items-center justify-center" style="box-shadow:0 0 12px rgba(147,51,234,.5)">
+            <i class="fas fa-seedling text-white text-[9px]"></i>
+        </div>
+    </div>
+    <!-- Golden leaf (special) -->
+    <div class="absolute float-item" style="top:22%;left:18%;animation-delay:1.8s">
+        <div class="w-7 h-7 bg-gradient-to-b from-amber-300 to-amber-500 rounded-full flex items-center justify-center" style="box-shadow:0 0 12px rgba(245,158,11,.5)">
+            <i class="fas fa-star text-white text-[9px]"></i>
+        </div>
+    </div>
+
+    <!-- === DANGER ZONE === -->
+    <div class="absolute bottom-[18%] right-[12%]">
+        <div class="bg-red-900/40 backdrop-blur-sm border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1.5" style="animation:floatItem 2s ease-in-out infinite alternate">
+            <i class="fas fa-triangle-exclamation text-red-400 text-[10px]"></i>
+            <span class="text-red-400 text-[9px] font-bold">DANGER</span>
+        </div>
+    </div>
+
+    <!-- Predator (eagle) -->
+    <div class="absolute top-[15%] right-[8%]">
+        <div class="w-10 h-10 bg-amber-900/40 rounded-full flex items-center justify-center border border-amber-600/20">
+            <i class="fas fa-crow text-amber-400/70 text-sm"></i>
+        </div>
+    </div>
+
+    <!-- === GROUND === -->
+    <div class="absolute bottom-0 left-0 right-0 h-16" style="background:linear-gradient(0deg,#0d1f0d 0%,#1a3a1a 50%,transparent 100%)"></div>
+    <div class="absolute bottom-2 left-[10%]"><i class="fas fa-leaf text-green-900 rotate-90 text-sm"></i></div>
+    <div class="absolute bottom-3 left-[40%]"><i class="fas fa-seedling text-green-800 text-xs"></i></div>
+    <div class="absolute bottom-2 right-[20%]"><i class="fas fa-leaf text-green-900 -rotate-45 text-xs"></i></div>
+
+    <!-- === HUD OVERLAY === -->
+    <!-- Top-left: Health & Food -->
+    <div class="absolute top-3 left-3 flex flex-col gap-1.5 z-30">
+        <div class="flex items-center gap-2 bg-black/40 backdrop-blur-md rounded-full px-2.5 py-1.5 border border-white/10" style="min-width:140px">
+            <div class="w-5 h-5 bg-red-500/30 rounded-full flex items-center justify-center"><i class="fas fa-heart text-red-400 text-[9px]"></i></div>
+            <div class="flex-1 h-2 bg-black/40 rounded-full overflow-hidden"><div class="h-full rounded-full" style="width:72%;background:linear-gradient(90deg,#ef4444,#f87171)"></div></div>
+        </div>
+        <div class="flex items-center gap-2 bg-black/40 backdrop-blur-md rounded-full px-2.5 py-1.5 border border-white/10" style="min-width:140px">
+            <div class="w-5 h-5 bg-amber-500/30 rounded-full flex items-center justify-center"><i class="fas fa-apple-whole text-amber-400 text-[9px]"></i></div>
+            <div class="flex-1 h-2 bg-black/40 rounded-full overflow-hidden"><div class="h-full rounded-full" style="width:45%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div></div>
+        </div>
+    </div>
+
+    <!-- Top-center: Season & Level -->
+    <div class="absolute top-3 left-1/2 -translate-x-1/2 z-30">
+        <div class="flex items-center gap-2 bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/10">
+            <i class="fas fa-snowflake text-blue-300 text-xs"></i>
+            <span class="text-white text-[11px] font-semibold">Winter</span>
+            <span class="text-white/30">·</span>
+            <span class="text-amber-400 text-[11px] font-bold">Lv.7</span>
+        </div>
+    </div>
+
+    <!-- Top-right: Score & Pause -->
+    <div class="absolute top-3 right-3 flex items-center gap-2 z-30">
+        <div class="flex items-center gap-1.5 bg-black/40 backdrop-blur-md rounded-full px-2.5 py-1.5 border border-white/10">
+            <i class="fas fa-star text-amber-400 text-[10px]"></i>
+            <span class="text-amber-400 text-[11px] font-bold">2,450</span>
+        </div>
+        <button class="w-7 h-7 bg-black/40 backdrop-blur-md rounded-lg flex items-center justify-center border border-white/10">
+            <i class="fas fa-pause text-white text-[10px]"></i>
+        </button>
+    </div>
+
+    <!-- Bottom-left: D-Pad -->
+    <div class="absolute bottom-4 left-4 z-30">
+        <div class="relative w-20 h-20">
+            <button class="absolute top-0 left-1/2 -translate-x-1/2 w-7 h-7 bg-white/12 backdrop-blur rounded-lg flex items-center justify-center border border-white/15"><i class="fas fa-chevron-up text-white text-[9px]"></i></button>
+            <button class="absolute bottom-0 left-1/2 -translate-x-1/2 w-7 h-7 bg-white/12 backdrop-blur rounded-lg flex items-center justify-center border border-white/15"><i class="fas fa-chevron-down text-white text-[9px]"></i></button>
+            <button class="absolute left-0 top-1/2 -translate-y-1/2 w-7 h-7 bg-white/12 backdrop-blur rounded-lg flex items-center justify-center border border-white/15"><i class="fas fa-chevron-left text-white text-[9px]"></i></button>
+            <button class="absolute right-0 top-1/2 -translate-y-1/2 w-7 h-7 bg-white/12 backdrop-blur rounded-lg flex items-center justify-center border border-white/15"><i class="fas fa-chevron-right text-white text-[9px]"></i></button>
+        </div>
+    </div>
+
+    <!-- Bottom-right: Action buttons -->
+    <div class="absolute bottom-4 right-4 flex items-end gap-2 z-30">
+        <button class="w-8 h-8 bg-green-500/25 backdrop-blur rounded-full flex items-center justify-center border border-green-400/30"><i class="fas fa-hand text-green-400 text-xs"></i></button>
+        <button class="w-11 h-11 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg" style="box-shadow:0 4px 16px rgba(255,140,0,.4)">
+            <i class="fas fa-arrow-up text-white text-sm -rotate-45"></i>
+        </button>
+    </div>
+
+    <!-- Weather badge -->
+    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-30">
+        <div class="flex items-center gap-1 bg-blue-900/30 backdrop-blur rounded-full px-2 py-1 border border-blue-400/15">
+            <i class="fas fa-cloud-snow text-blue-300 text-[9px]"></i>
+            <span class="text-blue-300 text-[9px]">-3°C</span>
+        </div>
+    </div>
+
+    <!-- Vignette -->
+    <div class="absolute inset-0 pointer-events-none z-20" style="box-shadow:inset 0 0 80px rgba(0,0,0,.4)"></div>
 </body>
 </html>
