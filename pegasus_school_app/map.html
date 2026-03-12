@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pegasus School - Campus Map</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        html, body { width: 100%; height: 100%; overflow-x: hidden; background: #f8f9fb; }
+
+        .status-bar { height: 59px; padding: 0 28px; }
+        .content-area { padding: 0 28px; }
+        .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; margin: 0 auto; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+        .search-bar {
+            background: white;
+            border-radius: 14px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .map-container {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            background: #e8f0e8;
+        }
+        .map-pin {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .map-pin .pin-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .map-pin .pin-label {
+            background: white;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 9px;
+            font-weight: 600;
+            margin-top: 3px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            white-space: nowrap;
+        }
+        .filter-chip {
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            border: 1.5px solid #e5e7eb;
+            background: white;
+            color: #6b7280;
+        }
+        .filter-chip.active {
+            background: #1a365d;
+            color: white;
+            border-color: #1a365d;
+        }
+        .location-card {
+            background: white;
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 10px 16px;
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            font-size: 10px;
+            color: #9ca3af;
+        }
+        .tab-item.active { color: #1a365d; }
+        .tab-item i { font-size: 20px; }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div class="status-bar flex items-center justify-between relative bg-white">
+        <div class="dynamic-island"></div>
+        <span class="text-gray-900 text-sm font-semibold relative z-10">9:41</span>
+        <div class="flex items-center gap-1.5 relative z-10">
+            <i class="fas fa-signal text-gray-900 text-xs"></i>
+            <i class="fas fa-wifi text-gray-900 text-xs"></i>
+            <i class="fas fa-battery-full text-gray-900 text-xs"></i>
+        </div>
+    </div>
+
+    <!-- Scrollable Content -->
+    <div style="height: calc(100% - 59px - 80px); overflow-y: auto;">
+
+        <!-- Search -->
+        <div class="content-area pt-3">
+            <p class="text-gray-900 font-bold text-xl mb-3">Campus Map</p>
+            <div class="search-bar">
+                <i class="fas fa-search text-gray-400"></i>
+                <span class="text-gray-400 text-sm">Search rooms, buildings...</span>
+            </div>
+        </div>
+
+        <!-- Filter Chips -->
+        <div class="content-area mt-3">
+            <div class="flex gap-2 overflow-x-auto pb-1" style="scrollbar-width: none;">
+                <div class="filter-chip active">All</div>
+                <div class="filter-chip">Classrooms</div>
+                <div class="filter-chip">Offices</div>
+                <div class="filter-chip">Sports</div>
+                <div class="filter-chip">Dining</div>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div class="content-area mt-3">
+            <div class="map-container" style="height: 280px;">
+                <img src="https://images.unsplash.com/photo-1562774053-701939374585?w=800&h=500&fit=crop" class="w-full h-full object-cover opacity-40">
+
+                <!-- Overlay grid pattern -->
+                <div class="absolute inset-0" style="background: linear-gradient(135deg, rgba(26,54,93,0.05) 0%, rgba(26,54,93,0.1) 100%);"></div>
+
+                <!-- Map Pins -->
+                <div class="map-pin" style="top: 25%; left: 20%;">
+                    <div class="pin-dot bg-blue-600"><i class="fas fa-door-open text-white text-xs"></i></div>
+                    <div class="pin-label">Room 204</div>
+                </div>
+                <div class="map-pin" style="top: 40%; left: 55%;">
+                    <div class="pin-dot bg-amber-500"><i class="fas fa-utensils text-white text-xs"></i></div>
+                    <div class="pin-label">Cafeteria</div>
+                </div>
+                <div class="map-pin" style="top: 60%; left: 30%;">
+                    <div class="pin-dot bg-green-500"><i class="fas fa-futbol text-white text-xs"></i></div>
+                    <div class="pin-label">Sports Field</div>
+                </div>
+                <div class="map-pin" style="top: 20%; left: 72%;">
+                    <div class="pin-dot bg-purple-500"><i class="fas fa-book text-white text-xs"></i></div>
+                    <div class="pin-label">Library</div>
+                </div>
+                <div class="map-pin" style="top: 70%; left: 68%;">
+                    <div class="pin-dot bg-red-500"><i class="fas fa-building-columns text-white text-xs"></i></div>
+                    <div class="pin-label">Main Hall</div>
+                </div>
+
+                <!-- Zoom Controls -->
+                <div class="absolute bottom-3 right-3 flex flex-col gap-1.5">
+                    <div class="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fas fa-plus text-gray-700 text-sm"></i>
+                    </div>
+                    <div class="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fas fa-minus text-gray-700 text-sm"></i>
+                    </div>
+                </div>
+
+                <!-- Current Location -->
+                <div class="absolute bottom-3 left-3">
+                    <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fas fa-location-crosshairs text-white text-sm"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nearby Locations -->
+        <div class="content-area mt-4 mb-6">
+            <p class="text-gray-800 font-bold text-base mb-3">Nearby</p>
+            <div class="space-y-2.5">
+                <div class="location-card flex items-center gap-3">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-door-open text-blue-600 text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-900 text-sm">Room 204 — Grade 5</p>
+                        <p class="text-xs text-gray-500">Ms. Rivera • Lower School Wing</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-blue-600 font-semibold">120 ft</p>
+                        <i class="fas fa-diamond-turn-right text-blue-400 text-sm mt-1"></i>
+                    </div>
+                </div>
+                <div class="location-card flex items-center gap-3">
+                    <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-utensils text-amber-600 text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-900 text-sm">Cafeteria</p>
+                        <p class="text-xs text-gray-500">Lunch: 11:30 AM – 12:30 PM</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-amber-600 font-semibold">200 ft</p>
+                        <i class="fas fa-diamond-turn-right text-amber-400 text-sm mt-1"></i>
+                    </div>
+                </div>
+                <div class="location-card flex items-center gap-3">
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-futbol text-green-600 text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-900 text-sm">Sports Field</p>
+                        <p class="text-xs text-gray-500">Thunder Athletics • Outdoor</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-green-600 font-semibold">350 ft</p>
+                        <i class="fas fa-diamond-turn-right text-green-400 text-sm mt-1"></i>
+                    </div>
+                </div>
+                <div class="location-card flex items-center gap-3">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-book text-purple-600 text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-900 text-sm">Library & Media Center</p>
+                        <p class="text-xs text-gray-500">Open until 4:00 PM</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-purple-600 font-semibold">180 ft</p>
+                        <i class="fas fa-diamond-turn-right text-purple-400 text-sm mt-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <div class="tab-item">
+            <i class="fas fa-house"></i>
+            <span>Home</span>
+        </div>
+        <div class="tab-item active">
+            <i class="fas fa-map"></i>
+            <span>Map</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-users"></i>
+            <span>Teachers</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-calendar"></i>
+            <span>Events</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </div>
+    </div>
+</body>
+</html>
