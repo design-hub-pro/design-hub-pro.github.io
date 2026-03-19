@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detect - BallVision AI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .camera-view {
+            position: relative;
+            margin: 0 28px 16px;
+            border-radius: 24px;
+            overflow: hidden;
+            height: 380px;
+        }
+        .camera-view img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .camera-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.4) 100%);
+        }
+        .detection-box {
+            position: absolute;
+            border: 2.5px solid #22C55E;
+            border-radius: 10px;
+            background: rgba(34, 197, 94, 0.08);
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);
+        }
+        .detection-box .label {
+            position: absolute;
+            top: -22px;
+            left: -2px;
+            background: #22C55E;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+        .camera-stats {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .cam-badge {
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .cam-badge .dot {
+            width: 7px;
+            height: 7px;
+            background: #EF4444;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .bottom-controls {
+            position: absolute;
+            bottom: 14px;
+            left: 14px;
+            right: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .control-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 18px;
+            border: none;
+        }
+        .fps-counter {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="screen">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="time">9:41</span>
+            <div class="icons">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+
+        <!-- Dynamic Island -->
+        <div class="dynamic-island"></div>
+
+        <!-- Page Title -->
+        <div style="padding: 4px 28px 14px; display: flex; justify-content: space-between; align-items: center;">
+            <h1 style="font-size: 24px; font-weight: 700;">Live Detection</h1>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <span style="width: 8px; height: 8px; background: #EF4444; border-radius: 50%; animation: pulse 1.5s infinite;"></span>
+                <span style="font-size: 13px; color: #EF4444; font-weight: 600;">LIVE</span>
+            </div>
+        </div>
+
+        <!-- Camera View with Detections -->
+        <div class="camera-view">
+            <img src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&h=700&fit=crop" alt="Court">
+            <div class="camera-overlay"></div>
+
+            <!-- Detection Boxes -->
+            <div class="detection-box" style="top: 42%; left: 18%; width: 48px; height: 48px;">
+                <div class="label">98.7%</div>
+            </div>
+            <div class="detection-box" style="top: 58%; left: 55%; width: 44px; height: 44px;">
+                <div class="label">96.2%</div>
+            </div>
+            <div class="detection-box" style="top: 35%; left: 72%; width: 42px; height: 42px;">
+                <div class="label">94.8%</div>
+            </div>
+            <div class="detection-box" style="top: 68%; left: 32%; width: 46px; height: 46px;">
+                <div class="label">97.1%</div>
+            </div>
+
+            <!-- Top Stats -->
+            <div class="camera-stats">
+                <div class="cam-badge">
+                    <div class="dot"></div>
+                    REC
+                </div>
+                <div class="cam-badge">
+                    <i class="fas fa-bolt" style="color: #FACC15;"></i>
+                    30 FPS
+                </div>
+            </div>
+
+            <!-- Bottom Controls -->
+            <div class="bottom-controls">
+                <button class="control-btn"><i class="fas fa-sliders"></i></button>
+                <div class="cam-badge" style="background: rgba(34,197,94,0.8);">
+                    <i class="fas fa-circle-check"></i>
+                    4 Detected
+                </div>
+                <button class="control-btn"><i class="fas fa-expand"></i></button>
+            </div>
+        </div>
+
+        <!-- Detection Metrics -->
+        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); gap: 8px;">
+            <div class="stat-card" style="padding: 12px 8px;">
+                <div class="stat-value" style="font-size: 20px;">4</div>
+                <div class="stat-label">Found</div>
+            </div>
+            <div class="stat-card" style="padding: 12px 8px;">
+                <div class="stat-value" style="font-size: 20px; background: var(--gradient-secondary); -webkit-background-clip: text;">96%</div>
+                <div class="stat-label">Avg Conf.</div>
+            </div>
+            <div class="stat-card" style="padding: 12px 8px;">
+                <div class="stat-value" style="font-size: 20px; background: var(--gradient-accent); -webkit-background-clip: text;">30</div>
+                <div class="stat-label">FPS</div>
+            </div>
+            <div class="stat-card" style="padding: 12px 8px;">
+                <div class="stat-value" style="font-size: 20px; color: #F59E0B; -webkit-text-fill-color: #F59E0B;">23ms</div>
+                <div class="stat-label">Latency</div>
+            </div>
+        </div>
+
+        <!-- CNN Layer Visualization -->
+        <h2 class="section-title">CNN Pipeline</h2>
+        <div class="h-scroll" style="margin-bottom: 16px;">
+            <div style="width: 120px; background: var(--dark-card); border-radius: 16px; padding: 14px; border: 1px solid rgba(255,255,255,0.06); text-align: center;">
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #3B82F6, #6366F1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px;">
+                    <i class="fas fa-image" style="color: #fff; font-size: 18px;"></i>
+                </div>
+                <div style="font-size: 12px; font-weight: 600; margin-bottom: 2px;">Input</div>
+                <div style="font-size: 10px; color: var(--gray);">640×480</div>
+            </div>
+            <div style="display: flex; align-items: center; color: var(--gray);"><i class="fas fa-chevron-right"></i></div>
+            <div style="width: 120px; background: var(--dark-card); border-radius: 16px; padding: 14px; border: 1px solid rgba(255,255,255,0.06); text-align: center;">
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #8B5CF6, #A855F7); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px;">
+                    <i class="fas fa-layer-group" style="color: #fff; font-size: 18px;"></i>
+                </div>
+                <div style="font-size: 12px; font-weight: 600; margin-bottom: 2px;">Conv2D</div>
+                <div style="font-size: 10px; color: var(--gray);">Feature Extract</div>
+            </div>
+            <div style="display: flex; align-items: center; color: var(--gray);"><i class="fas fa-chevron-right"></i></div>
+            <div style="width: 120px; background: var(--dark-card); border-radius: 16px; padding: 14px; border: 1px solid rgba(255,255,255,0.06); text-align: center;">
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #EC4899, #F43F5E); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px;">
+                    <i class="fas fa-compress" style="color: #fff; font-size: 18px;"></i>
+                </div>
+                <div style="font-size: 12px; font-weight: 600; margin-bottom: 2px;">Pooling</div>
+                <div style="font-size: 10px; color: var(--gray);">Downsample</div>
+            </div>
+            <div style="display: flex; align-items: center; color: var(--gray);"><i class="fas fa-chevron-right"></i></div>
+            <div style="width: 120px; background: var(--dark-card); border-radius: 16px; padding: 14px; border: 1px solid rgba(255,255,255,0.06); text-align: center;">
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #22C55E, #84CC16); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px;">
+                    <i class="fas fa-crosshairs" style="color: #fff; font-size: 18px;"></i>
+                </div>
+                <div style="font-size: 12px; font-weight: 600; margin-bottom: 2px;">Detect</div>
+                <div style="font-size: 10px; color: var(--gray);">Bounding Box</div>
+            </div>
+        </div>
+
+        <!-- Detection Log -->
+        <h2 class="section-title">Detection Log</h2>
+        <div class="card" style="padding: 14px 16px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <span style="width: 8px; height: 8px; background: var(--primary); border-radius: 50%;"></span>
+                <span style="font-size: 13px; flex: 1;">Ball #1 — <span style="color: var(--primary); font-weight: 600;">98.7%</span></span>
+                <span style="font-size: 11px; color: var(--gray);">0.3s ago</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <span style="width: 8px; height: 8px; background: var(--primary); border-radius: 50%;"></span>
+                <span style="font-size: 13px; flex: 1;">Ball #2 — <span style="color: var(--primary); font-weight: 600;">97.1%</span></span>
+                <span style="font-size: 11px; color: var(--gray);">0.3s ago</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <span style="width: 8px; height: 8px; background: var(--secondary); border-radius: 50%;"></span>
+                <span style="font-size: 13px; flex: 1;">Ball #3 — <span style="color: var(--secondary); font-weight: 600;">96.2%</span></span>
+                <span style="font-size: 11px; color: var(--gray);">0.5s ago</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="width: 8px; height: 8px; background: var(--secondary); border-radius: 50%;"></span>
+                <span style="font-size: 13px; flex: 1;">Ball #4 — <span style="color: var(--secondary); font-weight: 600;">94.8%</span></span>
+                <span style="font-size: 11px; color: var(--gray);">0.7s ago</span>
+            </div>
+        </div>
+
+        <!-- Tab Bar -->
+        <nav class="tab-bar">
+            <a href="#" class="tab-item">
+                <i class="fas fa-house"></i>
+                <span>Home</span>
+            </a>
+            <a href="#" class="tab-item active">
+                <i class="fas fa-camera"></i>
+                <span>Detect</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-cloud-sun"></i>
+                <span>Conditions</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-clock-rotate-left"></i>
+                <span>History</span>
+            </a>
+            <a href="#" class="tab-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+        </nav>
+    </div>
+</body>
+</html>

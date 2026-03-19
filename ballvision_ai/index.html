@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BallVision AI - CNN-Based Tennis Ball Detection</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #ffffff;
+            color: #1a1a1a;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 60px 20px 40px;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .logo-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #22C55E, #84CC16);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 8px 24px rgba(34, 197, 94, 0.3);
+        }
+
+        .logo-text {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #22C55E, #84CC16);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            font-size: 18px;
+            color: #64748B;
+            max-width: 520px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Tech Stack */
+        .tech-badges {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+            padding: 0 20px;
+        }
+
+        .tech-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: #F1F5F9;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #475569;
+        }
+
+        .tech-badge i {
+            color: #22C55E;
+        }
+
+        /* Screens Container */
+        .screens-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            padding: 40px 40px 60px;
+            max-width: 1600px;
+            margin: 0 auto;
+            justify-items: center;
+        }
+
+        /* iPhone Frame */
+        .iphone-frame {
+            flex-shrink: 0;
+            width: 460px;
+            height: 980px;
+            background: #1a1a1a;
+            border-radius: 62px;
+            padding: 12px;
+            box-shadow:
+                0 0 0 2px #333,
+                0 25px 50px rgba(0, 0, 0, 0.15),
+                0 10px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .iphone-frame::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 32px;
+            background: #1a1a1a;
+            border-radius: 16px;
+            z-index: 10;
+        }
+
+        .iphone-screen {
+            width: 100%;
+            height: 100%;
+            background: #0A0F1A;
+            border-radius: 52px;
+            overflow: hidden;
+        }
+
+        .iphone-screen iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            transform-origin: top left;
+        }
+
+        /* Screen Labels */
+        .screen-label {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .screen-sublabel {
+            font-size: 12px;
+            color: #64748B;
+            margin-top: 4px;
+            text-align: center;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            border-top: 1px solid #E2E8F0;
+        }
+
+        .footer-text {
+            font-size: 14px;
+            color: #64748B;
+        }
+
+        .footer-brand {
+            font-weight: 600;
+            color: #22C55E;
+        }
+
+        /* Responsive */
+        @media (max-width: 1500px) {
+            .screens-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 24px;
+                padding: 30px 20px 50px;
+            }
+
+            .iphone-frame {
+                width: 380px;
+                height: 810px;
+                border-radius: 52px;
+            }
+
+            .iphone-screen {
+                border-radius: 42px;
+            }
+
+            .iphone-frame::before {
+                width: 100px;
+                height: 28px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .iphone-frame {
+                width: 320px;
+                height: 680px;
+                border-radius: 46px;
+            }
+
+            .iphone-screen {
+                border-radius: 38px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .screens-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 40px 20px 30px;
+            }
+
+            .logo-text {
+                font-size: 24px;
+            }
+
+            .tagline {
+                font-size: 16px;
+            }
+
+            .screens-container {
+                grid-template-columns: 1fr;
+                gap: 32px;
+                padding: 30px 20px 50px;
+            }
+
+            .iphone-frame {
+                width: 360px;
+                height: 770px;
+                border-radius: 50px;
+            }
+
+            .iphone-screen {
+                border-radius: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-crosshairs"></i>
+            </div>
+            <span class="logo-text">BallVision AI</span>
+        </div>
+        <p class="tagline">CNN-powered tennis ball detection optimized for varying environmental conditions — from bright sunlight to dusk.</p>
+
+        <div class="tech-badges">
+            <span class="tech-badge"><i class="fas fa-brain"></i> CNN Detection</span>
+            <span class="tech-badge"><i class="fas fa-camera"></i> Real-time Vision</span>
+            <span class="tech-badge"><i class="fas fa-cloud-sun"></i> Multi-Environment</span>
+            <span class="tech-badge"><i class="fas fa-chart-line"></i> Accuracy Tracking</span>
+        </div>
+    </header>
+
+    <!-- Screens -->
+    <section class="screens-container">
+        <!-- Home Screen -->
+        <div>
+            <div class="iphone-frame">
+                <div class="iphone-screen">
+                    <iframe src="home.html" scrolling="no" title="Home"></iframe>
+                </div>
+            </div>
+            <div class="screen-label">Home</div>
+            <div class="screen-sublabel">Dashboard & Stats</div>
+        </div>
+
+        <!-- Detect Screen -->
+        <div>
+            <div class="iphone-frame">
+                <div class="iphone-screen">
+                    <iframe src="detect.html" scrolling="no" title="Detect"></iframe>
+                </div>
+            </div>
+            <div class="screen-label">Live Detection</div>
+            <div class="screen-sublabel">CNN Camera View</div>
+        </div>
+
+        <!-- Conditions Screen -->
+        <div>
+            <div class="iphone-frame">
+                <div class="iphone-screen">
+                    <iframe src="conditions.html" scrolling="no" title="Conditions"></iframe>
+                </div>
+            </div>
+            <div class="screen-label">Environments</div>
+            <div class="screen-sublabel">Condition Testing</div>
+        </div>
+
+        <!-- History Screen -->
+        <div>
+            <div class="iphone-frame">
+                <div class="iphone-screen">
+                    <iframe src="history.html" scrolling="no" title="History"></iframe>
+                </div>
+            </div>
+            <div class="screen-label">History</div>
+            <div class="screen-sublabel">Session Tracking</div>
+        </div>
+
+        <!-- Profile Screen -->
+        <div>
+            <div class="iphone-frame">
+                <div class="iphone-screen">
+                    <iframe src="profile.html" scrolling="no" title="Profile"></iframe>
+                </div>
+            </div>
+            <div class="screen-label">Profile</div>
+            <div class="screen-sublabel">Settings & Achievements</div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p class="footer-text">Designed by <span class="footer-brand">Jason Zhu</span> | Computer Vision x Tennis</p>
+    </footer>
+</body>
+</html>
