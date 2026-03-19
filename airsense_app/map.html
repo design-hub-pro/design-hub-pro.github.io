@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirSense - Map</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        html, body { width: 100%; height: 100%; overflow: hidden; background: #f0f4f8; }
+
+        .status-bar { height: 59px; padding: 0 28px; }
+        .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+        .map-bg {
+            background: linear-gradient(145deg, #e8f0e8 0%, #d4e4d4 20%, #c8dcc8 40%, #bcd4bc 60%, #d0dce0 80%, #c4d4d8 100%);
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .map-road {
+            position: absolute;
+            background: #ffffff;
+            border-radius: 2px;
+        }
+        .map-road-h { height: 4px; }
+        .map-road-v { width: 4px; }
+        .map-road-main-h { height: 7px; background: #f0f0f0; }
+        .map-road-main-v { width: 7px; background: #f0f0f0; }
+        .map-water { background: #a8d4e6; border-radius: 50%; position: absolute; opacity: 0.5; }
+        .map-park { background: #8fc08f; border-radius: 12px; position: absolute; opacity: 0.4; }
+
+        .sensor-pin {
+            position: absolute;
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 800; color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 10;
+            border: 3px solid white;
+        }
+        .sensor-pin::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            width: 12px; height: 12px;
+            background: inherit;
+            transform: rotate(45deg);
+            border-radius: 0 0 3px 0;
+            z-index: -1;
+        }
+        .pin-good { background: #10b981; }
+        .pin-moderate { background: #f59e0b; }
+        .pin-unhealthy { background: #ef4444; }
+        .pin-predicted { background: #8b5cf6; border-style: dashed; }
+
+        .tab-bar {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 85px; background: white;
+            border-top: 1px solid #e5e7eb;
+            display: flex; align-items: flex-start; justify-content: space-around;
+            padding-top: 10px; z-index: 30;
+        }
+        .tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; color: #9ca3af; }
+        .tab-item.active { color: #0ea5e9; }
+        .tab-item i { font-size: 20px; }
+    </style>
+</head>
+<body>
+    <div style="position:relative; width:100%; height:100%; overflow:hidden;">
+        <!-- Status Bar -->
+        <div class="status-bar flex items-end justify-between pb-1 bg-white/90 backdrop-blur-md" style="position:absolute; top:0; left:0; right:0; z-index:20;">
+            <div class="dynamic-island"></div>
+            <span class="text-sm font-semibold">9:41</span>
+            <div class="flex items-center gap-1">
+                <i class="fas fa-signal text-xs"></i>
+                <i class="fas fa-wifi text-xs"></i>
+                <i class="fas fa-battery-full text-xs"></i>
+            </div>
+        </div>
+
+        <!-- Search Bar Overlay -->
+        <div style="position:absolute; top:65px; left:28px; right:28px; z-index:20;">
+            <div class="bg-white rounded-2xl p-3 flex items-center gap-3 shadow-lg">
+                <i class="fas fa-search text-gray-400 text-sm"></i>
+                <span class="text-gray-400 text-sm flex-1">Search location...</span>
+                <div class="w-8 h-8 bg-sky-500 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-sliders text-white text-xs"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Area -->
+        <div class="map-bg">
+            <!-- Roads -->
+            <div class="map-road map-road-main-h" style="top:30%; left:0; width:100%;"></div>
+            <div class="map-road map-road-main-h" style="top:55%; left:0; width:100%;"></div>
+            <div class="map-road map-road-main-v" style="left:35%; top:0; height:100%;"></div>
+            <div class="map-road map-road-main-v" style="left:70%; top:0; height:100%;"></div>
+            <div class="map-road map-road-h" style="top:18%; left:10%; width:60%;"></div>
+            <div class="map-road map-road-h" style="top:42%; left:20%; width:70%;"></div>
+            <div class="map-road map-road-h" style="top:68%; left:5%; width:55%;"></div>
+            <div class="map-road map-road-h" style="top:78%; left:30%; width:50%;"></div>
+            <div class="map-road map-road-v" style="left:15%; top:10%; height:50%;"></div>
+            <div class="map-road map-road-v" style="left:52%; top:20%; height:45%;"></div>
+            <div class="map-road map-road-v" style="left:85%; top:15%; height:60%;"></div>
+
+            <!-- Water / Parks -->
+            <div class="map-water" style="top:10%; right:5%; width:80px; height:60px;"></div>
+            <div class="map-park" style="top:60%; left:8%; width:70px; height:50px;"></div>
+            <div class="map-park" style="top:35%; right:15%; width:50px; height:40px;"></div>
+
+            <!-- Sensor Pins - Real Sensors -->
+            <div class="sensor-pin pin-good" style="top:25%; left:20%;">32</div>
+            <div class="sensor-pin pin-moderate" style="top:40%; left:55%;">58</div>
+            <div class="sensor-pin pin-good" style="top:60%; left:35%;">28</div>
+            <div class="sensor-pin pin-unhealthy" style="top:35%; left:80%;">112</div>
+
+            <!-- Predicted Pins -->
+            <div class="sensor-pin pin-predicted" style="top:50%; left:15%;">~35</div>
+            <div class="sensor-pin pin-predicted" style="top:70%; left:65%;">~48</div>
+            <div class="sensor-pin pin-predicted" style="top:20%; left:50%;">~41</div>
+        </div>
+
+        <!-- Legend Overlay -->
+        <div style="position:absolute; bottom:100px; left:28px; right:28px; z-index:20;">
+            <div class="bg-white rounded-2xl p-4 shadow-lg">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="font-bold text-gray-900 text-sm">Air Quality Map</span>
+                    <span class="text-xs text-gray-400">7 stations</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-1.5">
+                        <div class="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                        <span class="text-[10px] text-gray-500">Good</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <div class="w-3 h-3 bg-amber-500 rounded-full"></div>
+                        <span class="text-[10px] text-gray-500">Moderate</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <span class="text-[10px] text-gray-500">Unhealthy</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <div class="w-3 h-3 bg-violet-500 rounded-full border border-dashed border-white"></div>
+                        <span class="text-[10px] text-gray-500">Predicted</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <div class="tab-item">
+                <i class="fas fa-house"></i>
+                <span>Home</span>
+            </div>
+            <div class="tab-item active">
+                <i class="fas fa-map"></i>
+                <span>Map</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Predict</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-microchip"></i>
+                <span>Sensors</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
