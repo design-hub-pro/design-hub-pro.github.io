@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Movement Coach - Compare</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: #000; color: #fff; width: 100%; height: 100%; overflow-x: hidden; }
+
+.status-bar { height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 100; }
+.status-time { font-size: 17px; font-weight: 600; }
+.dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 20px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+.status-icons { display: flex; gap: 6px; align-items: center; font-size: 15px; }
+
+.nav-bar { padding: 8px 28px 16px; display: flex; align-items: center; gap: 14px; }
+.nav-back { width: 36px; height: 36px; background: rgba(255,255,255,0.08); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; border: none; }
+.nav-title { font-size: 18px; font-weight: 700; flex: 1; }
+
+.content { padding: 0 28px 120px; }
+
+/* Split View */
+.split-view { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; position: relative; }
+.split-panel { border-radius: 20px; overflow: hidden; position: relative; height: 280px; }
+.split-panel img { width: 100%; height: 100%; object-fit: cover; }
+.split-label { position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.5); backdrop-filter: blur(15px); padding: 4px 12px; border-radius: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.label-you { color: #818cf8; }
+.label-expert { color: #4ade80; }
+.split-divider { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 36px; height: 36px; background: rgba(255,255,255,0.15); backdrop-filter: blur(20px); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; font-size: 14px; color: #fff; border: 2px solid rgba(255,255,255,0.3); }
+
+/* Match Score */
+.match-score { background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(168,85,247,0.12)); border-radius: 20px; padding: 20px; text-align: center; margin-bottom: 20px; border: 1px solid rgba(129,140,248,0.15); }
+.match-score .match-label { font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.match-score .match-num { font-size: 48px; font-weight: 800; background: linear-gradient(135deg, #818cf8, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.1; }
+.match-score .match-desc { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+/* Comparison Bars */
+.comparison-section { margin-bottom: 20px; }
+.section-title { font-size: 18px; font-weight: 700; margin-bottom: 14px; }
+.comp-item { margin-bottom: 16px; }
+.comp-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.comp-item-name { font-size: 13px; font-weight: 600; }
+.comp-item-values { display: flex; gap: 16px; font-size: 12px; }
+.comp-you { color: #818cf8; }
+.comp-expert { color: #4ade80; }
+.comp-bars { display: flex; gap: 4px; height: 8px; }
+.comp-bar { flex: 1; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; position: relative; }
+.comp-bar-fill { height: 100%; border-radius: 4px; }
+.comp-bar:first-child .comp-bar-fill { background: linear-gradient(90deg, #6366f1, #818cf8); }
+.comp-bar:last-child .comp-bar-fill { background: linear-gradient(90deg, #22c55e, #4ade80); }
+
+/* Keypoint Diff */
+.keypoint-diff { background: rgba(255,255,255,0.06); border-radius: 20px; padding: 18px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.06); }
+.keypoint-title { font-size: 14px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.keypoint-title i { color: #818cf8; }
+.keypoint-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.keypoint-row:last-child { margin-bottom: 0; }
+.keypoint-icon { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.keypoint-icon.kp-green { background: rgba(74,222,128,0.12); color: #4ade80; }
+.keypoint-icon.kp-yellow { background: rgba(251,191,36,0.12); color: #fbbf24; }
+.keypoint-icon.kp-red { background: rgba(248,113,113,0.12); color: #f87171; }
+.keypoint-info { flex: 1; }
+.keypoint-info .kp-name { font-size: 13px; font-weight: 600; }
+.keypoint-info .kp-diff { font-size: 11px; color: rgba(255,255,255,0.45); }
+.keypoint-angle { font-size: 14px; font-weight: 700; }
+
+/* Playback Controls */
+.playback-controls { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 16px; }
+.playback-btn { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.08); border: none; color: #fff; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+.playback-btn.play { width: 56px; height: 56px; background: linear-gradient(135deg, #6366f1, #8b5cf6); font-size: 20px; }
+.speed-badge { background: rgba(255,255,255,0.08); padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; color: #818cf8; }
+
+/* Tab Bar */
+.tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(0,0,0,0.85); backdrop-filter: blur(30px); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; border-top: 0.5px solid rgba(255,255,255,0.1); }
+.tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: rgba(255,255,255,0.35); text-decoration: none; font-size: 10px; font-weight: 500; }
+.tab-item.active { color: #818cf8; }
+.tab-item i { font-size: 22px; }
+.tab-record { width: 52px; height: 52px; background: linear-gradient(135deg, #ef4444, #f97316); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -10px; box-shadow: 0 4px 20px rgba(239,68,68,0.4); }
+.tab-record i { font-size: 20px; color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="nav-bar">
+  <button class="nav-back"><i class="fas fa-chevron-left"></i></button>
+  <span class="nav-title">Expert Compare</span>
+</div>
+
+<div class="content">
+  <!-- Split View -->
+  <div class="split-view">
+    <div class="split-panel">
+      <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80" alt="You">
+      <span class="split-label label-you">You</span>
+    </div>
+    <div class="split-panel">
+      <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=80" alt="Expert">
+      <span class="split-label label-expert">Expert</span>
+    </div>
+    <div class="split-divider"><i class="fas fa-arrows-left-right"></i></div>
+  </div>
+
+  <!-- Playback Controls -->
+  <div class="playback-controls">
+    <button class="playback-btn"><i class="fas fa-backward-step"></i></button>
+    <button class="playback-btn"><i class="fas fa-backward"></i></button>
+    <button class="playback-btn play"><i class="fas fa-play" style="margin-left:2px;"></i></button>
+    <button class="playback-btn"><i class="fas fa-forward"></i></button>
+    <span class="speed-badge">0.5x</span>
+  </div>
+
+  <!-- Match Score -->
+  <div class="match-score">
+    <div class="match-label">Pose Match</div>
+    <div class="match-num">87%</div>
+    <div class="match-desc">Close to expert level — keep refining!</div>
+  </div>
+
+  <!-- Comparison Bars -->
+  <div class="comparison-section">
+    <div class="section-title">Metric Comparison</div>
+
+    <div class="comp-item">
+      <div class="comp-item-header">
+        <span class="comp-item-name">Shoulder Alignment</span>
+        <div class="comp-item-values">
+          <span class="comp-you">85%</span>
+          <span class="comp-expert">97%</span>
+        </div>
+      </div>
+      <div class="comp-bars">
+        <div class="comp-bar"><div class="comp-bar-fill" style="width:85%"></div></div>
+        <div class="comp-bar"><div class="comp-bar-fill" style="width:97%"></div></div>
+      </div>
+    </div>
+
+    <div class="comp-item">
+      <div class="comp-item-header">
+        <span class="comp-item-name">Hip Rotation</span>
+        <div class="comp-item-values">
+          <span class="comp-you">90%</span>
+          <span class="comp-expert">95%</span>
+        </div>
+      </div>
+      <div class="comp-bars">
+        <div class="comp-bar"><div class="comp-bar-fill" style="width:90%"></div></div>
+        <div class="comp-bar"><div class="comp-bar-fill" style="width:95%"></div></div>
+      </div>
+    </div>
+
+    <div class="comp-item">
+      <div class="comp-item-header">
+        <span class="comp-item-name">Leg Extension</span>
+        <div class="comp-item-values">
+          <span class="comp-you">78%</span>
+          <span class="comp-expert">98%</span>
+        </div>
+      </div>
+      <div class="comp-bars">
+        <div class="comp-bar"><div class="comp-bar-fill" style="width:78%"></div></div>
+        <div class="comp-bar"><div class="comp-bar-fill" style="width:98%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keypoint Differences -->
+  <div class="keypoint-diff">
+    <div class="keypoint-title"><i class="fas fa-bone"></i> Joint Angle Differences</div>
+    <div class="keypoint-row">
+      <div class="keypoint-icon kp-green"><i class="fas fa-check"></i></div>
+      <div class="keypoint-info">
+        <div class="kp-name">Right Elbow</div>
+        <div class="kp-diff">Within optimal range</div>
+      </div>
+      <span class="keypoint-angle" style="color:#4ade80;">-2°</span>
+    </div>
+    <div class="keypoint-row">
+      <div class="keypoint-icon kp-yellow"><i class="fas fa-exclamation"></i></div>
+      <div class="keypoint-info">
+        <div class="kp-name">Left Shoulder</div>
+        <div class="kp-diff">Slightly elevated</div>
+      </div>
+      <span class="keypoint-angle" style="color:#fbbf24;">+8°</span>
+    </div>
+    <div class="keypoint-row">
+      <div class="keypoint-icon kp-red"><i class="fas fa-times"></i></div>
+      <div class="keypoint-info">
+        <div class="kp-name">Right Knee</div>
+        <div class="kp-diff">Needs more extension</div>
+      </div>
+      <span class="keypoint-angle" style="color:#f87171;">-15°</span>
+    </div>
+    <div class="keypoint-row">
+      <div class="keypoint-icon kp-green"><i class="fas fa-check"></i></div>
+      <div class="keypoint-info">
+        <div class="kp-name">Hip Angle</div>
+        <div class="kp-diff">Excellent alignment</div>
+      </div>
+      <span class="keypoint-angle" style="color:#4ade80;">+1°</span>
+    </div>
+  </div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <a href="#" class="tab-item">
+    <i class="fas fa-house"></i>
+    <span>Home</span>
+  </a>
+  <a href="#" class="tab-item">
+    <i class="fas fa-chart-line"></i>
+    <span>Progress</span>
+  </a>
+  <a href="#" class="tab-item">
+    <div class="tab-record"><i class="fas fa-video"></i></div>
+    <span></span>
+  </a>
+  <a href="#" class="tab-item active">
+    <i class="fas fa-code-compare"></i>
+    <span>Compare</span>
+  </a>
+  <a href="#" class="tab-item">
+    <i class="fas fa-user"></i>
+    <span>Profile</span>
+  </a>
+</div>
+
+</body>
+</html>

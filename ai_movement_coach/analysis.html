@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Movement Coach - Analysis</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: #000; color: #fff; width: 100%; height: 100%; overflow-x: hidden; }
+
+.status-bar { height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 100; }
+.status-time { font-size: 17px; font-weight: 600; }
+.dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 20px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+.status-icons { display: flex; gap: 6px; align-items: center; font-size: 15px; }
+
+/* Nav */
+.nav-bar { padding: 8px 28px 16px; display: flex; align-items: center; gap: 14px; }
+.nav-back { width: 36px; height: 36px; background: rgba(255,255,255,0.08); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; border: none; }
+.nav-title { font-size: 18px; font-weight: 700; flex: 1; }
+.nav-share { color: #818cf8; font-size: 18px; background: none; border: none; }
+
+.content { padding: 0 28px 120px; }
+
+/* Video Preview */
+.video-preview { border-radius: 24px; overflow: hidden; position: relative; height: 220px; margin-bottom: 20px; }
+.video-preview img { width: 100%; height: 100%; object-fit: cover; }
+.video-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); }
+.video-timeline { position: absolute; bottom: 12px; left: 16px; right: 16px; }
+.timeline-bar { height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; position: relative; }
+.timeline-progress { height: 4px; background: #818cf8; border-radius: 2px; width: 65%; }
+.timeline-dot { width: 14px; height: 14px; background: #fff; border-radius: 50%; position: absolute; top: -5px; left: 65%; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.video-time { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: rgba(255,255,255,0.6); }
+.play-btn-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 56px; height: 56px; background: rgba(255,255,255,0.15); backdrop-filter: blur(20px); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+
+/* Overall Score */
+.overall-score { display: flex; align-items: center; gap: 20px; background: rgba(255,255,255,0.06); border-radius: 24px; padding: 24px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.06); }
+.score-circle { width: 90px; height: 90px; border-radius: 50%; position: relative; flex-shrink: 0; }
+.score-circle svg { width: 90px; height: 90px; transform: rotate(-90deg); }
+.score-circle-bg { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 6; }
+.score-circle-fill { fill: none; stroke: url(#scoreGrad); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 251.3; stroke-dashoffset: 22.6; }
+.score-circle .score-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.score-circle .score-text .num { font-size: 32px; font-weight: 800; line-height: 1; }
+.score-circle .score-text .label { font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; }
+.score-details h3 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.score-details p { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+
+/* Body Metrics */
+.metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+.metric-card { background: rgba(255,255,255,0.06); border-radius: 18px; padding: 16px; border: 1px solid rgba(255,255,255,0.06); }
+.metric-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.metric-icon { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.metric-icon.green { background: rgba(74,222,128,0.12); color: #4ade80; }
+.metric-icon.yellow { background: rgba(251,191,36,0.12); color: #fbbf24; }
+.metric-icon.blue { background: rgba(96,165,250,0.12); color: #60a5fa; }
+.metric-icon.purple { background: rgba(167,139,250,0.12); color: #a78bfa; }
+.metric-badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 8px; }
+.badge-good { background: rgba(74,222,128,0.12); color: #4ade80; }
+.badge-fair { background: rgba(251,191,36,0.12); color: #fbbf24; }
+.metric-card .metric-name { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 4px; }
+.metric-card .metric-value { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+.metric-bar { height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.metric-bar-fill { height: 100%; border-radius: 2px; }
+.fill-green { background: linear-gradient(90deg, #4ade80, #22c55e); }
+.fill-yellow { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+.fill-blue { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
+.fill-purple { background: linear-gradient(90deg, #a78bfa, #8b5cf6); }
+
+/* Section Header */
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.section-header h3 { font-size: 18px; font-weight: 700; }
+
+/* AI Feedback */
+.ai-feedback { background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12)); border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(129,140,248,0.15); }
+.ai-feedback-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.ai-feedback-header i { font-size: 18px; color: #818cf8; }
+.ai-feedback-header span { font-size: 14px; font-weight: 700; color: #818cf8; }
+.feedback-item { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
+.feedback-item:last-child { margin-bottom: 0; }
+.feedback-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+.feedback-dot.good { background: #4ade80; }
+.feedback-dot.improve { background: #fbbf24; }
+.feedback-item p { font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.5; }
+
+/* Tab Bar */
+.tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(0,0,0,0.85); backdrop-filter: blur(30px); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; border-top: 0.5px solid rgba(255,255,255,0.1); }
+.tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: rgba(255,255,255,0.35); text-decoration: none; font-size: 10px; font-weight: 500; }
+.tab-item.active { color: #818cf8; }
+.tab-item i { font-size: 22px; }
+.tab-record { width: 52px; height: 52px; background: linear-gradient(135deg, #ef4444, #f97316); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -10px; box-shadow: 0 4px 20px rgba(239,68,68,0.4); }
+.tab-record i { font-size: 20px; color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="nav-bar">
+  <button class="nav-back"><i class="fas fa-chevron-left"></i></button>
+  <span class="nav-title">Session Analysis</span>
+  <button class="nav-share"><i class="fas fa-arrow-up-from-bracket"></i></button>
+</div>
+
+<div class="content">
+  <!-- Video Preview -->
+  <div class="video-preview">
+    <img src="https://images.unsplash.com/photo-1508807526345-15e9b5f4eaff?w=800&q=80" alt="Analysis">
+    <div class="video-overlay"></div>
+    <div class="play-btn-overlay"><i class="fas fa-play" style="margin-left:2px;"></i></div>
+    <div class="video-timeline">
+      <div class="timeline-bar">
+        <div class="timeline-progress"></div>
+        <div class="timeline-dot"></div>
+      </div>
+      <div class="video-time">
+        <span>01:37</span>
+        <span>02:30</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overall Score -->
+  <div class="overall-score">
+    <div class="score-circle">
+      <svg viewBox="0 0 90 90">
+        <defs>
+          <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#4ade80"/>
+            <stop offset="100%" stop-color="#06b6d4"/>
+          </linearGradient>
+        </defs>
+        <circle class="score-circle-bg" cx="45" cy="45" r="40"/>
+        <circle class="score-circle-fill" cx="45" cy="45" r="40"/>
+      </svg>
+      <div class="score-text">
+        <span class="num">91</span>
+        <span class="label">Score</span>
+      </div>
+    </div>
+    <div class="score-details">
+      <h3>Excellent Form!</h3>
+      <p>Your pirouette technique shows strong core stability. Focus on arm extension for a perfect score.</p>
+    </div>
+  </div>
+
+  <!-- Body Metrics -->
+  <div class="section-header">
+    <h3>Body Metrics</h3>
+  </div>
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-header">
+        <div class="metric-icon green"><i class="fas fa-crosshairs"></i></div>
+        <span class="metric-badge badge-good">Great</span>
+      </div>
+      <div class="metric-name">Center of Gravity</div>
+      <div class="metric-value">94%</div>
+      <div class="metric-bar"><div class="metric-bar-fill fill-green" style="width:94%"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-header">
+        <div class="metric-icon yellow"><i class="fas fa-arrows-alt"></i></div>
+        <span class="metric-badge badge-fair">Fair</span>
+      </div>
+      <div class="metric-name">Joint Angles</div>
+      <div class="metric-value">82%</div>
+      <div class="metric-bar"><div class="metric-bar-fill fill-yellow" style="width:82%"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-header">
+        <div class="metric-icon blue"><i class="fas fa-wind"></i></div>
+        <span class="metric-badge badge-good">Great</span>
+      </div>
+      <div class="metric-name">Fluidity</div>
+      <div class="metric-value">96%</div>
+      <div class="metric-bar"><div class="metric-bar-fill fill-blue" style="width:96%"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-header">
+        <div class="metric-icon purple"><i class="fas fa-music"></i></div>
+        <span class="metric-badge badge-good">Great</span>
+      </div>
+      <div class="metric-name">Rhythm</div>
+      <div class="metric-value">93%</div>
+      <div class="metric-bar"><div class="metric-bar-fill fill-purple" style="width:93%"></div></div>
+    </div>
+  </div>
+
+  <!-- AI Feedback -->
+  <div class="section-header">
+    <h3>AI Coach Feedback</h3>
+  </div>
+  <div class="ai-feedback">
+    <div class="ai-feedback-header">
+      <i class="fas fa-sparkles"></i>
+      <span>Movement Insights</span>
+    </div>
+    <div class="feedback-item">
+      <div class="feedback-dot good"></div>
+      <p>Strong core engagement through all rotations — stability score up 8% from last session.</p>
+    </div>
+    <div class="feedback-item">
+      <div class="feedback-dot improve"></div>
+      <p>Right shoulder drops 12° during landing phase. Try engaging your lats earlier.</p>
+    </div>
+    <div class="feedback-item">
+      <div class="feedback-dot good"></div>
+      <p>Excellent hip-to-shoulder coordination in transition movements.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <a href="#" class="tab-item">
+    <i class="fas fa-house"></i>
+    <span>Home</span>
+  </a>
+  <a href="#" class="tab-item">
+    <i class="fas fa-chart-line"></i>
+    <span>Progress</span>
+  </a>
+  <a href="#" class="tab-item">
+    <div class="tab-record"><i class="fas fa-video"></i></div>
+    <span></span>
+  </a>
+  <a href="#" class="tab-item">
+    <i class="fas fa-code-compare"></i>
+    <span>Compare</span>
+  </a>
+  <a href="#" class="tab-item active">
+    <i class="fas fa-user"></i>
+    <span>Profile</span>
+  </a>
+</div>
+
+</body>
+</html>
