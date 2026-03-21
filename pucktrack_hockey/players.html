@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PuckTrack — Player Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0f1117; color: #e2e8f0; }
+        .sidebar { background: #161822; border-right: 1px solid #1e2235; }
+        .card { background: #1a1d2e; border: 1px solid #252942; border-radius: 12px; }
+        .nav-item { padding: 10px 16px; border-radius: 8px; color: #94a3b8; cursor: pointer; transition: all 0.2s; }
+        .nav-item:hover { background: #1e2235; color: #e2e8f0; }
+        .nav-item.active { background: #1e3a5f; color: #60a5fa; }
+        .player-card { background: #1a1d2e; border: 1px solid #252942; border-radius: 12px; transition: all 0.2s; cursor: pointer; }
+        .player-card:hover { border-color: #3b82f6; transform: translateY(-2px); }
+        .player-card.selected { border-color: #3b82f6; background: #1e2a4a; box-shadow: 0 0 0 1px #3b82f6; }
+        .jersey { width: 56px; height: 56px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; color: white; }
+        .team-bruins { background: linear-gradient(135deg, #FFB81C, #d4982a); }
+        .team-rangers { background: linear-gradient(135deg, #0038A8, #CE1126); }
+        .video-preview { position: relative; border-radius: 12px; overflow: hidden; background: #000; }
+        .video-preview img { width: 100%; height: 380px; object-fit: cover; }
+        .bbox { position: absolute; border: 2px solid; border-radius: 4px; }
+        .bbox-label { position: absolute; top: -20px; left: 0; font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 600; white-space: nowrap; }
+        .tab-btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #94a3b8; transition: all 0.2s; }
+        .tab-btn.active { background: #1e3a5f; color: #60a5fa; }
+        .tab-btn:hover:not(.active) { color: #e2e8f0; }
+    </style>
+</head>
+<body class="min-h-screen flex">
+    <!-- Sidebar -->
+    <aside class="sidebar w-64 min-h-screen flex flex-col p-4 flex-shrink-0">
+        <div class="flex items-center gap-3 px-2 mb-8">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-xl flex items-center justify-center">
+                <i class="fas fa-hockey-puck text-white text-lg"></i>
+            </div>
+            <div>
+                <div class="font-bold text-white text-lg leading-tight">PuckTrack</div>
+                <div class="text-xs text-gray-500">Video Analysis</div>
+            </div>
+        </div>
+        <nav class="flex flex-col gap-1 flex-1">
+            <a href="dashboard.html" class="nav-item flex items-center gap-3"><i class="fas fa-th-large w-5 text-center"></i> Dashboard</a>
+            <a href="upload.html" class="nav-item flex items-center gap-3"><i class="fas fa-cloud-upload-alt w-5 text-center"></i> Upload Video</a>
+            <a href="players.html" class="nav-item active flex items-center gap-3"><i class="fas fa-users w-5 text-center"></i> Player Detection</a>
+            <a href="player-reel.html" class="nav-item flex items-center gap-3"><i class="fas fa-user-circle w-5 text-center"></i> Player Reel</a>
+            <a href="highlights.html" class="nav-item flex items-center gap-3"><i class="fas fa-fire w-5 text-center"></i> Goal Highlights</a>
+            <a href="export.html" class="nav-item flex items-center gap-3"><i class="fas fa-file-export w-5 text-center"></i> Export</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-8 overflow-y-auto">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <div class="flex items-center gap-3 mb-1">
+                    <h1 class="text-2xl font-bold text-white">Player Detection</h1>
+                    <span class="text-xs bg-green-500/20 text-green-400 px-2.5 py-1 rounded-full font-medium"><i class="fas fa-check-circle mr-1"></i>Analysis Complete</span>
+                </div>
+                <p class="text-gray-400 text-sm">Penguins vs Capitals · Mar 18, 2026 · 18 players detected</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="px-4 py-2 rounded-lg text-sm font-medium text-gray-400 border border-[#252942] hover:border-gray-500 transition">
+                    <i class="fas fa-redo mr-1.5"></i>Re-analyze
+                </button>
+                <a href="player-reel.html" class="px-5 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg text-sm font-semibold text-white hover:opacity-90 transition">
+                    <i class="fas fa-film mr-1.5"></i>Generate Reel
+                </a>
+            </div>
+        </div>
+
+        <!-- Video Preview with Bounding Boxes -->
+        <div class="video-preview mb-6">
+            <img src="https://images.unsplash.com/photo-1515703407324-5f753afd8be8?w=1200&h=760&fit=crop" alt="Game frame with player detection">
+            <!-- Simulated bounding boxes -->
+            <div class="bbox" style="border-color: #FFB81C; top: 25%; left: 18%; width: 60px; height: 100px;">
+                <div class="bbox-label" style="background: #FFB81C; color: #000;">#87 Crosby</div>
+            </div>
+            <div class="bbox" style="border-color: #FFB81C; top: 30%; left: 38%; width: 55px; height: 95px;">
+                <div class="bbox-label" style="background: #FFB81C; color: #000;">#71 Malkin</div>
+            </div>
+            <div class="bbox" style="border-color: #CE1126; top: 22%; left: 55%; width: 58px; height: 98px;">
+                <div class="bbox-label" style="background: #CE1126; color: #fff;">#8 Ovechkin</div>
+            </div>
+            <div class="bbox" style="border-color: #CE1126; top: 35%; left: 72%; width: 52px; height: 90px;">
+                <div class="bbox-label" style="background: #CE1126; color: #fff;">#19 Backstrom</div>
+            </div>
+            <div class="bbox" style="border-color: #FFB81C; top: 40%; left: 28%; width: 50px; height: 88px;">
+                <div class="bbox-label" style="background: #FFB81C; color: #000;">#59 Guentzel</div>
+            </div>
+            <!-- Timeline bar -->
+            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                <div class="flex items-center gap-3">
+                    <button class="text-white"><i class="fas fa-play"></i></button>
+                    <span class="text-white text-xs font-mono">12:34</span>
+                    <div class="flex-1 h-1.5 bg-white/20 rounded-full relative">
+                        <div class="absolute left-0 top-0 h-full w-[22%] bg-blue-500 rounded-full"></div>
+                        <div class="absolute top-1/2 -translate-y-1/2 left-[22%] w-3 h-3 bg-white rounded-full shadow"></div>
+                    </div>
+                    <span class="text-white text-xs font-mono">2:34:17</span>
+                    <button class="text-white"><i class="fas fa-expand"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Filter Tabs -->
+        <div class="flex items-center gap-2 mb-5 bg-[#161822] p-1.5 rounded-lg w-fit">
+            <button class="tab-btn active">All Players (18)</button>
+            <button class="tab-btn">
+                <span class="inline-block w-3 h-3 rounded-full bg-[#FFB81C] mr-1.5"></span>Penguins (10)
+            </button>
+            <button class="tab-btn">
+                <span class="inline-block w-3 h-3 rounded-full bg-[#CE1126] mr-1.5"></span>Capitals (8)
+            </button>
+        </div>
+
+        <!-- Player Grid -->
+        <div class="grid grid-cols-3 gap-4 mb-6">
+            <!-- Penguins Players -->
+            <div class="player-card selected p-4">
+                <div class="flex items-center gap-3">
+                    <div class="jersey team-bruins">#87</div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-white">Sidney Crosby</div>
+                        <div class="text-xs text-gray-400">Center · Pittsburgh Penguins</div>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="text-xs text-gray-500"><i class="fas fa-clock mr-1"></i>22:14 ice time</span>
+                            <span class="text-xs text-gray-500"><i class="fas fa-eye mr-1"></i>847 frames</span>
+                        </div>
+                    </div>
+                    <div class="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-check text-blue-400 text-xs"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="player-card p-4">
+                <div class="flex items-center gap-3">
+                    <div class="jersey team-bruins">#71</div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-white">Evgeni Malkin</div>
+                        <div class="text-xs text-gray-400">Center · Pittsburgh Penguins</div>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="text-xs text-gray-500"><i class="fas fa-clock mr-1"></i>19:47 ice time</span>
+                            <span class="text-xs text-gray-500"><i class="fas fa-eye mr-1"></i>712 frames</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="player-card p-4">
+                <div class="flex items-center gap-3">
+                    <div class="jersey team-bruins">#59</div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-white">Jake Guentzel</div>
+                        <div class="text-xs text-gray-400">Left Wing · Pittsburgh Penguins</div>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="text-xs text-gray-500"><i class="fas fa-clock mr-1"></i>18:33 ice time</span>
+                            <span class="text-xs text-gray-500"><i class="fas fa-eye mr-1"></i>668 frames</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="player-card p-4">
+                <div class="flex items-center gap-3">
+                    <div class="jersey team-bruins">#58</div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-white">Kris Letang</div>
+                        <div class="text-xs text-gray-400">Defense · Pittsburgh Penguins</div>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="text-xs text-gray-500"><i class="fas fa-clock mr-1"></i>24:02 ice time</span>
+                            <span class="text-xs text-gray-500"><i class="fas fa-eye mr-1"></i>921 frames</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Capitals Players -->
+            <div class="player-card p-4">
+                <div class="flex items-center gap-3">
+                    <div class="jersey team-rangers">#8</div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-white">Alex Ovechkin</div>
+                        <div class="text-xs text-gray-400">Left Wing · Washington Capitals</div>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="text-xs text-gray-500"><i class="fas fa-clock mr-1"></i>20:51 ice time</span>
+                            <span class="text-xs text-gray-500"><i class="fas fa-eye mr-1"></i>789 frames</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="player-card p-4">
+                <div class="flex items-center gap-3">
+                    <div class="jersey team-rangers">#19</div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-white">Nicklas Backstrom</div>
+                        <div class="text-xs text-gray-400">Center · Washington Capitals</div>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="text-xs text-gray-500"><i class="fas fa-clock mr-1"></i>18:22 ice time</span>
+                            <span class="text-xs text-gray-500"><i class="fas fa-eye mr-1"></i>653 frames</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="player-card p-4">
+                <div class="flex items-center gap-3">
+                    <div class="jersey team-rangers">#77</div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-white">T.J. Oshie</div>
+                        <div class="text-xs text-gray-400">Right Wing · Washington Capitals</div>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="text-xs text-gray-500"><i class="fas fa-clock mr-1"></i>16:15 ice time</span>
+                            <span class="text-xs text-gray-500"><i class="fas fa-eye mr-1"></i>582 frames</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="player-card p-4">
+                <div class="flex items-center gap-3">
+                    <div class="jersey team-rangers">#74</div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-white">John Carlson</div>
+                        <div class="text-xs text-gray-400">Defense · Washington Capitals</div>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="text-xs text-gray-500"><i class="fas fa-clock mr-1"></i>23:18 ice time</span>
+                            <span class="text-xs text-gray-500"><i class="fas fa-eye mr-1"></i>884 frames</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="player-card p-4">
+                <div class="flex items-center gap-3">
+                    <div class="jersey team-bruins">#30</div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-white">Matt Murray</div>
+                        <div class="text-xs text-gray-400">Goalie · Pittsburgh Penguins</div>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="text-xs text-gray-500"><i class="fas fa-clock mr-1"></i>60:00 ice time</span>
+                            <span class="text-xs text-gray-500"><i class="fas fa-eye mr-1"></i>2,140 frames</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Action Bar -->
+        <div class="card p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="text-sm text-gray-400"><strong class="text-white">1</strong> player selected</span>
+                <span class="text-gray-600">|</span>
+                <span class="text-xs text-gray-500">Click a player to select, then generate their personal reel</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="px-4 py-2 rounded-lg text-sm font-medium text-gray-400 border border-[#252942] hover:border-gray-500 transition">
+                    Select Multiple
+                </button>
+                <a href="player-reel.html" class="px-5 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg text-sm font-semibold text-white hover:opacity-90 transition shadow-lg shadow-blue-500/20">
+                    <i class="fas fa-film mr-1.5"></i>Generate Player Reel →
+                </a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
