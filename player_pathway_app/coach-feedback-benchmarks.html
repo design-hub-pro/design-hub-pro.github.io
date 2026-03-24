@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player Pathway - Performance Benchmarks</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0F172A; color: #ffffff;
+    scrollbar-width: none; -ms-overflow-style: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    position: relative; z-index: 100; background: #0F172A;
+  }
+  .status-time { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
+  .dynamic-island {
+    width: 120px; height: 36px; background: #000000;
+    border-radius: 20px; position: absolute;
+    left: 50%; transform: translateX(-50%); top: 10px;
+  }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 14px; }
+
+  .header-nav {
+    display: flex; align-items: center; gap: 14px;
+    padding: 6px 28px 14px;
+  }
+  .back-btn {
+    width: 36px; height: 36px; border-radius: 12px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+    color: #60A5FA; font-size: 15px; cursor: pointer;
+    flex-shrink: 0;
+  }
+  .header-title {
+    font-size: 18px; font-weight: 800; letter-spacing: -0.3px;
+    flex: 1;
+  }
+
+  /* Toggle pills for at-home vs in-person */
+  .test-toggle {
+    display: flex;
+    background: #1E293B;
+    border-radius: 12px;
+    padding: 4px;
+    gap: 4px;
+  }
+
+  .toggle-pill {
+    flex: 1;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    color: #64748B;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    background: none;
+    font-family: inherit;
+  }
+
+  .toggle-pill.active {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60A5FA;
+  }
+
+  .content-scroll {
+    position: absolute; top: 110px; bottom: 0;
+    left: 0; right: 0; overflow-y: auto;
+    scrollbar-width: none; -ms-overflow-style: none;
+    padding: 0 28px 40px;
+  }
+  .content-scroll::-webkit-scrollbar { display: none; }
+
+  /* Toggle Bar */
+  .location-toggle {
+    display: flex;
+    background: #1E293B;
+    border-radius: 14px;
+    padding: 4px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .loc-pill {
+    flex: 1;
+    padding: 10px 8px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    color: #64748B;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    background: none;
+    font-family: inherit;
+  }
+
+  .loc-pill.active {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60A5FA;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+  }
+
+  .section-label {
+    font-size: 13px; font-weight: 700; letter-spacing: 1px;
+    color: #64748B; text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .section-label i {
+    font-size: 12px;
+  }
+
+  /* Benchmark Card */
+  .bench-card {
+    background: #1E293B;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .bench-icon {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .bench-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .bench-name {
+    font-size: 14px; font-weight: 700;
+    color: #E2E8F0;
+  }
+
+  .bench-detail {
+    font-size: 11px; font-weight: 500;
+    color: #64748B;
+    margin-top: 2px;
+  }
+
+  .bench-input-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .bench-input {
+    width: 64px; height: 40px;
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    text-align: center;
+    font-size: 16px; font-weight: 700;
+    color: #ffffff;
+    font-family: inherit;
+    outline: none;
+  }
+
+  .bench-input:focus {
+    border-color: rgba(59, 130, 246, 0.5);
+  }
+
+  .bench-unit {
+    font-size: 11px; font-weight: 600;
+    color: #64748B;
+    min-width: 24px;
+  }
+
+  /* Delta indicator */
+  .bench-delta {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+  }
+
+  .bench-delta.up {
+    background: rgba(34, 197, 94, 0.12);
+    color: #4ADE80;
+  }
+
+  .bench-delta.down {
+    background: rgba(239, 68, 68, 0.12);
+    color: #F87171;
+  }
+
+  .bench-delta.same {
+    background: rgba(255, 255, 255, 0.06);
+    color: #94A3B8;
+  }
+
+  /* Category colors */
+  .bench-icon.running { background: rgba(59, 130, 246, 0.12); }
+  .bench-icon.juggling { background: rgba(34, 197, 94, 0.12); }
+  .bench-icon.finishing { background: rgba(239, 68, 68, 0.12); }
+  .bench-icon.passing { background: rgba(245, 158, 11, 0.12); }
+  .bench-icon.v1 { background: rgba(168, 85, 247, 0.12); }
+  .bench-icon.physical { background: rgba(236, 72, 153, 0.12); }
+  .bench-icon.technical { background: rgba(6, 182, 212, 0.12); }
+  .bench-icon.mixed { background: rgba(249, 115, 22, 0.12); }
+
+  /* Date Selector */
+  .date-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #1E293B;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+  }
+
+  .date-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: rgba(59, 130, 246, 0.12);
+    display: flex; align-items: center; justify-content: center;
+    color: #60A5FA; font-size: 16px;
+  }
+
+  .date-info { flex: 1; }
+
+  .date-label {
+    font-size: 12px; font-weight: 600; color: #64748B;
+  }
+
+  .date-value {
+    font-size: 15px; font-weight: 700; color: #E2E8F0;
+  }
+
+  .date-arrow {
+    color: #475569; font-size: 14px;
+  }
+
+  /* Submit */
+  .submit-btn {
+    width: 100%; height: 54px;
+    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    border: none; border-radius: 16px;
+    color: #fff; font-size: 16px; font-weight: 700;
+    font-family: inherit; cursor: pointer;
+    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+    letter-spacing: 0.2px;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="header-nav">
+    <div class="back-btn"><i class="fas fa-arrow-left"></i></div>
+    <span class="header-title">Performance Benchmarks</span>
+  </div>
+
+  <div class="content-scroll">
+
+    <!-- At-Home vs In-Person Toggle -->
+    <div class="location-toggle">
+      <button class="loc-pill active">&#127968; In-Person Testing</button>
+      <button class="loc-pill">&#127969; At-Home Testing</button>
+    </div>
+
+    <!-- Date Selector -->
+    <div class="date-selector">
+      <div class="date-icon"><i class="fas fa-calendar"></i></div>
+      <div class="date-info">
+        <div class="date-label">Test Date</div>
+        <div class="date-value">March 18, 2026</div>
+      </div>
+      <div class="date-arrow"><i class="fas fa-chevron-right"></i></div>
+    </div>
+
+    <!-- Running Tests -->
+    <div class="section-label"><i class="fas fa-person-running" style="color: #60A5FA;"></i> Running</div>
+
+    <div class="bench-card">
+      <div class="bench-icon running">&#127939;</div>
+      <div class="bench-info">
+        <div class="bench-name">Sprint (with ball)</div>
+        <div class="bench-detail">20m timed sprint dribbling</div>
+      </div>
+      <div class="bench-input-group">
+        <input class="bench-input" type="text" value="4.8">
+        <span class="bench-unit">sec</span>
+        <span class="bench-delta up">-0.3</span>
+      </div>
+    </div>
+
+    <div class="bench-card">
+      <div class="bench-icon running">&#127939;&#8205;&#9794;&#65039;</div>
+      <div class="bench-info">
+        <div class="bench-name">Sprint (no ball)</div>
+        <div class="bench-detail">20m timed sprint</div>
+      </div>
+      <div class="bench-input-group">
+        <input class="bench-input" type="text" value="3.9">
+        <span class="bench-unit">sec</span>
+        <span class="bench-delta up">-0.2</span>
+      </div>
+    </div>
+
+    <!-- Juggling -->
+    <div class="section-label" style="margin-top: 8px;"><i class="fas fa-futbol" style="color: #4ADE80;"></i> Juggling</div>
+
+    <div class="bench-card">
+      <div class="bench-icon juggling">&#9917;</div>
+      <div class="bench-info">
+        <div class="bench-name">Juggling (consecutive)</div>
+        <div class="bench-detail">Max touches without dropping</div>
+      </div>
+      <div class="bench-input-group">
+        <input class="bench-input" type="text" value="42">
+        <span class="bench-unit">reps</span>
+        <span class="bench-delta up">+8</span>
+      </div>
+    </div>
+
+    <!-- Finishing & Accuracy -->
+    <div class="section-label" style="margin-top: 8px;"><i class="fas fa-bullseye" style="color: #F87171;"></i> Finishing & Accuracy</div>
+
+    <div class="bench-card">
+      <div class="bench-icon finishing">&#127919;</div>
+      <div class="bench-info">
+        <div class="bench-name">Finishing accuracy</div>
+        <div class="bench-detail">Shots on target out of 10</div>
+      </div>
+      <div class="bench-input-group">
+        <input class="bench-input" type="text" value="7">
+        <span class="bench-unit">/10</span>
+        <span class="bench-delta up">+1</span>
+      </div>
+    </div>
+
+    <!-- Passing & Accuracy -->
+    <div class="section-label" style="margin-top: 8px;"><i class="fas fa-arrows-turn-right" style="color: #FBBF24;"></i> Passing & Accuracy</div>
+
+    <div class="bench-card">
+      <div class="bench-icon passing">&#128163;</div>
+      <div class="bench-info">
+        <div class="bench-name">Passing accuracy</div>
+        <div class="bench-detail">Completed passes to targets</div>
+      </div>
+      <div class="bench-input-group">
+        <input class="bench-input" type="text" value="8">
+        <span class="bench-unit">/10</span>
+        <span class="bench-delta same">=</span>
+      </div>
+    </div>
+
+    <!-- 1v1 Win Ratio -->
+    <div class="section-label" style="margin-top: 8px;"><i class="fas fa-people-arrows" style="color: #A78BFA;"></i> 1v1 Win Ratio</div>
+
+    <div class="bench-card">
+      <div class="bench-icon v1">&#128165;</div>
+      <div class="bench-info">
+        <div class="bench-name">1v1 win rate</div>
+        <div class="bench-detail">Wins out of 10 attempts</div>
+      </div>
+      <div class="bench-input-group">
+        <input class="bench-input" type="text" value="6">
+        <span class="bench-unit">/10</span>
+        <span class="bench-delta up">+2</span>
+      </div>
+    </div>
+
+    <!-- Physical Tests -->
+    <div class="section-label" style="margin-top: 8px;"><i class="fas fa-dumbbell" style="color: #F472B6;"></i> Physical Tests</div>
+
+    <div class="bench-card">
+      <div class="bench-icon physical">&#128170;</div>
+      <div class="bench-info">
+        <div class="bench-name">Agility shuttle</div>
+        <div class="bench-detail">T-test lateral movement</div>
+      </div>
+      <div class="bench-input-group">
+        <input class="bench-input" type="text" value="12.1">
+        <span class="bench-unit">sec</span>
+        <span class="bench-delta up">-0.5</span>
+      </div>
+    </div>
+
+    <!-- Technical Timed Tests -->
+    <div class="section-label" style="margin-top: 8px;"><i class="fas fa-stopwatch" style="color: #22D3EE;"></i> Technical Timed Tests</div>
+
+    <div class="bench-card">
+      <div class="bench-icon technical">&#9201;</div>
+      <div class="bench-info">
+        <div class="bench-name">Cone dribble course</div>
+        <div class="bench-detail">Slalom through 10 cones</div>
+      </div>
+      <div class="bench-input-group">
+        <input class="bench-input" type="text" value="18.4">
+        <span class="bench-unit">sec</span>
+        <span class="bench-delta up">-1.2</span>
+      </div>
+    </div>
+
+    <!-- Mixed Tests -->
+    <div class="section-label" style="margin-top: 8px;"><i class="fas fa-shuffle" style="color: #FB923C;"></i> Mixed Tests</div>
+
+    <div class="bench-card">
+      <div class="bench-icon mixed">&#127942;</div>
+      <div class="bench-info">
+        <div class="bench-name">Dribble-pass-shoot combo</div>
+        <div class="bench-detail">Full sequence under time</div>
+      </div>
+      <div class="bench-input-group">
+        <input class="bench-input" type="text" value="8.6">
+        <span class="bench-unit">sec</span>
+        <span class="bench-delta down">+0.4</span>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <button class="submit-btn">Save Benchmarks &#128202;</button>
+
+  </div>
+
+</body>
+</html>
