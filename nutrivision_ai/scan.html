@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriVision AI - Scan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        body { width: 100%; height: 100%; overflow-y: auto; background: #000; }
+        .status-bar { height: 59px; padding: 0 28px; }
+        .content-area { padding: 0 28px; }
+        .dynamic-island { width: 120px; height: 36px; background: #000; border-radius: 20px; margin: 0 auto; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 50; }
+        .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; }
+        .scan-frame {
+            border: 2px solid rgba(6,182,212,0.6);
+            border-radius: 24px;
+            box-shadow: 0 0 30px rgba(6,182,212,0.15), inset 0 0 30px rgba(6,182,212,0.05);
+        }
+        .scan-corner {
+            position: absolute; width: 24px; height: 24px;
+            border-color: #06b6d4; border-width: 3px;
+        }
+        .scan-line {
+            position: absolute; left: 10%; right: 10%; height: 2px;
+            background: linear-gradient(90deg, transparent, #06b6d4, transparent);
+            animation: scanMove 2.5s ease-in-out infinite;
+        }
+        @keyframes scanMove {
+            0%, 100% { top: 15%; opacity: 0.3; }
+            50% { top: 75%; opacity: 1; }
+        }
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+        .pulse-dot { animation: pulse 1.5s ease-in-out infinite; }
+        .glass-card {
+            backdrop-filter: blur(20px);
+            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        @keyframes floatTag {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+        .float-tag { animation: floatTag 3s ease-in-out infinite; }
+    </style>
+</head>
+<body class="bg-black text-white">
+    <!-- Status Bar -->
+    <div class="status-bar flex items-end justify-between pb-2 relative">
+        <div class="dynamic-island"></div>
+        <span class="text-xs font-semibold z-10">9:41</span>
+        <div class="flex items-center gap-1.5 z-10">
+            <i class="fas fa-signal text-xs"></i>
+            <i class="fas fa-wifi text-xs"></i>
+            <i class="fas fa-battery-full text-xs"></i>
+        </div>
+    </div>
+
+    <!-- Camera View -->
+    <div class="relative" style="height: calc(100vh - 59px);">
+        <!-- Background food image simulating camera -->
+        <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&h=1000&fit=crop" class="absolute inset-0 w-full h-full object-cover">
+
+        <!-- Dark overlay -->
+        <div class="absolute inset-0 bg-black/30"></div>
+
+        <!-- Top Controls -->
+        <div class="absolute top-4 left-0 right-0 px-6 flex items-center justify-between z-20">
+            <div class="glass-card rounded-full px-4 py-2 flex items-center gap-2">
+                <div class="w-2 h-2 bg-green-400 rounded-full pulse-dot"></div>
+                <span class="text-xs font-semibold">AI Active</span>
+            </div>
+            <div class="flex gap-3">
+                <div class="glass-card w-10 h-10 rounded-full flex items-center justify-center">
+                    <i class="fas fa-bolt text-amber-400 text-sm"></i>
+                </div>
+                <div class="glass-card w-10 h-10 rounded-full flex items-center justify-center">
+                    <i class="fas fa-history text-gray-400 text-sm"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan Frame -->
+        <div class="absolute top-24 left-8 right-8 bottom-64 scan-frame flex items-center justify-center">
+            <!-- Scan Line -->
+            <div class="scan-line"></div>
+
+            <!-- Corner markers -->
+            <div class="scan-corner top-0 left-0 border-t border-l rounded-tl-xl"></div>
+            <div class="scan-corner top-0 right-0 border-t border-r rounded-tr-xl"></div>
+            <div class="scan-corner bottom-0 left-0 border-b border-l rounded-bl-xl"></div>
+            <div class="scan-corner bottom-0 right-0 border-b border-r rounded-br-xl"></div>
+
+            <!-- AI Detection Tags -->
+            <div class="absolute top-12 left-6 float-tag" style="animation-delay: 0s;">
+                <div class="glass-card rounded-xl px-3 py-2 flex items-center gap-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                    <span class="text-[11px] font-semibold">Avocado</span>
+                    <span class="text-[10px] text-gray-400">98%</span>
+                </div>
+            </div>
+            <div class="absolute top-28 right-6 float-tag" style="animation-delay: 0.5s;">
+                <div class="glass-card rounded-xl px-3 py-2 flex items-center gap-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                    <span class="text-[11px] font-semibold">Cherry Tomato</span>
+                    <span class="text-[10px] text-gray-400">96%</span>
+                </div>
+            </div>
+            <div class="absolute bottom-24 left-8 float-tag" style="animation-delay: 1s;">
+                <div class="glass-card rounded-xl px-3 py-2 flex items-center gap-2">
+                    <div class="w-2 h-2 bg-cyan-400 rounded-full"></div>
+                    <span class="text-[11px] font-semibold">Mixed Greens</span>
+                    <span class="text-[10px] text-gray-400">94%</span>
+                </div>
+            </div>
+            <div class="absolute bottom-40 right-4 float-tag" style="animation-delay: 1.5s;">
+                <div class="glass-card rounded-xl px-3 py-2 flex items-center gap-2">
+                    <div class="w-2 h-2 bg-amber-400 rounded-full"></div>
+                    <span class="text-[11px] font-semibold">Quinoa</span>
+                    <span class="text-[10px] text-gray-400">91%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Panel -->
+        <div class="absolute bottom-0 left-0 right-0 z-20">
+            <!-- Analysis Preview -->
+            <div class="px-6 pb-4">
+                <div class="glass-card rounded-2xl p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 bg-gradient-to-br from-cyan-400 to-violet-500 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-sparkles text-white text-[10px]"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold">Real-time Analysis</span>
+                                <p class="text-[10px] text-gray-400">4 items detected</p>
+                            </div>
+                        </div>
+                        <div class="bg-green-500/10 rounded-full px-3 py-1">
+                            <span class="text-[10px] text-green-400 font-semibold">Ready</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between text-center">
+                        <div>
+                            <span class="text-lg font-bold gradient-text">428</span>
+                            <p class="text-[9px] text-gray-500">calories</p>
+                        </div>
+                        <div class="w-px h-8 bg-gray-700"></div>
+                        <div>
+                            <span class="text-lg font-bold text-rose-400">22g</span>
+                            <p class="text-[9px] text-gray-500">protein</p>
+                        </div>
+                        <div class="w-px h-8 bg-gray-700"></div>
+                        <div>
+                            <span class="text-lg font-bold text-amber-400">38g</span>
+                            <p class="text-[9px] text-gray-500">carbs</p>
+                        </div>
+                        <div class="w-px h-8 bg-gray-700"></div>
+                        <div>
+                            <span class="text-lg font-bold text-cyan-400">24g</span>
+                            <p class="text-[9px] text-gray-500">fat</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Capture Button Row -->
+            <div class="glass-card rounded-t-3xl px-6 pt-5 pb-10 flex items-center justify-around">
+                <div class="w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center">
+                    <i class="fas fa-images text-gray-400"></i>
+                </div>
+                <div class="w-20 h-20 rounded-full border-4 border-cyan-400 flex items-center justify-center">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center">
+                        <i class="fas fa-crosshairs text-white text-2xl"></i>
+                    </div>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center">
+                    <i class="fas fa-sliders text-gray-400"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
