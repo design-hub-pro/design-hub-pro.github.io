@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodLight - Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        body { width: 100%; height: 100%; overflow-x: hidden; background: #f8f7ff; }
+
+        .status-bar { height: 59px; padding: 0 28px; display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 12px; background: #f8f7ff; }
+        .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 50; }
+
+        .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 85px; background: #fff; border-top: 1px solid #f0eef5; display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; }
+        .tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; color: #a0a0b0; }
+        .tab-item.active { color: #6c3ce0; }
+        .tab-item i { font-size: 20px; }
+
+        .card { background: #fff; border-radius: 20px; padding: 20px; border: 1px solid #f0eef5; }
+
+        .toggle { width: 48px; height: 28px; border-radius: 14px; position: relative; cursor: pointer; transition: all 0.3s; }
+        .toggle.on { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .toggle.off { background: #d1d5db; }
+        .toggle::after { content: ''; width: 22px; height: 22px; border-radius: 50%; background: #fff; position: absolute; top: 3px; transition: all 0.3s; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+        .toggle.on::after { left: 23px; }
+        .toggle.off::after { left: 3px; }
+
+        .color-dot { width: 36px; height: 36px; border-radius: 50%; cursor: pointer; transition: all 0.2s; }
+        .color-dot.selected { box-shadow: 0 0 0 3px #fff, 0 0 0 5px #8b5cf6; }
+
+        .brightness-slider { width: 100%; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #1e1145, #8b5cf6, #fbbf24); position: relative; }
+        .brightness-thumb { width: 28px; height: 28px; border-radius: 50%; background: #fff; border: 3px solid #8b5cf6; position: absolute; top: -10px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+    <div style="position: relative; width: 100%; min-height: 100vh; padding-bottom: 85px;">
+        <!-- Status Bar -->
+        <div class="status-bar" style="position: relative;">
+            <div class="dynamic-island"></div>
+            <span class="text-gray-800 text-xs font-semibold" style="position:relative;z-index:10;">9:41</span>
+            <div class="flex items-center gap-1.5" style="position:relative;z-index:10;">
+                <i class="fas fa-signal text-gray-800 text-xs"></i>
+                <i class="fas fa-wifi text-gray-800 text-xs"></i>
+                <i class="fas fa-battery-full text-gray-800 text-xs"></i>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div style="padding: 0 28px 20px;">
+            <h1 class="text-2xl font-bold text-gray-900 mb-5">Device Control</h1>
+
+            <!-- Light Preview -->
+            <div class="card mb-5" style="background: linear-gradient(135deg, #2d1b69, #1a1145); border: none; padding: 28px; text-align: center;">
+                <div style="width:100px;height:100px;margin:0 auto 16px;border-radius:50%;background:radial-gradient(circle, rgba(167,139,250,0.6) 0%, rgba(167,139,250,0.1) 60%, transparent 70%);display:flex;align-items:center;justify-content:center;">
+                    <div style="width:50px;height:50px;border-radius:50%;background:radial-gradient(circle, #a78bfa, #7c3aed);box-shadow:0 0 40px rgba(167,139,250,0.6);"></div>
+                </div>
+                <p class="text-white text-sm font-semibold mb-1">Living Room Light</p>
+                <div class="flex items-center justify-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                    <span class="text-purple-300 text-xs">Connected · Calm Mode</span>
+                </div>
+            </div>
+
+            <!-- Brightness -->
+            <div class="card mb-4">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-sun text-amber-500"></i>
+                        <span class="text-sm font-semibold text-gray-800">Brightness</span>
+                    </div>
+                    <span class="text-sm font-bold text-purple-600">72%</span>
+                </div>
+                <div class="brightness-slider">
+                    <div class="brightness-thumb" style="left: 68%;"></div>
+                </div>
+            </div>
+
+            <!-- Color Temperature -->
+            <div class="card mb-4">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-palette text-purple-500"></i>
+                        <span class="text-sm font-semibold text-gray-800">Color</span>
+                    </div>
+                    <span class="text-xs text-gray-400">Lavender Calm</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <div class="color-dot" style="background: #fbbf24;"></div>
+                    <div class="color-dot" style="background: #f97316;"></div>
+                    <div class="color-dot" style="background: #ef4444;"></div>
+                    <div class="color-dot" style="background: #ec4899;"></div>
+                    <div class="color-dot selected" style="background: #a78bfa;"></div>
+                    <div class="color-dot" style="background: #6366f1;"></div>
+                    <div class="color-dot" style="background: #06b6d4;"></div>
+                    <div class="color-dot" style="background: #22c55e;"></div>
+                </div>
+            </div>
+
+            <!-- Scene Presets -->
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-sm font-bold text-gray-800">Scene Presets</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mb-5">
+                <div class="card text-center" style="padding: 16px; background: linear-gradient(135deg, #ede9fe, #e0e7ff); border-color: #8b5cf6;">
+                    <div style="font-size:28px;margin-bottom:6px;">🧘</div>
+                    <p class="text-sm font-semibold text-gray-800">Calm</p>
+                    <p class="text-[10px] text-gray-500">Warm purple · Dim</p>
+                </div>
+                <div class="card text-center" style="padding: 16px;">
+                    <div style="font-size:28px;margin-bottom:6px;">📚</div>
+                    <p class="text-sm font-semibold text-gray-800">Focus</p>
+                    <p class="text-[10px] text-gray-500">Cool white · Bright</p>
+                </div>
+                <div class="card text-center" style="padding: 16px;">
+                    <div style="font-size:28px;margin-bottom:6px;">🌙</div>
+                    <p class="text-sm font-semibold text-gray-800">Sleep</p>
+                    <p class="text-[10px] text-gray-500">Deep red · Very dim</p>
+                </div>
+                <div class="card text-center" style="padding: 16px;">
+                    <div style="font-size:28px;margin-bottom:6px;">⚡</div>
+                    <p class="text-sm font-semibold text-gray-800">Energize</p>
+                    <p class="text-[10px] text-gray-500">Bright blue · Max</p>
+                </div>
+            </div>
+
+            <!-- Smart Automation -->
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-sm font-bold text-gray-800">Smart Automation</span>
+            </div>
+            <div class="space-y-3">
+                <div class="card flex items-center gap-3" style="padding: 14px 16px;">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-robot text-white text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-gray-800">AI Auto-Adjust</p>
+                        <p class="text-[10px] text-gray-500">Adapts light to your mood data</p>
+                    </div>
+                    <div class="toggle on"></div>
+                </div>
+
+                <div class="card flex items-center gap-3" style="padding: 14px 16px;">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-clock text-white text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-gray-800">Circadian Rhythm</p>
+                        <p class="text-[10px] text-gray-500">Follows natural light cycle</p>
+                    </div>
+                    <div class="toggle on"></div>
+                </div>
+
+                <div class="card flex items-center gap-3" style="padding: 14px 16px;">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-400 to-pink-500 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-bell text-white text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-gray-800">CO₂ Alerts</p>
+                        <p class="text-[10px] text-gray-500">Notify when air quality drops</p>
+                    </div>
+                    <div class="toggle on"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <div class="tab-item">
+                <i class="fas fa-house"></i>
+                <span>Home</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-leaf"></i>
+                <span>Environ</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-face-smile"></i>
+                <span>Mood</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Insights</span>
+            </div>
+            <div class="tab-item active">
+                <i class="fas fa-sliders"></i>
+                <span>Control</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
