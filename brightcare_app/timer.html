@@ -12,35 +12,65 @@
         * { scrollbar-width: none; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-            background: linear-gradient(180deg, #2D1B69 0%, #1A103C 100%);
+            background: linear-gradient(180deg, #1E0A3C 0%, #2D1469 40%, #3B1C8C 100%);
             width: 100%; height: 100%; margin: 0; padding: 0; overflow-x: hidden;
             color: white;
         }
         .status-bar { height: 59px; padding: 0 28px; }
         .dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 24px; margin: 0 auto; margin-top: 14px; }
-        .content-area { padding: 0 28px; padding-bottom: 110px; }
+        .content-area { padding: 0 28px; padding-bottom: 110px; text-align: center; }
         .tab-bar {
             position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
-            background: rgba(26,16,60,0.97); backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255,255,255,0.08);
+            background: rgba(30,10,60,0.97); backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.06);
         }
-        .timer-ring {
-            width: 280px; height: 280px;
+
+        .timer-outer {
+            width: 300px; height: 300px;
             border-radius: 50%;
-            background: conic-gradient(#A78BFA 0deg, #6C5CE7 120deg, #4C3A9E 216deg, rgba(255,255,255,0.05) 216deg);
+            background: conic-gradient(
+                #A78BFA 0deg,
+                #8B5CF6 72deg,
+                #7C3AED 144deg,
+                #6D28D9 216deg,
+                rgba(255,255,255,0.06) 216deg
+            );
             display: flex; align-items: center; justify-content: center;
+            margin: 0 auto;
             position: relative;
+            animation: breathe 3s ease-in-out infinite;
         }
-        .timer-ring::before {
-            content: '';
-            position: absolute; inset: 12px;
+        .timer-middle {
+            width: 270px; height: 270px;
             border-radius: 50%;
-            background: linear-gradient(180deg, #2D1B69, #1A103C);
+            background: linear-gradient(180deg, #2D1469 0%, #1E0A3C 100%);
+            display: flex; align-items: center; justify-content: center;
         }
-        .timer-inner { position: relative; z-index: 1; text-align: center; }
-        .glow { filter: drop-shadow(0 0 20px rgba(167,139,250,0.4)); }
-        @keyframes breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
-        .breathing { animation: breathe 3s ease-in-out infinite; }
+        .timer-inner {
+            text-align: center;
+        }
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 30px rgba(139,92,246,0.4)); }
+            50% { transform: scale(1.02); filter: drop-shadow(0 0 50px rgba(139,92,246,0.6)); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .float-1 { animation: float 2.5s ease-in-out infinite; }
+        .float-2 { animation: float 3s ease-in-out infinite 0.5s; }
+        .float-3 { animation: float 2s ease-in-out infinite 1s; }
+
+        .control-btn {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.15s;
+        }
+        .control-btn:active { transform: scale(0.9); }
+        .small-control {
+            width: 60px; height: 60px;
+        }
     </style>
 </head>
 <body>
@@ -55,104 +85,99 @@
     </div>
 
     <div class="content-area">
-        <!-- Header -->
-        <div class="flex items-center justify-between mt-3 mb-6">
-            <h1 class="text-2xl font-bold">Timer</h1>
-            <button class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-                <i class="fas fa-cog text-white/60"></i>
-            </button>
+        <!-- Floating decorations -->
+        <div class="relative h-6">
+            <div class="absolute left-6 top-0 float-1"><span class="text-2xl opacity-30">✨</span></div>
+            <div class="absolute right-10 top-1 float-2"><span class="text-xl opacity-20">⭐</span></div>
+            <div class="absolute left-1/2 top-0 float-3"><span class="text-lg opacity-25">🌙</span></div>
         </div>
 
-        <!-- Current Task -->
-        <div class="bg-white/10 rounded-2xl p-4 mb-8 flex items-center gap-3">
-            <div class="w-12 h-12 bg-purple-500/30 rounded-xl flex items-center justify-center">
-                <span class="text-2xl">📚</span>
+        <!-- Current Task - big visual -->
+        <div class="mb-6">
+            <div class="w-20 h-20 bg-white/10 rounded-3xl mx-auto flex items-center justify-center mb-3 float-1">
+                <span class="text-5xl">📚</span>
             </div>
-            <div class="flex-1">
-                <p class="font-bold text-lg">Reading Time</p>
-                <p class="text-white/50 text-sm">30 min session · With timer</p>
-            </div>
-            <div class="flex items-center gap-1">
-                <i class="fas fa-star text-yellow-400 text-sm"></i>
-                <span class="text-sm font-bold">+3</span>
-            </div>
+            <p class="text-2xl font-extrabold">Reading Time</p>
         </div>
 
-        <!-- Timer Ring -->
-        <div class="flex justify-center mb-8">
-            <div class="timer-ring glow breathing">
-                <div class="timer-inner">
-                    <p class="text-6xl font-bold tracking-tight" style="font-variant-numeric: tabular-nums;">12:34</p>
-                    <p class="text-white/40 text-sm mt-1">remaining</p>
+        <!-- Big Timer Ring -->
+        <div class="mb-8">
+            <div class="timer-outer">
+                <div class="timer-middle">
+                    <div class="timer-inner">
+                        <p class="text-7xl font-bold tracking-tight" style="font-variant-numeric: tabular-nums; letter-spacing: -2px;">12:34</p>
+                        <p class="text-white/30 text-base mt-1">minutes left</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Controls -->
-        <div class="flex items-center justify-center gap-6 mb-8">
-            <button class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center">
-                <i class="fas fa-redo text-white/60 text-lg"></i>
-            </button>
-            <button class="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/30">
-                <i class="fas fa-pause text-white text-2xl"></i>
-            </button>
-            <button class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center">
-                <i class="fas fa-forward text-white/60 text-lg"></i>
-            </button>
-        </div>
-
-        <!-- Visual Progress -->
-        <div class="bg-white/8 rounded-2xl p-4 mb-5">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-sm text-white/50">Session Progress</span>
-                <span class="text-sm font-bold text-purple-300">60%</span>
+        <!-- Visual segments - like stepping stones -->
+        <div class="flex justify-center gap-3 mb-8">
+            <div class="w-12 h-12 bg-purple-500 rounded-2xl flex items-center justify-center">
+                <span class="text-lg">📖</span>
             </div>
-            <div class="flex gap-1.5">
-                <div class="h-2 flex-1 bg-purple-500 rounded-full"></div>
-                <div class="h-2 flex-1 bg-purple-500 rounded-full"></div>
-                <div class="h-2 flex-1 bg-purple-500 rounded-full"></div>
-                <div class="h-2 flex-1 bg-white/10 rounded-full"></div>
-                <div class="h-2 flex-1 bg-white/10 rounded-full"></div>
+            <div class="w-12 h-12 bg-purple-500 rounded-2xl flex items-center justify-center">
+                <span class="text-lg">📖</span>
+            </div>
+            <div class="w-12 h-12 bg-purple-500 rounded-2xl flex items-center justify-center">
+                <span class="text-lg">📖</span>
+            </div>
+            <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center border-2 border-dashed border-white/15">
+                <span class="text-lg opacity-30">📖</span>
+            </div>
+            <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center border-2 border-dashed border-white/15">
+                <span class="text-lg opacity-30">📖</span>
             </div>
         </div>
 
-        <!-- Timer Effectiveness -->
-        <div class="bg-white/8 rounded-2xl p-4 mb-5">
-            <div class="flex items-center gap-2 mb-3">
-                <i class="fas fa-chart-line text-green-400"></i>
-                <span class="text-sm font-semibold">Timer Effectiveness</span>
+        <!-- Controls - BIG and simple -->
+        <div class="flex items-center justify-center gap-8 mb-8">
+            <button class="control-btn small-control bg-white/10">
+                <i class="fas fa-redo text-white/50 text-xl"></i>
+            </button>
+            <button class="control-btn bg-gradient-to-br from-purple-400 to-pink-500 shadow-lg shadow-purple-500/40">
+                <i class="fas fa-pause text-white text-3xl"></i>
+            </button>
+            <button class="control-btn small-control bg-white/10">
+                <i class="fas fa-forward text-white/50 text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Encouragement -->
+        <div class="bg-white/8 rounded-3xl p-5 mb-5">
+            <div class="flex items-center justify-center gap-3">
+                <span class="text-3xl float-2">🌟</span>
+                <div>
+                    <p class="font-bold text-lg">Almost there!</p>
+                    <p class="text-white/40 text-sm">Earn 3 stars when you finish</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timer effectiveness - parent view toggle -->
+        <div class="bg-white/6 rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-chart-line text-green-400 text-sm"></i>
+                    <span class="text-xs text-white/40">Timer Effectiveness</span>
+                </div>
+                <span class="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full">+35%</span>
             </div>
             <div class="grid grid-cols-2 gap-3">
-                <div class="bg-white/8 rounded-xl p-3 text-center">
+                <div class="text-center">
                     <p class="text-2xl font-bold text-green-400">87%</p>
-                    <p class="text-xs text-white/40 mt-1">With Timer</p>
-                    <div class="bg-green-500/20 rounded-full h-1.5 mt-2">
+                    <div class="bg-green-500/20 rounded-full h-1.5 mt-1">
                         <div class="bg-green-400 h-full rounded-full" style="width: 87%"></div>
                     </div>
+                    <p class="text-xs text-white/30 mt-1">With Timer</p>
                 </div>
-                <div class="bg-white/8 rounded-xl p-3 text-center">
-                    <p class="text-2xl font-bold text-orange-400">52%</p>
-                    <p class="text-xs text-white/40 mt-1">Without Timer</p>
-                    <div class="bg-orange-500/20 rounded-full h-1.5 mt-2">
-                        <div class="bg-orange-400 h-full rounded-full" style="width: 52%"></div>
+                <div class="text-center">
+                    <p class="text-2xl font-bold text-white/30">52%</p>
+                    <div class="bg-white/10 rounded-full h-1.5 mt-1">
+                        <div class="bg-white/20 h-full rounded-full" style="width: 52%"></div>
                     </div>
-                </div>
-            </div>
-            <p class="text-xs text-green-400/70 mt-3 text-center"><i class="fas fa-arrow-up mr-1"></i>35% better task completion with timer</p>
-        </div>
-
-        <!-- Upcoming Reminder -->
-        <div class="bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-2xl p-4 border border-amber-500/20">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-bell text-amber-400"></i>
-                </div>
-                <div class="flex-1">
-                    <p class="font-semibold text-sm">5-min Warning</p>
-                    <p class="text-xs text-white/40">Audio reminder at 5 min remaining</p>
-                </div>
-                <div class="w-12 h-7 bg-green-500 rounded-full flex items-center justify-end px-1">
-                    <div class="w-5 h-5 bg-white rounded-full"></div>
+                    <p class="text-xs text-white/30 mt-1">Without</p>
                 </div>
             </div>
         </div>
@@ -169,7 +194,7 @@
             <span class="text-xs text-white/30">Schedule</span>
         </div>
         <div class="flex flex-col items-center gap-1 -mt-4">
-            <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/40">
+            <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/40">
                 <i class="fas fa-stopwatch text-white text-xl"></i>
             </div>
             <span class="text-xs font-semibold text-purple-300">Timer</span>
