@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChemSafe AI - Emergency</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: #111; width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; }
+
+.status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; position: sticky; top: 0; z-index: 100; }
+.status-time { font-size: 16px; font-weight: 600; color: #fff; }
+.status-icons { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #fff; }
+.dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; margin: 0 auto; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+.content { padding: 0 28px 120px; }
+
+.emergency-header { text-align: center; margin: 8px 0 20px; }
+.emergency-header .pulse-ring { width: 80px; height: 80px; margin: 0 auto 14px; position: relative; }
+.pulse-ring .ring { position: absolute; inset: 0; border: 2px solid rgba(255,59,48,0.3); border-radius: 50%; animation: ringPulse 2s infinite; }
+.pulse-ring .ring:nth-child(2) { animation-delay: 0.5s; }
+.pulse-ring .center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 56px; height: 56px; background: linear-gradient(135deg, #FF3B30, #FF6B6B); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.pulse-ring .center i { font-size: 24px; color: #fff; }
+@keyframes ringPulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
+.emergency-header h1 { font-size: 24px; font-weight: 800; color: #fff; }
+.emergency-header p { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+.emergency-types { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+.etype { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 20px 16px; text-align: center; }
+.etype .icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; }
+.etype h4 { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+.etype p { font-size: 10px; color: rgba(255,255,255,0.4); }
+
+.ai-chat-card { background: linear-gradient(135deg, rgba(91,127,255,0.15), rgba(139,92,246,0.15)); border: 1px solid rgba(91,127,255,0.2); border-radius: 20px; padding: 20px; margin-bottom: 24px; }
+.ai-chat-card .top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.ai-chat-card .ai-icon { width: 44px; height: 44px; background: linear-gradient(135deg, #5B7FFF, #8B5CF6); border-radius: 13px; display: flex; align-items: center; justify-content: center; }
+.ai-chat-card .ai-icon i { font-size: 20px; color: #fff; }
+.ai-chat-card h3 { font-size: 15px; font-weight: 700; color: #fff; }
+.ai-chat-card .sub { font-size: 11px; color: rgba(255,255,255,0.5); }
+.ai-chat-card .chat-preview { background: rgba(0,0,0,0.3); border-radius: 14px; padding: 14px; }
+.chat-bubble { background: rgba(91,127,255,0.2); border-radius: 12px 12px 12px 4px; padding: 10px 14px; margin-bottom: 8px; max-width: 85%; }
+.chat-bubble p { font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; }
+.chat-input { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.chat-input .input-field { flex: 1; background: rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 16px; color: rgba(255,255,255,0.3); font-size: 13px; }
+.chat-input .send-btn { width: 42px; height: 42px; background: linear-gradient(135deg, #5B7FFF, #8B5CF6); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+.chat-input .send-btn i { color: #fff; font-size: 16px; }
+
+.contacts-section h3 { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 14px; }
+.contact-item { display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.06); border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; }
+.contact-item .avatar { width: 44px; height: 44px; border-radius: 13px; display: flex; align-items: center; justify-content: center; }
+.contact-item .info h5 { font-size: 14px; font-weight: 600; color: #fff; }
+.contact-item .info p { font-size: 11px; color: rgba(255,255,255,0.4); }
+.contact-item .call-btn { margin-left: auto; width: 40px; height: 40px; background: #10B981; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+.contact-item .call-btn i { color: #fff; font-size: 16px; }
+
+.tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(20,20,20,0.95); border-top: 1px solid rgba(255,255,255,0.08); display: flex; align-items: flex-start; justify-content: space-around; padding-top: 10px; }
+.tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; }
+.tab-item i { font-size: 22px; color: rgba(255,255,255,0.3); }
+.tab-item span { font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 500; }
+.tab-item.active i { color: #FF3B30; }
+.tab-item.active span { color: #FF3B30; }
+</style>
+</head>
+<body>
+<div class="dynamic-island"></div>
+<div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+        <i class="fas fa-signal"></i>
+        <i class="fas fa-wifi"></i>
+        <i class="fas fa-battery-full"></i>
+    </div>
+</div>
+
+<div class="content">
+    <div class="emergency-header">
+        <div class="pulse-ring">
+            <div class="ring"></div>
+            <div class="ring"></div>
+            <div class="center"><i class="fas fa-exclamation"></i></div>
+        </div>
+        <h1>Emergency Response</h1>
+        <p>AI-powered real-time guidance</p>
+    </div>
+
+    <div class="emergency-types">
+        <div class="etype">
+            <div class="icon" style="background: linear-gradient(135deg, #FF3B30, #FF6B6B);">
+                <i class="fas fa-burn" style="color: #fff; font-size: 20px;"></i>
+            </div>
+            <h4>Chemical Burn</h4>
+            <p>Skin & eye exposure</p>
+        </div>
+        <div class="etype">
+            <div class="icon" style="background: linear-gradient(135deg, #FF9500, #FFB84D);">
+                <i class="fas fa-lungs" style="color: #fff; font-size: 20px;"></i>
+            </div>
+            <h4>Inhalation</h4>
+            <p>Toxic fume exposure</p>
+        </div>
+        <div class="etype">
+            <div class="icon" style="background: linear-gradient(135deg, #5B7FFF, #3B5BDB);">
+                <i class="fas fa-tint" style="color: #fff; font-size: 20px;"></i>
+            </div>
+            <h4>Spill Response</h4>
+            <p>Containment & cleanup</p>
+        </div>
+        <div class="etype">
+            <div class="icon" style="background: linear-gradient(135deg, #10B981, #059669);">
+                <i class="fas fa-fire-extinguisher" style="color: #fff; font-size: 20px;"></i>
+            </div>
+            <h4>Chemical Fire</h4>
+            <p>Fire suppression guide</p>
+        </div>
+    </div>
+
+    <!-- AI Chat Emergency -->
+    <div class="ai-chat-card">
+        <div class="top">
+            <div class="ai-icon"><i class="fas fa-robot"></i></div>
+            <div>
+                <h3>AI Emergency Assistant</h3>
+                <div class="sub"><span style="color: #00FF88;">●</span> Online · responds instantly</div>
+            </div>
+        </div>
+        <div class="chat-preview">
+            <div class="chat-bubble">
+                <p>I've detected HCl exposure. Immediately flush affected area with water for 15+ minutes. Remove contaminated clothing. I'm alerting emergency contacts now.</p>
+            </div>
+            <div class="chat-input">
+                <div class="input-field">Describe the emergency...</div>
+                <div class="send-btn"><i class="fas fa-paper-plane"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Contacts -->
+    <div class="contacts-section">
+        <h3>Emergency Contacts</h3>
+        <div class="contact-item">
+            <div class="avatar" style="background: linear-gradient(135deg, #FF3B30, #FF6B6B);">
+                <i class="fas fa-phone-alt" style="color: #fff; font-size: 18px;"></i>
+            </div>
+            <div class="info">
+                <h5>Poison Control</h5>
+                <p>1-800-222-1222</p>
+            </div>
+            <div class="call-btn"><i class="fas fa-phone"></i></div>
+        </div>
+        <div class="contact-item">
+            <div class="avatar" style="background: linear-gradient(135deg, #5B7FFF, #3B5BDB);">
+                <i class="fas fa-hospital" style="color: #fff; font-size: 18px;"></i>
+            </div>
+            <div class="info">
+                <h5>Lab Safety Officer</h5>
+                <p>Dr. Sarah Chen</p>
+            </div>
+            <div class="call-btn"><i class="fas fa-phone"></i></div>
+        </div>
+        <div class="contact-item">
+            <div class="avatar" style="background: linear-gradient(135deg, #F59E0B, #D97706);">
+                <i class="fas fa-ambulance" style="color: #fff; font-size: 18px;"></i>
+            </div>
+            <div class="info">
+                <h5>Emergency Services</h5>
+                <p>911</p>
+            </div>
+            <div class="call-btn"><i class="fas fa-phone"></i></div>
+        </div>
+    </div>
+</div>
+
+<div class="tab-bar">
+    <a class="tab-item" href="#"><i class="fas fa-home"></i><span>Home</span></a>
+    <a class="tab-item" href="#"><i class="fas fa-camera"></i><span>Scan</span></a>
+    <a class="tab-item active" href="#"><i class="fas fa-exclamation-circle"></i><span>Emergency</span></a>
+    <a class="tab-item" href="#"><i class="fas fa-book"></i><span>Reference</span></a>
+    <a class="tab-item" href="#"><i class="fas fa-user"></i><span>Profile</span></a>
+</div>
+</body>
+</html>

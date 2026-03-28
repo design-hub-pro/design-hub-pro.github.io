@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChemSafe AI - Scan</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: #000; width: 100%; height: 100%; overflow: hidden; }
+
+.status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; position: sticky; top: 0; z-index: 100; }
+.status-time { font-size: 16px; font-weight: 600; color: #fff; }
+.status-icons { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #fff; }
+.dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; margin: 0 auto; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 200; }
+
+.camera-view { position: absolute; inset: 0; background: url('https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=600&h=1000&fit=crop') center/cover; }
+.camera-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.35); }
+
+.scan-frame { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -55%); width: 280px; height: 280px; }
+.scan-frame .corner { position: absolute; width: 40px; height: 40px; border-color: #00FF88; border-style: solid; border-width: 0; }
+.corner.tl { top: 0; left: 0; border-top-width: 3px; border-left-width: 3px; border-top-left-radius: 12px; }
+.corner.tr { top: 0; right: 0; border-top-width: 3px; border-right-width: 3px; border-top-right-radius: 12px; }
+.corner.bl { bottom: 0; left: 0; border-bottom-width: 3px; border-left-width: 3px; border-bottom-left-radius: 12px; }
+.corner.br { bottom: 0; right: 0; border-bottom-width: 3px; border-right-width: 3px; border-bottom-right-radius: 12px; }
+
+.scan-line { position: absolute; top: 0; left: 10px; right: 10px; height: 2px; background: linear-gradient(90deg, transparent, #00FF88, transparent); animation: scanMove 2s ease-in-out infinite; box-shadow: 0 0 15px rgba(0,255,136,0.5); }
+@keyframes scanMove { 0%,100% { top: 10px; } 50% { top: calc(100% - 10px); } }
+
+.scan-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,255,136,0.15); border: 1px solid rgba(0,255,136,0.4); border-radius: 12px; padding: 8px 16px; backdrop-filter: blur(10px); }
+.scan-label span { color: #00FF88; font-size: 13px; font-weight: 600; }
+
+.ai-badge { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); backdrop-filter: blur(20px); border-radius: 20px; padding: 8px 18px; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.1); }
+.ai-badge .dot { width: 8px; height: 8px; background: #00FF88; border-radius: 50%; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.ai-badge span { color: #fff; font-size: 13px; font-weight: 600; }
+
+.result-panel { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(20,20,20,0.95); backdrop-filter: blur(30px); border-radius: 28px 28px 0 0; padding: 20px 28px 100px; }
+.result-handle { width: 36px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; margin: 0 auto 16px; }
+
+.detected-item { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.detected-item .chem-icon { width: 52px; height: 52px; background: linear-gradient(135deg, #FF3B30, #FF6B6B); border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+.detected-item .chem-icon i { font-size: 22px; color: #fff; }
+.detected-item .chem-info h4 { font-size: 16px; font-weight: 700; color: #fff; }
+.detected-item .chem-info p { font-size: 12px; color: rgba(255,255,255,0.5); }
+.risk-badge { background: #FF3B30; color: #fff; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 8px; margin-left: auto; }
+
+.hazard-icons { display: flex; gap: 10px; margin-bottom: 16px; }
+.hazard-chip { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 8px; flex: 1; }
+.hazard-chip i { font-size: 16px; }
+.hazard-chip span { font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 500; }
+
+.action-buttons { display: flex; gap: 10px; }
+.action-btn { flex: 1; padding: 14px; border-radius: 14px; text-align: center; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-primary { background: linear-gradient(135deg, #FF6B35, #FF3B30); color: #fff; }
+.btn-secondary { background: rgba(255,255,255,0.1); color: #fff; }
+
+.tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(20,20,20,0.95); border-top: 1px solid rgba(255,255,255,0.1); display: flex; align-items: flex-start; justify-content: space-around; padding-top: 10px; }
+.tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; }
+.tab-item i { font-size: 22px; color: rgba(255,255,255,0.4); }
+.tab-item span { font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 500; }
+.tab-item.active i { color: #FF6B35; }
+.tab-item.active span { color: #FF6B35; }
+</style>
+</head>
+<body>
+<div class="camera-view"></div>
+<div class="camera-overlay"></div>
+<div class="dynamic-island"></div>
+<div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+        <i class="fas fa-signal"></i>
+        <i class="fas fa-wifi"></i>
+        <i class="fas fa-battery-full"></i>
+    </div>
+</div>
+
+<div class="ai-badge">
+    <div class="dot"></div>
+    <span>AI Scanning Active</span>
+</div>
+
+<div class="scan-frame">
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+    <div class="scan-line"></div>
+    <div class="scan-label"><span>Analyzing...</span></div>
+</div>
+
+<div class="result-panel">
+    <div class="result-handle"></div>
+    <div class="detected-item">
+        <div class="chem-icon"><i class="fas fa-flask"></i></div>
+        <div class="chem-info">
+            <h4>Hydrochloric Acid</h4>
+            <p>HCl · Corrosive · pH &lt; 1</p>
+        </div>
+        <span class="risk-badge">HIGH</span>
+    </div>
+
+    <div class="hazard-icons">
+        <div class="hazard-chip">
+            <i class="fas fa-fire" style="color: #FF6B35;"></i>
+            <span>Corrosive</span>
+        </div>
+        <div class="hazard-chip">
+            <i class="fas fa-lungs" style="color: #5B7FFF;"></i>
+            <span>Toxic Fumes</span>
+        </div>
+        <div class="hazard-chip">
+            <i class="fas fa-hand-sparkles" style="color: #F59E0B;"></i>
+            <span>Skin Burns</span>
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <div class="action-btn btn-primary"><i class="fas fa-file-alt"></i> View SDS</div>
+        <div class="action-btn btn-secondary"><i class="fas fa-first-aid"></i> First Aid</div>
+    </div>
+</div>
+
+<div class="tab-bar">
+    <a class="tab-item" href="#"><i class="fas fa-home"></i><span>Home</span></a>
+    <a class="tab-item active" href="#"><i class="fas fa-camera"></i><span>Scan</span></a>
+    <a class="tab-item" href="#"><i class="fas fa-exclamation-circle"></i><span>Emergency</span></a>
+    <a class="tab-item" href="#"><i class="fas fa-book"></i><span>Reference</span></a>
+    <a class="tab-item" href="#"><i class="fas fa-user"></i><span>Profile</span></a>
+</div>
+</body>
+</html>

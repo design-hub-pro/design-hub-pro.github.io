@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChemSafe AI - Reference</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: #F8F9FA; width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; }
+
+.status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; background: #F8F9FA; position: sticky; top: 0; z-index: 100; }
+.status-time { font-size: 16px; font-weight: 600; color: #1a1a1a; }
+.status-icons { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #1a1a1a; }
+.dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; margin: 0 auto; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+.content { padding: 0 28px 120px; }
+
+.page-title { margin: 8px 0 16px; }
+.page-title h1 { font-size: 28px; font-weight: 800; color: #111; }
+.page-title p { font-size: 13px; color: #999; margin-top: 4px; }
+
+.search-bar { display: flex; align-items: center; gap: 10px; background: #fff; border-radius: 16px; padding: 14px 18px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+.search-bar i { color: #ccc; font-size: 16px; }
+.search-bar span { color: #ccc; font-size: 14px; flex: 1; }
+.search-bar .filter-btn { width: 36px; height: 36px; background: linear-gradient(135deg, #FF6B35, #FF3B30); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.search-bar .filter-btn i { color: #fff; font-size: 14px; }
+
+.categories { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 20px; padding-bottom: 4px; }
+.cat-chip { white-space: nowrap; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; background: #fff; color: #666; }
+.cat-chip.active { background: linear-gradient(135deg, #FF6B35, #FF3B30); color: #fff; }
+
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.section-header h3 { font-size: 18px; font-weight: 700; color: #111; }
+.section-header a { font-size: 13px; color: #FF6B35; font-weight: 600; text-decoration: none; }
+
+.chem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+.chem-card { background: #fff; border-radius: 18px; padding: 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); position: relative; }
+.chem-card .risk-dot { position: absolute; top: 14px; right: 14px; width: 10px; height: 10px; border-radius: 50%; }
+.chem-card .formula { font-size: 24px; font-weight: 800; color: #111; margin-bottom: 4px; }
+.chem-card .name { font-size: 12px; font-weight: 600; color: #555; margin-bottom: 8px; }
+.chem-card .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.chem-card .tag { font-size: 9px; font-weight: 600; padding: 3px 7px; border-radius: 5px; }
+
+.sds-list { margin-bottom: 24px; }
+.sds-item { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+.sds-item .icon { width: 44px; height: 44px; border-radius: 13px; display: flex; align-items: center; justify-content: center; }
+.sds-item .icon i { font-size: 18px; color: #fff; }
+.sds-item .info { flex: 1; }
+.sds-item .info h5 { font-size: 14px; font-weight: 600; color: #111; }
+.sds-item .info p { font-size: 11px; color: #999; }
+.sds-item .action { color: #FF6B35; font-size: 16px; }
+
+.ghs-section { margin-bottom: 20px; }
+.ghs-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; }
+.ghs-item { min-width: 100px; background: #fff; border-radius: 16px; padding: 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+.ghs-item .symbol { width: 52px; height: 52px; margin: 0 auto 8px; border: 2px solid #FF3B30; border-radius: 4px; transform: rotate(45deg); display: flex; align-items: center; justify-content: center; }
+.ghs-item .symbol i { font-size: 20px; color: #FF3B30; transform: rotate(-45deg); }
+.ghs-item .label { font-size: 10px; font-weight: 600; color: #555; }
+
+.tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: #fff; border-top: 1px solid #f0f0f0; display: flex; align-items: flex-start; justify-content: space-around; padding-top: 10px; }
+.tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; }
+.tab-item i { font-size: 22px; color: #ccc; }
+.tab-item span { font-size: 10px; color: #ccc; font-weight: 500; }
+.tab-item.active i { color: #FF6B35; }
+.tab-item.active span { color: #FF6B35; }
+</style>
+</head>
+<body>
+<div class="dynamic-island"></div>
+<div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+        <i class="fas fa-signal"></i>
+        <i class="fas fa-wifi"></i>
+        <i class="fas fa-battery-full"></i>
+    </div>
+</div>
+
+<div class="content">
+    <div class="page-title">
+        <h1>Reference</h1>
+        <p>Chemical database & safety data sheets</p>
+    </div>
+
+    <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <span>Search chemicals, SDS, GHS...</span>
+        <div class="filter-btn"><i class="fas fa-sliders-h"></i></div>
+    </div>
+
+    <div class="categories">
+        <div class="cat-chip active">All</div>
+        <div class="cat-chip">Acids</div>
+        <div class="cat-chip">Bases</div>
+        <div class="cat-chip">Solvents</div>
+        <div class="cat-chip">Oxidizers</div>
+        <div class="cat-chip">Gases</div>
+    </div>
+
+    <!-- GHS Symbols -->
+    <div class="ghs-section">
+        <div class="section-header">
+            <h3>GHS Symbols</h3>
+            <a href="#">View All</a>
+        </div>
+        <div class="ghs-scroll">
+            <div class="ghs-item">
+                <div class="symbol"><i class="fas fa-fire"></i></div>
+                <div class="label">Flammable</div>
+            </div>
+            <div class="ghs-item">
+                <div class="symbol"><i class="fas fa-skull-crossbones"></i></div>
+                <div class="label">Toxic</div>
+            </div>
+            <div class="ghs-item">
+                <div class="symbol"><i class="fas fa-exclamation"></i></div>
+                <div class="label">Irritant</div>
+            </div>
+            <div class="ghs-item">
+                <div class="symbol"><i class="fas fa-flask"></i></div>
+                <div class="label">Corrosive</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Common Chemicals -->
+    <div class="section-header">
+        <h3>Common Chemicals</h3>
+        <a href="#">See All</a>
+    </div>
+    <div class="chem-grid">
+        <div class="chem-card">
+            <div class="risk-dot" style="background: #FF3B30;"></div>
+            <div class="formula">HCl</div>
+            <div class="name">Hydrochloric Acid</div>
+            <div class="tags">
+                <span class="tag" style="background: #FFE5E5; color: #FF3B30;">Corrosive</span>
+                <span class="tag" style="background: #FFF3E0; color: #FF9500;">Toxic</span>
+            </div>
+        </div>
+        <div class="chem-card">
+            <div class="risk-dot" style="background: #FF3B30;"></div>
+            <div class="formula">NaOH</div>
+            <div class="name">Sodium Hydroxide</div>
+            <div class="tags">
+                <span class="tag" style="background: #FFE5E5; color: #FF3B30;">Corrosive</span>
+                <span class="tag" style="background: #EEF2FF; color: #5B7FFF;">Irritant</span>
+            </div>
+        </div>
+        <div class="chem-card">
+            <div class="risk-dot" style="background: #FF9500;"></div>
+            <div class="formula">C₃H₆O</div>
+            <div class="name">Acetone</div>
+            <div class="tags">
+                <span class="tag" style="background: #FFF3E0; color: #FF9500;">Flammable</span>
+                <span class="tag" style="background: #EEF2FF; color: #5B7FFF;">Volatile</span>
+            </div>
+        </div>
+        <div class="chem-card">
+            <div class="risk-dot" style="background: #FF3B30;"></div>
+            <div class="formula">H₂SO₄</div>
+            <div class="name">Sulfuric Acid</div>
+            <div class="tags">
+                <span class="tag" style="background: #FFE5E5; color: #FF3B30;">Corrosive</span>
+                <span class="tag" style="background: #FFF3E0; color: #FF9500;">Oxidizer</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent SDS -->
+    <div class="section-header">
+        <h3>Recent SDS</h3>
+    </div>
+    <div class="sds-list">
+        <div class="sds-item">
+            <div class="icon" style="background: linear-gradient(135deg, #FF3B30, #FF6B6B);"><i class="fas fa-file-alt"></i></div>
+            <div class="info">
+                <h5>Hydrochloric Acid SDS</h5>
+                <p>Last updated: Mar 2026</p>
+            </div>
+            <i class="fas fa-chevron-right action"></i>
+        </div>
+        <div class="sds-item">
+            <div class="icon" style="background: linear-gradient(135deg, #5B7FFF, #3B5BDB);"><i class="fas fa-file-alt"></i></div>
+            <div class="info">
+                <h5>Sodium Hydroxide SDS</h5>
+                <p>Last updated: Feb 2026</p>
+            </div>
+            <i class="fas fa-chevron-right action"></i>
+        </div>
+        <div class="sds-item">
+            <div class="icon" style="background: linear-gradient(135deg, #F59E0B, #D97706);"><i class="fas fa-file-alt"></i></div>
+            <div class="info">
+                <h5>Acetone SDS</h5>
+                <p>Last updated: Jan 2026</p>
+            </div>
+            <i class="fas fa-chevron-right action"></i>
+        </div>
+    </div>
+</div>
+
+<div class="tab-bar">
+    <a class="tab-item" href="#"><i class="fas fa-home"></i><span>Home</span></a>
+    <a class="tab-item" href="#"><i class="fas fa-camera"></i><span>Scan</span></a>
+    <a class="tab-item" href="#"><i class="fas fa-exclamation-circle"></i><span>Emergency</span></a>
+    <a class="tab-item active" href="#"><i class="fas fa-book"></i><span>Reference</span></a>
+    <a class="tab-item" href="#"><i class="fas fa-user"></i><span>Profile</span></a>
+</div>
+</body>
+</html>
