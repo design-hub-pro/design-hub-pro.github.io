@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArtRef Studio - AI Reference Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #f8f7f4; }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.08); }
+        .style-card { transition: all 0.2s ease; }
+        .style-card:hover { border-color: #e11d48; }
+        .style-card.selected { border-color: #e11d48; background: #fff1f2; }
+        .pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(225,29,72,0.2); } 50% { box-shadow: 0 0 20px 4px rgba(225,29,72,0.15); } }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white border-r border-gray-200 min-h-screen fixed left-0 top-0 z-30">
+            <div class="p-6">
+                <div class="flex items-center gap-3 mb-8">
+                    <div class="w-10 h-10 bg-gradient-to-br from-rose-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-palette text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-gray-900 text-lg">ArtRef Studio</h1>
+                        <p class="text-xs text-gray-400">AP Portfolio Builder</p>
+                    </div>
+                </div>
+                <nav class="space-y-1">
+                    <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl text-sm">
+                        <i class="fas fa-th-large w-5 text-center"></i> Dashboard
+                    </a>
+                    <a href="references.html" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl text-sm">
+                        <i class="fas fa-images w-5 text-center"></i> Reference Library
+                    </a>
+                    <a href="ai-generate.html" class="flex items-center gap-3 px-4 py-3 bg-rose-50 text-rose-600 rounded-xl font-medium text-sm">
+                        <i class="fas fa-wand-magic-sparkles w-5 text-center"></i> AI Generator
+                    </a>
+                    <a href="pose-search.html" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl text-sm">
+                        <i class="fas fa-person w-5 text-center"></i> Pose Search
+                    </a>
+                    <a href="portfolio.html" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl text-sm">
+                        <i class="fas fa-briefcase w-5 text-center"></i> My Portfolio
+                    </a>
+                    <a href="workspace.html" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl text-sm">
+                        <i class="fas fa-paint-brush w-5 text-center"></i> Workspace
+                    </a>
+                    <a href="ap-tracker.html" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl text-sm">
+                        <i class="fas fa-graduation-cap w-5 text-center"></i> AP Exam Tracker
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="ml-64 flex-1 p-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">AI Reference Generator</h2>
+                    <p class="text-gray-500 mt-1">Generate custom art references with AI for body, shade, and pose studies</p>
+                </div>
+                <div class="flex items-center gap-2 bg-purple-50 px-4 py-2 rounded-xl">
+                    <i class="fas fa-bolt text-purple-500"></i>
+                    <span class="text-sm text-purple-700 font-medium">38 generations remaining</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Left: Generation Controls -->
+                <div class="col-span-1 space-y-5">
+                    <!-- Reference Type -->
+                    <div class="bg-white rounded-2xl border border-gray-100 p-5">
+                        <h3 class="font-semibold text-gray-900 mb-4">Reference Type</h3>
+                        <div class="space-y-2">
+                            <label class="style-card selected flex items-center gap-3 p-3 border-2 border-rose-300 rounded-xl cursor-pointer">
+                                <input type="radio" name="refType" checked class="hidden">
+                                <div class="w-10 h-10 bg-rose-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-person text-rose-500"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Body & Anatomy</p>
+                                    <p class="text-xs text-gray-400">Full body, muscles, proportions</p>
+                                </div>
+                            </label>
+                            <label class="style-card flex items-center gap-3 p-3 border-2 border-gray-200 rounded-xl cursor-pointer">
+                                <input type="radio" name="refType" class="hidden">
+                                <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-sun text-amber-500"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Shade & Lighting</p>
+                                    <p class="text-xs text-gray-400">Shadows, highlights, contrast</p>
+                                </div>
+                            </label>
+                            <label class="style-card flex items-center gap-3 p-3 border-2 border-gray-200 rounded-xl cursor-pointer">
+                                <input type="radio" name="refType" class="hidden">
+                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-person-walking text-blue-500"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Pose & Gesture</p>
+                                    <p class="text-xs text-gray-400">Dynamic poses, movement, flow</p>
+                                </div>
+                            </label>
+                            <label class="style-card flex items-center gap-3 p-3 border-2 border-gray-200 rounded-xl cursor-pointer">
+                                <input type="radio" name="refType" class="hidden">
+                                <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-hand text-emerald-500"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Detail Studies</p>
+                                    <p class="text-xs text-gray-400">Hands, eyes, fabric, texture</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Prompt -->
+                    <div class="bg-white rounded-2xl border border-gray-100 p-5">
+                        <h3 class="font-semibold text-gray-900 mb-3">Describe Your Reference</h3>
+                        <textarea class="w-full h-28 p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-400" placeholder="e.g., A figure with arms raised overhead, strong side lighting from the left creating deep shadows on the right side of the body...">A seated figure with crossed legs, dramatic Rembrandt lighting from above-right, visible muscle definition in the arms and shoulders</textarea>
+                        <div class="flex items-center gap-2 mt-3">
+                            <span class="text-xs text-gray-400">Quick prompts:</span>
+                            <button class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded hover:bg-gray-200">Contrapposto</button>
+                            <button class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded hover:bg-gray-200">Chiaroscuro</button>
+                            <button class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded hover:bg-gray-200">Gesture</button>
+                        </div>
+                    </div>
+
+                    <!-- Settings -->
+                    <div class="bg-white rounded-2xl border border-gray-100 p-5">
+                        <h3 class="font-semibold text-gray-900 mb-3">Generation Settings</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-sm text-gray-600 mb-1.5 block">Art Style</label>
+                                <select class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm">
+                                    <option>Photorealistic</option>
+                                    <option>Classical Drawing</option>
+                                    <option>Charcoal Sketch</option>
+                                    <option>Watercolor</option>
+                                    <option>Line Art</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600 mb-1.5 block">Lighting Direction</label>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button class="p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600 hover:border-rose-300">Top-Left</button>
+                                    <button class="p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600 hover:border-rose-300">Top</button>
+                                    <button class="p-2 bg-rose-50 border-2 border-rose-300 rounded-lg text-xs text-rose-600 font-medium">Top-Right</button>
+                                    <button class="p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600 hover:border-rose-300">Left</button>
+                                    <button class="p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600 hover:border-rose-300">Front</button>
+                                    <button class="p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600 hover:border-rose-300">Right</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-sm text-gray-600 mb-1.5 block">Number of Variations</label>
+                                <div class="flex items-center gap-2">
+                                    <button class="w-10 h-10 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-100">1</button>
+                                    <button class="w-10 h-10 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-100">2</button>
+                                    <button class="w-10 h-10 bg-rose-50 border-2 border-rose-300 rounded-lg text-sm text-rose-600 font-medium">4</button>
+                                    <button class="w-10 h-10 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-100">6</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Generate Button -->
+                    <button class="w-full py-3.5 bg-gradient-to-r from-rose-500 to-purple-600 text-white rounded-xl font-medium hover:opacity-90 flex items-center justify-center gap-2 pulse-glow">
+                        <i class="fas fa-wand-magic-sparkles"></i> Generate References
+                    </button>
+                </div>
+
+                <!-- Right: Generated Results -->
+                <div class="col-span-2">
+                    <div class="bg-white rounded-2xl border border-gray-100 p-6 mb-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-semibold text-gray-900">Generated Results</h3>
+                            <div class="flex items-center gap-2">
+                                <button class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs hover:bg-gray-200"><i class="fas fa-download mr-1"></i> Download All</button>
+                                <button class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs hover:bg-gray-200"><i class="fas fa-bookmark mr-1"></i> Save All</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="group relative rounded-xl overflow-hidden bg-gray-50 aspect-[4/5] card-hover cursor-pointer">
+                                <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&h=625&fit=crop" class="w-full h-full object-cover" alt="Generated 1">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div class="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-between">
+                                        <div>
+                                            <p class="text-white text-sm font-medium">Variation 1</p>
+                                            <p class="text-white/70 text-xs">Seated figure, Rembrandt light</p>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40"><i class="fas fa-bookmark text-xs"></i></button>
+                                            <button class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40"><i class="fas fa-download text-xs"></i></button>
+                                            <button class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40"><i class="fas fa-expand text-xs"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="absolute top-3 left-3">
+                                    <span class="bg-rose-500 text-white text-xs px-2 py-1 rounded-full font-medium"><i class="fas fa-sparkles mr-1"></i>AI Generated</span>
+                                </div>
+                            </div>
+                            <div class="group relative rounded-xl overflow-hidden bg-gray-50 aspect-[4/5] card-hover cursor-pointer">
+                                <img src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=500&h=625&fit=crop" class="w-full h-full object-cover" alt="Generated 2">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div class="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-between">
+                                        <div>
+                                            <p class="text-white text-sm font-medium">Variation 2</p>
+                                            <p class="text-white/70 text-xs">More pronounced shadows</p>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40"><i class="fas fa-bookmark text-xs"></i></button>
+                                            <button class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40"><i class="fas fa-download text-xs"></i></button>
+                                            <button class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40"><i class="fas fa-expand text-xs"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="absolute top-3 left-3">
+                                    <span class="bg-rose-500 text-white text-xs px-2 py-1 rounded-full font-medium"><i class="fas fa-sparkles mr-1"></i>AI Generated</span>
+                                </div>
+                            </div>
+                            <div class="group relative rounded-xl overflow-hidden bg-gray-50 aspect-[4/5] card-hover cursor-pointer">
+                                <img src="https://images.unsplash.com/photo-1578926375605-eaf7559b1458?w=500&h=625&fit=crop" class="w-full h-full object-cover" alt="Generated 3">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div class="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-between">
+                                        <div>
+                                            <p class="text-white text-sm font-medium">Variation 3</p>
+                                            <p class="text-white/70 text-xs">Softer lighting angle</p>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40"><i class="fas fa-bookmark text-xs"></i></button>
+                                            <button class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40"><i class="fas fa-download text-xs"></i></button>
+                                            <button class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40"><i class="fas fa-expand text-xs"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="absolute top-3 left-3">
+                                    <span class="bg-rose-500 text-white text-xs px-2 py-1 rounded-full font-medium"><i class="fas fa-sparkles mr-1"></i>AI Generated</span>
+                                </div>
+                            </div>
+                            <div class="group relative rounded-xl overflow-hidden bg-gray-50 aspect-[4/5] card-hover cursor-pointer">
+                                <img src="https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=500&h=625&fit=crop" class="w-full h-full object-cover" alt="Generated 4">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div class="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-between">
+                                        <div>
+                                            <p class="text-white text-sm font-medium">Variation 4</p>
+                                            <p class="text-white/70 text-xs">High contrast dramatic</p>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40"><i class="fas fa-bookmark text-xs"></i></button>
+                                            <button class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40"><i class="fas fa-download text-xs"></i></button>
+                                            <button class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40"><i class="fas fa-expand text-xs"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="absolute top-3 left-3">
+                                    <span class="bg-rose-500 text-white text-xs px-2 py-1 rounded-full font-medium"><i class="fas fa-sparkles mr-1"></i>AI Generated</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Generation History -->
+                    <div class="bg-white rounded-2xl border border-gray-100 p-6">
+                        <h3 class="font-semibold text-gray-900 mb-4">Recent Generations</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-xl">
+                                <div class="flex gap-2">
+                                    <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=60&h=60&fit=crop" class="w-12 h-12 rounded-lg object-cover" alt="">
+                                    <img src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=60&h=60&fit=crop" class="w-12 h-12 rounded-lg object-cover" alt="">
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-900">Seated figure, dramatic lighting</p>
+                                    <p class="text-xs text-gray-400">Body & Anatomy  &bull;  4 variations  &bull;  2 min ago</p>
+                                </div>
+                                <button class="text-sm text-rose-500 font-medium hover:text-rose-600">Regenerate</button>
+                            </div>
+                            <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-xl">
+                                <div class="flex gap-2">
+                                    <img src="https://images.unsplash.com/photo-1549289524-06cf8837ace5?w=60&h=60&fit=crop" class="w-12 h-12 rounded-lg object-cover" alt="">
+                                    <img src="https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=60&h=60&fit=crop" class="w-12 h-12 rounded-lg object-cover" alt="">
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-900">Abstract shadow patterns on face</p>
+                                    <p class="text-xs text-gray-400">Shade & Lighting  &bull;  2 variations  &bull;  1 hour ago</p>
+                                </div>
+                                <button class="text-sm text-rose-500 font-medium hover:text-rose-600">Regenerate</button>
+                            </div>
+                            <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-xl">
+                                <div class="flex gap-2">
+                                    <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=60&h=60&fit=crop" class="w-12 h-12 rounded-lg object-cover" alt="">
+                                    <img src="https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?w=60&h=60&fit=crop" class="w-12 h-12 rounded-lg object-cover" alt="">
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-900">Dynamic running pose, side view</p>
+                                    <p class="text-xs text-gray-400">Pose & Gesture  &bull;  6 variations  &bull;  Yesterday</p>
+                                </div>
+                                <button class="text-sm text-rose-500 font-medium hover:text-rose-600">Regenerate</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
