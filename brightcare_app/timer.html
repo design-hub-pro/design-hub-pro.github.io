@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrightCare - Timer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { -webkit-font-smoothing: antialiased; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            background: linear-gradient(180deg, #2D1B69 0%, #1A103C 100%);
+            width: 100%; height: 100%; margin: 0; padding: 0; overflow-x: hidden;
+            color: white;
+        }
+        .status-bar { height: 59px; padding: 0 28px; }
+        .dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 24px; margin: 0 auto; margin-top: 14px; }
+        .content-area { padding: 0 28px; padding-bottom: 110px; }
+        .tab-bar {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+            background: rgba(26,16,60,0.97); backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .timer-ring {
+            width: 280px; height: 280px;
+            border-radius: 50%;
+            background: conic-gradient(#A78BFA 0deg, #6C5CE7 120deg, #4C3A9E 216deg, rgba(255,255,255,0.05) 216deg);
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .timer-ring::before {
+            content: '';
+            position: absolute; inset: 12px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #2D1B69, #1A103C);
+        }
+        .timer-inner { position: relative; z-index: 1; text-align: center; }
+        .glow { filter: drop-shadow(0 0 20px rgba(167,139,250,0.4)); }
+        @keyframes breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+        .breathing { animation: breathe 3s ease-in-out infinite; }
+    </style>
+</head>
+<body>
+    <div class="status-bar flex items-end justify-between pb-1">
+        <span class="text-sm font-semibold text-white/80">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="flex items-center gap-1.5 text-white/80">
+            <i class="fas fa-signal text-sm"></i>
+            <i class="fas fa-wifi text-sm"></i>
+            <i class="fas fa-battery-full text-sm"></i>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <!-- Header -->
+        <div class="flex items-center justify-between mt-3 mb-6">
+            <h1 class="text-2xl font-bold">Timer</h1>
+            <button class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+                <i class="fas fa-cog text-white/60"></i>
+            </button>
+        </div>
+
+        <!-- Current Task -->
+        <div class="bg-white/10 rounded-2xl p-4 mb-8 flex items-center gap-3">
+            <div class="w-12 h-12 bg-purple-500/30 rounded-xl flex items-center justify-center">
+                <span class="text-2xl">📚</span>
+            </div>
+            <div class="flex-1">
+                <p class="font-bold text-lg">Reading Time</p>
+                <p class="text-white/50 text-sm">30 min session · With timer</p>
+            </div>
+            <div class="flex items-center gap-1">
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                <span class="text-sm font-bold">+3</span>
+            </div>
+        </div>
+
+        <!-- Timer Ring -->
+        <div class="flex justify-center mb-8">
+            <div class="timer-ring glow breathing">
+                <div class="timer-inner">
+                    <p class="text-6xl font-bold tracking-tight" style="font-variant-numeric: tabular-nums;">12:34</p>
+                    <p class="text-white/40 text-sm mt-1">remaining</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex items-center justify-center gap-6 mb-8">
+            <button class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center">
+                <i class="fas fa-redo text-white/60 text-lg"></i>
+            </button>
+            <button class="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/30">
+                <i class="fas fa-pause text-white text-2xl"></i>
+            </button>
+            <button class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center">
+                <i class="fas fa-forward text-white/60 text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Visual Progress -->
+        <div class="bg-white/8 rounded-2xl p-4 mb-5">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-sm text-white/50">Session Progress</span>
+                <span class="text-sm font-bold text-purple-300">60%</span>
+            </div>
+            <div class="flex gap-1.5">
+                <div class="h-2 flex-1 bg-purple-500 rounded-full"></div>
+                <div class="h-2 flex-1 bg-purple-500 rounded-full"></div>
+                <div class="h-2 flex-1 bg-purple-500 rounded-full"></div>
+                <div class="h-2 flex-1 bg-white/10 rounded-full"></div>
+                <div class="h-2 flex-1 bg-white/10 rounded-full"></div>
+            </div>
+        </div>
+
+        <!-- Timer Effectiveness -->
+        <div class="bg-white/8 rounded-2xl p-4 mb-5">
+            <div class="flex items-center gap-2 mb-3">
+                <i class="fas fa-chart-line text-green-400"></i>
+                <span class="text-sm font-semibold">Timer Effectiveness</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-white/8 rounded-xl p-3 text-center">
+                    <p class="text-2xl font-bold text-green-400">87%</p>
+                    <p class="text-xs text-white/40 mt-1">With Timer</p>
+                    <div class="bg-green-500/20 rounded-full h-1.5 mt-2">
+                        <div class="bg-green-400 h-full rounded-full" style="width: 87%"></div>
+                    </div>
+                </div>
+                <div class="bg-white/8 rounded-xl p-3 text-center">
+                    <p class="text-2xl font-bold text-orange-400">52%</p>
+                    <p class="text-xs text-white/40 mt-1">Without Timer</p>
+                    <div class="bg-orange-500/20 rounded-full h-1.5 mt-2">
+                        <div class="bg-orange-400 h-full rounded-full" style="width: 52%"></div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-xs text-green-400/70 mt-3 text-center"><i class="fas fa-arrow-up mr-1"></i>35% better task completion with timer</p>
+        </div>
+
+        <!-- Upcoming Reminder -->
+        <div class="bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-2xl p-4 border border-amber-500/20">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-bell text-amber-400"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="font-semibold text-sm">5-min Warning</p>
+                    <p class="text-xs text-white/40">Audio reminder at 5 min remaining</p>
+                </div>
+                <div class="w-12 h-7 bg-green-500 rounded-full flex items-center justify-end px-1">
+                    <div class="w-5 h-5 bg-white rounded-full"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar flex items-center justify-around px-6 pt-2">
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-home text-white/30 text-xl"></i>
+            <span class="text-xs text-white/30">Home</span>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-calendar-alt text-white/30 text-xl"></i>
+            <span class="text-xs text-white/30">Schedule</span>
+        </div>
+        <div class="flex flex-col items-center gap-1 -mt-4">
+            <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/40">
+                <i class="fas fa-stopwatch text-white text-xl"></i>
+            </div>
+            <span class="text-xs font-semibold text-purple-300">Timer</span>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-clipboard-list text-white/30 text-xl"></i>
+            <span class="text-xs text-white/30">Log</span>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-trophy text-white/30 text-xl"></i>
+            <span class="text-xs text-white/30">Rewards</span>
+        </div>
+    </div>
+</body>
+</html>
