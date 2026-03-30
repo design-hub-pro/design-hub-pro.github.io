@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PuckTrack — Reel Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        body { background: #0a0b10; color: #e2e8f0; width: 100%; height: 100%; }
+        .sidebar { background: #0e1018; border-right: 1px solid rgba(255,255,255,0.06); }
+        .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; backdrop-filter: blur(20px); }
+        .nav-item { padding: 10px 14px; border-radius: 10px; color: #64748b; cursor: pointer; transition: all 0.2s; font-size: 13px; }
+        .nav-item:hover { background: rgba(255,255,255,0.04); color: #94a3b8; }
+        .nav-item.active { background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(99,102,241,0.08)); color: #a78bfa; }
+        .clip-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; cursor: grab; transition: all 0.2s; }
+        .clip-card:hover { border-color: rgba(255,255,255,0.12); }
+        .clip-card.active { border-color: rgba(167,139,250,0.4); background: rgba(167,139,250,0.06); }
+        .timeline-track { background: rgba(255,255,255,0.03); border-radius: 8px; height: 60px; position: relative; }
+        .timeline-clip { height: 100%; border-radius: 6px; position: absolute; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
+        .template-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; cursor: pointer; transition: all 0.2s; overflow: hidden; }
+        .template-card:hover { border-color: rgba(255,255,255,0.12); }
+        .template-card.selected { border-color: rgba(167,139,250,0.5); box-shadow: 0 0 20px rgba(167,139,250,0.1); }
+    </style>
+</head>
+<body class="min-h-screen flex">
+    <!-- Sidebar -->
+    <aside class="sidebar w-60 min-h-screen flex flex-col p-4 flex-shrink-0">
+        <div class="flex items-center gap-3 px-2 mb-8 mt-2">
+            <div class="w-10 h-10 bg-gradient-to-br from-[#00a8ff] to-[#0066ff] rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <i class="fas fa-hockey-puck text-white text-lg"></i>
+            </div>
+            <div>
+                <div class="font-bold text-white text-lg leading-tight tracking-tight">PuckTrack</div>
+                <div class="text-[10px] text-gray-500 tracking-wider uppercase">Goal Highlights</div>
+            </div>
+        </div>
+        <nav class="flex flex-col gap-1 flex-1">
+            <a href="dashboard.html" class="nav-item flex items-center gap-3"><i class="fas fa-th-large w-5 text-center text-sm"></i> Dashboard</a>
+            <a href="upload.html" class="nav-item flex items-center gap-3"><i class="fas fa-cloud-upload-alt w-5 text-center text-sm"></i> Upload</a>
+            <a href="highlights.html" class="nav-item flex items-center gap-3"><i class="fas fa-fire w-5 text-center text-sm"></i> Highlights</a>
+            <a href="editor.html" class="nav-item active flex items-center gap-3"><i class="fas fa-film w-5 text-center text-sm"></i> Reel Editor</a>
+            <a href="export.html" class="nav-item flex items-center gap-3"><i class="fas fa-share-alt w-5 text-center text-sm"></i> Export</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto">
+        <!-- Top Bar -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-white/[0.04]">
+            <div class="flex items-center gap-4">
+                <h1 class="text-lg font-bold text-white tracking-tight">Reel Editor</h1>
+                <span class="text-[10px] bg-purple-500/15 text-purple-400 px-2 py-0.5 rounded-full font-medium">3 clips · 5:15</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="px-4 py-2 rounded-xl text-xs font-medium text-gray-400 border border-white/[0.06] hover:border-white/[0.12] transition">
+                    <i class="fas fa-undo mr-1.5"></i>Undo
+                </button>
+                <button class="px-4 py-2 rounded-xl text-xs font-medium text-gray-400 border border-white/[0.06] hover:border-white/[0.12] transition">
+                    <i class="fas fa-redo mr-1.5"></i>Redo
+                </button>
+                <button class="px-5 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl text-xs font-semibold text-white hover:opacity-90 transition shadow-lg shadow-purple-500/20">
+                    <i class="fas fa-download mr-1.5"></i>Export Reel
+                </button>
+            </div>
+        </div>
+
+        <div class="flex" style="height: calc(100vh - 57px);">
+            <!-- Preview & Editor Panel -->
+            <div class="flex-1 p-6 overflow-y-auto">
+                <!-- Preview Player -->
+                <div class="card overflow-hidden mb-5">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1515703407324-5f753afd8be8?w=1200&h=500&fit=crop" alt="Preview" class="w-full h-[300px] object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center cursor-pointer hover:bg-white/30 transition">
+                                <i class="fas fa-play text-white text-lg ml-0.5"></i>
+                            </div>
+                        </div>
+                        <div class="absolute top-3 left-3 flex items-center gap-2">
+                            <span class="bg-purple-500/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg">PREVIEW</span>
+                            <span class="bg-black/50 backdrop-blur text-white text-[10px] px-2 py-0.5 rounded font-mono">Clip 1 of 3</span>
+                        </div>
+                        <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                            <span class="text-[10px] text-white/70 font-mono">0:00</span>
+                            <div class="flex items-center gap-2">
+                                <button class="text-white/60 hover:text-white text-xs"><i class="fas fa-step-backward"></i></button>
+                                <button class="w-7 h-7 bg-white/20 rounded-full flex items-center justify-center text-white"><i class="fas fa-pause text-[10px]"></i></button>
+                                <button class="text-white/60 hover:text-white text-xs"><i class="fas fa-step-forward"></i></button>
+                            </div>
+                            <span class="text-[10px] text-white/70 font-mono">5:15</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Editor -->
+                <div class="card p-5 mb-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-semibold text-white">Timeline</h3>
+                        <div class="flex items-center gap-2">
+                            <button class="text-[10px] text-gray-500 hover:text-gray-300 px-2 py-1 bg-white/[0.03] rounded-lg border border-white/[0.04]"><i class="fas fa-search-minus mr-1"></i>Zoom</button>
+                            <button class="text-[10px] text-gray-500 hover:text-gray-300 px-2 py-1 bg-white/[0.03] rounded-lg border border-white/[0.04]"><i class="fas fa-search-plus mr-1"></i>Zoom</button>
+                        </div>
+                    </div>
+                    <!-- Time ruler -->
+                    <div class="flex items-center mb-2 px-1">
+                        <span class="text-[9px] text-gray-600 w-[31%]">0:00</span>
+                        <span class="text-[9px] text-gray-600 w-[31%] text-center">1:42</span>
+                        <span class="text-[9px] text-gray-600 w-[31%] text-center">3:20</span>
+                        <span class="text-[9px] text-gray-600 text-right flex-1">5:15</span>
+                    </div>
+                    <!-- Timeline Track -->
+                    <div class="timeline-track border border-white/[0.04]">
+                        <div class="timeline-clip bg-gradient-to-r from-[#FFB81C]/30 to-[#FFB81C]/20 border border-[#FFB81C]/30" style="left: 0%; width: 32%;">
+                            <div class="flex items-center gap-2 px-3">
+                                <span class="text-[10px] font-bold text-[#FFB81C]">#87</span>
+                                <span class="text-[10px] text-white/70">Crosby · 1:42</span>
+                            </div>
+                        </div>
+                        <!-- Transition -->
+                        <div class="absolute top-1/2 -translate-y-1/2 w-6 h-6 bg-purple-500/30 border border-purple-400/40 rounded-full flex items-center justify-center z-10 cursor-pointer" style="left: 31%;">
+                            <i class="fas fa-random text-purple-300 text-[8px]"></i>
+                        </div>
+                        <div class="timeline-clip bg-gradient-to-r from-[#CE1126]/30 to-[#CE1126]/20 border border-[#CE1126]/30" style="left: 33%; width: 31%;">
+                            <div class="flex items-center gap-2 px-3">
+                                <span class="text-[10px] font-bold text-[#CE1126]">#8</span>
+                                <span class="text-[10px] text-white/70">Ovechkin · 1:38</span>
+                            </div>
+                        </div>
+                        <!-- Transition -->
+                        <div class="absolute top-1/2 -translate-y-1/2 w-6 h-6 bg-purple-500/30 border border-purple-400/40 rounded-full flex items-center justify-center z-10 cursor-pointer" style="left: 63%;">
+                            <i class="fas fa-random text-purple-300 text-[8px]"></i>
+                        </div>
+                        <div class="timeline-clip bg-gradient-to-r from-[#FFB81C]/30 to-[#FFB81C]/20 border border-[#FFB81C]/30" style="left: 65%; width: 35%;">
+                            <div class="flex items-center gap-2 px-3">
+                                <span class="text-[10px] font-bold text-[#FFB81C]">#59</span>
+                                <span class="text-[10px] text-white/70">Guentzel · 1:55</span>
+                            </div>
+                        </div>
+                        <!-- Playhead -->
+                        <div class="absolute top-0 bottom-0 w-0.5 bg-white z-20" style="left: 15%;">
+                            <div class="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white rounded-sm rotate-45"></div>
+                        </div>
+                    </div>
+                    <!-- Audio waveform hint -->
+                    <div class="mt-2 h-4 bg-white/[0.02] rounded border border-white/[0.03] flex items-center px-2">
+                        <span class="text-[8px] text-gray-600 mr-2"><i class="fas fa-music mr-1"></i>Audio</span>
+                        <div class="flex-1 flex items-center gap-[1px]">
+                            <div class="w-[2px] h-1 bg-purple-400/30 rounded-full"></div>
+                            <div class="w-[2px] h-2 bg-purple-400/40 rounded-full"></div>
+                            <div class="w-[2px] h-3 bg-purple-400/50 rounded-full"></div>
+                            <div class="w-[2px] h-2 bg-purple-400/40 rounded-full"></div>
+                            <div class="w-[2px] h-1 bg-purple-400/30 rounded-full"></div>
+                            <div class="w-[2px] h-2 bg-purple-400/40 rounded-full"></div>
+                            <div class="w-[2px] h-3 bg-purple-400/60 rounded-full"></div>
+                            <div class="w-[2px] h-2 bg-purple-400/40 rounded-full"></div>
+                            <div class="w-[2px] h-1 bg-purple-400/20 rounded-full"></div>
+                            <div class="w-[2px] h-2 bg-purple-400/40 rounded-full"></div>
+                            <div class="w-[2px] h-3 bg-purple-400/50 rounded-full"></div>
+                            <div class="w-[2px] h-2 bg-purple-400/30 rounded-full"></div>
+                            <div class="w-[2px] h-1 bg-purple-400/20 rounded-full"></div>
+                            <div class="w-[2px] h-3 bg-purple-400/50 rounded-full"></div>
+                            <div class="w-[2px] h-2 bg-purple-400/40 rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reel Templates -->
+                <div class="card p-5 mb-5">
+                    <h3 class="text-sm font-semibold text-white mb-3">Reel Templates</h3>
+                    <div class="grid grid-cols-4 gap-3">
+                        <div class="template-card selected p-3 text-center">
+                            <div class="w-10 h-10 mx-auto bg-gradient-to-br from-orange-500/20 to-red-500/10 rounded-xl flex items-center justify-center mb-2">
+                                <i class="fas fa-fire text-orange-400 text-sm"></i>
+                            </div>
+                            <div class="text-xs font-medium text-white">Game Recap</div>
+                            <div class="text-[9px] text-gray-500 mt-0.5">16:9 · 60s</div>
+                        </div>
+                        <div class="template-card p-3 text-center">
+                            <div class="w-10 h-10 mx-auto bg-gradient-to-br from-[#00a8ff]/20 to-blue-500/10 rounded-xl flex items-center justify-center mb-2">
+                                <i class="fas fa-calendar text-[#00a8ff] text-sm"></i>
+                            </div>
+                            <div class="text-xs font-medium text-white">Season Best</div>
+                            <div class="text-[9px] text-gray-500 mt-0.5">16:9 · 3min</div>
+                        </div>
+                        <div class="template-card p-3 text-center">
+                            <div class="w-10 h-10 mx-auto bg-gradient-to-br from-pink-500/20 to-rose-500/10 rounded-xl flex items-center justify-center mb-2">
+                                <i class="fab fa-instagram text-pink-400 text-sm"></i>
+                            </div>
+                            <div class="text-xs font-medium text-white">Social Short</div>
+                            <div class="text-[9px] text-gray-500 mt-0.5">9:16 · 30s</div>
+                        </div>
+                        <div class="template-card p-3 text-center">
+                            <div class="w-10 h-10 mx-auto bg-gradient-to-br from-emerald-500/20 to-teal-500/10 rounded-xl flex items-center justify-center mb-2">
+                                <i class="fas fa-user-circle text-emerald-400 text-sm"></i>
+                            </div>
+                            <div class="text-xs font-medium text-white">Player Spotlight</div>
+                            <div class="text-[9px] text-gray-500 mt-0.5">16:9 · 90s</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text Overlay & Music -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="card p-5">
+                        <h3 class="text-sm font-semibold text-white mb-3">Text Overlays</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between p-2.5 bg-white/[0.02] border border-white/[0.04] rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 bg-[#00a8ff]/10 rounded flex items-center justify-center">
+                                        <i class="fas fa-heading text-[#00a8ff] text-[10px]"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-[11px] font-medium text-white">Game Title</div>
+                                        <div class="text-[9px] text-gray-500">PEN vs WSH · Mar 18</div>
+                                    </div>
+                                </div>
+                                <div class="w-8 h-4 bg-[#00a8ff] rounded-full relative">
+                                    <div class="w-3.5 h-3.5 bg-white rounded-full absolute right-0.5 top-[1px] shadow"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-2.5 bg-white/[0.02] border border-white/[0.04] rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 bg-orange-500/10 rounded flex items-center justify-center">
+                                        <i class="fas fa-scoreboard text-orange-400 text-[10px]"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-[11px] font-medium text-white">Scoreboard</div>
+                                        <div class="text-[9px] text-gray-500">Live score overlay</div>
+                                    </div>
+                                </div>
+                                <div class="w-8 h-4 bg-[#00a8ff] rounded-full relative">
+                                    <div class="w-3.5 h-3.5 bg-white rounded-full absolute right-0.5 top-[1px] shadow"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-2.5 bg-white/[0.02] border border-white/[0.04] rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 bg-purple-500/10 rounded flex items-center justify-center">
+                                        <i class="fas fa-user-tag text-purple-400 text-[10px]"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-[11px] font-medium text-white">Scorer Names</div>
+                                        <div class="text-[9px] text-gray-500">Auto-generated labels</div>
+                                    </div>
+                                </div>
+                                <div class="w-8 h-4 bg-white/[0.1] rounded-full relative">
+                                    <div class="w-3.5 h-3.5 bg-gray-500 rounded-full absolute left-0.5 top-[1px] shadow"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card p-5">
+                        <h3 class="text-sm font-semibold text-white mb-3">Background Music</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between p-2.5 bg-purple-500/[0.06] border border-purple-500/20 rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 bg-purple-500/20 rounded flex items-center justify-center">
+                                        <i class="fas fa-music text-purple-400 text-[10px]"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-[11px] font-medium text-white">Stadium Anthem</div>
+                                        <div class="text-[9px] text-gray-500">High energy · 2:30</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-5 h-5 bg-purple-500/30 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-check text-purple-300 text-[8px]"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-2.5 bg-white/[0.02] border border-white/[0.04] rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 bg-[#00a8ff]/10 rounded flex items-center justify-center">
+                                        <i class="fas fa-music text-[#00a8ff] text-[10px]"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-[11px] font-medium text-white">Victory March</div>
+                                        <div class="text-[9px] text-gray-500">Epic orchestral · 3:15</div>
+                                    </div>
+                                </div>
+                                <button class="text-[10px] text-gray-500 hover:text-white"><i class="fas fa-play"></i></button>
+                            </div>
+                            <div class="flex items-center justify-between p-2.5 bg-white/[0.02] border border-white/[0.04] rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 bg-emerald-500/10 rounded flex items-center justify-center">
+                                        <i class="fas fa-music text-emerald-400 text-[10px]"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-[11px] font-medium text-white">Electric Surge</div>
+                                        <div class="text-[9px] text-gray-500">EDM build-up · 1:45</div>
+                                    </div>
+                                </div>
+                                <button class="text-[10px] text-gray-500 hover:text-white"><i class="fas fa-play"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Clip List & Transitions -->
+            <div class="w-72 border-l border-white/[0.04] p-5 overflow-y-auto flex-shrink-0">
+                <h3 class="text-sm font-semibold text-white mb-3">Goal Clips</h3>
+                <p class="text-[10px] text-gray-500 mb-4">Drag to reorder clips in the reel</p>
+
+                <div class="space-y-3">
+                    <!-- Intro -->
+                    <div class="clip-card p-3 border-dashed">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-play-circle text-purple-400 text-xs"></i>
+                            </div>
+                            <div>
+                                <div class="text-[11px] font-medium text-white">Intro Card</div>
+                                <div class="text-[9px] text-gray-500">Team logos · 3s</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Clip 1 -->
+                    <div class="clip-card active p-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-[#FFB81C]"></div>
+                            <img src="https://images.unsplash.com/photo-1515703407324-5f753afd8be8?w=100&h=60&fit=crop" class="w-12 h-8 rounded object-cover">
+                            <div class="flex-1 min-w-0">
+                                <div class="text-[11px] font-medium text-white truncate">#87 Crosby</div>
+                                <div class="text-[9px] text-gray-500">P1 · 14:23 · 1:42</div>
+                            </div>
+                            <i class="fas fa-grip-vertical text-gray-600 text-[10px]"></i>
+                        </div>
+                        <div class="flex items-center gap-1 mt-2">
+                            <span class="text-[8px] bg-orange-500/15 text-orange-400 px-1.5 py-0.5 rounded">GOAL</span>
+                            <span class="text-[8px] bg-[#00a8ff]/15 text-[#00a8ff] px-1.5 py-0.5 rounded">PP</span>
+                        </div>
+                    </div>
+
+                    <!-- Transition -->
+                    <div class="flex items-center justify-center py-1">
+                        <div class="flex items-center gap-2 px-3 py-1 bg-white/[0.02] border border-white/[0.04] rounded-full">
+                            <i class="fas fa-random text-purple-400 text-[8px]"></i>
+                            <span class="text-[9px] text-gray-500">Cross Fade · 0.5s</span>
+                        </div>
+                    </div>
+
+                    <!-- Clip 2 -->
+                    <div class="clip-card p-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-[#CE1126]"></div>
+                            <img src="https://images.unsplash.com/photo-1580748142328-81ae03c29385?w=100&h=60&fit=crop" class="w-12 h-8 rounded object-cover">
+                            <div class="flex-1 min-w-0">
+                                <div class="text-[11px] font-medium text-white truncate">#8 Ovechkin</div>
+                                <div class="text-[9px] text-gray-500">P1 · 18:47 · 1:38</div>
+                            </div>
+                            <i class="fas fa-grip-vertical text-gray-600 text-[10px]"></i>
+                        </div>
+                        <div class="flex items-center gap-1 mt-2">
+                            <span class="text-[8px] bg-orange-500/15 text-orange-400 px-1.5 py-0.5 rounded">GOAL</span>
+                        </div>
+                    </div>
+
+                    <!-- Transition -->
+                    <div class="flex items-center justify-center py-1">
+                        <div class="flex items-center gap-2 px-3 py-1 bg-white/[0.02] border border-white/[0.04] rounded-full">
+                            <i class="fas fa-random text-purple-400 text-[8px]"></i>
+                            <span class="text-[9px] text-gray-500">Hard Cut</span>
+                        </div>
+                    </div>
+
+                    <!-- Clip 3 -->
+                    <div class="clip-card p-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-[#FFB81C]"></div>
+                            <img src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=100&h=60&fit=crop" class="w-12 h-8 rounded object-cover">
+                            <div class="flex-1 min-w-0">
+                                <div class="text-[11px] font-medium text-white truncate">#59 Guentzel</div>
+                                <div class="text-[9px] text-gray-500">P2 · 8:12 · 1:55</div>
+                            </div>
+                            <i class="fas fa-grip-vertical text-gray-600 text-[10px]"></i>
+                        </div>
+                        <div class="flex items-center gap-1 mt-2">
+                            <span class="text-[8px] bg-orange-500/15 text-orange-400 px-1.5 py-0.5 rounded">GOAL</span>
+                        </div>
+                    </div>
+
+                    <!-- Outro -->
+                    <div class="clip-card p-3 border-dashed">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-stop-circle text-purple-400 text-xs"></i>
+                            </div>
+                            <div>
+                                <div class="text-[11px] font-medium text-white">Outro Card</div>
+                                <div class="text-[9px] text-gray-500">Final score · 4s</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add More Clips -->
+                <button class="w-full mt-4 p-3 border border-dashed border-white/[0.08] rounded-xl text-xs text-gray-500 hover:text-gray-300 hover:border-white/[0.15] transition text-center">
+                    <i class="fas fa-plus mr-1.5"></i>Add More Clips
+                </button>
+
+                <!-- Transition Settings -->
+                <div class="mt-5 pt-5 border-t border-white/[0.04]">
+                    <h3 class="text-sm font-semibold text-white mb-3">Transitions</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="text-center p-2 bg-white/[0.02] border border-white/[0.04] rounded-lg cursor-pointer hover:border-white/[0.12]">
+                            <i class="fas fa-cut text-gray-500 text-xs mb-1 block"></i>
+                            <div class="text-[9px] text-gray-500">Hard Cut</div>
+                        </div>
+                        <div class="text-center p-2 bg-purple-500/[0.06] border border-purple-500/20 rounded-lg cursor-pointer">
+                            <i class="fas fa-random text-purple-400 text-xs mb-1 block"></i>
+                            <div class="text-[9px] text-purple-300">Fade</div>
+                        </div>
+                        <div class="text-center p-2 bg-white/[0.02] border border-white/[0.04] rounded-lg cursor-pointer hover:border-white/[0.12]">
+                            <i class="fas fa-exchange-alt text-gray-500 text-xs mb-1 block"></i>
+                            <div class="text-[9px] text-gray-500">Wipe</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
