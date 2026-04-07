@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FeedForward - Inventory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { -webkit-font-smoothing: antialiased; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            background: #F8FAFB;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        .status-bar { height: 59px; padding: 0 28px; }
+        .dynamic-island {
+            width: 126px;
+            height: 37px;
+            background: #000;
+            border-radius: 24px;
+            margin: 0 auto;
+            margin-top: 14px;
+        }
+        .content-area { padding: 0 28px; padding-bottom: 100px; }
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 88px;
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 8px;
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            color: #9CA3AF;
+        }
+        .tab-item.active { color: #059669; }
+        .tab-item i { font-size: 20px; }
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+        .category-chip {
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .category-chip.active {
+            background: #059669;
+            color: white;
+        }
+        .category-chip:not(.active) {
+            background: white;
+            color: #6B7280;
+        }
+        .expiry-urgent { border-left: 4px solid #EF4444; }
+        .expiry-warning { border-left: 4px solid #F59E0B; }
+        .expiry-safe { border-left: 4px solid #10B981; }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div class="status-bar flex items-end justify-between pb-1">
+        <span class="text-sm font-semibold">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="flex items-center gap-1.5">
+            <i class="fas fa-signal text-sm"></i>
+            <i class="fas fa-wifi text-sm"></i>
+            <i class="fas fa-battery-full text-sm"></i>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-area">
+        <!-- Header -->
+        <div class="flex items-center justify-between mt-4 mb-5">
+            <h1 class="text-2xl font-bold text-gray-900">Inventory</h1>
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shadow-sm">
+                    <i class="fas fa-plus text-white"></i>
+                </div>
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
+                    <i class="fas fa-barcode text-gray-600"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="bg-white rounded-2xl px-4 py-3 flex items-center gap-3 shadow-sm mb-4">
+            <i class="fas fa-search text-gray-400"></i>
+            <span class="text-gray-400 text-sm">Search items, categories...</span>
+        </div>
+
+        <!-- Category Chips -->
+        <div class="flex gap-2 mb-5 overflow-x-auto" style="scrollbar-width:none;">
+            <div class="category-chip active">All</div>
+            <div class="category-chip">Produce</div>
+            <div class="category-chip">Grains</div>
+            <div class="category-chip">Dairy</div>
+            <div class="category-chip">Protein</div>
+            <div class="category-chip">Canned</div>
+        </div>
+
+        <!-- Expiry Overview -->
+        <div class="card p-4 mb-5">
+            <div class="flex items-center justify-between mb-3">
+                <p class="text-sm font-semibold text-gray-900">Expiration Overview</p>
+                <span class="text-xs text-emerald-600 font-medium">View All</span>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+                <div class="bg-red-50 rounded-xl p-3 text-center">
+                    <p class="text-2xl font-bold text-red-600">3</p>
+                    <p class="text-[10px] text-red-500 mt-0.5">Today</p>
+                </div>
+                <div class="bg-amber-50 rounded-xl p-3 text-center">
+                    <p class="text-2xl font-bold text-amber-600">9</p>
+                    <p class="text-[10px] text-amber-500 mt-0.5">This Week</p>
+                </div>
+                <div class="bg-green-50 rounded-xl p-3 text-center">
+                    <p class="text-2xl font-bold text-green-600">1,222</p>
+                    <p class="text-[10px] text-green-500 mt-0.5">Safe</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Storage Capacity -->
+        <div class="card p-4 mb-5">
+            <div class="flex items-center justify-between mb-2">
+                <p class="text-sm font-semibold text-gray-900">Storage Capacity</p>
+                <span class="text-xs text-gray-400">74% used</span>
+            </div>
+            <div class="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full flex">
+                    <div class="bg-emerald-500 h-full" style="width:45%"></div>
+                    <div class="bg-blue-500 h-full" style="width:18%"></div>
+                    <div class="bg-amber-500 h-full" style="width:11%"></div>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 mt-2">
+                <div class="flex items-center gap-1"><span class="w-2 h-2 bg-emerald-500 rounded-full"></span><span class="text-[10px] text-gray-500">Dry</span></div>
+                <div class="flex items-center gap-1"><span class="w-2 h-2 bg-blue-500 rounded-full"></span><span class="text-[10px] text-gray-500">Cold</span></div>
+                <div class="flex items-center gap-1"><span class="w-2 h-2 bg-amber-500 rounded-full"></span><span class="text-[10px] text-gray-500">Frozen</span></div>
+            </div>
+        </div>
+
+        <!-- Item List -->
+        <p class="text-sm font-semibold text-gray-900 mb-3">Items</p>
+        <div class="space-y-3">
+            <!-- Urgent -->
+            <div class="card p-4 expiry-urgent flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1550583724-b2692b85b150?w=200" class="w-full h-full object-cover" alt="Milk">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                        <p class="text-sm font-semibold text-gray-900">Whole Milk (2%)</p>
+                    </div>
+                    <p class="text-xs text-gray-400">48 gallons</p>
+                    <div class="flex items-center gap-1 mt-0.5">
+                        <i class="fas fa-clock text-red-500 text-[10px]"></i>
+                        <span class="text-red-500 text-[10px] font-medium">Expires today</span>
+                    </div>
+                </div>
+                <div class="bg-red-100 px-2.5 py-1 rounded-lg">
+                    <span class="text-red-600 text-xs font-bold">!</span>
+                </div>
+            </div>
+
+            <!-- Warning -->
+            <div class="card p-4 expiry-warning flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200" class="w-full h-full object-cover" alt="Bread">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-900">Wheat Bread</p>
+                    <p class="text-xs text-gray-400">120 loaves</p>
+                    <div class="flex items-center gap-1 mt-0.5">
+                        <i class="fas fa-clock text-amber-500 text-[10px]"></i>
+                        <span class="text-amber-500 text-[10px] font-medium">3 days left</span>
+                    </div>
+                </div>
+                <div class="bg-amber-100 px-2.5 py-1 rounded-lg">
+                    <span class="text-amber-600 text-xs font-bold">3d</span>
+                </div>
+            </div>
+
+            <!-- Safe -->
+            <div class="card p-4 expiry-safe flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1586201375761-83865001e31c?w=200" class="w-full h-full object-cover" alt="Rice">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-900">White Rice (25lb)</p>
+                    <p class="text-xs text-gray-400">85 bags</p>
+                    <div class="flex items-center gap-1 mt-0.5">
+                        <i class="fas fa-check-circle text-green-500 text-[10px]"></i>
+                        <span class="text-green-500 text-[10px] font-medium">6 months</span>
+                    </div>
+                </div>
+                <div class="bg-green-100 px-2.5 py-1 rounded-lg">
+                    <span class="text-green-600 text-xs font-bold">OK</span>
+                </div>
+            </div>
+
+            <div class="card p-4 expiry-safe flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=200" class="w-full h-full object-cover" alt="Canned">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-900">Canned Beans</p>
+                    <p class="text-xs text-gray-400">340 cans</p>
+                    <div class="flex items-center gap-1 mt-0.5">
+                        <i class="fas fa-check-circle text-green-500 text-[10px]"></i>
+                        <span class="text-green-500 text-[10px] font-medium">1 year+</span>
+                    </div>
+                </div>
+                <div class="bg-green-100 px-2.5 py-1 rounded-lg">
+                    <span class="text-green-600 text-xs font-bold">OK</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <div class="tab-item">
+            <i class="fas fa-house"></i>
+            <span>Home</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-map-location-dot"></i>
+            <span>Network</span>
+        </div>
+        <div class="tab-item active">
+            <i class="fas fa-box-open"></i>
+            <span>Inventory</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-brain"></i>
+            <span>Analytics</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </div>
+    </div>
+</body>
+</html>
