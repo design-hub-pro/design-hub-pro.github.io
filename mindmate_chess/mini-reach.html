@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindMate - Piece Reach</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        body { width: 100%; height: 100%; overflow-x: hidden; background: #1a1625; }
+        .status-bar { height: 59px; padding: 0 28px; }
+        .content-area { padding: 0 28px; }
+        .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; margin: 0 auto; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
+        .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 84px; background: #1a1625; border-top: 1px solid rgba(255,255,255,0.08); display: flex; align-items: flex-start; justify-content: space-around; padding-top: 10px; }
+        .mini-board { display: grid; grid-template-columns: repeat(5, 1fr); border-radius: 16px; overflow: hidden; }
+        .cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 34px; position: relative; cursor: pointer; user-select: none; }
+        .cl { background: #e8dcc8; }
+        .cd { background: #b58863; }
+        .correct-tap { background: rgba(16,185,129,0.35) !important; }
+        .correct-tap::after { content: '✓'; position: absolute; font-size: 16px; color: #10b981; font-weight: 900; bottom: 2px; right: 4px; }
+        .wrong-tap { background: rgba(239,68,68,0.25) !important; }
+        .wrong-tap::after { content: '×'; position: absolute; font-size: 18px; color: #ef4444; font-weight: 900; bottom: 2px; right: 4px; }
+        .piece-cell { background: rgba(251,191,36,0.2) !important; }
+        .untapped-target { position: relative; }
+        .untapped-target::after { content: ''; position: absolute; width: 12px; height: 12px; border: 2px solid rgba(16,185,129,0.4); border-radius: 50%; }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div class="status-bar flex items-end justify-between pb-1 relative">
+        <div class="dynamic-island"></div>
+        <span class="text-sm font-semibold text-white">9:41</span>
+        <div class="flex items-center gap-1.5 text-white">
+            <i class="fas fa-signal text-xs"></i>
+            <i class="fas fa-wifi text-xs"></i>
+            <i class="fas fa-battery-full text-xs"></i>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-arrow-left text-white/60 text-sm"></i>
+                <span class="text-white font-semibold text-sm">Mini Games</span>
+            </div>
+            <div class="bg-emerald-500/20 rounded-full px-3 py-1 flex items-center gap-1.5">
+                <i class="fas fa-star text-emerald-400 text-xs"></i>
+                <span class="text-emerald-400 text-xs font-bold">Level 1</span>
+            </div>
+        </div>
+
+        <!-- Game Title -->
+        <div class="bg-gradient-to-r from-emerald-500/20 to-teal-500/10 rounded-2xl p-4 border border-emerald-500/20 mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-bullseye text-white text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-white font-bold text-lg">Piece Reach</h2>
+                    <p class="text-white/50 text-xs mt-0.5">Tap all squares the Knight can reach</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instruction -->
+        <div class="bg-white/5 rounded-xl p-3 mb-4 border border-white/[0.06]">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl">♘</span>
+                <p class="text-white/60 text-xs leading-relaxed">The Knight moves in an <span class="text-white font-semibold">L-shape</span>: 2 squares one way, then 1 square sideways. Tap every square it can jump to!</p>
+            </div>
+        </div>
+
+        <!-- 5x5 Board -->
+        <div class="mini-board shadow-2xl mb-5">
+            <!-- Row 1 -->
+            <div class="cell cl"></div>
+            <div class="cell cd correct-tap"></div>
+            <div class="cell cl"></div>
+            <div class="cell cd correct-tap"></div>
+            <div class="cell cl"></div>
+            <!-- Row 2 -->
+            <div class="cell cd correct-tap"></div>
+            <div class="cell cl"></div>
+            <div class="cell cd"></div>
+            <div class="cell cl"></div>
+            <div class="cell cd untapped-target"></div>
+            <!-- Row 3 -->
+            <div class="cell cl"></div>
+            <div class="cell cd"></div>
+            <div class="cell cl piece-cell">♘</div>
+            <div class="cell cd"></div>
+            <div class="cell cl"></div>
+            <!-- Row 4 -->
+            <div class="cell cd wrong-tap"></div>
+            <div class="cell cl"></div>
+            <div class="cell cd"></div>
+            <div class="cell cl"></div>
+            <div class="cell cd untapped-target"></div>
+            <!-- Row 5 -->
+            <div class="cell cl"></div>
+            <div class="cell cd untapped-target"></div>
+            <div class="cell cl"></div>
+            <div class="cell cd untapped-target"></div>
+            <div class="cell cl"></div>
+        </div>
+
+        <!-- Score Display -->
+        <div class="bg-white/5 rounded-2xl p-4 mb-4">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-white font-semibold text-sm">Round Progress</span>
+                <span class="text-white/40 text-xs">3 of 8 squares found</span>
+            </div>
+            <div class="h-3 rounded-full bg-white/10 overflow-hidden">
+                <div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400" style="width: 37.5%;"></div>
+            </div>
+        </div>
+
+        <!-- Piece Learning Cards -->
+        <div class="mb-5">
+            <p class="text-white/40 text-[10px] font-semibold uppercase tracking-wider mb-2">Learn Each Piece</p>
+            <div class="grid grid-cols-3 gap-2">
+                <div class="bg-emerald-500/10 rounded-xl p-3 text-center border border-emerald-500/20">
+                    <span class="text-2xl">♘</span>
+                    <p class="text-emerald-400 text-[10px] font-semibold mt-1">Knight</p>
+                    <p class="text-white/30 text-[9px]">Playing</p>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3 text-center border border-white/[0.06]">
+                    <span class="text-2xl">♗</span>
+                    <p class="text-white/50 text-[10px] font-semibold mt-1">Bishop</p>
+                    <p class="text-white/20 text-[9px]">Done ✓</p>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3 text-center border border-white/[0.06]">
+                    <span class="text-2xl opacity-30">♖</span>
+                    <p class="text-white/30 text-[10px] font-semibold mt-1">Rook</p>
+                    <p class="text-white/20 text-[9px]">Locked</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accuracy Tracker -->
+        <div class="bg-white/5 rounded-2xl p-4 pb-28">
+            <div class="flex items-center justify-between">
+                <div class="text-center flex-1">
+                    <p class="text-emerald-400 text-xl font-bold">2</p>
+                    <p class="text-white/30 text-[10px]">Correct</p>
+                </div>
+                <div class="w-px h-8 bg-white/10"></div>
+                <div class="text-center flex-1">
+                    <p class="text-red-400 text-xl font-bold">1</p>
+                    <p class="text-white/30 text-[10px]">Mistakes</p>
+                </div>
+                <div class="w-px h-8 bg-white/10"></div>
+                <div class="text-center flex-1">
+                    <p class="text-amber-400 text-xl font-bold">67%</p>
+                    <p class="text-white/30 text-[10px]">Accuracy</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <div class="flex flex-col items-center gap-0.5"><i class="fas fa-home text-white/40"></i><span class="text-[10px] text-white/40">Home</span></div>
+        <div class="flex flex-col items-center gap-0.5"><i class="fas fa-chess text-indigo-400"></i><span class="text-[10px] font-semibold text-indigo-400">Play</span></div>
+        <div class="flex flex-col items-center gap-0.5"><i class="fas fa-chart-line text-white/40"></i><span class="text-[10px] text-white/40">Insights</span></div>
+        <div class="flex flex-col items-center gap-0.5"><i class="fas fa-user-nurse text-white/40"></i><span class="text-[10px] text-white/40">Caregiver</span></div>
+        <div class="flex flex-col items-center gap-0.5"><i class="fas fa-user text-white/40"></i><span class="text-[10px] text-white/40">Profile</span></div>
+    </div>
+</body>
+</html>

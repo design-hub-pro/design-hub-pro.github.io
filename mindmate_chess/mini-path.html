@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindMate - King's Journey</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        body { width: 100%; height: 100%; overflow-x: hidden; background: #1a1625; }
+        .status-bar { height: 59px; padding: 0 28px; }
+        .content-area { padding: 0 28px; }
+        .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; margin: 0 auto; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
+        .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 84px; background: #1a1625; border-top: 1px solid rgba(255,255,255,0.08); display: flex; align-items: flex-start; justify-content: space-around; padding-top: 10px; }
+        .mini-board { display: grid; grid-template-columns: repeat(6, 1fr); border-radius: 16px; overflow: hidden; }
+        .cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 30px; position: relative; cursor: pointer; user-select: none; }
+        .cl { background: #e8dcc8; }
+        .cd { background: #b58863; }
+        .danger { background: #7f1d1d !important; }
+        .danger::before { content: '×'; position: absolute; color: #ef4444; font-size: 18px; font-weight: 900; opacity: 0.7; }
+        .safe-path { position: relative; }
+        .safe-path::after { content: ''; position: absolute; width: 14px; height: 14px; background: #10b981; border-radius: 50%; opacity: 0.4; }
+        .goal { background: rgba(16,185,129,0.3) !important; }
+        .goal::after { content: '⭐'; position: absolute; font-size: 16px; top: 4px; right: 4px; }
+        .king-glow { filter: drop-shadow(0 0 10px rgba(251,191,36,0.7)); }
+        @keyframes goalPulse { 0%,100% { box-shadow: inset 0 0 10px rgba(16,185,129,0.3); } 50% { box-shadow: inset 0 0 20px rgba(16,185,129,0.6); } }
+        .goal { animation: goalPulse 2s ease-in-out infinite; }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div class="status-bar flex items-end justify-between pb-1 relative">
+        <div class="dynamic-island"></div>
+        <span class="text-sm font-semibold text-white">9:41</span>
+        <div class="flex items-center gap-1.5 text-white">
+            <i class="fas fa-signal text-xs"></i>
+            <i class="fas fa-wifi text-xs"></i>
+            <i class="fas fa-battery-full text-xs"></i>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-arrow-left text-white/60 text-sm"></i>
+                <span class="text-white font-semibold text-sm">Mini Games</span>
+            </div>
+            <div class="bg-emerald-500/20 rounded-full px-3 py-1 flex items-center gap-1.5">
+                <i class="fas fa-star text-emerald-400 text-xs"></i>
+                <span class="text-emerald-400 text-xs font-bold">Level 1</span>
+            </div>
+        </div>
+
+        <!-- Game Title -->
+        <div class="bg-gradient-to-r from-amber-500/20 to-yellow-500/10 rounded-2xl p-4 border border-amber-500/20 mb-5">
+            <div class="flex items-center gap-3">
+                <div class="w-14 h-14 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-chess-king text-white text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-white font-bold text-lg">King's Journey</h2>
+                    <p class="text-white/50 text-xs mt-0.5">Guide the King to the star — avoid red danger zones</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex items-center gap-4 mb-4">
+            <div class="flex items-center gap-1.5">
+                <div class="w-4 h-4 rounded bg-amber-500/40"></div>
+                <span class="text-white/40 text-[10px]">King</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <div class="w-4 h-4 rounded bg-red-900"></div>
+                <span class="text-white/40 text-[10px]">Danger</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <div class="w-4 h-4 rounded bg-emerald-500/30"></div>
+                <span class="text-white/40 text-[10px]">Goal</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <div class="w-3 h-3 rounded-full bg-emerald-500/40"></div>
+                <span class="text-white/40 text-[10px]">Safe</span>
+            </div>
+        </div>
+
+        <!-- 6x6 Board -->
+        <div class="mini-board shadow-2xl mb-5">
+            <!-- Row 1 -->
+            <div class="cell cl" style="background:rgba(251,191,36,0.2);">
+                <span class="king-glow text-4xl">♔</span>
+            </div>
+            <div class="cell cd safe-path"></div>
+            <div class="cell cl danger"></div>
+            <div class="cell cd"></div>
+            <div class="cell cl danger"></div>
+            <div class="cell cd"></div>
+            <!-- Row 2 -->
+            <div class="cell cd danger"></div>
+            <div class="cell cl safe-path"></div>
+            <div class="cell cd safe-path"></div>
+            <div class="cell cl danger"></div>
+            <div class="cell cd"></div>
+            <div class="cell cl"></div>
+            <!-- Row 3 -->
+            <div class="cell cl"></div>
+            <div class="cell cd danger"></div>
+            <div class="cell cl safe-path"></div>
+            <div class="cell cd safe-path"></div>
+            <div class="cell cl"></div>
+            <div class="cell cd danger"></div>
+            <!-- Row 4 -->
+            <div class="cell cd"></div>
+            <div class="cell cl"></div>
+            <div class="cell cd danger"></div>
+            <div class="cell cl safe-path"></div>
+            <div class="cell cd safe-path"></div>
+            <div class="cell cl"></div>
+            <!-- Row 5 -->
+            <div class="cell cl danger"></div>
+            <div class="cell cd"></div>
+            <div class="cell cl"></div>
+            <div class="cell cd danger"></div>
+            <div class="cell cl safe-path"></div>
+            <div class="cell cd"></div>
+            <!-- Row 6 -->
+            <div class="cell cd"></div>
+            <div class="cell cl danger"></div>
+            <div class="cell cd"></div>
+            <div class="cell cl"></div>
+            <div class="cell cd danger"></div>
+            <div class="cell cl goal"></div>
+        </div>
+
+        <!-- Steps Counter -->
+        <div class="bg-white/5 rounded-2xl p-4 flex items-center justify-between mb-4">
+            <div class="text-center flex-1">
+                <p class="text-amber-400 text-xl font-bold">0</p>
+                <p class="text-white/30 text-[10px]">Steps Taken</p>
+            </div>
+            <div class="w-px h-8 bg-white/10"></div>
+            <div class="text-center flex-1">
+                <p class="text-white text-xl font-bold">9</p>
+                <p class="text-white/30 text-[10px]">Min Steps</p>
+            </div>
+            <div class="w-px h-8 bg-white/10"></div>
+            <div class="text-center flex-1">
+                <p class="text-emerald-400 text-xl font-bold">3</p>
+                <p class="text-white/30 text-[10px]">Hints Left</p>
+            </div>
+        </div>
+
+        <!-- Direction Buttons -->
+        <div class="flex flex-col items-center gap-2 pb-28">
+            <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center">
+                <i class="fas fa-chevron-up text-white text-xl"></i>
+            </div>
+            <div class="flex gap-2">
+                <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center">
+                    <i class="fas fa-chevron-left text-white text-xl"></i>
+                </div>
+                <div class="w-16 h-16 bg-indigo-500/20 rounded-2xl flex items-center justify-center border border-indigo-500/30">
+                    <i class="fas fa-lightbulb text-indigo-400 text-xl"></i>
+                </div>
+                <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center">
+                    <i class="fas fa-chevron-right text-white text-xl"></i>
+                </div>
+            </div>
+            <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center">
+                <i class="fas fa-chevron-down text-white text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <div class="flex flex-col items-center gap-0.5"><i class="fas fa-home text-white/40"></i><span class="text-[10px] text-white/40">Home</span></div>
+        <div class="flex flex-col items-center gap-0.5"><i class="fas fa-chess text-indigo-400"></i><span class="text-[10px] font-semibold text-indigo-400">Play</span></div>
+        <div class="flex flex-col items-center gap-0.5"><i class="fas fa-chart-line text-white/40"></i><span class="text-[10px] text-white/40">Insights</span></div>
+        <div class="flex flex-col items-center gap-0.5"><i class="fas fa-user-nurse text-white/40"></i><span class="text-[10px] text-white/40">Caregiver</span></div>
+        <div class="flex flex-col items-center gap-0.5"><i class="fas fa-user text-white/40"></i><span class="text-[10px] text-white/40">Profile</span></div>
+    </div>
+</body>
+</html>
