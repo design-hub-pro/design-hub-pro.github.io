@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundShield - Monitor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        body { width: 100%; height: 100%; overflow-x: hidden; background: #0a0a14; color: #fff; }
+        .status-bar { height: 59px; padding: 0 28px; }
+        .content-area { padding: 0 28px; }
+        .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; margin: 0 auto; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
+        .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; }
+
+        @keyframes wave-live {
+            0%, 100% { height: 6px; }
+            25% { height: 80%; }
+            50% { height: 40%; }
+            75% { height: 60%; }
+        }
+        .live-bar { animation: wave-live 0.8s ease-in-out infinite; }
+
+        @keyframes radar-sweep {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .radar-sweep { animation: radar-sweep 3s linear infinite; }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div class="status-bar flex items-end justify-between pb-2 relative" style="background: #0a0a14;">
+        <div class="dynamic-island"></div>
+        <span class="text-sm font-semibold z-10 text-white">9:41</span>
+        <div class="flex items-center gap-1.5 z-10 text-white">
+            <i class="fas fa-signal text-xs"></i>
+            <i class="fas fa-wifi text-xs"></i>
+            <i class="fas fa-battery-full text-xs"></i>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="content-area pt-1 mb-5">
+        <div class="flex items-center justify-between">
+            <h1 class="text-xl font-bold text-white">Sound Monitor</h1>
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                <span class="text-xs text-emerald-400 font-medium">Live</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Radar Visualization -->
+    <div class="content-area mb-5">
+        <div class="bg-gradient-to-br from-white/5 to-white/[0.02] rounded-3xl p-6 border border-white/10 relative overflow-hidden">
+            <div class="relative w-52 h-52 mx-auto">
+                <!-- Radar circles -->
+                <div class="absolute inset-0 rounded-full border border-emerald-500/20"></div>
+                <div class="absolute inset-6 rounded-full border border-emerald-500/15"></div>
+                <div class="absolute inset-12 rounded-full border border-emerald-500/10"></div>
+                <div class="absolute inset-[72px] rounded-full border border-emerald-500/10"></div>
+                <!-- Crosshairs -->
+                <div class="absolute top-0 left-1/2 w-px h-full bg-emerald-500/10"></div>
+                <div class="absolute top-1/2 left-0 h-px w-full bg-emerald-500/10"></div>
+                <!-- Center point -->
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-emerald-400 shadow-lg shadow-emerald-500/50"></div>
+                <!-- Sweep line -->
+                <div class="absolute top-1/2 left-1/2 w-1/2 h-0.5 origin-left radar-sweep" style="background: linear-gradient(to right, rgba(52,211,153,0.6), transparent);"></div>
+                <!-- Sound dots -->
+                <div class="absolute top-8 right-12 w-3 h-3 rounded-full bg-blue-400/60 animate-pulse"></div>
+                <div class="absolute bottom-14 left-10 w-2.5 h-2.5 rounded-full bg-yellow-400/60 animate-pulse" style="animation-delay: 0.5s;"></div>
+                <div class="absolute top-16 left-8 w-2 h-2 rounded-full bg-gray-500/40 animate-pulse" style="animation-delay: 1s;"></div>
+            </div>
+            <div class="flex justify-center gap-6 mt-4">
+                <div class="flex items-center gap-1.5">
+                    <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
+                    <span class="text-[10px] text-gray-400">You</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <div class="w-2 h-2 rounded-full bg-blue-400"></div>
+                    <span class="text-[10px] text-gray-400">Vehicle</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+                    <span class="text-[10px] text-gray-400">Alert</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sound Level Meter -->
+    <div class="content-area mb-5">
+        <div class="bg-white/5 rounded-2xl p-5 border border-white/10">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-sm font-semibold text-white">Decibel Level</span>
+                <span class="text-3xl font-black text-emerald-400">24<span class="text-sm font-normal text-gray-500"> dB</span></span>
+            </div>
+            <!-- dB meter bar -->
+            <div class="h-3 rounded-full bg-white/10 overflow-hidden relative">
+                <div class="h-full rounded-full bg-gradient-to-r from-emerald-400 via-yellow-400 to-red-500" style="width: 100%;"></div>
+                <!-- Indicator -->
+                <div class="absolute top-1/2 -translate-y-1/2 w-1 h-5 bg-white rounded-full shadow-lg" style="left: 18%;"></div>
+            </div>
+            <div class="flex justify-between mt-2">
+                <span class="text-[10px] text-gray-500">0 dB</span>
+                <span class="text-[10px] text-gray-500">Safe</span>
+                <span class="text-[10px] text-gray-500">Loud</span>
+                <span class="text-[10px] text-gray-500">Danger</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Waveform -->
+    <div class="content-area mb-5">
+        <div class="bg-white/5 rounded-2xl p-5 border border-white/10">
+            <span class="text-sm font-semibold text-white mb-3 block">Waveform Analysis</span>
+            <div class="flex items-center justify-center gap-[3px] h-20">
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 10px;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 20px; animation-delay: 0.05s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 35px; animation-delay: 0.1s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 15px; animation-delay: 0.15s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 45px; animation-delay: 0.2s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 25px; animation-delay: 0.25s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 55px; animation-delay: 0.3s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 30px; animation-delay: 0.35s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 18px; animation-delay: 0.4s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 40px; animation-delay: 0.45s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 12px; animation-delay: 0.5s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 28px; animation-delay: 0.55s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 48px; animation-delay: 0.6s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 22px; animation-delay: 0.65s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 38px; animation-delay: 0.7s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 16px; animation-delay: 0.75s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 50px; animation-delay: 0.08s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 32px; animation-delay: 0.18s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 14px; animation-delay: 0.28s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 42px; animation-delay: 0.38s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 20px; animation-delay: 0.48s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 36px; animation-delay: 0.58s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 24px; animation-delay: 0.68s;"></div>
+                <div class="live-bar w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-300" style="height: 46px; animation-delay: 0.12s;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detected Sounds -->
+    <div class="content-area pb-28">
+        <span class="text-sm font-semibold text-white mb-3 block">Currently Detected</span>
+        <div class="space-y-3">
+            <div class="bg-white/5 rounded-2xl p-4 border border-white/10 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-wind text-white text-sm"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-white">Ambient Noise</p>
+                    <div class="flex items-center gap-2 mt-1">
+                        <div class="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-emerald-400 rounded-full" style="width: 85%;"></div>
+                        </div>
+                        <span class="text-[10px] text-gray-400">85%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white/5 rounded-2xl p-4 border border-white/10 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-comments text-white text-sm"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-white">Speech</p>
+                    <div class="flex items-center gap-2 mt-1">
+                        <div class="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-cyan-400 rounded-full" style="width: 12%;"></div>
+                        </div>
+                        <span class="text-[10px] text-gray-400">12%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar bg-black/80 backdrop-blur-xl border-t border-white/10 px-6 pt-3 pb-8">
+        <div class="flex justify-around">
+            <div class="flex flex-col items-center gap-1">
+                <div class="w-7 h-7 flex items-center justify-center">
+                    <i class="fas fa-shield-halved text-gray-500 text-lg"></i>
+                </div>
+                <span class="text-[10px] text-gray-500">Home</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+                <div class="w-7 h-7 flex items-center justify-center">
+                    <i class="fas fa-wave-square text-orange-400 text-lg"></i>
+                </div>
+                <span class="text-[10px] text-orange-400 font-semibold">Monitor</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+                <div class="w-7 h-7 flex items-center justify-center">
+                    <i class="fas fa-bell text-gray-500 text-lg"></i>
+                </div>
+                <span class="text-[10px] text-gray-500">Alerts</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+                <div class="w-7 h-7 flex items-center justify-center">
+                    <i class="fas fa-address-book text-gray-500 text-lg"></i>
+                </div>
+                <span class="text-[10px] text-gray-500">Contacts</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+                <div class="w-7 h-7 flex items-center justify-center">
+                    <i class="fas fa-gear text-gray-500 text-lg"></i>
+                </div>
+                <span class="text-[10px] text-gray-500">Settings</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
