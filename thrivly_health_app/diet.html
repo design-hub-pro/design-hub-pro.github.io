@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thrivly - Diet</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    scrollbar-width: none;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #F4F7F5; color: #0E1B14;
+    width: 100%; height: 100%; overflow-x: hidden; overflow-y: auto;
+  }
+
+  .status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 28px 0 28px; height: 59px;
+    position: sticky; top: 0; z-index: 100; background: #F4F7F5;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; left: 50%; transform: translateX(-50%); top: 10px;
+  }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+  .battery { width: 27px; height: 12px; border: 1.5px solid #000; border-radius: 3px;
+    position: relative; display: flex; align-items: center; padding: 1.5px; }
+  .battery::after { content: ''; position: absolute; right: -4px; width: 2px; height: 6px;
+    background: #000; border-radius: 0 1px 1px 0; }
+  .battery-fill { width: 75%; height: 100%; background: #000; border-radius: 1.5px; }
+
+  .content { padding: 0 28px 130px 28px; }
+
+  .nav-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0 18px 0; }
+  .nav-row h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  .nav-btn {
+    width: 42px; height: 42px; background: #fff; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center; color: #0E1B14;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05); font-size: 16px;
+  }
+
+  /* Calorie Hero */
+  .cal-hero {
+    background: linear-gradient(145deg, #0F3D2E, #135E47);
+    border-radius: 28px; padding: 26px 24px; margin-bottom: 20px;
+    position: relative; overflow: hidden; color: #fff;
+  }
+  .cal-hero::before {
+    content: ''; position: absolute; top: -30%; right: -20%;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(52,211,153,0.35) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .cal-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; position: relative; z-index: 1; }
+  .cal-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.6); }
+  .cal-plan { font-size: 14px; font-weight: 700; margin-top: 4px; }
+  .cal-badge {
+    background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+  }
+  .cal-badge i { color: #FBBF24; margin-right: 4px; }
+  .cal-center { display: flex; align-items: center; gap: 24px; position: relative; z-index: 1; }
+  .ring-container { width: 130px; height: 130px; position: relative; flex-shrink: 0; }
+  .ring-svg { width: 130px; height: 130px; transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 9; }
+  .ring-progress { fill: none; stroke: url(#calG); stroke-width: 9; stroke-linecap: round;
+    stroke-dasharray: 283; stroke-dashoffset: 62; }
+  .ring-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+  .ring-num { font-size: 30px; font-weight: 800; line-height: 1; }
+  .ring-unit { font-size: 11px; opacity: 0.55; margin-top: 2px; }
+  .macros { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+  .macro { display: flex; align-items: center; gap: 10px; }
+  .macro-bar-wrap { flex: 1; }
+  .macro-meta { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; }
+  .macro-meta .name { color: rgba(255,255,255,0.7); font-weight: 500; }
+  .macro-meta .val { color: #fff; font-weight: 700; }
+  .macro-bar { height: 5px; background: rgba(255,255,255,0.12); border-radius: 4px; overflow: hidden; }
+  .macro-fill { height: 100%; border-radius: 4px; }
+
+  /* Section title */
+  .section-head { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 14px; }
+  .section-title { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .section-link { font-size: 12px; font-weight: 600; color: #10B981; }
+
+  /* Meal Cards */
+  .meal-card {
+    background: #fff; border-radius: 22px; overflow: hidden; margin-bottom: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04); position: relative;
+  }
+  .meal-img { width: 100%; height: 130px; object-fit: cover; }
+  .meal-tag {
+    position: absolute; top: 12px; left: 12px;
+    background: rgba(255,255,255,0.95); backdrop-filter: blur(8px);
+    padding: 6px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;
+    color: #0E1B14;
+  }
+  .meal-tag i { color: #10B981; margin-right: 4px; }
+  .meal-status {
+    position: absolute; top: 12px; right: 12px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #10B981; color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 12px;
+  }
+  .meal-body { padding: 14px 18px 16px; }
+  .meal-name { font-size: 15px; font-weight: 700; }
+  .meal-desc { font-size: 12px; color: #8A958F; margin-top: 2px; }
+  .meal-stats { display: flex; gap: 14px; margin-top: 10px; font-size: 11px; color: #5E6B65; font-weight: 500; }
+  .meal-stats span i { color: #10B981; margin-right: 4px; }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 92px;
+    background: rgba(255,255,255,0.95); backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: flex-start;
+    padding: 14px 18px 0; border-top: 0.5px solid rgba(0,0,0,0.06);
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 500; color: #9AA39E; }
+  .tab-item.active { color: #10B981; }
+  .tab-item i { font-size: 21px; }
+  .tab-item .tab-dot { width: 4px; height: 4px; border-radius: 50%; background: #10B981; }
+  .home-indicator { width: 134px; height: 5px; background: #1A1A1A; border-radius: 3px;
+    position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i><i class="fas fa-wifi"></i>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="nav-row">
+      <h1>My Diet</h1>
+      <div class="nav-btn"><i class="fas fa-plus"></i></div>
+    </div>
+
+    <!-- Calorie Hero -->
+    <div class="cal-hero">
+      <div class="cal-top">
+        <div>
+          <div class="cal-label">Today's Plan</div>
+          <div class="cal-plan">Mediterranean · Balanced</div>
+        </div>
+        <div class="cal-badge"><i class="fas fa-star"></i>Personalized</div>
+      </div>
+      <div class="cal-center">
+        <div class="ring-container">
+          <svg class="ring-svg" viewBox="0 0 100 100">
+            <defs>
+              <linearGradient id="calG" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#34D399"/>
+                <stop offset="100%" stop-color="#A7F3D0"/>
+              </linearGradient>
+            </defs>
+            <circle class="ring-bg" cx="50" cy="50" r="45"/>
+            <circle class="ring-progress" cx="50" cy="50" r="45"/>
+          </svg>
+          <div class="ring-text">
+            <div class="ring-num">1,420</div>
+            <div class="ring-unit">/ 1,800 kcal</div>
+          </div>
+        </div>
+        <div class="macros">
+          <div class="macro">
+            <div class="macro-bar-wrap">
+              <div class="macro-meta"><span class="name">Protein</span><span class="val">82 / 110 g</span></div>
+              <div class="macro-bar"><div class="macro-fill" style="width:75%; background:#34D399;"></div></div>
+            </div>
+          </div>
+          <div class="macro">
+            <div class="macro-bar-wrap">
+              <div class="macro-meta"><span class="name">Carbs</span><span class="val">142 / 200 g</span></div>
+              <div class="macro-bar"><div class="macro-fill" style="width:71%; background:#FBBF24;"></div></div>
+            </div>
+          </div>
+          <div class="macro">
+            <div class="macro-bar-wrap">
+              <div class="macro-meta"><span class="name">Fats</span><span class="val">38 / 60 g</span></div>
+              <div class="macro-bar"><div class="macro-fill" style="width:63%; background:#F97316;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <div class="section-title">Today's Meals</div>
+      <div class="section-link">Swap meals</div>
+    </div>
+
+    <div class="meal-card">
+      <img class="meal-img" src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=900&q=80" alt="meal">
+      <div class="meal-tag"><i class="fas fa-leaf"></i>Breakfast</div>
+      <div class="meal-status"><i class="fas fa-check"></i></div>
+      <div class="meal-body">
+        <div class="meal-name">Greek Yogurt & Berry Bowl</div>
+        <div class="meal-desc">High protein · low GI</div>
+        <div class="meal-stats">
+          <span><i class="fas fa-fire"></i>320 kcal</span>
+          <span><i class="fas fa-drumstick-bite"></i>22 g protein</span>
+          <span><i class="fas fa-clock"></i>5 min</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="meal-card">
+      <img class="meal-img" src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=900&q=80" alt="meal">
+      <div class="meal-tag"><i class="fas fa-leaf"></i>Lunch</div>
+      <div class="meal-body">
+        <div class="meal-name">Grilled Chicken Buddha Bowl</div>
+        <div class="meal-desc">Lean protein · fiber rich</div>
+        <div class="meal-stats">
+          <span><i class="fas fa-fire"></i>520 kcal</span>
+          <span><i class="fas fa-drumstick-bite"></i>38 g protein</span>
+          <span><i class="fas fa-clock"></i>12 min</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="meal-card">
+      <img class="meal-img" src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=900&q=80" alt="meal">
+      <div class="meal-tag"><i class="fas fa-leaf"></i>Dinner</div>
+      <div class="meal-body">
+        <div class="meal-name">Salmon, Quinoa & Greens</div>
+        <div class="meal-desc">Omega-3 · anti-inflammatory</div>
+        <div class="meal-stats">
+          <span><i class="fas fa-fire"></i>580 kcal</span>
+          <span><i class="fas fa-drumstick-bite"></i>42 g protein</span>
+          <span><i class="fas fa-clock"></i>20 min</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item active"><i class="fas fa-utensils"></i><span>Diet</span><div class="tab-dot"></div></div>
+    <div class="tab-item"><i class="fas fa-dumbbell"></i><span>Move</span></div>
+    <div class="tab-item"><i class="fas fa-users"></i><span>Tribe</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Me</span></div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

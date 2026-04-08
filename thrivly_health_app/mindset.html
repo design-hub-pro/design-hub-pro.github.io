@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thrivly - Mindset</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    scrollbar-width: none;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #F4F1FA; color: #0E1B14;
+    width: 100%; height: 100%; overflow-x: hidden; overflow-y: auto;
+  }
+
+  .status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 28px 0 28px; height: 59px;
+    position: sticky; top: 0; z-index: 100; background: #F4F1FA;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; left: 50%; transform: translateX(-50%); top: 10px;
+  }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+  .battery { width: 27px; height: 12px; border: 1.5px solid #000; border-radius: 3px;
+    position: relative; display: flex; align-items: center; padding: 1.5px; }
+  .battery::after { content: ''; position: absolute; right: -4px; width: 2px; height: 6px;
+    background: #000; border-radius: 0 1px 1px 0; }
+  .battery-fill { width: 75%; height: 100%; background: #000; border-radius: 1.5px; }
+
+  .content { padding: 0 28px 130px 28px; }
+
+  .nav-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0 18px 0; }
+  .nav-row h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  .nav-row h1 span { color: #8B5CF6; }
+
+  /* Mood card */
+  .mood-card {
+    background: linear-gradient(145deg, #6D28D9, #A855F7);
+    border-radius: 28px; padding: 24px; margin-bottom: 22px; color: #fff;
+    position: relative; overflow: hidden;
+  }
+  .mood-card::before {
+    content: ''; position: absolute; bottom: -40%; left: -10%;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(251,191,36,0.3) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .mood-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
+  .mood-q { font-size: 22px; font-weight: 800; margin-top: 6px; line-height: 1.2; letter-spacing: -0.4px; }
+  .mood-row { display: flex; justify-content: space-between; gap: 8px; margin-top: 22px; position: relative; z-index: 1; }
+  .mood-emoji {
+    width: 50px; height: 50px; border-radius: 18px;
+    background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; cursor: pointer;
+    border: 1.5px solid transparent;
+  }
+  .mood-emoji.selected {
+    background: rgba(255,255,255,0.95); border-color: #fff;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  }
+
+  /* Affirmation card with image */
+  .affirm-card {
+    position: relative; height: 200px; border-radius: 26px; overflow: hidden;
+    margin-bottom: 22px;
+    background-image: url('https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=900&q=80');
+    background-size: cover; background-position: center;
+  }
+  .affirm-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(40,16,80,0.1) 0%, rgba(40,16,80,0.85) 100%);
+  }
+  .affirm-content {
+    position: absolute; left: 22px; right: 22px; bottom: 20px; color: #fff;
+  }
+  .affirm-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.2); backdrop-filter: blur(8px);
+    padding: 5px 12px; border-radius: 18px; font-size: 11px; font-weight: 600;
+    margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .affirm-quote { font-size: 18px; font-weight: 700; line-height: 1.35; max-width: 320px; }
+  .affirm-author { font-size: 11px; opacity: 0.8; margin-top: 8px; }
+
+  /* Section title */
+  .section-title { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 14px; }
+
+  /* Why-eat card */
+  .why-card {
+    background: #fff; border-radius: 22px; padding: 18px; margin-bottom: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .why-icon {
+    width: 50px; height: 50px; border-radius: 16px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; color: #fff;
+  }
+  .why-icon.craving { background: linear-gradient(135deg, #F97316, #FBBF24); }
+  .why-icon.stress { background: linear-gradient(135deg, #EC4899, #F472B6); }
+  .why-icon.hunger { background: linear-gradient(135deg, #10B981, #34D399); }
+  .why-info { flex: 1; }
+  .why-title { font-size: 14px; font-weight: 700; }
+  .why-desc { font-size: 12px; color: #6B7872; margin-top: 2px; line-height: 1.4; }
+  .why-arrow { color: #C2C9C5; font-size: 14px; }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 92px;
+    background: rgba(255,255,255,0.95); backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: flex-start;
+    padding: 14px 18px 0; border-top: 0.5px solid rgba(0,0,0,0.06);
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 500; color: #9AA39E; }
+  .tab-item.active { color: #8B5CF6; }
+  .tab-item i { font-size: 21px; }
+  .tab-item .tab-dot { width: 4px; height: 4px; border-radius: 50%; background: #8B5CF6; }
+  .home-indicator { width: 134px; height: 5px; background: #1A1A1A; border-radius: 3px;
+    position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i><i class="fas fa-wifi"></i>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="nav-row">
+      <h1>Mindset <span>·</span></h1>
+    </div>
+
+    <!-- Mood card -->
+    <div class="mood-card">
+      <div class="mood-label">Daily check-in</div>
+      <div class="mood-q">How are you feeling today?</div>
+      <div class="mood-row">
+        <div class="mood-emoji">😞</div>
+        <div class="mood-emoji">😐</div>
+        <div class="mood-emoji selected">🙂</div>
+        <div class="mood-emoji">😊</div>
+        <div class="mood-emoji">🤩</div>
+      </div>
+    </div>
+
+    <!-- Affirmation -->
+    <div class="affirm-card">
+      <div class="affirm-overlay"></div>
+      <div class="affirm-content">
+        <div class="affirm-tag"><i class="fas fa-heart"></i> Today's affirmation</div>
+        <div class="affirm-quote">"I don't have to be perfect — I just have to keep showing up."</div>
+        <div class="affirm-author">Coach Mia · 1 min reflection</div>
+      </div>
+    </div>
+
+    <div class="section-title">Why am I eating?</div>
+
+    <div class="why-card">
+      <div class="why-icon hunger"><i class="fas fa-bowl-rice"></i></div>
+      <div class="why-info">
+        <div class="why-title">True hunger</div>
+        <div class="why-desc">Your body needs fuel — eat slowly and enjoy.</div>
+      </div>
+      <i class="fas fa-chevron-right why-arrow"></i>
+    </div>
+    <div class="why-card">
+      <div class="why-icon craving"><i class="fas fa-fire"></i></div>
+      <div class="why-info">
+        <div class="why-title">Craving</div>
+        <div class="why-desc">Pause 2 min — try water, then a healthy swap.</div>
+      </div>
+      <i class="fas fa-chevron-right why-arrow"></i>
+    </div>
+    <div class="why-card">
+      <div class="why-icon stress"><i class="fas fa-cloud-bolt"></i></div>
+      <div class="why-info">
+        <div class="why-title">Stress / emotion</div>
+        <div class="why-desc">Try a 60-sec breathing reset before reaching for food.</div>
+      </div>
+      <i class="fas fa-chevron-right why-arrow"></i>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-utensils"></i><span>Diet</span></div>
+    <div class="tab-item active"><i class="fas fa-spa"></i><span>Mindset</span><div class="tab-dot"></div></div>
+    <div class="tab-item"><i class="fas fa-users"></i><span>Tribe</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Me</span></div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>
