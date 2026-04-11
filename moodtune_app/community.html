@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoodTune - Community</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { scrollbar-width: none; font-family: 'Inter', sans-serif; width: 100%; height: 100%; overflow-x: hidden; background: #0f0e1a; color: #fff; }
+
+    .status-bar {
+        height: 59px; padding: 0 28px; display: flex; align-items: flex-end; justify-content: space-between;
+        padding-bottom: 12px; position: sticky; top: 0; z-index: 100; background: #0f0e1a;
+    }
+    .status-time { font-size: 16px; font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+    .dynamic-island {
+        position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+        width: 130px; height: 36px; background: #000; border-radius: 20px;
+    }
+
+    .content { padding: 0 28px; padding-bottom: 100px; }
+
+    .page-title { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 6px; }
+    .page-sub { font-size: 14px; color: #a0a0b8; margin-bottom: 20px; }
+
+    .toggle-tabs {
+        display: flex; background: rgba(255,255,255,0.05); border-radius: 14px; padding: 4px;
+        margin-bottom: 24px;
+    }
+    .toggle-tab {
+        flex: 1; padding: 10px; border-radius: 11px; text-align: center;
+        font-size: 13px; font-weight: 600; color: #a0a0b8; cursor: pointer;
+    }
+    .toggle-tab.active {
+        background: linear-gradient(135deg, #7c5cfc, #5b9aff); color: #fff;
+    }
+
+    /* AI Generate Banner */
+    .ai-banner {
+        border-radius: 22px; overflow: hidden; margin-bottom: 24px; position: relative;
+        background: linear-gradient(135deg, #1a1040, #0f2040, #1a1040);
+        padding: 24px; border: 1px solid rgba(124,92,252,0.2);
+    }
+    .ai-banner-glow {
+        position: absolute; width: 200px; height: 200px; border-radius: 50%;
+        background: #7c5cfc; filter: blur(80px); opacity: 0.15; top: -60px; right: -40px;
+    }
+    .ai-banner-content { position: relative; z-index: 1; }
+    .ai-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(124,92,252,0.2); border: 1px solid rgba(124,92,252,0.3);
+        border-radius: 8px; padding: 4px 10px; font-size: 11px; font-weight: 600;
+        color: #c4b5fd; margin-bottom: 12px;
+    }
+    .ai-badge i { font-size: 10px; }
+    .ai-banner-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+    .ai-banner-desc { font-size: 13px; color: #a0a0b8; line-height: 1.5; margin-bottom: 16px; }
+    .ai-generate-btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 12px 24px; border-radius: 14px; font-size: 14px; font-weight: 700;
+        background: linear-gradient(135deg, #7c5cfc, #5b9aff); color: #fff;
+        border: none; cursor: pointer; box-shadow: 0 8px 24px rgba(124,92,252,0.3);
+    }
+    .ai-generate-btn i { font-size: 16px; }
+
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .section-title { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+    .see-all { font-size: 13px; color: #7c5cfc; font-weight: 600; }
+
+    /* Community Song Card */
+    .community-song {
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 20px; padding: 16px; margin-bottom: 12px;
+    }
+    .cs-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .cs-avatar { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
+    .cs-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .cs-user-name { font-size: 14px; font-weight: 600; }
+    .cs-time { font-size: 11px; color: #a0a0b8; }
+    .cs-badge-ai {
+        font-size: 10px; font-weight: 600; background: rgba(124,92,252,0.15);
+        color: #c4b5fd; padding: 3px 8px; border-radius: 6px; margin-left: auto;
+    }
+    .cs-badge-student {
+        font-size: 10px; font-weight: 600; background: rgba(107,207,127,0.15);
+        color: #6bcf7f; padding: 3px 8px; border-radius: 6px; margin-left: auto;
+    }
+
+    .cs-player {
+        display: flex; align-items: center; gap: 14px; padding: 14px;
+        background: rgba(255,255,255,0.04); border-radius: 16px; margin-bottom: 12px;
+    }
+    .cs-play-btn {
+        width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+        background: linear-gradient(135deg, #7c5cfc, #5b9aff);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .cs-play-btn i { font-size: 14px; margin-left: 2px; }
+    .cs-wave {
+        flex: 1; display: flex; align-items: center; gap: 2px; height: 32px;
+    }
+    .cs-wave-bar {
+        flex: 1; border-radius: 2px; background: rgba(124,92,252,0.4);
+    }
+    .cs-wave-bar.played { background: #7c5cfc; }
+    .cs-duration { font-size: 12px; color: #a0a0b8; flex-shrink: 0; margin-left: 8px; }
+
+    .cs-meta { display: flex; align-items: center; gap: 4px; margin-bottom: 10px; }
+    .cs-tag {
+        font-size: 11px; background: rgba(255,255,255,0.05); padding: 4px 10px;
+        border-radius: 8px; color: #a0a0b8;
+    }
+
+    .cs-actions { display: flex; gap: 20px; }
+    .cs-action {
+        display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a0a0b8;
+    }
+    .cs-action i { font-size: 16px; }
+    .cs-action.liked { color: #ff6b8a; }
+
+    /* Trending scroll */
+    .trending-scroll {
+        display: flex; gap: 12px; overflow-x: auto; margin: 0 -28px; padding: 0 28px 4px;
+        margin-bottom: 24px;
+    }
+    .trending-card {
+        min-width: 200px; border-radius: 18px; overflow: hidden; flex-shrink: 0;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+    }
+    .trending-img { width: 200px; height: 120px; position: relative; overflow: hidden; }
+    .trending-img img { width: 100%; height: 100%; object-fit: cover; }
+    .trending-overlay {
+        position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 14px;
+        background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    }
+    .trending-plays { font-size: 11px; display: flex; align-items: center; gap: 4px; }
+    .trending-plays i { font-size: 10px; color: #ff6b8a; }
+    .trending-info { padding: 12px 14px; }
+    .trending-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+    .trending-artist { font-size: 12px; color: #a0a0b8; }
+
+    .tab-bar {
+        position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+        background: rgba(15,14,26,0.95); backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex; justify-content: space-around; align-items: flex-start; padding-top: 12px;
+    }
+    .tab-item {
+        display: flex; flex-direction: column; align-items: center; gap: 4px;
+        font-size: 10px; color: #555; font-weight: 500;
+    }
+    .tab-item.active { color: #7c5cfc; }
+    .tab-item i { font-size: 22px; }
+</style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="page-title">Community</div>
+        <div class="page-sub">Student songs & AI-generated music</div>
+
+        <div class="toggle-tabs">
+            <div class="toggle-tab active">All</div>
+            <div class="toggle-tab">Student Made</div>
+            <div class="toggle-tab">AI Generated</div>
+        </div>
+
+        <!-- AI Generate Banner -->
+        <div class="ai-banner">
+            <div class="ai-banner-glow"></div>
+            <div class="ai-banner-content">
+                <div class="ai-badge"><i class="fas fa-sparkles"></i> AI Music Engine</div>
+                <div class="ai-banner-title">Create Your Healing Track</div>
+                <div class="ai-banner-desc">Describe your mood and let AI compose a personalized track just for you.</div>
+                <button class="ai-generate-btn"><i class="fas fa-wand-magic-sparkles"></i> Generate Music</button>
+            </div>
+        </div>
+
+        <!-- Trending from Community -->
+        <div class="section-header">
+            <span class="section-title">Trending Now</span>
+            <span class="see-all">See All</span>
+        </div>
+        <div class="trending-scroll">
+            <div class="trending-card">
+                <div class="trending-img">
+                    <img src="https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=240&fit=crop" alt="">
+                    <div class="trending-overlay">
+                        <div class="trending-plays"><i class="fas fa-heart"></i> 2.4k plays</div>
+                    </div>
+                </div>
+                <div class="trending-info">
+                    <div class="trending-name">Midnight Thoughts</div>
+                    <div class="trending-artist">@sarah_music</div>
+                </div>
+            </div>
+            <div class="trending-card">
+                <div class="trending-img">
+                    <img src="https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=400&h=240&fit=crop" alt="">
+                    <div class="trending-overlay">
+                        <div class="trending-plays"><i class="fas fa-heart"></i> 1.8k plays</div>
+                    </div>
+                </div>
+                <div class="trending-info">
+                    <div class="trending-name">After the Storm</div>
+                    <div class="trending-artist">AI Generated</div>
+                </div>
+            </div>
+            <div class="trending-card">
+                <div class="trending-img">
+                    <img src="https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=400&h=240&fit=crop" alt="">
+                    <div class="trending-overlay">
+                        <div class="trending-plays"><i class="fas fa-heart"></i> 1.2k plays</div>
+                    </div>
+                </div>
+                <div class="trending-info">
+                    <div class="trending-name">Golden Hour</div>
+                    <div class="trending-artist">@jakebeats</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Community Songs Feed -->
+        <div class="section-header">
+            <span class="section-title">Latest Tracks</span>
+        </div>
+
+        <div class="community-song">
+            <div class="cs-header">
+                <div class="cs-avatar"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop" alt=""></div>
+                <div>
+                    <div class="cs-user-name">Maya Lin</div>
+                    <div class="cs-time">2 hours ago</div>
+                </div>
+                <div class="cs-badge-student"><i class="fas fa-guitar"></i> Student</div>
+            </div>
+            <div class="cs-player">
+                <div class="cs-play-btn"><i class="fas fa-play"></i></div>
+                <div class="cs-wave">
+                    <div class="cs-wave-bar played" style="height: 60%;"></div>
+                    <div class="cs-wave-bar played" style="height: 80%;"></div>
+                    <div class="cs-wave-bar played" style="height: 45%;"></div>
+                    <div class="cs-wave-bar played" style="height: 90%;"></div>
+                    <div class="cs-wave-bar played" style="height: 55%;"></div>
+                    <div class="cs-wave-bar" style="height: 70%;"></div>
+                    <div class="cs-wave-bar" style="height: 40%;"></div>
+                    <div class="cs-wave-bar" style="height: 85%;"></div>
+                    <div class="cs-wave-bar" style="height: 50%;"></div>
+                    <div class="cs-wave-bar" style="height: 65%;"></div>
+                    <div class="cs-wave-bar" style="height: 75%;"></div>
+                    <div class="cs-wave-bar" style="height: 35%;"></div>
+                </div>
+                <div class="cs-duration">3:24</div>
+            </div>
+            <div class="cs-meta">
+                <span class="cs-tag">🌙 Late Night</span>
+                <span class="cs-tag">🎹 Piano</span>
+                <span class="cs-tag">😌 Calm</span>
+            </div>
+            <div class="cs-actions">
+                <div class="cs-action liked"><i class="fas fa-heart"></i> 342</div>
+                <div class="cs-action"><i class="fas fa-comment"></i> 28</div>
+                <div class="cs-action"><i class="fas fa-share"></i></div>
+            </div>
+        </div>
+
+        <div class="community-song">
+            <div class="cs-header">
+                <div class="cs-avatar" style="background: linear-gradient(135deg, #7c5cfc, #5b9aff); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-robot" style="font-size: 18px;"></i>
+                </div>
+                <div>
+                    <div class="cs-user-name">MoodTune AI</div>
+                    <div class="cs-time">5 hours ago</div>
+                </div>
+                <div class="cs-badge-ai"><i class="fas fa-sparkles"></i> AI</div>
+            </div>
+            <div class="cs-player">
+                <div class="cs-play-btn"><i class="fas fa-play"></i></div>
+                <div class="cs-wave">
+                    <div class="cs-wave-bar" style="height: 50%;"></div>
+                    <div class="cs-wave-bar" style="height: 70%;"></div>
+                    <div class="cs-wave-bar" style="height: 85%;"></div>
+                    <div class="cs-wave-bar" style="height: 40%;"></div>
+                    <div class="cs-wave-bar" style="height: 95%;"></div>
+                    <div class="cs-wave-bar" style="height: 60%;"></div>
+                    <div class="cs-wave-bar" style="height: 75%;"></div>
+                    <div class="cs-wave-bar" style="height: 45%;"></div>
+                    <div class="cs-wave-bar" style="height: 80%;"></div>
+                    <div class="cs-wave-bar" style="height: 55%;"></div>
+                    <div class="cs-wave-bar" style="height: 65%;"></div>
+                    <div class="cs-wave-bar" style="height: 90%;"></div>
+                </div>
+                <div class="cs-duration">4:12</div>
+            </div>
+            <div class="cs-meta">
+                <span class="cs-tag">🧠 Focus</span>
+                <span class="cs-tag">🎶 Lo-fi</span>
+                <span class="cs-tag">✨ AI Made</span>
+            </div>
+            <div class="cs-actions">
+                <div class="cs-action"><i class="fas fa-heart"></i> 518</div>
+                <div class="cs-action"><i class="fas fa-comment"></i> 45</div>
+                <div class="cs-action"><i class="fas fa-share"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </div>
+        <div class="tab-item active">
+            <i class="fas fa-compass"></i>
+            <span>Discover</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-users"></i>
+            <span>Community</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-chart-line"></i>
+            <span>Progress</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </div>
+    </div>
+</body>
+</html>

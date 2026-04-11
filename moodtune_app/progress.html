@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoodTune - Progress</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { scrollbar-width: none; font-family: 'Inter', sans-serif; width: 100%; height: 100%; overflow-x: hidden; background: #0f0e1a; color: #fff; }
+
+    .status-bar {
+        height: 59px; padding: 0 28px; display: flex; align-items: flex-end; justify-content: space-between;
+        padding-bottom: 12px; position: sticky; top: 0; z-index: 100; background: #0f0e1a;
+    }
+    .status-time { font-size: 16px; font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+    .dynamic-island {
+        position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+        width: 130px; height: 36px; background: #000; border-radius: 20px;
+    }
+
+    .content { padding: 0 28px; padding-bottom: 100px; }
+
+    .page-title { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 6px; }
+    .page-sub { font-size: 14px; color: #a0a0b8; margin-bottom: 24px; }
+
+    .time-pills {
+        display: flex; gap: 8px; margin-bottom: 24px;
+    }
+    .time-pill {
+        padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 600;
+        background: rgba(255,255,255,0.05); color: #a0a0b8;
+    }
+    .time-pill.active {
+        background: linear-gradient(135deg, #7c5cfc, #5b9aff); color: #fff;
+    }
+
+    .mood-chart-card {
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 24px; padding: 24px; margin-bottom: 20px;
+    }
+    .chart-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+
+    .chart-area {
+        height: 140px; display: flex; align-items: flex-end; gap: 8px; padding-bottom: 24px;
+        position: relative; border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .chart-bar-wrap {
+        flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
+    }
+    .chart-bar {
+        width: 100%; border-radius: 8px 8px 4px 4px; min-height: 12px;
+        transition: height 0.5s ease;
+    }
+    .chart-label { font-size: 11px; color: #555; position: absolute; bottom: 4px; }
+    .chart-bar-wrap:nth-child(1) .chart-label { content: 'Mon'; }
+
+    .chart-days {
+        display: flex; justify-content: space-between; margin-top: 8px;
+        font-size: 11px; color: #555;
+    }
+
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .stat-card {
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 20px; padding: 20px; text-align: center;
+    }
+    .stat-num { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; }
+    .stat-label { font-size: 12px; color: #a0a0b8; margin-top: 4px; }
+    .stat-change {
+        font-size: 12px; font-weight: 600; margin-top: 6px; display: flex;
+        align-items: center; justify-content: center; gap: 4px;
+    }
+    .stat-up { color: #6bcf7f; }
+    .stat-down { color: #ff6b8a; }
+
+    .insight-card {
+        background: linear-gradient(135deg, rgba(124,92,252,0.15), rgba(91,154,255,0.1));
+        border: 1px solid rgba(124,92,252,0.2); border-radius: 20px;
+        padding: 20px; margin-bottom: 20px;
+    }
+    .insight-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .insight-icon {
+        width: 36px; height: 36px; border-radius: 10px;
+        background: linear-gradient(135deg, #7c5cfc, #5b9aff);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .insight-icon i { font-size: 16px; }
+    .insight-title { font-size: 15px; font-weight: 700; }
+    .insight-text { font-size: 13px; color: #c4b5fd; line-height: 1.5; }
+
+    .top-songs-title { font-size: 17px; font-weight: 700; margin-bottom: 14px; }
+    .top-song {
+        display: flex; align-items: center; gap: 14px; padding: 12px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .top-song-rank { font-size: 16px; font-weight: 700; color: #555; width: 24px; text-align: center; }
+    .top-song-art { width: 48px; height: 48px; border-radius: 12px; overflow: hidden; flex-shrink: 0; }
+    .top-song-art img { width: 100%; height: 100%; object-fit: cover; }
+    .top-song-info { flex: 1; }
+    .top-song-name { font-size: 14px; font-weight: 600; }
+    .top-song-artist { font-size: 12px; color: #a0a0b8; }
+    .top-song-effect {
+        font-size: 11px; font-weight: 600; color: #6bcf7f;
+        background: rgba(107,207,127,0.1); padding: 4px 8px; border-radius: 8px;
+    }
+
+    .tab-bar {
+        position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+        background: rgba(15,14,26,0.95); backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex; justify-content: space-around; align-items: flex-start; padding-top: 12px;
+    }
+    .tab-item {
+        display: flex; flex-direction: column; align-items: center; gap: 4px;
+        font-size: 10px; color: #555; font-weight: 500;
+    }
+    .tab-item.active { color: #7c5cfc; }
+    .tab-item i { font-size: 22px; }
+</style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="page-title">Your Progress</div>
+        <div class="page-sub">Mood trends & listening insights</div>
+
+        <div class="time-pills">
+            <div class="time-pill active">Week</div>
+            <div class="time-pill">Month</div>
+            <div class="time-pill">3 Months</div>
+        </div>
+
+        <!-- Mood Chart -->
+        <div class="mood-chart-card">
+            <div class="chart-title">Mood Trend</div>
+            <div class="chart-area">
+                <div class="chart-bar-wrap">
+                    <div class="chart-bar" style="height: 40%; background: linear-gradient(180deg, #ff6b8a, #ff9a9e);"></div>
+                </div>
+                <div class="chart-bar-wrap">
+                    <div class="chart-bar" style="height: 55%; background: linear-gradient(180deg, #ffb347, #ffd93d);"></div>
+                </div>
+                <div class="chart-bar-wrap">
+                    <div class="chart-bar" style="height: 45%; background: linear-gradient(180deg, #ffb347, #ffd93d);"></div>
+                </div>
+                <div class="chart-bar-wrap">
+                    <div class="chart-bar" style="height: 65%; background: linear-gradient(180deg, #6bcf7f, #55efc4);"></div>
+                </div>
+                <div class="chart-bar-wrap">
+                    <div class="chart-bar" style="height: 72%; background: linear-gradient(180deg, #6bcf7f, #55efc4);"></div>
+                </div>
+                <div class="chart-bar-wrap">
+                    <div class="chart-bar" style="height: 60%; background: linear-gradient(180deg, #5b9aff, #74b9ff);"></div>
+                </div>
+                <div class="chart-bar-wrap">
+                    <div class="chart-bar" style="height: 80%; background: linear-gradient(180deg, #7c5cfc, #a78bfa);"></div>
+                </div>
+            </div>
+            <div class="chart-days">
+                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-num" style="color: #7c5cfc;">68%</div>
+                <div class="stat-label">Mood Improvement</div>
+                <div class="stat-change stat-up"><i class="fas fa-arrow-up"></i> +12% this week</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" style="color: #5b9aff;">4.2<span style="font-size: 16px;">hrs</span></div>
+                <div class="stat-label">Listening Time</div>
+                <div class="stat-change stat-up"><i class="fas fa-arrow-up"></i> +30 min</div>
+            </div>
+        </div>
+
+        <!-- AI Insight -->
+        <div class="insight-card">
+            <div class="insight-header">
+                <div class="insight-icon"><i class="fas fa-sparkles"></i></div>
+                <div class="insight-title">AI Insight</div>
+            </div>
+            <div class="insight-text">Your mood tends to improve most with lo-fi and ambient tracks in the evening. We've adjusted your evening recommendations accordingly.</div>
+        </div>
+
+        <!-- Top Healing Songs -->
+        <div class="top-songs-title">Your Top Healing Songs</div>
+        <div class="top-song">
+            <div class="top-song-rank">1</div>
+            <div class="top-song-art"><img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=100&h=100&fit=crop" alt=""></div>
+            <div class="top-song-info">
+                <div class="top-song-name">Weightless</div>
+                <div class="top-song-artist">Marconi Union</div>
+            </div>
+            <div class="top-song-effect">+24% 😊</div>
+        </div>
+        <div class="top-song">
+            <div class="top-song-rank">2</div>
+            <div class="top-song-art"><img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" alt=""></div>
+            <div class="top-song-info">
+                <div class="top-song-name">Breathe Me</div>
+                <div class="top-song-artist">Sia</div>
+            </div>
+            <div class="top-song-effect">+18% 😊</div>
+        </div>
+        <div class="top-song">
+            <div class="top-song-rank">3</div>
+            <div class="top-song-art"><img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100&h=100&fit=crop" alt=""></div>
+            <div class="top-song-info">
+                <div class="top-song-name">Clair de Lune</div>
+                <div class="top-song-artist">Debussy</div>
+            </div>
+            <div class="top-song-effect">+15% 😊</div>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-compass"></i>
+            <span>Discover</span>
+        </div>
+        <div class="tab-item active">
+            <i class="fas fa-chart-line"></i>
+            <span>Progress</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-book-open"></i>
+            <span>Journal</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoodTune - Discover</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { scrollbar-width: none; font-family: 'Inter', sans-serif; width: 100%; height: 100%; overflow-x: hidden; background: #0f0e1a; color: #fff; }
+
+    .status-bar {
+        height: 59px; padding: 0 28px; display: flex; align-items: flex-end; justify-content: space-between;
+        padding-bottom: 12px; position: sticky; top: 0; z-index: 100; background: #0f0e1a;
+    }
+    .status-time { font-size: 16px; font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+    .dynamic-island {
+        position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+        width: 130px; height: 36px; background: #000; border-radius: 20px;
+    }
+
+    .content { padding: 0 28px; padding-bottom: 100px; }
+
+    .page-title { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 20px; }
+
+    .search-bar {
+        width: 100%; height: 48px; border-radius: 14px;
+        background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+        display: flex; align-items: center; padding: 0 16px; gap: 10px; margin-bottom: 24px;
+    }
+    .search-bar i { color: #555; font-size: 16px; }
+    .search-bar span { color: #555; font-size: 14px; }
+
+    .mood-categories {
+        display: flex; gap: 10px; overflow-x: auto; margin: 0 -28px; padding: 0 28px 4px; margin-bottom: 24px;
+    }
+    .mood-cat {
+        padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 600;
+        white-space: nowrap; flex-shrink: 0;
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+        color: #a0a0b8;
+    }
+    .mood-cat.active {
+        background: linear-gradient(135deg, #7c5cfc, #5b9aff); color: #fff;
+        border-color: transparent;
+    }
+
+    .featured-card {
+        border-radius: 24px; overflow: hidden; margin-bottom: 24px; position: relative;
+        height: 200px;
+    }
+    .featured-card img { width: 100%; height: 100%; object-fit: cover; }
+    .featured-overlay {
+        position: absolute; bottom: 0; left: 0; right: 0; padding: 24px;
+        background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    }
+    .featured-tag {
+        font-size: 11px; font-weight: 600; background: rgba(124,92,252,0.8);
+        padding: 4px 10px; border-radius: 8px; display: inline-block; margin-bottom: 8px;
+    }
+    .featured-title { font-size: 20px; font-weight: 700; }
+    .featured-sub { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 4px; }
+    .featured-play {
+        position: absolute; top: 50%; right: 24px; transform: translateY(-50%);
+        width: 48px; height: 48px; border-radius: 50%;
+        background: rgba(124,92,252,0.9); display: flex; align-items: center; justify-content: center;
+        backdrop-filter: blur(10px);
+    }
+    .featured-play i { font-size: 18px; margin-left: 2px; }
+
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .section-title { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; }
+    .see-all { font-size: 13px; color: #7c5cfc; font-weight: 600; }
+
+    .mood-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+    .mood-tile {
+        border-radius: 20px; padding: 20px; position: relative; overflow: hidden;
+        height: 120px; display: flex; flex-direction: column; justify-content: flex-end;
+    }
+    .mood-tile-name { font-size: 16px; font-weight: 700; position: relative; z-index: 1; }
+    .mood-tile-count { font-size: 12px; color: rgba(255,255,255,0.7); position: relative; z-index: 1; margin-top: 4px; }
+    .mood-tile-icon {
+        position: absolute; top: 16px; right: 16px; font-size: 32px; opacity: 0.3;
+    }
+
+    .therapist-picks {
+        margin-bottom: 20px;
+    }
+    .therapist-card {
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 20px; padding: 16px; display: flex; gap: 14px; align-items: center;
+        margin-bottom: 12px;
+    }
+    .therapist-art {
+        width: 56px; height: 56px; border-radius: 14px; overflow: hidden; flex-shrink: 0;
+    }
+    .therapist-art img { width: 100%; height: 100%; object-fit: cover; }
+    .therapist-info { flex: 1; }
+    .therapist-name { font-size: 15px; font-weight: 600; }
+    .therapist-desc { font-size: 12px; color: #a0a0b8; margin-top: 2px; }
+    .therapist-badge {
+        font-size: 10px; background: rgba(107,207,127,0.15); color: #6bcf7f;
+        padding: 3px 8px; border-radius: 6px; display: inline-block; margin-top: 6px;
+        font-weight: 600;
+    }
+
+    .tab-bar {
+        position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+        background: rgba(15,14,26,0.95); backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex; justify-content: space-around; align-items: flex-start; padding-top: 12px;
+    }
+    .tab-item {
+        display: flex; flex-direction: column; align-items: center; gap: 4px;
+        font-size: 10px; color: #555; font-weight: 500;
+    }
+    .tab-item.active { color: #7c5cfc; }
+    .tab-item i { font-size: 22px; }
+</style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="page-title">Discover</div>
+
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <span>Search songs, playlists, moods...</span>
+        </div>
+
+        <div class="mood-categories">
+            <div class="mood-cat active">All</div>
+            <div class="mood-cat">😌 Anxiety</div>
+            <div class="mood-cat">😢 Sadness</div>
+            <div class="mood-cat">😤 Anger</div>
+            <div class="mood-cat">😴 Insomnia</div>
+            <div class="mood-cat">🧘 Focus</div>
+        </div>
+
+        <!-- Featured -->
+        <div class="featured-card">
+            <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&h=400&fit=crop" alt="">
+            <div class="featured-overlay">
+                <div class="featured-tag">FEATURED</div>
+                <div class="featured-title">Exam Season Calm</div>
+                <div class="featured-sub">Curated for study stress • 32 tracks</div>
+            </div>
+            <div class="featured-play"><i class="fas fa-play"></i></div>
+        </div>
+
+        <!-- Mood Tiles -->
+        <div class="section-header">
+            <span class="section-title">Browse by Mood</span>
+        </div>
+        <div class="mood-grid">
+            <div class="mood-tile" style="background: linear-gradient(135deg, #7c5cfc, #a78bfa);">
+                <span class="mood-tile-icon">🌙</span>
+                <div class="mood-tile-name">Sleep Better</div>
+                <div class="mood-tile-count">48 playlists</div>
+            </div>
+            <div class="mood-tile" style="background: linear-gradient(135deg, #ff6b8a, #ff9a9e);">
+                <span class="mood-tile-icon">💪</span>
+                <div class="mood-tile-name">Confidence</div>
+                <div class="mood-tile-count">35 playlists</div>
+            </div>
+            <div class="mood-tile" style="background: linear-gradient(135deg, #5b9aff, #74b9ff);">
+                <span class="mood-tile-icon">🧘</span>
+                <div class="mood-tile-name">Meditation</div>
+                <div class="mood-tile-count">52 playlists</div>
+            </div>
+            <div class="mood-tile" style="background: linear-gradient(135deg, #6bcf7f, #55efc4);">
+                <span class="mood-tile-icon">🌈</span>
+                <div class="mood-tile-name">Mood Boost</div>
+                <div class="mood-tile-count">41 playlists</div>
+            </div>
+        </div>
+
+        <!-- Therapist Picks -->
+        <div class="section-header">
+            <span class="section-title">Therapist Picks</span>
+            <span class="see-all">See All</span>
+        </div>
+        <div class="therapist-picks">
+            <div class="therapist-card">
+                <div class="therapist-art">
+                    <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=120&h=120&fit=crop" alt="">
+                </div>
+                <div class="therapist-info">
+                    <div class="therapist-name">CBT Sound Journey</div>
+                    <div class="therapist-desc">Music paired with cognitive techniques</div>
+                    <div class="therapist-badge"><i class="fas fa-check-circle"></i> Expert Curated</div>
+                </div>
+            </div>
+            <div class="therapist-card">
+                <div class="therapist-art">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop" alt="">
+                </div>
+                <div class="therapist-info">
+                    <div class="therapist-name">Breathwork Beats</div>
+                    <div class="therapist-desc">Rhythmic tracks for breathing exercises</div>
+                    <div class="therapist-badge"><i class="fas fa-check-circle"></i> Expert Curated</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </div>
+        <div class="tab-item active">
+            <i class="fas fa-compass"></i>
+            <span>Discover</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-chart-line"></i>
+            <span>Progress</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-book-open"></i>
+            <span>Journal</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </div>
+    </div>
+</body>
+</html>

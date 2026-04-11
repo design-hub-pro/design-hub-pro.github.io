@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoodTune - Home</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { scrollbar-width: none; font-family: 'Inter', sans-serif; width: 100%; height: 100%; overflow-x: hidden; background: #0f0e1a; color: #fff; }
+
+    .status-bar {
+        height: 59px; padding: 0 28px; display: flex; align-items: flex-end; justify-content: space-between;
+        padding-bottom: 12px; position: sticky; top: 0; z-index: 100; background: #0f0e1a;
+    }
+    .status-time { font-size: 16px; font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+    .dynamic-island {
+        position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+        width: 130px; height: 36px; background: #000; border-radius: 20px;
+    }
+
+    .content { padding: 0 28px; padding-bottom: 100px; }
+
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .greeting { font-size: 14px; color: #a0a0b8; font-weight: 400; }
+    .user-name { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-top: 2px; }
+    .avatar {
+        width: 44px; height: 44px; border-radius: 50%; overflow: hidden;
+        border: 2px solid rgba(124,92,252,0.5);
+    }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .mood-card {
+        background: linear-gradient(135deg, rgba(124,92,252,0.2), rgba(91,154,255,0.15));
+        border: 1px solid rgba(124,92,252,0.25); border-radius: 24px;
+        padding: 24px; margin-bottom: 24px; position: relative; overflow: hidden;
+    }
+    .mood-card-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .mood-card-sub { font-size: 13px; color: #a0a0b8; margin-bottom: 20px; }
+    .mood-emojis { display: flex; gap: 12px; justify-content: space-between; }
+    .mood-emoji-btn {
+        flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
+        padding: 14px 8px; border-radius: 16px; background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: all 0.2s;
+    }
+    .mood-emoji-btn.active {
+        background: rgba(124,92,252,0.3); border-color: #7c5cfc;
+        box-shadow: 0 4px 20px rgba(124,92,252,0.3);
+    }
+    .mood-emoji-btn span:first-child { font-size: 28px; }
+    .mood-emoji-btn span:last-child { font-size: 11px; color: #a0a0b8; font-weight: 500; }
+    .mood-card .glow {
+        position: absolute; width: 200px; height: 200px; border-radius: 50%;
+        background: #7c5cfc; filter: blur(80px); opacity: 0.1; top: -50px; right: -50px;
+    }
+
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .section-title { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; }
+    .see-all { font-size: 13px; color: #7c5cfc; font-weight: 600; }
+
+    .recommended-scroll {
+        display: flex; gap: 14px; overflow-x: auto; margin: 0 -28px; padding: 0 28px 4px;
+        scroll-snap-type: x mandatory;
+    }
+    .song-card {
+        min-width: 160px; scroll-snap-align: start; border-radius: 20px; overflow: hidden;
+        background: #1a1928; flex-shrink: 0;
+    }
+    .song-card-img {
+        width: 160px; height: 160px; position: relative; overflow: hidden;
+    }
+    .song-card-img img { width: 100%; height: 100%; object-fit: cover; }
+    .song-card-overlay {
+        position: absolute; bottom: 8px; right: 8px;
+        width: 36px; height: 36px; border-radius: 50%;
+        background: rgba(124,92,252,0.9); display: flex; align-items: center; justify-content: center;
+        backdrop-filter: blur(10px);
+    }
+    .song-card-overlay i { font-size: 13px; color: #fff; margin-left: 2px; }
+    .song-card-info { padding: 12px 14px; }
+    .song-card-name { font-size: 14px; font-weight: 600; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .song-card-artist { font-size: 12px; color: #a0a0b8; }
+
+    .healing-playlist {
+        background: linear-gradient(135deg, #1a1928, #1f1e33);
+        border-radius: 20px; padding: 18px; margin-bottom: 14px;
+        display: flex; gap: 14px; align-items: center;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    .playlist-art {
+        width: 60px; height: 60px; border-radius: 14px; overflow: hidden; flex-shrink: 0;
+        position: relative;
+    }
+    .playlist-art img { width: 100%; height: 100%; object-fit: cover; }
+    .playlist-info { flex: 1; min-width: 0; }
+    .playlist-name { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+    .playlist-meta { font-size: 12px; color: #a0a0b8; display: flex; align-items: center; gap: 6px; }
+    .playlist-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: #a0a0b8; }
+    .playlist-play {
+        width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+        background: linear-gradient(135deg, #7c5cfc, #5b9aff);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .playlist-play i { font-size: 14px; color: #fff; margin-left: 2px; }
+
+    .streak-card {
+        background: linear-gradient(135deg, rgba(255,107,138,0.15), rgba(124,92,252,0.15));
+        border: 1px solid rgba(255,107,138,0.2); border-radius: 20px;
+        padding: 20px; margin-top: 24px; margin-bottom: 24px;
+        display: flex; align-items: center; gap: 16px;
+    }
+    .streak-num { font-size: 36px; font-weight: 800; color: #ff6b8a; line-height: 1; }
+    .streak-label { font-size: 13px; color: #a0a0b8; }
+    .streak-text { font-size: 14px; font-weight: 600; }
+    .streak-fire { font-size: 32px; }
+
+    .tab-bar {
+        position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+        background: rgba(15,14,26,0.95); backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex; justify-content: space-around; align-items: flex-start; padding-top: 12px;
+    }
+    .tab-item {
+        display: flex; flex-direction: column; align-items: center; gap: 4px;
+        font-size: 10px; color: #555; font-weight: 500;
+    }
+    .tab-item.active { color: #7c5cfc; }
+    .tab-item i { font-size: 22px; }
+</style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="header">
+            <div>
+                <div class="greeting">Good morning</div>
+                <div class="user-name">Alex 👋</div>
+            </div>
+            <div class="avatar">
+                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop" alt="">
+            </div>
+        </div>
+
+        <!-- Mood Check-in Card -->
+        <div class="mood-card">
+            <div class="glow"></div>
+            <div class="mood-card-title">How are you feeling?</div>
+            <div class="mood-card-sub">Tap to log your mood</div>
+            <div class="mood-emojis">
+                <div class="mood-emoji-btn">
+                    <span>😢</span>
+                    <span>Low</span>
+                </div>
+                <div class="mood-emoji-btn">
+                    <span>😔</span>
+                    <span>Down</span>
+                </div>
+                <div class="mood-emoji-btn active">
+                    <span>😐</span>
+                    <span>Okay</span>
+                </div>
+                <div class="mood-emoji-btn">
+                    <span>🙂</span>
+                    <span>Good</span>
+                </div>
+                <div class="mood-emoji-btn">
+                    <span>😊</span>
+                    <span>Great</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommended for You -->
+        <div class="section-header">
+            <span class="section-title">For Your Mood</span>
+            <span class="see-all">See All</span>
+        </div>
+        <div class="recommended-scroll">
+            <div class="song-card">
+                <div class="song-card-img">
+                    <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=320&h=320&fit=crop" alt="">
+                    <div class="song-card-overlay"><i class="fas fa-play"></i></div>
+                </div>
+                <div class="song-card-info">
+                    <div class="song-card-name">Weightless</div>
+                    <div class="song-card-artist">Marconi Union</div>
+                </div>
+            </div>
+            <div class="song-card">
+                <div class="song-card-img">
+                    <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=320&h=320&fit=crop" alt="">
+                    <div class="song-card-overlay"><i class="fas fa-play"></i></div>
+                </div>
+                <div class="song-card-info">
+                    <div class="song-card-name">Breathe Me</div>
+                    <div class="song-card-artist">Sia</div>
+                </div>
+            </div>
+            <div class="song-card">
+                <div class="song-card-img">
+                    <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=320&h=320&fit=crop" alt="">
+                    <div class="song-card-overlay"><i class="fas fa-play"></i></div>
+                </div>
+                <div class="song-card-info">
+                    <div class="song-card-name">Calm Down</div>
+                    <div class="song-card-artist">Rema</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Streak -->
+        <div class="streak-card">
+            <div>
+                <div class="streak-num">7</div>
+                <div class="streak-label">day streak</div>
+            </div>
+            <div style="flex:1">
+                <div class="streak-text">Keep it up! You've checked in every day this week.</div>
+            </div>
+            <div class="streak-fire">🔥</div>
+        </div>
+
+        <!-- Healing Playlists -->
+        <div class="section-header">
+            <span class="section-title">Healing Playlists</span>
+            <span class="see-all">See All</span>
+        </div>
+
+        <div class="healing-playlist">
+            <div class="playlist-art">
+                <img src="https://images.unsplash.com/photo-1528722828814-77b9b83aafb2?w=120&h=120&fit=crop" alt="">
+            </div>
+            <div class="playlist-info">
+                <div class="playlist-name">Deep Calm</div>
+                <div class="playlist-meta">
+                    <span>18 songs</span>
+                    <span class="dot"></span>
+                    <span>52 min</span>
+                </div>
+            </div>
+            <div class="playlist-play"><i class="fas fa-play"></i></div>
+        </div>
+
+        <div class="healing-playlist">
+            <div class="playlist-art">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop" alt="">
+            </div>
+            <div class="playlist-info">
+                <div class="playlist-name">Stress Relief</div>
+                <div class="playlist-meta">
+                    <span>24 songs</span>
+                    <span class="dot"></span>
+                    <span>1 hr 15 min</span>
+                </div>
+            </div>
+            <div class="playlist-play"><i class="fas fa-play"></i></div>
+        </div>
+
+        <div class="healing-playlist">
+            <div class="playlist-art">
+                <img src="https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=120&h=120&fit=crop" alt="">
+            </div>
+            <div class="playlist-info">
+                <div class="playlist-name">Morning Uplift</div>
+                <div class="playlist-meta">
+                    <span>15 songs</span>
+                    <span class="dot"></span>
+                    <span>45 min</span>
+                </div>
+            </div>
+            <div class="playlist-play"><i class="fas fa-play"></i></div>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item active">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-compass"></i>
+            <span>Discover</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-chart-line"></i>
+            <span>Progress</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-book-open"></i>
+            <span>Journal</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </div>
+    </div>
+</body>
+</html>

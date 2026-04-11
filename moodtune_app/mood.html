@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoodTune - Mood Check-in</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { scrollbar-width: none; font-family: 'Inter', sans-serif; width: 100%; height: 100%; overflow-x: hidden; background: #0f0e1a; color: #fff; }
+
+    .status-bar {
+        height: 59px; padding: 0 28px; display: flex; align-items: flex-end; justify-content: space-between;
+        padding-bottom: 12px; position: sticky; top: 0; z-index: 100; background: #0f0e1a;
+    }
+    .status-time { font-size: 16px; font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+    .dynamic-island {
+        position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+        width: 130px; height: 36px; background: #000; border-radius: 20px;
+    }
+
+    .nav-bar {
+        display: flex; align-items: center; justify-content: space-between; padding: 8px 28px 20px;
+    }
+    .nav-back { font-size: 20px; color: #7c5cfc; }
+    .nav-title { font-size: 17px; font-weight: 700; }
+    .nav-skip { font-size: 14px; color: #a0a0b8; }
+
+    .content { padding: 0 28px; padding-bottom: 50px; }
+
+    .mood-face {
+        text-align: center; margin-bottom: 12px;
+    }
+    .mood-face-emoji { font-size: 80px; display: block; margin-bottom: 8px; }
+    .mood-face-label {
+        font-size: 28px; font-weight: 800; letter-spacing: -0.02em;
+        background: linear-gradient(135deg, #7c5cfc, #5b9aff);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .slider-container {
+        margin: 28px 0; position: relative;
+    }
+    .slider-track {
+        width: 100%; height: 8px; border-radius: 4px;
+        background: linear-gradient(90deg, #ff6b8a, #ffb347, #ffd93d, #6bcf7f, #5b9aff);
+        position: relative;
+    }
+    .slider-thumb {
+        width: 32px; height: 32px; border-radius: 50%; background: #fff;
+        position: absolute; top: -12px; left: 50%;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 3px solid #7c5cfc;
+        transform: translateX(-50%);
+    }
+    .slider-labels {
+        display: flex; justify-content: space-between; margin-top: 12px;
+        font-size: 12px; color: #a0a0b8;
+    }
+
+    .factors-title {
+        font-size: 17px; font-weight: 700; margin-bottom: 14px; margin-top: 32px;
+    }
+    .factors-grid {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    }
+    .factor-chip {
+        display: flex; flex-direction: column; align-items: center; gap: 8px;
+        padding: 16px 8px; border-radius: 16px;
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+        cursor: pointer; transition: all 0.2s;
+    }
+    .factor-chip.selected {
+        background: rgba(124,92,252,0.2); border-color: #7c5cfc;
+    }
+    .factor-chip i { font-size: 22px; }
+    .factor-chip span { font-size: 12px; color: #a0a0b8; font-weight: 500; }
+    .factor-chip.selected span { color: #c4b5fd; }
+
+    .note-section { margin-top: 28px; }
+    .note-title { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+    .note-input {
+        width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px; padding: 16px; color: #fff; font-size: 14px;
+        font-family: 'Inter', sans-serif; resize: none; height: 90px;
+    }
+    .note-input::placeholder { color: #555; }
+
+    .submit-btn {
+        width: 100%; height: 56px; border-radius: 18px; border: none;
+        background: linear-gradient(135deg, #7c5cfc, #5b9aff);
+        color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
+        margin-top: 28px; box-shadow: 0 10px 30px rgba(124,92,252,0.3);
+    }
+
+    .quick-note {
+        display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;
+    }
+    .quick-tag {
+        padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+        color: #a0a0b8;
+    }
+</style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <i class="fas fa-chevron-left nav-back"></i>
+        <span class="nav-title">Mood Check-in</span>
+        <span class="nav-skip">Skip</span>
+    </div>
+
+    <div class="content">
+        <div class="mood-face">
+            <span class="mood-face-emoji">😐</span>
+            <span class="mood-face-label">Feeling Okay</span>
+        </div>
+
+        <div class="slider-container">
+            <div class="slider-track">
+                <div class="slider-thumb"></div>
+            </div>
+            <div class="slider-labels">
+                <span>Very Low</span>
+                <span>Low</span>
+                <span>Okay</span>
+                <span>Good</span>
+                <span>Great</span>
+            </div>
+        </div>
+
+        <div class="factors-title">What's affecting your mood?</div>
+        <div class="factors-grid">
+            <div class="factor-chip selected">
+                <i class="fas fa-book" style="color: #7c5cfc;"></i>
+                <span>Study</span>
+            </div>
+            <div class="factor-chip">
+                <i class="fas fa-moon" style="color: #5b9aff;"></i>
+                <span>Sleep</span>
+            </div>
+            <div class="factor-chip selected">
+                <i class="fas fa-users" style="color: #ff6b8a;"></i>
+                <span>Social</span>
+            </div>
+            <div class="factor-chip">
+                <i class="fas fa-dumbbell" style="color: #6bcf7f;"></i>
+                <span>Exercise</span>
+            </div>
+            <div class="factor-chip">
+                <i class="fas fa-utensils" style="color: #ffb347;"></i>
+                <span>Diet</span>
+            </div>
+            <div class="factor-chip">
+                <i class="fas fa-heart" style="color: #ff6b8a;"></i>
+                <span>Relationship</span>
+            </div>
+        </div>
+
+        <div class="note-section">
+            <div class="note-title">Quick thoughts</div>
+            <textarea class="note-input" placeholder="What's on your mind? (optional)"></textarea>
+            <div class="quick-note">
+                <span class="quick-tag">Exam stress</span>
+                <span class="quick-tag">Feeling lonely</span>
+                <span class="quick-tag">Tired</span>
+                <span class="quick-tag">Anxious</span>
+            </div>
+        </div>
+
+        <button class="submit-btn">Get My Music ♪</button>
+    </div>
+</body>
+</html>

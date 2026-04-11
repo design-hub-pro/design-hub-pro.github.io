@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoodTune - Session Feedback</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { scrollbar-width: none; font-family: 'Inter', sans-serif; width: 100%; height: 100%; overflow: hidden; background: #0f0e1a; color: #fff; }
+
+    .status-bar {
+        height: 59px; padding: 0 28px; display: flex; align-items: flex-end; justify-content: space-between;
+        padding-bottom: 12px; position: relative; z-index: 100;
+    }
+    .status-time { font-size: 16px; font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+    .dynamic-island {
+        position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+        width: 130px; height: 36px; background: #000; border-radius: 20px;
+    }
+
+    .feedback-container {
+        height: calc(100% - 59px); display: flex; flex-direction: column;
+        padding: 0 28px; position: relative;
+    }
+
+    .close-btn {
+        position: absolute; top: 8px; right: 28px; font-size: 22px; color: #a0a0b8;
+    }
+
+    .feedback-header {
+        text-align: center; padding-top: 20px; margin-bottom: 28px;
+    }
+    .session-summary-icon { font-size: 48px; margin-bottom: 12px; }
+    .feedback-title { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .feedback-sub { font-size: 14px; color: #a0a0b8; }
+
+    .session-stats {
+        display: flex; gap: 12px; margin-bottom: 28px;
+    }
+    .s-stat {
+        flex: 1; padding: 16px; border-radius: 18px; text-align: center;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+    }
+    .s-stat-val { font-size: 22px; font-weight: 800; }
+    .s-stat-label { font-size: 11px; color: #a0a0b8; margin-top: 4px; }
+
+    .mood-compare {
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 20px; padding: 24px; margin-bottom: 24px; text-align: center;
+    }
+    .mood-compare-title { font-size: 14px; color: #a0a0b8; margin-bottom: 16px; }
+    .mood-compare-row { display: flex; align-items: center; justify-content: center; gap: 24px; }
+    .mood-state { text-align: center; }
+    .mood-state-emoji { font-size: 48px; display: block; margin-bottom: 6px; }
+    .mood-state-label { font-size: 12px; color: #a0a0b8; }
+    .mood-arrow {
+        display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .mood-arrow i { font-size: 20px; color: #6bcf7f; }
+    .mood-arrow span { font-size: 11px; color: #6bcf7f; font-weight: 600; }
+
+    .q-section { margin-bottom: 24px; }
+    .q-label { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+    .star-row { display: flex; gap: 8px; }
+    .star {
+        width: 44px; height: 44px; border-radius: 12px; display: flex;
+        align-items: center; justify-content: center; font-size: 22px;
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+        cursor: pointer;
+    }
+    .star.filled { background: rgba(255,183,71,0.15); border-color: #ffb347; }
+
+    .reaction-row { display: flex; gap: 10px; }
+    .reaction-btn {
+        flex: 1; padding: 14px; border-radius: 16px; text-align: center;
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+        cursor: pointer;
+    }
+    .reaction-btn.selected {
+        background: rgba(124,92,252,0.2); border-color: #7c5cfc;
+    }
+    .reaction-emoji { font-size: 24px; display: block; margin-bottom: 4px; }
+    .reaction-label { font-size: 11px; color: #a0a0b8; }
+
+    .done-btn {
+        width: 100%; height: 56px; border-radius: 18px; border: none;
+        background: linear-gradient(135deg, #7c5cfc, #5b9aff);
+        color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
+        margin-top: auto; margin-bottom: 50px;
+        box-shadow: 0 10px 30px rgba(124,92,252,0.3);
+    }
+</style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <div class="feedback-container">
+        <i class="fas fa-xmark close-btn"></i>
+
+        <div class="feedback-header">
+            <div class="session-summary-icon">🎧</div>
+            <div class="feedback-title">Session Complete</div>
+            <div class="feedback-sub">Tell us how you feel now</div>
+        </div>
+
+        <div class="session-stats">
+            <div class="s-stat">
+                <div class="s-stat-val" style="color: #7c5cfc;">23<span style="font-size:13px">min</span></div>
+                <div class="s-stat-label">Listening</div>
+            </div>
+            <div class="s-stat">
+                <div class="s-stat-val" style="color: #5b9aff;">6</div>
+                <div class="s-stat-label">Tracks</div>
+            </div>
+            <div class="s-stat">
+                <div class="s-stat-val" style="color: #6bcf7f;">4</div>
+                <div class="s-stat-label">Liked</div>
+            </div>
+        </div>
+
+        <div class="mood-compare">
+            <div class="mood-compare-title">Your mood shift</div>
+            <div class="mood-compare-row">
+                <div class="mood-state">
+                    <span class="mood-state-emoji">😔</span>
+                    <span class="mood-state-label">Before</span>
+                </div>
+                <div class="mood-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                    <span>+2 levels</span>
+                </div>
+                <div class="mood-state">
+                    <span class="mood-state-emoji">😊</span>
+                    <span class="mood-state-label">After</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="q-section">
+            <div class="q-label">Rate this session</div>
+            <div class="star-row">
+                <div class="star filled">⭐</div>
+                <div class="star filled">⭐</div>
+                <div class="star filled">⭐</div>
+                <div class="star filled">⭐</div>
+                <div class="star">☆</div>
+            </div>
+        </div>
+
+        <div class="q-section">
+            <div class="q-label">Did the music help?</div>
+            <div class="reaction-row">
+                <div class="reaction-btn">
+                    <span class="reaction-emoji">😊</span>
+                    <span class="reaction-label">A lot</span>
+                </div>
+                <div class="reaction-btn selected">
+                    <span class="reaction-emoji">🙂</span>
+                    <span class="reaction-label">Somewhat</span>
+                </div>
+                <div class="reaction-btn">
+                    <span class="reaction-emoji">😐</span>
+                    <span class="reaction-label">Neutral</span>
+                </div>
+                <div class="reaction-btn">
+                    <span class="reaction-emoji">👎</span>
+                    <span class="reaction-label">Not really</span>
+                </div>
+            </div>
+        </div>
+
+        <button class="done-btn">Save & Continue</button>
+    </div>
+</body>
+</html>

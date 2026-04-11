@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoodTune - Journal</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { scrollbar-width: none; font-family: 'Inter', sans-serif; width: 100%; height: 100%; overflow-x: hidden; background: #0f0e1a; color: #fff; }
+
+    .status-bar {
+        height: 59px; padding: 0 28px; display: flex; align-items: flex-end; justify-content: space-between;
+        padding-bottom: 12px; position: sticky; top: 0; z-index: 100; background: #0f0e1a;
+    }
+    .status-time { font-size: 16px; font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+    .dynamic-island {
+        position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+        width: 130px; height: 36px; background: #000; border-radius: 20px;
+    }
+
+    .content { padding: 0 28px; padding-bottom: 100px; }
+
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .page-title { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; }
+    .add-btn {
+        width: 40px; height: 40px; border-radius: 50%;
+        background: linear-gradient(135deg, #7c5cfc, #5b9aff);
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 6px 20px rgba(124,92,252,0.3);
+    }
+    .add-btn i { font-size: 18px; }
+
+    .calendar-strip {
+        display: flex; gap: 8px; margin-bottom: 24px; overflow-x: auto;
+        margin: 0 -28px 24px; padding: 0 28px;
+    }
+    .cal-day {
+        min-width: 48px; padding: 12px 8px; border-radius: 16px; text-align: center;
+        background: rgba(255,255,255,0.04); flex-shrink: 0;
+    }
+    .cal-day.active {
+        background: linear-gradient(135deg, #7c5cfc, #5b9aff);
+    }
+    .cal-day-name { font-size: 11px; color: #a0a0b8; font-weight: 500; margin-bottom: 6px; }
+    .cal-day.active .cal-day-name { color: rgba(255,255,255,0.8); }
+    .cal-day-num { font-size: 16px; font-weight: 700; }
+    .cal-day-dot {
+        width: 5px; height: 5px; border-radius: 50%; background: #7c5cfc;
+        margin: 6px auto 0;
+    }
+    .cal-day.active .cal-day-dot { background: #fff; }
+
+    .journal-entry {
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 20px; padding: 20px; margin-bottom: 14px;
+        position: relative;
+    }
+    .entry-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .entry-time { font-size: 12px; color: #a0a0b8; }
+    .entry-mood { font-size: 28px; }
+    .entry-text { font-size: 14px; color: #c8c8d8; line-height: 1.6; margin-bottom: 14px; }
+    .entry-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .entry-tag {
+        padding: 5px 10px; border-radius: 10px; font-size: 11px; font-weight: 500;
+        background: rgba(124,92,252,0.1); color: #c4b5fd;
+    }
+    .entry-music {
+        display: flex; align-items: center; gap: 10px; padding: 12px;
+        background: rgba(255,255,255,0.04); border-radius: 14px;
+    }
+    .entry-music-art {
+        width: 40px; height: 40px; border-radius: 10px; overflow: hidden; flex-shrink: 0;
+    }
+    .entry-music-art img { width: 100%; height: 100%; object-fit: cover; }
+    .entry-music-info { flex: 1; }
+    .entry-music-name { font-size: 13px; font-weight: 600; }
+    .entry-music-artist { font-size: 11px; color: #a0a0b8; }
+    .entry-music-icon { color: #7c5cfc; }
+
+    .entry-highlight {
+        border-left: 3px solid #7c5cfc;
+    }
+
+    .prompt-card {
+        background: linear-gradient(135deg, rgba(255,107,138,0.12), rgba(124,92,252,0.12));
+        border: 1px solid rgba(255,107,138,0.15); border-radius: 20px;
+        padding: 20px; margin-bottom: 14px; text-align: center;
+    }
+    .prompt-emoji { font-size: 32px; margin-bottom: 8px; }
+    .prompt-text { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .prompt-sub { font-size: 12px; color: #a0a0b8; }
+
+    .tab-bar {
+        position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+        background: rgba(15,14,26,0.95); backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex; justify-content: space-around; align-items: flex-start; padding-top: 12px;
+    }
+    .tab-item {
+        display: flex; flex-direction: column; align-items: center; gap: 4px;
+        font-size: 10px; color: #555; font-weight: 500;
+    }
+    .tab-item.active { color: #7c5cfc; }
+    .tab-item i { font-size: 22px; }
+</style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">Journal</div>
+            <div class="add-btn"><i class="fas fa-plus"></i></div>
+        </div>
+
+        <!-- Calendar Strip -->
+        <div class="calendar-strip">
+            <div class="cal-day">
+                <div class="cal-day-name">Mon</div>
+                <div class="cal-day-num">7</div>
+                <div class="cal-day-dot"></div>
+            </div>
+            <div class="cal-day">
+                <div class="cal-day-name">Tue</div>
+                <div class="cal-day-num">8</div>
+                <div class="cal-day-dot"></div>
+            </div>
+            <div class="cal-day">
+                <div class="cal-day-name">Wed</div>
+                <div class="cal-day-num">9</div>
+                <div class="cal-day-dot"></div>
+            </div>
+            <div class="cal-day active">
+                <div class="cal-day-name">Thu</div>
+                <div class="cal-day-num">10</div>
+                <div class="cal-day-dot"></div>
+            </div>
+            <div class="cal-day">
+                <div class="cal-day-name">Fri</div>
+                <div class="cal-day-num">11</div>
+            </div>
+            <div class="cal-day">
+                <div class="cal-day-name">Sat</div>
+                <div class="cal-day-num">12</div>
+            </div>
+            <div class="cal-day">
+                <div class="cal-day-name">Sun</div>
+                <div class="cal-day-num">13</div>
+            </div>
+        </div>
+
+        <!-- Today's Prompt -->
+        <div class="prompt-card">
+            <div class="prompt-emoji">✍️</div>
+            <div class="prompt-text">What made you smile today?</div>
+            <div class="prompt-sub">Tap to write your daily reflection</div>
+        </div>
+
+        <!-- Journal Entries -->
+        <div class="journal-entry entry-highlight">
+            <div class="entry-header">
+                <div class="entry-time">Today, 8:30 AM</div>
+                <div class="entry-mood">😊</div>
+            </div>
+            <div class="entry-text">Woke up feeling anxious about the exam, but after listening to Weightless, I felt much calmer. Music really helps.</div>
+            <div class="entry-tags">
+                <span class="entry-tag">Study Stress</span>
+                <span class="entry-tag">Anxiety</span>
+            </div>
+            <div class="entry-music">
+                <div class="entry-music-art">
+                    <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=80&h=80&fit=crop" alt="">
+                </div>
+                <div class="entry-music-info">
+                    <div class="entry-music-name">Weightless</div>
+                    <div class="entry-music-artist">Marconi Union</div>
+                </div>
+                <i class="fas fa-play entry-music-icon"></i>
+            </div>
+        </div>
+
+        <div class="journal-entry">
+            <div class="entry-header">
+                <div class="entry-time">Yesterday, 10:15 PM</div>
+                <div class="entry-mood">😌</div>
+            </div>
+            <div class="entry-text">Couldn't sleep so I put on the Sleep Better playlist. Drifted off within 20 minutes.</div>
+            <div class="entry-tags">
+                <span class="entry-tag">Insomnia</span>
+                <span class="entry-tag">Night</span>
+            </div>
+            <div class="entry-music">
+                <div class="entry-music-art">
+                    <img src="https://images.unsplash.com/photo-1528722828814-77b9b83aafb2?w=80&h=80&fit=crop" alt="">
+                </div>
+                <div class="entry-music-info">
+                    <div class="entry-music-name">Sleep Better Playlist</div>
+                    <div class="entry-music-artist">18 tracks</div>
+                </div>
+                <i class="fas fa-play entry-music-icon"></i>
+            </div>
+        </div>
+
+        <div class="journal-entry">
+            <div class="entry-header">
+                <div class="entry-time">Yesterday, 3:00 PM</div>
+                <div class="entry-mood">😢</div>
+            </div>
+            <div class="entry-text">Had a rough day. Feeling isolated from friends. The Mood Boost playlist helped a little.</div>
+            <div class="entry-tags">
+                <span class="entry-tag">Loneliness</span>
+                <span class="entry-tag">Sadness</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-compass"></i>
+            <span>Discover</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-chart-line"></i>
+            <span>Progress</span>
+        </div>
+        <div class="tab-item active">
+            <i class="fas fa-book-open"></i>
+            <span>Journal</span>
+        </div>
+        <div class="tab-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </div>
+    </div>
+</body>
+</html>
