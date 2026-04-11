@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoodTune - AI Music Generator</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { scrollbar-width: none; font-family: 'Inter', sans-serif; width: 100%; height: 100%; overflow-x: hidden; background: #0f0e1a; color: #fff; }
+
+    .status-bar {
+        height: 59px; padding: 0 28px; display: flex; align-items: flex-end; justify-content: space-between;
+        padding-bottom: 12px; position: sticky; top: 0; z-index: 100; background: #0f0e1a;
+    }
+    .status-time { font-size: 16px; font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+    .dynamic-island {
+        position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+        width: 130px; height: 36px; background: #000; border-radius: 20px;
+    }
+
+    .nav-bar {
+        display: flex; align-items: center; justify-content: space-between; padding: 8px 28px 20px;
+    }
+    .nav-back { font-size: 20px; color: #7c5cfc; }
+    .nav-title { font-size: 17px; font-weight: 700; }
+    .nav-credits {
+        font-size: 12px; color: #ffb347; font-weight: 600;
+        background: rgba(255,179,71,0.1); padding: 4px 10px; border-radius: 8px;
+    }
+
+    .content { padding: 0 28px; padding-bottom: 50px; }
+
+    /* AI Orb */
+    .ai-orb-section { text-align: center; margin-bottom: 28px; }
+    .ai-orb {
+        width: 120px; height: 120px; margin: 0 auto 16px; position: relative;
+        border-radius: 50%;
+    }
+    .ai-orb-ring {
+        position: absolute; inset: 0; border-radius: 50%;
+        border: 2px solid transparent;
+        background-image: linear-gradient(#0f0e1a, #0f0e1a), linear-gradient(135deg, #7c5cfc, #5b9aff, #ff6b8a, #7c5cfc);
+        background-origin: border-box; background-clip: content-box, border-box;
+        animation: spin 3s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .ai-orb-inner {
+        position: absolute; inset: 8px; border-radius: 50%;
+        background: linear-gradient(135deg, rgba(124,92,252,0.3), rgba(91,154,255,0.2));
+        display: flex; align-items: center; justify-content: center;
+        backdrop-filter: blur(20px);
+    }
+    .ai-orb-inner i { font-size: 36px; color: #c4b5fd; }
+    .ai-label { font-size: 14px; color: #a0a0b8; }
+
+    /* Prompt Input */
+    .prompt-card {
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 22px; padding: 20px; margin-bottom: 24px;
+    }
+    .prompt-label { font-size: 13px; color: #a0a0b8; font-weight: 600; margin-bottom: 10px; }
+    .prompt-textarea {
+        width: 100%; background: transparent; border: none; color: #fff;
+        font-size: 16px; font-family: 'Inter', sans-serif; resize: none;
+        height: 72px; line-height: 1.5;
+    }
+    .prompt-textarea::placeholder { color: #444; }
+    .prompt-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 14px 0; }
+    .prompt-hint { font-size: 12px; color: #555; display: flex; align-items: center; gap: 6px; }
+    .prompt-hint i { color: #7c5cfc; }
+
+    /* Mood & Style Selectors */
+    .section-label { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+    .mood-select {
+        display: flex; gap: 10px; overflow-x: auto; margin: 0 -28px; padding: 0 28px 4px;
+        margin-bottom: 22px;
+    }
+    .mood-opt {
+        min-width: 80px; padding: 14px 12px; border-radius: 16px; text-align: center;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        flex-shrink: 0; cursor: pointer;
+    }
+    .mood-opt.selected { background: rgba(124,92,252,0.15); border-color: #7c5cfc; }
+    .mood-opt-emoji { font-size: 24px; display: block; margin-bottom: 4px; }
+    .mood-opt-name { font-size: 11px; color: #a0a0b8; font-weight: 500; }
+    .mood-opt.selected .mood-opt-name { color: #c4b5fd; }
+
+    .style-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+    .style-chip {
+        padding: 10px 18px; border-radius: 14px; font-size: 13px; font-weight: 500;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        color: #a0a0b8;
+    }
+    .style-chip.selected { background: rgba(124,92,252,0.15); border-color: #7c5cfc; color: #c4b5fd; }
+
+    /* Duration Slider */
+    .duration-section { margin-bottom: 28px; }
+    .duration-row { display: flex; align-items: center; gap: 16px; }
+    .dur-track {
+        flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1);
+        position: relative;
+    }
+    .dur-fill { width: 50%; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #7c5cfc, #5b9aff); }
+    .dur-thumb {
+        width: 20px; height: 20px; border-radius: 50%; background: #fff;
+        position: absolute; top: -7px; left: 50%; transform: translateX(-50%);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .dur-value { font-size: 16px; font-weight: 700; color: #7c5cfc; min-width: 50px; text-align: right; }
+
+    .generate-btn {
+        width: 100%; height: 58px; border-radius: 18px; border: none;
+        background: linear-gradient(135deg, #7c5cfc, #5b9aff);
+        color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+        box-shadow: 0 12px 40px rgba(124,92,252,0.4);
+    }
+    .generate-btn i { font-size: 18px; }
+
+    /* Recent Generations */
+    .recent-title { font-size: 15px; font-weight: 700; margin: 24px 0 14px; }
+    .recent-item {
+        display: flex; align-items: center; gap: 14px; padding: 12px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .recent-art {
+        width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0;
+        background: linear-gradient(135deg, rgba(124,92,252,0.3), rgba(91,154,255,0.2));
+        display: flex; align-items: center; justify-content: center;
+    }
+    .recent-art i { font-size: 18px; color: #c4b5fd; }
+    .recent-info { flex: 1; }
+    .recent-name { font-size: 14px; font-weight: 600; }
+    .recent-desc { font-size: 12px; color: #a0a0b8; }
+    .recent-play { color: #7c5cfc; font-size: 18px; }
+</style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <i class="fas fa-chevron-left nav-back"></i>
+        <span class="nav-title">AI Composer</span>
+        <span class="nav-credits">✨ 8 left</span>
+    </div>
+
+    <div class="content">
+        <div class="ai-orb-section">
+            <div class="ai-orb">
+                <div class="ai-orb-ring"></div>
+                <div class="ai-orb-inner"><i class="fas fa-wand-magic-sparkles"></i></div>
+            </div>
+            <div class="ai-label">Describe your ideal healing track</div>
+        </div>
+
+        <div class="prompt-card">
+            <div class="prompt-label">YOUR PROMPT</div>
+            <textarea class="prompt-textarea" placeholder="e.g. A gentle piano melody that feels like a warm hug after a long day...">A soft lo-fi beat with rain sounds that helps me focus during late night study sessions</textarea>
+            <div class="prompt-divider"></div>
+            <div class="prompt-hint"><i class="fas fa-lightbulb"></i> Be specific about instruments, tempo, and feeling</div>
+        </div>
+
+        <div class="section-label">Target Mood</div>
+        <div class="mood-select">
+            <div class="mood-opt">
+                <span class="mood-opt-emoji">😌</span>
+                <span class="mood-opt-name">Calm</span>
+            </div>
+            <div class="mood-opt selected">
+                <span class="mood-opt-emoji">🧠</span>
+                <span class="mood-opt-name">Focus</span>
+            </div>
+            <div class="mood-opt">
+                <span class="mood-opt-emoji">😴</span>
+                <span class="mood-opt-name">Sleep</span>
+            </div>
+            <div class="mood-opt">
+                <span class="mood-opt-emoji">💪</span>
+                <span class="mood-opt-name">Energize</span>
+            </div>
+            <div class="mood-opt">
+                <span class="mood-opt-emoji">🌈</span>
+                <span class="mood-opt-name">Uplifting</span>
+            </div>
+        </div>
+
+        <div class="section-label">Style</div>
+        <div class="style-row">
+            <div class="style-chip selected">🎹 Lo-Fi</div>
+            <div class="style-chip">🌊 Ambient</div>
+            <div class="style-chip">🎻 Classical</div>
+            <div class="style-chip selected">🌧 Nature</div>
+            <div class="style-chip">🎸 Acoustic</div>
+            <div class="style-chip">🎷 Jazz</div>
+        </div>
+
+        <div class="duration-section">
+            <div class="section-label">Duration</div>
+            <div class="duration-row">
+                <div class="dur-track">
+                    <div class="dur-fill"></div>
+                    <div class="dur-thumb"></div>
+                </div>
+                <span class="dur-value">3 min</span>
+            </div>
+        </div>
+
+        <button class="generate-btn"><i class="fas fa-sparkles"></i> Generate Track</button>
+
+        <div class="recent-title">Recent Generations</div>
+        <div class="recent-item">
+            <div class="recent-art"><i class="fas fa-sparkles"></i></div>
+            <div class="recent-info">
+                <div class="recent-name">Rainy Study Night</div>
+                <div class="recent-desc">Lo-fi • 4:20 • Generated yesterday</div>
+            </div>
+            <i class="fas fa-play recent-play"></i>
+        </div>
+        <div class="recent-item">
+            <div class="recent-art"><i class="fas fa-sparkles"></i></div>
+            <div class="recent-info">
+                <div class="recent-name">Morning Sunrise</div>
+                <div class="recent-desc">Ambient • 3:15 • Generated 3 days ago</div>
+            </div>
+            <i class="fas fa-play recent-play"></i>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoodTune - Music Preferences</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { scrollbar-width: none; font-family: 'Inter', sans-serif; width: 100%; height: 100%; overflow-x: hidden; background: #0f0e1a; color: #fff; }
+
+    .status-bar {
+        height: 59px; padding: 0 28px; display: flex; align-items: flex-end; justify-content: space-between;
+        padding-bottom: 12px; position: sticky; top: 0; z-index: 100; background: #0f0e1a;
+    }
+    .status-time { font-size: 16px; font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+    .dynamic-island {
+        position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+        width: 130px; height: 36px; background: #000; border-radius: 20px;
+    }
+
+    .nav-bar {
+        display: flex; align-items: center; justify-content: space-between; padding: 8px 28px 20px;
+    }
+    .nav-back { font-size: 20px; color: #7c5cfc; }
+    .nav-title { font-size: 17px; font-weight: 700; }
+    .nav-save { font-size: 14px; color: #7c5cfc; font-weight: 700; }
+
+    .content { padding: 0 28px; padding-bottom: 50px; }
+
+    .section { margin-bottom: 28px; }
+    .section-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+    .section-sub { font-size: 13px; color: #a0a0b8; margin-bottom: 14px; }
+
+    .genre-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .g-chip {
+        padding: 10px 16px; border-radius: 14px; font-size: 13px; font-weight: 500;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        color: #a0a0b8; cursor: pointer;
+    }
+    .g-chip.selected { background: rgba(124,92,252,0.15); border-color: #7c5cfc; color: #c4b5fd; }
+
+    .slider-section { margin-bottom: 24px; }
+    .slider-label-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+    .slider-name { font-size: 14px; font-weight: 600; }
+    .slider-value { font-size: 14px; color: #7c5cfc; font-weight: 600; }
+    .custom-slider {
+        width: 100%; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1);
+        position: relative;
+    }
+    .custom-slider-fill {
+        height: 100%; border-radius: 3px;
+        background: linear-gradient(90deg, #7c5cfc, #5b9aff);
+    }
+    .custom-slider-thumb {
+        width: 20px; height: 20px; border-radius: 50%; background: #fff;
+        position: absolute; top: -7px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .slider-ends {
+        display: flex; justify-content: space-between; margin-top: 8px;
+        font-size: 11px; color: #555;
+    }
+
+    .pref-item {
+        display: flex; align-items: center; gap: 14px; padding: 16px;
+        background: rgba(255,255,255,0.04); border-radius: 16px; margin-bottom: 10px;
+        border: 1px solid rgba(255,255,255,0.04);
+    }
+    .pref-icon {
+        width: 40px; height: 40px; border-radius: 12px; display: flex;
+        align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .pref-icon i { font-size: 16px; color: #fff; }
+    .pref-info { flex: 1; }
+    .pref-name { font-size: 14px; font-weight: 600; }
+    .pref-desc { font-size: 12px; color: #a0a0b8; margin-top: 2px; }
+    .toggle {
+        width: 46px; height: 28px; border-radius: 14px; position: relative; flex-shrink: 0;
+    }
+    .toggle.on { background: #7c5cfc; }
+    .toggle.off { background: #333; }
+    .toggle::after {
+        content: ''; width: 22px; height: 22px; border-radius: 50%; background: #fff;
+        position: absolute; top: 3px;
+    }
+    .toggle.on::after { right: 3px; }
+    .toggle.off::after { left: 3px; }
+
+    .blocked-section { margin-top: 24px; }
+    .blocked-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .blocked-title i { color: #ff6b8a; }
+    .blocked-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .b-chip {
+        padding: 8px 14px; border-radius: 12px; font-size: 12px; font-weight: 500;
+        background: rgba(255,107,138,0.08); border: 1px solid rgba(255,107,138,0.15);
+        color: #ff9a9e; display: flex; align-items: center; gap: 6px;
+    }
+    .b-chip i { font-size: 10px; }
+
+    .reset-btn {
+        width: 100%; padding: 16px; border-radius: 16px; border: 1px solid rgba(255,107,138,0.2);
+        background: transparent; color: #ff6b8a; font-size: 14px; font-weight: 600;
+        cursor: pointer; margin-top: 28px; text-align: center;
+    }
+</style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <i class="fas fa-chevron-left nav-back"></i>
+        <span class="nav-title">Music Preferences</span>
+        <span class="nav-save">Save</span>
+    </div>
+
+    <div class="content">
+        <div class="section">
+            <div class="section-title">Favorite Genres</div>
+            <div class="section-sub">Select genres you enjoy most</div>
+            <div class="genre-chips">
+                <div class="g-chip selected">🎹 Lo-Fi</div>
+                <div class="g-chip selected">🌊 Ambient</div>
+                <div class="g-chip selected">🎻 Classical</div>
+                <div class="g-chip selected">🎸 Acoustic</div>
+                <div class="g-chip">🎤 Indie Pop</div>
+                <div class="g-chip">🎷 Jazz</div>
+                <div class="g-chip">🧘 Meditation</div>
+                <div class="g-chip">🌿 Nature</div>
+                <div class="g-chip">🎧 Electronic</div>
+                <div class="g-chip">🎶 R&B</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Sound Tuning</div>
+            <div class="section-sub">Adjust your default preferences</div>
+
+            <div class="slider-section">
+                <div class="slider-label-row">
+                    <span class="slider-name">Tempo</span>
+                    <span class="slider-value">Moderate</span>
+                </div>
+                <div class="custom-slider">
+                    <div class="custom-slider-fill" style="width: 45%;"></div>
+                    <div class="custom-slider-thumb" style="left: calc(45% - 10px);"></div>
+                </div>
+                <div class="slider-ends"><span>Slow</span><span>Fast</span></div>
+            </div>
+
+            <div class="slider-section">
+                <div class="slider-label-row">
+                    <span class="slider-name">Energy Level</span>
+                    <span class="slider-value">Low-Medium</span>
+                </div>
+                <div class="custom-slider">
+                    <div class="custom-slider-fill" style="width: 35%;"></div>
+                    <div class="custom-slider-thumb" style="left: calc(35% - 10px);"></div>
+                </div>
+                <div class="slider-ends"><span>Calm</span><span>Energetic</span></div>
+            </div>
+
+            <div class="slider-section">
+                <div class="slider-label-row">
+                    <span class="slider-name">Vocal Preference</span>
+                    <span class="slider-value">Instrumental</span>
+                </div>
+                <div class="custom-slider">
+                    <div class="custom-slider-fill" style="width: 20%;"></div>
+                    <div class="custom-slider-thumb" style="left: calc(20% - 10px);"></div>
+                </div>
+                <div class="slider-ends"><span>No vocals</span><span>Vocals</span></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Listening Behavior</div>
+
+            <div class="pref-item">
+                <div class="pref-icon" style="background: linear-gradient(135deg, #7c5cfc, #a78bfa);">
+                    <i class="fas fa-shuffle"></i>
+                </div>
+                <div class="pref-info">
+                    <div class="pref-name">Auto-shuffle</div>
+                    <div class="pref-desc">Shuffle tracks within playlists</div>
+                </div>
+                <div class="toggle on"></div>
+            </div>
+
+            <div class="pref-item">
+                <div class="pref-icon" style="background: linear-gradient(135deg, #5b9aff, #74b9ff);">
+                    <i class="fas fa-forward"></i>
+                </div>
+                <div class="pref-info">
+                    <div class="pref-name">Crossfade</div>
+                    <div class="pref-desc">Smooth transitions between tracks</div>
+                </div>
+                <div class="toggle on"></div>
+            </div>
+
+            <div class="pref-item">
+                <div class="pref-icon" style="background: linear-gradient(135deg, #6bcf7f, #55efc4);">
+                    <i class="fas fa-download"></i>
+                </div>
+                <div class="pref-info">
+                    <div class="pref-name">Offline Downloads</div>
+                    <div class="pref-desc">Download for offline listening</div>
+                </div>
+                <div class="toggle off"></div>
+            </div>
+        </div>
+
+        <div class="blocked-section">
+            <div class="blocked-title"><i class="fas fa-ban"></i> Blocked Content</div>
+            <div class="blocked-chips">
+                <div class="b-chip">Heavy Metal <i class="fas fa-xmark"></i></div>
+                <div class="b-chip">Harsh Noise <i class="fas fa-xmark"></i></div>
+            </div>
+        </div>
+
+        <button class="reset-btn"><i class="fas fa-rotate-left"></i> Reset All Preferences</button>
+    </div>
+</body>
+</html>

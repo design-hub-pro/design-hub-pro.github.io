@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoodTune - Guided Breathing</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { scrollbar-width: none; font-family: 'Inter', sans-serif; width: 100%; height: 100%; overflow: hidden; background: #0f0e1a; color: #fff; }
+
+    .bg-gradient {
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 50% 30%, rgba(124,92,252,0.12) 0%, transparent 60%),
+                    radial-gradient(ellipse at 30% 70%, rgba(91,154,255,0.08) 0%, transparent 50%);
+    }
+
+    .container {
+        position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column;
+    }
+
+    .status-bar {
+        height: 59px; padding: 0 28px; display: flex; align-items: flex-end; justify-content: space-between;
+        padding-bottom: 12px;
+    }
+    .status-time { font-size: 16px; font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+    .dynamic-island {
+        position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+        width: 130px; height: 36px; background: #000; border-radius: 20px;
+    }
+
+    .nav-bar {
+        display: flex; align-items: center; justify-content: space-between; padding: 8px 28px 12px;
+    }
+    .nav-back { font-size: 20px; color: rgba(255,255,255,0.6); }
+    .nav-title { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.6); }
+    .nav-info { font-size: 18px; color: rgba(255,255,255,0.4); }
+
+    .breath-section {
+        flex: 1; display: flex; flex-direction: column; align-items: center;
+        justify-content: center; padding: 0 28px;
+    }
+
+    .breath-circle-outer {
+        width: 240px; height: 240px; border-radius: 50%; position: relative;
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: 32px;
+    }
+    .breath-ring-1 {
+        position: absolute; inset: 0; border-radius: 50%;
+        border: 2px solid rgba(124,92,252,0.15);
+        animation: breathe 8s ease-in-out infinite;
+    }
+    .breath-ring-2 {
+        position: absolute; inset: -20px; border-radius: 50%;
+        border: 1px solid rgba(91,154,255,0.1);
+        animation: breathe 8s ease-in-out infinite 0.5s;
+    }
+    .breath-ring-3 {
+        position: absolute; inset: -40px; border-radius: 50%;
+        border: 1px solid rgba(124,92,252,0.05);
+        animation: breathe 8s ease-in-out infinite 1s;
+    }
+    @keyframes breathe {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        30% { transform: scale(1.15); opacity: 1; }
+        60% { transform: scale(1.15); opacity: 1; }
+        90% { transform: scale(1); opacity: 0.5; }
+    }
+
+    .breath-inner {
+        width: 180px; height: 180px; border-radius: 50%;
+        background: linear-gradient(135deg, rgba(124,92,252,0.25), rgba(91,154,255,0.15));
+        backdrop-filter: blur(30px); border: 1px solid rgba(124,92,252,0.2);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        animation: breathe-inner 8s ease-in-out infinite;
+    }
+    @keyframes breathe-inner {
+        0%, 100% { transform: scale(0.9); }
+        30% { transform: scale(1.05); }
+        60% { transform: scale(1.05); }
+        90% { transform: scale(0.9); }
+    }
+
+    .breath-state { font-size: 22px; font-weight: 700; color: #c4b5fd; margin-bottom: 4px; }
+    .breath-timer { font-size: 48px; font-weight: 800; letter-spacing: -0.03em; }
+    .breath-phase { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+    .breath-pattern {
+        display: flex; gap: 24px; margin-bottom: 32px;
+    }
+    .bp-step { text-align: center; }
+    .bp-num { font-size: 20px; font-weight: 800; color: #7c5cfc; }
+    .bp-label { font-size: 11px; color: #a0a0b8; margin-top: 2px; }
+    .bp-active .bp-num { color: #fff; }
+
+    .session-info {
+        text-align: center; margin-bottom: 8px;
+    }
+    .session-elapsed { font-size: 13px; color: #a0a0b8; }
+    .session-elapsed span { color: #7c5cfc; font-weight: 600; }
+
+    .music-playing {
+        display: flex; align-items: center; gap: 12px; padding: 14px 20px;
+        background: rgba(255,255,255,0.04); border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.06); margin-bottom: 24px;
+        width: 100%; max-width: 320px;
+    }
+    .mp-art { width: 40px; height: 40px; border-radius: 10px; overflow: hidden; flex-shrink: 0; }
+    .mp-art img { width: 100%; height: 100%; object-fit: cover; }
+    .mp-info { flex: 1; min-width: 0; }
+    .mp-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mp-sub { font-size: 11px; color: #a0a0b8; }
+    .mp-wave {
+        display: flex; align-items: center; gap: 2px;
+    }
+    .mp-wave span {
+        width: 3px; border-radius: 2px; background: #7c5cfc;
+        animation: wave-play 0.8s ease-in-out infinite;
+    }
+    .mp-wave span:nth-child(1) { height: 8px; animation-delay: 0s; }
+    .mp-wave span:nth-child(2) { height: 14px; animation-delay: 0.15s; }
+    .mp-wave span:nth-child(3) { height: 10px; animation-delay: 0.3s; }
+    .mp-wave span:nth-child(4) { height: 16px; animation-delay: 0.45s; }
+    @keyframes wave-play {
+        0%, 100% { transform: scaleY(1); }
+        50% { transform: scaleY(0.4); }
+    }
+
+    .bottom-controls {
+        padding: 0 28px 50px; display: flex; justify-content: center; gap: 20px;
+    }
+    .ctrl-btn {
+        width: 56px; height: 56px; border-radius: 50%; border: none;
+        display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .ctrl-stop {
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+    }
+    .ctrl-stop i { font-size: 18px; color: #a0a0b8; }
+    .ctrl-pause {
+        background: linear-gradient(135deg, #7c5cfc, #5b9aff);
+        box-shadow: 0 8px 24px rgba(124,92,252,0.3);
+    }
+    .ctrl-pause i { font-size: 20px; color: #fff; }
+    .ctrl-extend {
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+    }
+    .ctrl-extend i { font-size: 18px; color: #a0a0b8; }
+</style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+
+    <div class="container">
+        <div class="status-bar">
+            <span class="status-time">9:41</span>
+            <div class="dynamic-island"></div>
+            <div class="status-icons">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+
+        <div class="nav-bar">
+            <i class="fas fa-xmark nav-back"></i>
+            <span class="nav-title">4-7-8 Breathing</span>
+            <i class="fas fa-circle-info nav-info"></i>
+        </div>
+
+        <div class="breath-section">
+            <div class="breath-circle-outer">
+                <div class="breath-ring-3"></div>
+                <div class="breath-ring-2"></div>
+                <div class="breath-ring-1"></div>
+                <div class="breath-inner">
+                    <div class="breath-state">Inhale</div>
+                    <div class="breath-timer">4</div>
+                    <div class="breath-phase">through your nose</div>
+                </div>
+            </div>
+
+            <div class="breath-pattern">
+                <div class="bp-step bp-active">
+                    <div class="bp-num">4s</div>
+                    <div class="bp-label">Inhale</div>
+                </div>
+                <div class="bp-step">
+                    <div class="bp-num">7s</div>
+                    <div class="bp-label">Hold</div>
+                </div>
+                <div class="bp-step">
+                    <div class="bp-num">8s</div>
+                    <div class="bp-label">Exhale</div>
+                </div>
+            </div>
+
+            <div class="session-info">
+                <div class="session-elapsed">Session: <span>2:34</span> / 5:00</div>
+            </div>
+
+            <div class="music-playing">
+                <div class="mp-art">
+                    <img src="https://images.unsplash.com/photo-1528722828814-77b9b83aafb2?w=80&h=80&fit=crop" alt="">
+                </div>
+                <div class="mp-info">
+                    <div class="mp-name">Breathwork Beats</div>
+                    <div class="mp-sub">Synced to your breathing</div>
+                </div>
+                <div class="mp-wave">
+                    <span></span><span></span><span></span><span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-controls">
+            <button class="ctrl-btn ctrl-stop"><i class="fas fa-stop"></i></button>
+            <button class="ctrl-btn ctrl-pause"><i class="fas fa-pause"></i></button>
+            <button class="ctrl-btn ctrl-extend"><i class="fas fa-plus"></i></button>
+        </div>
+    </div>
+</body>
+</html>

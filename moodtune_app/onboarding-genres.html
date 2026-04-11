@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoodTune - Pick Genres</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { scrollbar-width: none; font-family: 'Inter', sans-serif; width: 100%; height: 100%; overflow-x: hidden; background: #0f0e1a; color: #fff; }
+
+    .status-bar {
+        height: 59px; padding: 0 28px; display: flex; align-items: flex-end; justify-content: space-between;
+        padding-bottom: 12px; position: relative; z-index: 100;
+    }
+    .status-time { font-size: 16px; font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+    .dynamic-island {
+        position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+        width: 130px; height: 36px; background: #000; border-radius: 20px;
+    }
+
+    .container {
+        height: calc(100% - 59px); display: flex; flex-direction: column; padding: 0 28px;
+        overflow-y: auto;
+    }
+
+    .progress-bar { display: flex; gap: 6px; margin-bottom: 32px; }
+    .progress-dot { flex: 1; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.1); }
+    .progress-dot.done { background: #7c5cfc; }
+    .progress-dot.active { background: linear-gradient(90deg, #7c5cfc, #5b9aff); }
+
+    .step-label { font-size: 13px; color: #7c5cfc; font-weight: 600; margin-bottom: 8px; }
+    .page-title { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 6px; }
+    .page-sub { font-size: 14px; color: #a0a0b8; margin-bottom: 28px; }
+    .pick-count { font-size: 13px; color: #a0a0b8; margin-bottom: 20px; }
+    .pick-count span { color: #7c5cfc; font-weight: 700; }
+
+    .genre-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-bottom: 140px;
+    }
+    .genre-tile {
+        border-radius: 20px; overflow: hidden; position: relative; height: 110px;
+        cursor: pointer; border: 2px solid transparent; transition: all 0.2s;
+    }
+    .genre-tile.selected { border-color: #7c5cfc; }
+    .genre-tile img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.5); }
+    .genre-tile.selected img { filter: brightness(0.35); }
+    .genre-overlay {
+        position: absolute; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 4px;
+    }
+    .genre-emoji { font-size: 28px; }
+    .genre-name { font-size: 14px; font-weight: 700; }
+    .genre-check {
+        position: absolute; top: 10px; right: 10px; width: 24px; height: 24px;
+        border-radius: 50%; background: #7c5cfc; display: none;
+        align-items: center; justify-content: center;
+    }
+    .genre-tile.selected .genre-check { display: flex; }
+    .genre-check i { font-size: 12px; }
+
+    .bottom-fixed {
+        position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 28px 50px;
+        background: linear-gradient(transparent, #0f0e1a 30%);
+    }
+    .continue-btn {
+        width: 100%; height: 56px; border-radius: 18px; border: none;
+        background: linear-gradient(135deg, #7c5cfc, #5b9aff);
+        color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
+        box-shadow: 0 10px 30px rgba(124,92,252,0.3);
+    }
+</style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="progress-bar">
+            <div class="progress-dot done"></div>
+            <div class="progress-dot active"></div>
+            <div class="progress-dot"></div>
+        </div>
+
+        <div class="step-label">STEP 2 OF 3</div>
+        <div class="page-title">Your Sound</div>
+        <div class="page-sub">Pick genres that resonate with you</div>
+        <div class="pick-count">Selected: <span>4 of 3+ required</span></div>
+
+        <div class="genre-grid">
+            <div class="genre-tile selected">
+                <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=200&fit=crop" alt="">
+                <div class="genre-overlay">
+                    <span class="genre-emoji">🎹</span>
+                    <span class="genre-name">Lo-Fi</span>
+                </div>
+                <div class="genre-check"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="genre-tile selected">
+                <img src="https://images.unsplash.com/photo-1528722828814-77b9b83aafb2?w=300&h=200&fit=crop" alt="">
+                <div class="genre-overlay">
+                    <span class="genre-emoji">🌊</span>
+                    <span class="genre-name">Ambient</span>
+                </div>
+                <div class="genre-check"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="genre-tile">
+                <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=200&fit=crop" alt="">
+                <div class="genre-overlay">
+                    <span class="genre-emoji">🎤</span>
+                    <span class="genre-name">Indie Pop</span>
+                </div>
+                <div class="genre-check"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="genre-tile selected">
+                <img src="https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=300&h=200&fit=crop" alt="">
+                <div class="genre-overlay">
+                    <span class="genre-emoji">🎻</span>
+                    <span class="genre-name">Classical</span>
+                </div>
+                <div class="genre-check"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="genre-tile selected">
+                <img src="https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=300&h=200&fit=crop" alt="">
+                <div class="genre-overlay">
+                    <span class="genre-emoji">🎸</span>
+                    <span class="genre-name">Acoustic</span>
+                </div>
+                <div class="genre-check"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="genre-tile">
+                <img src="https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=300&h=200&fit=crop" alt="">
+                <div class="genre-overlay">
+                    <span class="genre-emoji">🎷</span>
+                    <span class="genre-name">Jazz</span>
+                </div>
+                <div class="genre-check"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="genre-tile">
+                <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=300&h=200&fit=crop" alt="">
+                <div class="genre-overlay">
+                    <span class="genre-emoji">🧘</span>
+                    <span class="genre-name">Meditation</span>
+                </div>
+                <div class="genre-check"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="genre-tile">
+                <img src="https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=300&h=200&fit=crop" alt="">
+                <div class="genre-overlay">
+                    <span class="genre-emoji">🌿</span>
+                    <span class="genre-name">Nature Sounds</span>
+                </div>
+                <div class="genre-check"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="genre-tile">
+                <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&h=200&fit=crop" alt="">
+                <div class="genre-overlay">
+                    <span class="genre-emoji">🎧</span>
+                    <span class="genre-name">Electronic</span>
+                </div>
+                <div class="genre-check"><i class="fas fa-check"></i></div>
+            </div>
+            <div class="genre-tile">
+                <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&h=200&fit=crop" alt="">
+                <div class="genre-overlay">
+                    <span class="genre-emoji">🎶</span>
+                    <span class="genre-name">R&B / Soul</span>
+                </div>
+                <div class="genre-check"><i class="fas fa-check"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-fixed">
+        <button class="continue-btn">Continue</button>
+    </div>
+</body>
+</html>
