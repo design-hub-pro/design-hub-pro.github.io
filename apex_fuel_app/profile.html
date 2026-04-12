@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ApexFuel — Profile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#F7F7F5; color:#0A0A0A; scrollbar-width:none; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:110px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; color:#fff; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; color:#fff; }
+
+  /* Hero profile */
+  .profile-hero {
+    position:relative; padding: 20px 28px 80px; color:#fff;
+    background:#0A0A0A; overflow:hidden;
+  }
+  .profile-hero::before { content:''; position:absolute; right:-80px; top:-80px; width:260px; height:260px; border-radius:50%; background:radial-gradient(circle, rgba(184,255,30,0.22), transparent 70%); }
+  .profile-hero::after { content:''; position:absolute; left:-60px; bottom:-40px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle, rgba(255,107,30,0.18), transparent 70%); }
+
+  .hero-top-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; position:relative; z-index:2; }
+  .hero-title-small { font-size:15px; font-weight:800; }
+  .settings-btn { width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; }
+  .settings-btn i { color:#fff; font-size:14px; }
+
+  .profile-main { display:flex; align-items:center; gap:16px; position:relative; z-index:2; }
+  .avatar-wrap { position:relative; }
+  .avatar-xl { width:88px; height:88px; border-radius:26px; object-fit:cover; border:3px solid #B8FF1E; }
+  .level-badge { position:absolute; bottom:-4px; right:-4px; background:#B8FF1E; color:#0A0A0A; font-size:10px; font-weight:900; padding:3px 8px; border-radius:8px; }
+  .profile-name { font-size:24px; font-weight:900; letter-spacing:-0.5px; }
+  .profile-sport-row { display:flex; gap:6px; margin-top:6px; }
+  .sport-tag { background:rgba(255,255,255,0.1); padding:5px 10px; border-radius:10px; font-size:10px; font-weight:700; display:flex; align-items:center; gap:5px; }
+  .sport-tag i { font-size:9px; color:#B8FF1E; }
+
+  /* Stats strip */
+  .stat-strip {
+    margin: -60px 28px 20px; background:#fff; border-radius:22px; padding:18px 12px;
+    display:flex; box-shadow:0 4px 20px rgba(0,0,0,0.06); border:1px solid rgba(0,0,0,0.03); position:relative; z-index:10;
+  }
+  .stat-col { flex:1; text-align:center; position:relative; }
+  .stat-col + .stat-col::before { content:''; position:absolute; left:0; top:10%; bottom:10%; width:1px; background:rgba(0,0,0,0.06); }
+  .stat-big { font-size:22px; font-weight:900; letter-spacing:-0.5px; }
+  .stat-lbl { font-size:10px; color:#888; font-weight:600; margin-top:2px; text-transform:uppercase; letter-spacing:0.5px; }
+
+  /* Goal card */
+  .goal-card {
+    margin: 0 28px 16px; background:#fff; border-radius:22px; padding:18px; border:1px solid rgba(0,0,0,0.04);
+  }
+  .goal-title-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .goal-label { font-size:10px; color:#B8FF1E; background:#0A0A0A; padding:4px 10px; border-radius:8px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; }
+  .goal-edit { font-size:11px; color:#888; font-weight:700; }
+  .goal-title { font-size:18px; font-weight:800; letter-spacing:-0.3px; }
+  .goal-sub { font-size:12px; color:#888; margin-top:2px; }
+  .goal-progress-label { display:flex; justify-content:space-between; font-size:10px; color:#888; font-weight:700; margin-top:14px; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px; }
+  .goal-progress-bg { height:10px; background:#F3F3F0; border-radius:5px; overflow:hidden; }
+  .goal-progress-fill { height:100%; background:linear-gradient(90deg,#B8FF1E,#8BE000); border-radius:5px; width:68%; }
+
+  /* Menu */
+  .menu-section { margin: 0 28px 12px; }
+  .section-label { font-size:10px; color:#888; font-weight:800; letter-spacing:1px; text-transform:uppercase; margin-bottom:10px; padding:0 4px; }
+  .menu-list { background:#fff; border-radius:20px; overflow:hidden; border:1px solid rgba(0,0,0,0.04); }
+  .menu-item { display:flex; align-items:center; gap:14px; padding:14px 16px; border-bottom:1px solid rgba(0,0,0,0.05); }
+  .menu-item:last-child { border-bottom:none; }
+  .menu-icon { width:36px; height:36px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .menu-icon i { color:#fff; font-size:14px; }
+  .menu-title { font-size:13px; font-weight:700; flex:1; }
+  .menu-value { font-size:12px; color:#888; font-weight:600; }
+  .menu-arrow { color:#ccc; font-size:11px; margin-left:8px; }
+
+  /* Team */
+  .team-card { margin: 0 28px 16px; background:#fff; border-radius:22px; padding:16px; border:1px solid rgba(0,0,0,0.04); display:flex; align-items:center; gap:12px; }
+  .team-img { width:48px; height:48px; border-radius:14px; object-fit:cover; }
+  .team-info { flex:1; }
+  .team-name { font-size:14px; font-weight:800; }
+  .team-sub { font-size:11px; color:#888; margin-top:2px; }
+  .avatar-stack { display:flex; }
+  .avatar-stack img { width:26px; height:26px; border-radius:50%; border:2px solid #fff; margin-left:-8px; object-fit:cover; }
+  .avatar-stack img:first-child { margin-left:0; }
+  .more-count { width:26px; height:26px; border-radius:50%; background:#F3F3F0; border:2px solid #fff; margin-left:-8px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:800; color:#0A0A0A; }
+
+  .tab-bar {
+    position:absolute; bottom:0; left:0; right:0; height:92px;
+    background:rgba(255,255,255,0.95); backdrop-filter:blur(20px);
+    display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px;
+    border-top:0.5px solid rgba(0,0,0,0.08);
+  }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:20px; color:rgba(0,0,0,0.35); }
+  .tab-item span { font-size:10px; color:rgba(0,0,0,0.35); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#0A0A0A; }
+  .tab-scan-btn { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#B8FF1E,#8BE000); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(184,255,30,0.4); }
+  .tab-scan-btn i { font-size:22px; color:#0A0A0A; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="profile-hero">
+    <div class="hero-top-row">
+      <div class="hero-title-small">Profile</div>
+      <div class="settings-btn"><i class="fas fa-cog"></i></div>
+    </div>
+    <div class="profile-main">
+      <div class="avatar-wrap">
+        <img class="avatar-xl" src="https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=300&q=80">
+        <div class="level-badge">LV 12</div>
+      </div>
+      <div>
+        <div class="profile-name">Jordan Parker</div>
+        <div style="font-size:12px; color:#888; margin-top:2px">16 yrs · 5'10" · 152 lbs</div>
+        <div class="profile-sport-row">
+          <div class="sport-tag"><i class="fas fa-futbol"></i> Soccer</div>
+          <div class="sport-tag"><i class="fas fa-medal"></i> Varsity</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-strip">
+    <div class="stat-col">
+      <div class="stat-big">47</div>
+      <div class="stat-lbl">Day Streak</div>
+    </div>
+    <div class="stat-col">
+      <div class="stat-big">892</div>
+      <div class="stat-lbl">Meals Logged</div>
+    </div>
+    <div class="stat-col">
+      <div class="stat-big" style="color:#B8FF1E;background:#0A0A0A;padding:4px 8px;border-radius:8px;display:inline-block">92</div>
+      <div class="stat-lbl">Fuel Score</div>
+    </div>
+  </div>
+
+  <div class="goal-card">
+    <div class="goal-title-row">
+      <div class="goal-label"><i class="fas fa-bullseye"></i> Active Goal</div>
+      <div class="goal-edit">Edit</div>
+    </div>
+    <div class="goal-title">Build Lean Muscle for Season</div>
+    <div class="goal-sub">Gain 4 lbs of muscle · 8 week target</div>
+    <div class="goal-progress-label"><span>Progress</span><span>+2.7 / 4 lbs</span></div>
+    <div class="goal-progress-bg"><div class="goal-progress-fill"></div></div>
+  </div>
+
+  <div class="team-card">
+    <img class="team-img" src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=200&q=80">
+    <div class="team-info">
+      <div class="team-name">Lincoln High Eagles</div>
+      <div class="team-sub">U-17 · Soccer · 18 members</div>
+    </div>
+    <div class="avatar-stack">
+      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80">
+      <img src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=100&q=80">
+      <img src="https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=100&q=80">
+      <div class="more-count">+15</div>
+    </div>
+  </div>
+
+  <div class="menu-section">
+    <div class="section-label">Nutrition Profile</div>
+    <div class="menu-list">
+      <div class="menu-item">
+        <div class="menu-icon" style="background:linear-gradient(135deg,#B8FF1E,#8BE000)"><i class="fas fa-fire" style="color:#0A0A0A"></i></div>
+        <div class="menu-title">Calorie Target</div>
+        <div class="menu-value">3,200 kcal</div>
+        <i class="fas fa-chevron-right menu-arrow"></i>
+      </div>
+      <div class="menu-item">
+        <div class="menu-icon" style="background:linear-gradient(135deg,#FF6B1E,#FF3B00)"><i class="fas fa-seedling"></i></div>
+        <div class="menu-title">Allergies & Diet</div>
+        <div class="menu-value">2 set</div>
+        <i class="fas fa-chevron-right menu-arrow"></i>
+      </div>
+      <div class="menu-item">
+        <div class="menu-icon" style="background:linear-gradient(135deg,#A855F7,#6D28D9)"><i class="fas fa-heart-pulse"></i></div>
+        <div class="menu-title">Health Sync</div>
+        <div class="menu-value">Connected</div>
+        <i class="fas fa-chevron-right menu-arrow"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="menu-section">
+    <div class="section-label">Account</div>
+    <div class="menu-list">
+      <div class="menu-item">
+        <div class="menu-icon" style="background:linear-gradient(135deg,#00C2FF,#0085FF)"><i class="fas fa-user-shield"></i></div>
+        <div class="menu-title">Parental Controls</div>
+        <i class="fas fa-chevron-right menu-arrow"></i>
+      </div>
+      <div class="menu-item">
+        <div class="menu-icon" style="background:linear-gradient(135deg,#FFB74D,#FF8F00)"><i class="fas fa-trophy"></i></div>
+        <div class="menu-title">Achievements</div>
+        <div class="menu-value">24 earned</div>
+        <i class="fas fa-chevron-right menu-arrow"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-home"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-utensils"></i><span>Meals</span></div>
+    <div class="tab-item"><button class="tab-scan-btn"><i class="fas fa-camera"></i></button></div>
+    <div class="tab-item"><i class="fas fa-calendar-alt"></i><span>Schedule</span></div>
+    <div class="tab-item active"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>

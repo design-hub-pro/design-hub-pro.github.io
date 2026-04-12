@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ApexFuel — Insights</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#F7F7F5; color:#0A0A0A; scrollbar-width:none; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:110px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding: 8px 28px 18px; }
+  .page-title { font-size:28px; font-weight:900; letter-spacing:-0.8px; }
+  .page-sub { font-size:12px; color:#888; margin-top:2px; }
+
+  /* Range selector */
+  .range-tabs { margin: 0 28px 20px; display:flex; background:#fff; border-radius:14px; padding:4px; border:1px solid rgba(0,0,0,0.05); }
+  .range-tab { flex:1; padding:10px 0; text-align:center; border-radius:10px; font-size:12px; font-weight:700; color:#888; }
+  .range-tab.active { background:#0A0A0A; color:#B8FF1E; }
+
+  /* Score card */
+  .score-card {
+    margin: 0 28px 16px; background:#0A0A0A; border-radius:26px; padding:22px; color:#fff; position:relative; overflow:hidden;
+  }
+  .score-card::before { content:''; position:absolute; right:-50px; top:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle, rgba(184,255,30,0.2), transparent 70%); }
+  .score-label { font-size:10px; color:#B8FF1E; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; }
+  .score-row { display:flex; align-items:flex-end; gap:10px; margin-top:4px; position:relative; z-index:2; }
+  .score-val { font-size:56px; font-weight:900; letter-spacing:-2px; line-height:1; background:linear-gradient(135deg,#B8FF1E,#fff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .score-max { font-size:18px; font-weight:700; color:#666; margin-bottom:6px; }
+  .score-trend { display:inline-flex; align-items:center; gap:4px; background:rgba(184,255,30,0.15); padding:4px 10px; border-radius:10px; font-size:11px; font-weight:700; color:#B8FF1E; margin-bottom:8px; }
+
+  /* Chart area */
+  .chart-box { margin-top:18px; position:relative; z-index:2; }
+  .chart-svg { width:100%; height:80px; }
+  .chart-days { display:flex; justify-content:space-between; margin-top:8px; font-size:10px; color:#666; font-weight:600; }
+
+  /* Stats grid */
+  .stats-grid { padding:0 28px; display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+  .stat-tile { background:#fff; border-radius:20px; padding:16px; border:1px solid rgba(0,0,0,0.04); }
+  .stat-icon { width:36px; height:36px; border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:10px; }
+  .stat-icon i { color:#fff; font-size:14px; }
+  .stat-val { font-size:24px; font-weight:900; letter-spacing:-0.5px; }
+  .stat-label { font-size:11px; color:#888; font-weight:600; margin-top:2px; }
+  .stat-delta { font-size:10px; font-weight:700; margin-top:6px; display:inline-flex; align-items:center; gap:3px; }
+  .stat-delta.up { color:#0A9F3B; }
+  .stat-delta.down { color:#D32F2F; }
+
+  /* AI insight */
+  .ai-insight {
+    margin: 4px 28px 16px; background:#fff; border-radius:22px; padding:18px; border:1px solid rgba(0,0,0,0.04);
+    display:flex; gap:14px;
+  }
+  .ai-insight-icon { width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,#B8FF1E,#8BE000); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .ai-insight-icon i { color:#0A0A0A; font-size:16px; }
+  .ai-insight-label { font-size:10px; color:#888; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; }
+  .ai-insight-text { font-size:13px; font-weight:600; color:#0A0A0A; margin-top:3px; line-height:1.4; }
+  .ai-insight-text span { color:#FF6B1E; font-weight:800; }
+
+  /* Macro breakdown */
+  .section-head { padding:4px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .section-title { font-size:15px; font-weight:800; }
+  .macro-card { margin: 0 28px; background:#fff; border-radius:22px; padding:18px; border:1px solid rgba(0,0,0,0.04); }
+  .macro-row { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .macro-row:last-child { margin-bottom:0; }
+  .macro-color { width:12px; height:12px; border-radius:4px; }
+  .macro-name-lbl { font-size:12px; font-weight:700; flex:1; }
+  .macro-bar-bg { flex:2; height:8px; background:#F3F3F0; border-radius:4px; overflow:hidden; }
+  .macro-bar { height:100%; border-radius:4px; }
+  .macro-pct { font-size:12px; font-weight:800; width:40px; text-align:right; }
+
+  .tab-bar {
+    position:absolute; bottom:0; left:0; right:0; height:92px;
+    background:rgba(255,255,255,0.95); backdrop-filter:blur(20px);
+    display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px;
+    border-top:0.5px solid rgba(0,0,0,0.08);
+  }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:20px; color:rgba(0,0,0,0.35); }
+  .tab-item span { font-size:10px; color:rgba(0,0,0,0.35); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#0A0A0A; }
+  .tab-scan-btn { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#B8FF1E,#8BE000); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(184,255,30,0.4); }
+  .tab-scan-btn i { font-size:22px; color:#0A0A0A; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div class="page-title">Insights</div>
+    <div class="page-sub">Your nutrition performance</div>
+  </div>
+
+  <div class="range-tabs">
+    <div class="range-tab">Day</div>
+    <div class="range-tab active">Week</div>
+    <div class="range-tab">Month</div>
+    <div class="range-tab">Season</div>
+  </div>
+
+  <div class="score-card">
+    <div class="score-label"><i class="fas fa-bolt"></i> Fuel Score</div>
+    <div class="score-row">
+      <div class="score-val">92</div>
+      <div class="score-max">/ 100</div>
+      <div class="score-trend"><i class="fas fa-arrow-up"></i> +8</div>
+    </div>
+    <div class="chart-box">
+      <svg class="chart-svg" viewBox="0 0 320 80" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="chartGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="#B8FF1E" stop-opacity="0.4"/>
+            <stop offset="100%" stop-color="#B8FF1E" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path d="M0,55 L45,48 L90,52 L135,32 L180,38 L225,22 L270,28 L320,14 L320,80 L0,80 Z" fill="url(#chartGrad)"/>
+        <path d="M0,55 L45,48 L90,52 L135,32 L180,38 L225,22 L270,28 L320,14" stroke="#B8FF1E" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="320" cy="14" r="5" fill="#B8FF1E"/>
+        <circle cx="320" cy="14" r="9" fill="#B8FF1E" fill-opacity="0.25"/>
+      </svg>
+      <div class="chart-days"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+    </div>
+  </div>
+
+  <div class="ai-insight">
+    <div class="ai-insight-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+    <div>
+      <div class="ai-insight-label">AI Coach</div>
+      <div class="ai-insight-text">You're hitting protein goals <span>6 of 7 days</span>. Add 20g more carbs on game days for better endurance.</div>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-tile">
+      <div class="stat-icon" style="background:linear-gradient(135deg,#B8FF1E,#8BE000)"><i class="fas fa-fire"></i></div>
+      <div class="stat-val">2,940</div>
+      <div class="stat-label">Avg kcal / day</div>
+      <div class="stat-delta up"><i class="fas fa-arrow-up"></i> 4% vs last week</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-icon" style="background:linear-gradient(135deg,#FF6B1E,#FF3B00)"><i class="fas fa-drumstick-bite"></i></div>
+      <div class="stat-val">168g</div>
+      <div class="stat-label">Avg protein / day</div>
+      <div class="stat-delta up"><i class="fas fa-arrow-up"></i> 12g</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-icon" style="background:linear-gradient(135deg,#00C2FF,#0085FF)"><i class="fas fa-tint"></i></div>
+      <div class="stat-val">3.2L</div>
+      <div class="stat-label">Avg hydration</div>
+      <div class="stat-delta down"><i class="fas fa-arrow-down"></i> 0.3L</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-icon" style="background:linear-gradient(135deg,#A855F7,#6D28D9)"><i class="fas fa-bed"></i></div>
+      <div class="stat-val">8.1h</div>
+      <div class="stat-label">Avg sleep</div>
+      <div class="stat-delta up"><i class="fas fa-arrow-up"></i> 22 min</div>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <div class="section-title">Macro Balance</div>
+  </div>
+  <div class="macro-card">
+    <div class="macro-row">
+      <div class="macro-color" style="background:#FF6B1E"></div>
+      <div class="macro-name-lbl">Protein</div>
+      <div class="macro-bar-bg"><div class="macro-bar" style="width:93%;background:#FF6B1E"></div></div>
+      <div class="macro-pct">93%</div>
+    </div>
+    <div class="macro-row">
+      <div class="macro-color" style="background:#B8FF1E"></div>
+      <div class="macro-name-lbl">Carbs</div>
+      <div class="macro-bar-bg"><div class="macro-bar" style="width:87%;background:#B8FF1E"></div></div>
+      <div class="macro-pct">87%</div>
+    </div>
+    <div class="macro-row">
+      <div class="macro-color" style="background:#A855F7"></div>
+      <div class="macro-name-lbl">Fats</div>
+      <div class="macro-bar-bg"><div class="macro-bar" style="width:80%;background:#A855F7"></div></div>
+      <div class="macro-pct">80%</div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-home"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-utensils"></i><span>Meals</span></div>
+    <div class="tab-item"><button class="tab-scan-btn"><i class="fas fa-camera"></i></button></div>
+    <div class="tab-item"><i class="fas fa-calendar-alt"></i><span>Schedule</span></div>
+    <div class="tab-item active"><i class="fas fa-chart-line"></i><span>Insights</span></div>
+  </div>
+</div>
+</body>
+</html>

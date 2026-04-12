@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ApexFuel — Meal Plan</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#F7F7F5; color:#0A0A0A; scrollbar-width:none; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:110px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding: 8px 28px 16px; display:flex; align-items:center; justify-content:space-between; }
+  .page-title { font-size:28px; font-weight:900; letter-spacing:-0.8px; }
+  .page-sub { font-size:12px; color:#888; font-weight:500; margin-top:2px; }
+  .ai-pill { background:#0A0A0A; color:#B8FF1E; padding:10px 14px; border-radius:14px; font-size:11px; font-weight:800; display:flex; align-items:center; gap:6px; }
+
+  /* Day tabs */
+  .day-tabs { padding: 0 28px; display:flex; gap:8px; overflow-x:auto; margin-bottom:18px; }
+  .day-tab { flex-shrink:0; width:54px; padding:10px 0; border-radius:16px; background:#fff; text-align:center; border:1px solid rgba(0,0,0,0.05); }
+  .day-tab.active { background:#0A0A0A; }
+  .day-tab .dow { font-size:10px; font-weight:700; color:#888; text-transform:uppercase; }
+  .day-tab .num { font-size:18px; font-weight:800; color:#0A0A0A; margin-top:2px; }
+  .day-tab.active .dow { color:#B8FF1E; }
+  .day-tab.active .num { color:#fff; }
+
+  /* Summary banner */
+  .ai-banner {
+    margin: 0 28px 20px; background:#0A0A0A; color:#fff; border-radius:24px; padding:20px;
+    position:relative; overflow:hidden;
+  }
+  .ai-banner::before {
+    content:''; position:absolute; right:-30px; top:-40px; width:150px; height:150px; border-radius:50%;
+    background:radial-gradient(circle, rgba(184,255,30,0.25), transparent 70%);
+  }
+  .ai-banner-label { font-size:10px; color:#B8FF1E; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; }
+  .ai-banner-title { font-size:17px; font-weight:800; margin-top:6px; line-height:1.3; position:relative; z-index:2; }
+  .ai-banner-title span { color:#B8FF1E; }
+  .ai-stats { display:flex; gap:18px; margin-top:14px; position:relative; z-index:2; }
+  .ai-stat-val { font-size:22px; font-weight:900; letter-spacing:-0.5px; }
+  .ai-stat-label { font-size:10px; color:#888; font-weight:600; margin-top:2px; }
+
+  /* Meal card */
+  .meals { padding: 0 28px; display:flex; flex-direction:column; gap:14px; }
+  .meal-card {
+    background:#fff; border-radius:24px; overflow:hidden; border:1px solid rgba(0,0,0,0.04);
+    box-shadow:0 2px 12px rgba(0,0,0,0.03);
+  }
+  .meal-hero { position:relative; height:160px; }
+  .meal-hero img { width:100%; height:100%; object-fit:cover; }
+  .meal-hero-overlay { position:absolute; inset:0; background:linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.75)); }
+  .meal-badge { position:absolute; top:14px; left:14px; background:rgba(255,255,255,0.95); backdrop-filter:blur(8px); padding:6px 12px; border-radius:12px; font-size:10px; font-weight:800; color:#0A0A0A; display:flex; align-items:center; gap:6px; text-transform:uppercase; letter-spacing:0.5px; }
+  .meal-badge.pre-game { background:#FF6B1E; color:#fff; }
+  .meal-time-pill { position:absolute; top:14px; right:14px; background:rgba(0,0,0,0.55); backdrop-filter:blur(8px); padding:6px 12px; border-radius:12px; font-size:11px; font-weight:700; color:#fff; }
+  .meal-hero-title { position:absolute; bottom:14px; left:16px; right:16px; font-size:20px; font-weight:800; color:#fff; letter-spacing:-0.3px; }
+
+  .meal-body { padding:14px 16px 16px; }
+  .meal-stats-row { display:flex; justify-content:space-between; }
+  .meal-stat { text-align:center; flex:1; }
+  .meal-stat-val { font-size:16px; font-weight:800; }
+  .meal-stat-val.kcal { color:#B8FF1E; background:#0A0A0A; padding:2px 10px; border-radius:8px; display:inline-block; }
+  .meal-stat-label { font-size:9px; color:#888; text-transform:uppercase; font-weight:700; letter-spacing:0.5px; margin-top:3px; }
+  .meal-actions { display:flex; gap:8px; margin-top:12px; padding-top:12px; border-top:1px solid rgba(0,0,0,0.05); }
+  .meal-btn { flex:1; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:6px; font-size:11px; font-weight:700; }
+  .meal-btn.swap { background:#F3F3F0; color:#0A0A0A; }
+  .meal-btn.go { background:#0A0A0A; color:#B8FF1E; }
+  .meal-btn i { font-size:10px; }
+
+  .tab-bar {
+    position:absolute; bottom:0; left:0; right:0; height:92px;
+    background:rgba(255,255,255,0.95); backdrop-filter:blur(20px);
+    display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px;
+    border-top:0.5px solid rgba(0,0,0,0.08);
+  }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:20px; color:rgba(0,0,0,0.35); }
+  .tab-item span { font-size:10px; color:rgba(0,0,0,0.35); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#0A0A0A; }
+  .tab-scan-btn { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#B8FF1E,#8BE000); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(184,255,30,0.4); }
+  .tab-scan-btn i { font-size:22px; color:#0A0A0A; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="page-title">Meal Plan</div>
+      <div class="page-sub">Powered by AI · Sport-specific</div>
+    </div>
+    <div class="ai-pill"><i class="fas fa-wand-magic-sparkles"></i> Regenerate</div>
+  </div>
+
+  <div class="day-tabs">
+    <div class="day-tab"><div class="dow">Mon</div><div class="num">14</div></div>
+    <div class="day-tab active"><div class="dow">Tue</div><div class="num">15</div></div>
+    <div class="day-tab"><div class="dow">Wed</div><div class="num">16</div></div>
+    <div class="day-tab"><div class="dow">Thu</div><div class="num">17</div></div>
+    <div class="day-tab"><div class="dow">Fri</div><div class="num">18</div></div>
+    <div class="day-tab"><div class="dow">Sat</div><div class="num">19</div></div>
+  </div>
+
+  <div class="ai-banner">
+    <div class="ai-banner-label"><i class="fas fa-bolt"></i> GAME DAY NUTRITION</div>
+    <div class="ai-banner-title">High-carb loading for your <span>soccer match at 6 PM</span></div>
+    <div class="ai-stats">
+      <div><div class="ai-stat-val" style="color:#fff">3,200</div><div class="ai-stat-label">kcal</div></div>
+      <div><div class="ai-stat-val" style="color:#B8FF1E">440g</div><div class="ai-stat-label">Carbs</div></div>
+      <div><div class="ai-stat-val" style="color:#fff">180g</div><div class="ai-stat-label">Protein</div></div>
+      <div><div class="ai-stat-val" style="color:#fff">3.5L</div><div class="ai-stat-label">Water</div></div>
+    </div>
+  </div>
+
+  <div class="meals">
+    <div class="meal-card">
+      <div class="meal-hero">
+        <img src="https://images.unsplash.com/photo-1494390248081-4e521a5940db?w=800&q=80">
+        <div class="meal-hero-overlay"></div>
+        <div class="meal-badge"><i class="fas fa-sun" style="color:#FF6B1E"></i> Breakfast</div>
+        <div class="meal-time-pill">7:00 AM</div>
+        <div class="meal-hero-title">Power Oats & Berries Bowl</div>
+      </div>
+      <div class="meal-body">
+        <div class="meal-stats-row">
+          <div class="meal-stat"><div class="meal-stat-val kcal">620</div><div class="meal-stat-label">kcal</div></div>
+          <div class="meal-stat"><div class="meal-stat-val">32g</div><div class="meal-stat-label">Protein</div></div>
+          <div class="meal-stat"><div class="meal-stat-val">88g</div><div class="meal-stat-label">Carbs</div></div>
+          <div class="meal-stat"><div class="meal-stat-val">14g</div><div class="meal-stat-label">Fats</div></div>
+        </div>
+        <div class="meal-actions">
+          <div class="meal-btn swap"><i class="fas fa-shuffle"></i> Swap</div>
+          <div class="meal-btn go"><i class="fas fa-arrow-right"></i> Recipe</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="meal-card">
+      <div class="meal-hero">
+        <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80">
+        <div class="meal-hero-overlay"></div>
+        <div class="meal-badge pre-game"><i class="fas fa-fire"></i> Pre-Game · 3h</div>
+        <div class="meal-time-pill">3:00 PM</div>
+        <div class="meal-hero-title">Chicken & Sweet Potato</div>
+      </div>
+      <div class="meal-body">
+        <div class="meal-stats-row">
+          <div class="meal-stat"><div class="meal-stat-val kcal">780</div><div class="meal-stat-label">kcal</div></div>
+          <div class="meal-stat"><div class="meal-stat-val">48g</div><div class="meal-stat-label">Protein</div></div>
+          <div class="meal-stat"><div class="meal-stat-val">110g</div><div class="meal-stat-label">Carbs</div></div>
+          <div class="meal-stat"><div class="meal-stat-val">18g</div><div class="meal-stat-label">Fats</div></div>
+        </div>
+        <div class="meal-actions">
+          <div class="meal-btn swap"><i class="fas fa-shuffle"></i> Swap</div>
+          <div class="meal-btn go"><i class="fas fa-arrow-right"></i> Recipe</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="meal-card">
+      <div class="meal-hero">
+        <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80">
+        <div class="meal-hero-overlay"></div>
+        <div class="meal-badge"><i class="fas fa-moon" style="color:#6D28D9"></i> Post-Game</div>
+        <div class="meal-time-pill">8:30 PM</div>
+        <div class="meal-hero-title">Salmon Recovery Plate</div>
+      </div>
+      <div class="meal-body">
+        <div class="meal-stats-row">
+          <div class="meal-stat"><div class="meal-stat-val kcal">720</div><div class="meal-stat-label">kcal</div></div>
+          <div class="meal-stat"><div class="meal-stat-val">52g</div><div class="meal-stat-label">Protein</div></div>
+          <div class="meal-stat"><div class="meal-stat-val">64g</div><div class="meal-stat-label">Carbs</div></div>
+          <div class="meal-stat"><div class="meal-stat-val">22g</div><div class="meal-stat-label">Fats</div></div>
+        </div>
+        <div class="meal-actions">
+          <div class="meal-btn swap"><i class="fas fa-shuffle"></i> Swap</div>
+          <div class="meal-btn go"><i class="fas fa-arrow-right"></i> Recipe</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-home"></i><span>Home</span></div>
+    <div class="tab-item active"><i class="fas fa-utensils"></i><span>Meals</span></div>
+    <div class="tab-item"><button class="tab-scan-btn"><i class="fas fa-camera"></i></button></div>
+    <div class="tab-item"><i class="fas fa-calendar-alt"></i><span>Schedule</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>

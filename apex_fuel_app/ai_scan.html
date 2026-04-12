@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ApexFuel — AI Scan</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0A0A; color:#fff; scrollbar-width:none; }
+  .screen { width:100%; height:100%; position:relative; }
+
+  .camera-bg {
+    position:absolute; inset:0;
+    background-image: url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=900&q=80');
+    background-size:cover; background-position:center;
+  }
+  .camera-overlay { position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 30%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.95) 100%); }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; color:#fff; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; color:#fff; }
+
+  .top-bar { position:absolute; top:59px; left:0; right:0; padding:16px 28px; display:flex; justify-content:space-between; align-items:center; z-index:20; }
+  .top-btn { width:40px; height:40px; border-radius:14px; background:rgba(0,0,0,0.5); backdrop-filter:blur(12px); display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.1); }
+  .top-btn i { color:#fff; font-size:15px; }
+  .top-title { font-size:15px; font-weight:700; color:#fff; }
+
+  /* Scan frame */
+  .scan-frame {
+    position:absolute; top:48%; left:50%; transform:translate(-50%,-50%);
+    width:300px; height:300px; border-radius:32px; pointer-events:none;
+  }
+  .corner { position:absolute; width:40px; height:40px; border:4px solid #B8FF1E; }
+  .corner.tl { top:0; left:0; border-right:none; border-bottom:none; border-radius:14px 0 0 0; }
+  .corner.tr { top:0; right:0; border-left:none; border-bottom:none; border-radius:0 14px 0 0; }
+  .corner.bl { bottom:0; left:0; border-right:none; border-top:none; border-radius:0 0 0 14px; }
+  .corner.br { bottom:0; right:0; border-left:none; border-top:none; border-radius:0 0 14px 0; }
+
+  .scan-line { position:absolute; top:10%; left:5%; right:5%; height:3px; background:linear-gradient(90deg, transparent, #B8FF1E, transparent); box-shadow:0 0 24px #B8FF1E; animation:scan 2.4s ease-in-out infinite; }
+  @keyframes scan { 0%,100%{ top:10%; } 50%{ top:85%; } }
+
+  .scanning-badge {
+    position:absolute; top:130px; left:50%; transform:translateX(-50%);
+    background:rgba(184,255,30,0.15); backdrop-filter:blur(12px);
+    border:1px solid rgba(184,255,30,0.4);
+    padding:8px 16px; border-radius:20px;
+    display:flex; align-items:center; gap:8px;
+    z-index:20;
+  }
+  .scanning-badge .dot { width:8px; height:8px; border-radius:50%; background:#B8FF1E; animation:pulse 1.2s infinite; box-shadow:0 0 12px #B8FF1E; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .scanning-badge span { font-size:12px; font-weight:700; color:#B8FF1E; letter-spacing:0.5px; }
+
+  /* Detected items floating labels */
+  .detect-label {
+    position:absolute; background:rgba(10,10,10,0.85); backdrop-filter:blur(12px);
+    border:1px solid rgba(184,255,30,0.5); padding:6px 12px; border-radius:12px;
+    font-size:11px; font-weight:700; color:#B8FF1E; z-index:15;
+  }
+  .detect-label::before { content:''; position:absolute; width:8px; height:8px; background:#B8FF1E; border-radius:50%; box-shadow:0 0 12px #B8FF1E; }
+
+  /* Bottom result sheet */
+  .result-sheet {
+    position:absolute; bottom:0; left:0; right:0;
+    background:rgba(10,10,10,0.95); backdrop-filter:blur(20px);
+    border-radius:32px 32px 0 0; padding:22px 28px 32px;
+    border-top:1px solid rgba(255,255,255,0.08);
+    z-index:30;
+  }
+  .sheet-handle { width:44px; height:5px; background:rgba(255,255,255,0.2); border-radius:3px; margin:0 auto 16px; }
+
+  .detected-header { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .detected-ai-icon { width:32px; height:32px; border-radius:10px; background:linear-gradient(135deg,#B8FF1E,#8BE000); display:flex; align-items:center; justify-content:center; }
+  .detected-ai-icon i { color:#0A0A0A; font-size:14px; }
+  .detected-title { font-size:14px; font-weight:800; color:#fff; }
+  .detected-sub { font-size:11px; color:#888; }
+  .confidence-pill { margin-left:auto; background:rgba(184,255,30,0.15); border:1px solid rgba(184,255,30,0.3); padding:4px 10px; border-radius:10px; font-size:10px; font-weight:700; color:#B8FF1E; }
+
+  .detected-name { font-size:24px; font-weight:900; color:#fff; letter-spacing:-0.8px; }
+  .detected-weight { font-size:12px; color:#888; margin-top:2px; }
+
+  .nutri-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:16px; }
+  .nutri { background:#151515; border-radius:14px; padding:12px 8px; text-align:center; border:1px solid rgba(255,255,255,0.05); }
+  .nutri-val { font-size:18px; font-weight:800; color:#fff; }
+  .nutri-val.kcal { color:#B8FF1E; }
+  .nutri-label { font-size:9px; color:#888; margin-top:2px; text-transform:uppercase; letter-spacing:0.5px; font-weight:600; }
+
+  .cta-row { display:flex; gap:10px; margin-top:18px; }
+  .cta-secondary { flex:0.5; height:52px; border-radius:18px; background:#1a1a1a; border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; gap:8px; color:#fff; font-size:13px; font-weight:700; }
+  .cta-primary { flex:1; height:52px; border-radius:18px; background:linear-gradient(135deg,#B8FF1E,#8BE000); display:flex; align-items:center; justify-content:center; gap:8px; color:#0A0A0A; font-size:14px; font-weight:800; box-shadow:0 8px 24px rgba(184,255,30,0.3); }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="camera-bg"></div>
+  <div class="camera-overlay"></div>
+
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="top-bar">
+    <div class="top-btn"><i class="fas fa-times"></i></div>
+    <div class="top-title">AI Meal Scan</div>
+    <div class="top-btn"><i class="fas fa-bolt"></i></div>
+  </div>
+
+  <div class="scanning-badge">
+    <div class="dot"></div>
+    <span>AI ANALYZING</span>
+  </div>
+
+  <div class="scan-frame">
+    <div class="corner tl"></div><div class="corner tr"></div>
+    <div class="corner bl"></div><div class="corner br"></div>
+    <div class="scan-line"></div>
+  </div>
+
+  <div class="detect-label" style="top:260px;left:60px">Grilled Chicken</div>
+  <div class="detect-label" style="top:340px;right:50px">Brown Rice</div>
+  <div class="detect-label" style="top:420px;left:80px">Avocado</div>
+
+  <div class="result-sheet">
+    <div class="sheet-handle"></div>
+    <div class="detected-header">
+      <div class="detected-ai-icon"><i class="fas fa-sparkles"></i></div>
+      <div>
+        <div class="detected-title">AI Detected</div>
+        <div class="detected-sub">3 items · Portion auto-estimated</div>
+      </div>
+      <div class="confidence-pill">96% MATCH</div>
+    </div>
+
+    <div class="detected-name">Chicken Power Bowl</div>
+    <div class="detected-weight">~420g · 3 ingredients</div>
+
+    <div class="nutri-grid">
+      <div class="nutri"><div class="nutri-val kcal">780</div><div class="nutri-label">kcal</div></div>
+      <div class="nutri"><div class="nutri-val">48g</div><div class="nutri-label">Protein</div></div>
+      <div class="nutri"><div class="nutri-val">62g</div><div class="nutri-label">Carbs</div></div>
+      <div class="nutri"><div class="nutri-val">24g</div><div class="nutri-label">Fats</div></div>
+    </div>
+
+    <div class="cta-row">
+      <div class="cta-secondary"><i class="fas fa-pen"></i> Edit</div>
+      <div class="cta-primary"><i class="fas fa-check"></i> Log Meal</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

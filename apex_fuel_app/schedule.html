@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ApexFuel — Schedule</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0A0A; color:#fff; scrollbar-width:none; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:110px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; }
+  .status-bar .time { font-size:17px; font-weight:700; color:#fff; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; color:#fff; }
+
+  .header { padding: 8px 28px 18px; display:flex; align-items:center; justify-content:space-between; }
+  .page-title { font-size:28px; font-weight:900; letter-spacing:-0.8px; color:#fff; }
+  .page-sub { font-size:12px; color:#888; margin-top:2px; }
+  .add-btn { width:42px; height:42px; border-radius:14px; background:#B8FF1E; display:flex; align-items:center; justify-content:center; }
+  .add-btn i { color:#0A0A0A; font-size:16px; }
+
+  /* Week strip */
+  .week-strip { padding: 0 28px; display:flex; gap:8px; margin-bottom:20px; }
+  .day-pill { flex:1; padding:14px 0; border-radius:18px; background:#151515; border:1px solid rgba(255,255,255,0.06); text-align:center; position:relative; }
+  .day-pill.active { background:#B8FF1E; border-color:#B8FF1E; }
+  .day-pill .dow { font-size:10px; font-weight:700; color:#888; text-transform:uppercase; }
+  .day-pill .num { font-size:18px; font-weight:800; color:#fff; margin-top:2px; }
+  .day-pill.active .dow { color:rgba(10,10,10,0.6); }
+  .day-pill.active .num { color:#0A0A0A; }
+  .day-pill .event-dot { position:absolute; bottom:6px; left:50%; transform:translateX(-50%); width:4px; height:4px; border-radius:50%; background:#FF6B1E; }
+  .day-pill.active .event-dot { background:#0A0A0A; }
+
+  /* Section */
+  .section-head { padding:0 28px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .section-title { font-size:15px; font-weight:800; color:#fff; }
+  .date-label { font-size:11px; color:#B8FF1E; font-weight:700; }
+
+  /* Game highlight card */
+  .game-card {
+    margin: 0 28px 14px; border-radius:26px; overflow:hidden; position:relative; min-height:200px;
+  }
+  .game-card img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
+  .game-card-overlay { position:absolute; inset:0; background:linear-gradient(135deg, rgba(255,107,30,0.85), rgba(255,59,0,0.75)); }
+  .game-card-content { position:relative; z-index:2; padding:22px; }
+  .game-label { font-size:10px; font-weight:800; color:#fff; letter-spacing:1.5px; text-transform:uppercase; opacity:0.85; }
+  .game-title { font-size:24px; font-weight:900; color:#fff; letter-spacing:-0.5px; margin-top:4px; line-height:1.15; }
+  .game-time { display:flex; align-items:center; gap:8px; margin-top:10px; font-size:12px; color:#fff; font-weight:600; opacity:0.9; }
+  .game-time i { font-size:11px; }
+  .game-fuel-strip { display:flex; gap:10px; margin-top:18px; }
+  .fuel-chip { background:rgba(0,0,0,0.4); backdrop-filter:blur(8px); padding:10px 12px; border-radius:14px; border:1px solid rgba(255,255,255,0.15); flex:1; }
+  .fuel-chip-label { font-size:9px; font-weight:700; color:rgba(255,255,255,0.7); text-transform:uppercase; letter-spacing:0.5px; }
+  .fuel-chip-val { font-size:13px; font-weight:800; color:#fff; margin-top:2px; }
+
+  /* Timeline events */
+  .timeline { padding: 0 28px; position:relative; }
+  .timeline::before { content:''; position:absolute; left:44px; top:0; bottom:0; width:2px; background:rgba(255,255,255,0.08); }
+  .timeline-item { display:flex; gap:16px; margin-bottom:16px; position:relative; }
+  .tl-time { font-size:11px; font-weight:700; color:#888; width:56px; padding-top:16px; text-align:right; }
+  .tl-dot { width:14px; height:14px; border-radius:50%; background:#151515; border:3px solid #B8FF1E; flex-shrink:0; margin-top:18px; position:relative; z-index:2; }
+  .tl-dot.meal { border-color:#FF6B1E; }
+  .tl-dot.workout { border-color:#B8FF1E; }
+  .tl-card { flex:1; background:#151515; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:14px 16px; display:flex; align-items:center; gap:12px; }
+  .tl-icon { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .tl-icon.meal { background:rgba(255,107,30,0.15); color:#FF6B1E; }
+  .tl-icon.workout { background:rgba(184,255,30,0.15); color:#B8FF1E; }
+  .tl-icon i { font-size:16px; }
+  .tl-title { font-size:13px; font-weight:700; color:#fff; }
+  .tl-sub { font-size:11px; color:#888; margin-top:2px; }
+
+  .tab-bar {
+    position:absolute; bottom:0; left:0; right:0; height:92px;
+    background:rgba(10,10,10,0.92); backdrop-filter:blur(20px);
+    display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px;
+    border-top:0.5px solid rgba(255,255,255,0.08);
+  }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.35); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.35); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#B8FF1E; }
+  .tab-scan-btn { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#B8FF1E,#8BE000); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(184,255,30,0.4); }
+  .tab-scan-btn i { font-size:22px; color:#0A0A0A; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="page-title">Schedule</div>
+      <div class="page-sub">Train · Game · Fuel</div>
+    </div>
+    <div class="add-btn"><i class="fas fa-plus"></i></div>
+  </div>
+
+  <div class="week-strip">
+    <div class="day-pill"><div class="dow">Mon</div><div class="num">14</div><div class="event-dot"></div></div>
+    <div class="day-pill active"><div class="dow">Tue</div><div class="num">15</div><div class="event-dot"></div></div>
+    <div class="day-pill"><div class="dow">Wed</div><div class="num">16</div></div>
+    <div class="day-pill"><div class="dow">Thu</div><div class="num">17</div><div class="event-dot"></div></div>
+    <div class="day-pill"><div class="dow">Fri</div><div class="num">18</div></div>
+    <div class="day-pill"><div class="dow">Sat</div><div class="num">19</div><div class="event-dot"></div></div>
+  </div>
+
+  <div class="section-head">
+    <div class="section-title">Today's Match</div>
+    <div class="date-label">APR 15, 2026</div>
+  </div>
+
+  <div class="game-card">
+    <img src="https://images.unsplash.com/photo-1551958219-acbc608c6377?w=900&q=80">
+    <div class="game-card-overlay"></div>
+    <div class="game-card-content">
+      <div class="game-label"><i class="fas fa-trophy"></i> Championship Match</div>
+      <div class="game-title">Eagles vs Raptors</div>
+      <div class="game-time"><i class="fas fa-map-marker-alt"></i> Central Field · 6:00 PM</div>
+      <div class="game-fuel-strip">
+        <div class="fuel-chip">
+          <div class="fuel-chip-label">3h Before</div>
+          <div class="fuel-chip-val">Big Carbs</div>
+        </div>
+        <div class="fuel-chip">
+          <div class="fuel-chip-label">1h Before</div>
+          <div class="fuel-chip-val">Light Snack</div>
+        </div>
+        <div class="fuel-chip">
+          <div class="fuel-chip-label">Post</div>
+          <div class="fuel-chip-val">Protein+</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-head" style="margin-top:8px">
+    <div class="section-title">Timeline</div>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="tl-time">7:00 AM</div>
+      <div class="tl-dot meal"></div>
+      <div class="tl-card">
+        <div class="tl-icon meal"><i class="fas fa-bowl-rice"></i></div>
+        <div>
+          <div class="tl-title">Breakfast · Power Oats</div>
+          <div class="tl-sub">620 kcal · Carb loading</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-time">10:00 AM</div>
+      <div class="tl-dot workout"></div>
+      <div class="tl-card">
+        <div class="tl-icon workout"><i class="fas fa-dumbbell"></i></div>
+        <div>
+          <div class="tl-title">Light Stretch Session</div>
+          <div class="tl-sub">30 min · Mobility</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-time">3:00 PM</div>
+      <div class="tl-dot meal"></div>
+      <div class="tl-card">
+        <div class="tl-icon meal"><i class="fas fa-drumstick-bite"></i></div>
+        <div>
+          <div class="tl-title">Pre-Game Meal</div>
+          <div class="tl-sub">780 kcal · Optimal 3h window</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-time">6:00 PM</div>
+      <div class="tl-dot workout"></div>
+      <div class="tl-card">
+        <div class="tl-icon workout"><i class="fas fa-futbol"></i></div>
+        <div>
+          <div class="tl-title">Championship Match</div>
+          <div class="tl-sub">90 min · Central Field</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-home"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-utensils"></i><span>Meals</span></div>
+    <div class="tab-item"><button class="tab-scan-btn"><i class="fas fa-camera"></i></button></div>
+    <div class="tab-item active"><i class="fas fa-calendar-alt"></i><span>Schedule</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>
