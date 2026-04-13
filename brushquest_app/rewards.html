@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrushQuest - Rewards</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    scrollbar-width: none;
+    font-family: 'Inter', sans-serif;
+    background: #FFFBEB;
+    width: 100%; height: 100%;
+    overflow-x: hidden; overflow-y: auto;
+    color: #1F2937;
+  }
+  .display { font-family: 'Fredoka', sans-serif; }
+
+  .status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 28px 0 28px; height: 59px;
+    position: sticky; top: 0; z-index: 100; background: #FFFBEB;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; left: 50%; transform: translateX(-50%); top: 10px;
+  }
+  .icons { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+  .battery { width: 27px; height: 12px; border: 1.5px solid #000; border-radius: 3px; padding: 1.5px; position: relative; }
+  .battery::after { content:''; position: absolute; right: -4px; top: 3px; width: 2px; height: 6px; background: #000; border-radius: 0 1px 1px 0; }
+  .battery-fill { width: 75%; height: 100%; background: #000; border-radius: 1.5px; }
+
+  .content { padding: 0 28px 120px 28px; }
+
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0 16px;
+  }
+  .title { font-size: 26px; font-weight: 700; font-family: 'Fredoka'; letter-spacing: -0.5px; }
+  .title-sub { font-size: 13px; color: #78716C; margin-top: 2px; }
+  .star-wallet {
+    display: flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, #FBBF24, #F59E0B);
+    padding: 10px 16px; border-radius: 22px;
+    color: #fff; font-weight: 700; font-size: 15px;
+    box-shadow: 0 6px 18px rgba(245,158,11,0.35);
+    font-family: 'Fredoka';
+  }
+  .star-wallet i { color: #FEF08A; }
+
+  /* Hero Character Card */
+  .featured {
+    background: linear-gradient(145deg, #F472B6 0%, #EC4899 50%, #DB2777 100%);
+    border-radius: 30px; padding: 24px;
+    position: relative; overflow: hidden;
+    margin-bottom: 22px;
+    box-shadow: 0 14px 36px rgba(236,72,153,0.3);
+  }
+  .featured::before {
+    content:''; position: absolute; inset: 0;
+    background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.25), transparent 60%);
+  }
+  .feat-top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    position: relative; z-index: 2;
+  }
+  .feat-label {
+    background: rgba(255,255,255,0.22);
+    padding: 6px 12px; border-radius: 16px;
+    font-size: 10px; font-weight: 700; color: #fff;
+    text-transform: uppercase; letter-spacing: 1px;
+    backdrop-filter: blur(10px);
+  }
+  .feat-fav { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; }
+
+  .feat-body {
+    display: flex; align-items: center; gap: 18px;
+    margin-top: 10px; position: relative; z-index: 2;
+  }
+  .feat-char {
+    width: 130px; height: 130px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #FEF3C7, #FCD34D);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 82px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+    flex-shrink: 0;
+  }
+  .feat-info { flex: 1; color: #fff; }
+  .feat-name { font-size: 24px; font-weight: 700; font-family: 'Fredoka'; line-height: 1.1; }
+  .feat-tag { font-size: 12px; opacity: 0.85; margin-top: 4px; }
+  .feat-power {
+    display: flex; gap: 6px; align-items: center;
+    margin-top: 10px; font-size: 11px; font-weight: 600;
+  }
+  .feat-power span { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px; }
+
+  .unlock-btn {
+    background: #FBBF24; color: #7C2D12;
+    width: 100%; padding: 14px;
+    border-radius: 18px; border: none;
+    font-size: 15px; font-weight: 700; font-family: 'Fredoka';
+    margin-top: 16px; position: relative; z-index: 2;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 6px 16px rgba(251,191,36,0.4), inset 0 -3px 0 rgba(0,0,0,0.08);
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex; gap: 8px; margin-bottom: 16px;
+    overflow-x: auto; padding-bottom: 4px;
+  }
+  .tab-chip {
+    padding: 10px 18px; border-radius: 18px;
+    background: #fff;
+    font-size: 13px; font-weight: 600; color: #78716C;
+    white-space: nowrap; flex-shrink: 0;
+    border: 1px solid #F5F1E8;
+  }
+  .tab-chip.active { background: #1F2937; color: #fff; border-color: #1F2937; }
+
+  .section-title {
+    font-size: 18px; font-weight: 700; font-family: 'Fredoka';
+    margin: 8px 0 12px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .section-title a { font-size: 12px; color: #EC4899; font-weight: 600; font-family: 'Inter'; }
+
+  /* Character grid */
+  .char-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    margin-bottom: 18px;
+  }
+  .char-card {
+    background: #fff; border-radius: 20px; padding: 14px 8px;
+    text-align: center; position: relative;
+    border: 1px solid #F5F1E8;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+  }
+  .char-emoji {
+    width: 58px; height: 58px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; margin: 0 auto 6px;
+  }
+  .char-card.owned .char-emoji { background: #FEF3C7; }
+  .char-card.locked .char-emoji { background: #F3F4F6; filter: grayscale(1); opacity: 0.5; }
+  .char-name { font-size: 11px; font-weight: 700; color: #1F2937; }
+  .char-cost { font-size: 10px; color: #F59E0B; font-weight: 600; margin-top: 2px; }
+  .char-cost.owned { color: #10B981; }
+  .char-badge {
+    position: absolute; top: 8px; right: 8px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #10B981; color: #fff;
+    font-size: 9px; display: flex; align-items: center; justify-content: center;
+  }
+  .char-badge.lock { background: #E5E7EB; color: #9CA3AF; }
+
+  /* Rewards strip */
+  .real-rewards {
+    background: #fff; border-radius: 24px; padding: 18px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.04);
+    margin-bottom: 12px;
+  }
+  .real-row {
+    display: flex; align-items: center; gap: 14px; padding: 10px 0;
+  }
+  .real-row + .real-row { border-top: 1px solid #F5F1E8; }
+  .real-ic {
+    width: 46px; height: 46px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .real-ic.a { background: #FEF3C7; }
+  .real-ic.b { background: #DBEAFE; }
+  .real-ic.c { background: #FCE7F3; }
+  .real-info { flex: 1; }
+  .real-name { font-size: 14px; font-weight: 700; }
+  .real-meta { font-size: 11px; color: #9CA3AF; margin-top: 2px; }
+  .real-cta {
+    background: #1F2937; color: #fff;
+    padding: 7px 14px; border-radius: 14px;
+    font-size: 11px; font-weight: 700;
+  }
+  .real-cta.locked { background: #F3F4F6; color: #9CA3AF; }
+
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 90px; background: rgba(255,251,235,0.95);
+    backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: flex-start;
+    padding-top: 12px; border-top: 0.5px solid rgba(0,0,0,0.06);
+  }
+  .tab-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 600; color: #9CA3AF;
+  }
+  .tab-item.active { color: #EC4899; }
+  .tab-item i { font-size: 22px; }
+  .tab-dot { width: 4px; height: 4px; border-radius: 50%; background: #EC4899; }
+  .home-indicator {
+    width: 134px; height: 5px; background: #1A1A1A; border-radius: 3px;
+    position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <div>
+        <div class="title">Hero Vault</div>
+        <div class="title-sub">Unlock new friends & rewards</div>
+      </div>
+      <div class="star-wallet"><i class="fas fa-star"></i> 1,240</div>
+    </div>
+
+    <!-- Featured -->
+    <div class="featured">
+      <div class="feat-top">
+        <div class="feat-label">⚡ Legendary</div>
+        <div class="feat-fav"><i class="fas fa-heart"></i></div>
+      </div>
+      <div class="feat-body">
+        <div class="feat-char">🦸‍♀️</div>
+        <div class="feat-info">
+          <div class="feat-name">Captain<br>Enamel</div>
+          <div class="feat-tag">Defender of the Molars</div>
+          <div class="feat-power">
+            <span>🛡️ Shield</span>
+            <span>⚡ Speed</span>
+          </div>
+        </div>
+      </div>
+      <button class="unlock-btn">
+        <i class="fas fa-star"></i> Unlock for 500 stars
+      </button>
+    </div>
+
+    <div class="tabs">
+      <div class="tab-chip active">Heroes</div>
+      <div class="tab-chip">Villains</div>
+      <div class="tab-chip">Outfits</div>
+      <div class="tab-chip">Worlds</div>
+    </div>
+
+    <div class="section-title">My Collection <a href="#">View all</a></div>
+    <div class="char-grid">
+      <div class="char-card owned">
+        <div class="char-badge"><i class="fas fa-check"></i></div>
+        <div class="char-emoji">🦊</div>
+        <div class="char-name">Foxy Fresh</div>
+        <div class="char-cost owned">Owned</div>
+      </div>
+      <div class="char-card owned">
+        <div class="char-badge"><i class="fas fa-check"></i></div>
+        <div class="char-emoji">🦄</div>
+        <div class="char-name">Minty</div>
+        <div class="char-cost owned">Owned</div>
+      </div>
+      <div class="char-card owned">
+        <div class="char-badge"><i class="fas fa-check"></i></div>
+        <div class="char-emoji">🐸</div>
+        <div class="char-name">Froggo</div>
+        <div class="char-cost owned">Owned</div>
+      </div>
+      <div class="char-card locked">
+        <div class="char-badge lock"><i class="fas fa-lock"></i></div>
+        <div class="char-emoji">🦁</div>
+        <div class="char-name">Brave Leo</div>
+        <div class="char-cost">⭐ 300</div>
+      </div>
+      <div class="char-card locked">
+        <div class="char-badge lock"><i class="fas fa-lock"></i></div>
+        <div class="char-emoji">🐙</div>
+        <div class="char-name">Octi</div>
+        <div class="char-cost">⭐ 450</div>
+      </div>
+      <div class="char-card locked">
+        <div class="char-badge lock"><i class="fas fa-lock"></i></div>
+        <div class="char-emoji">🐉</div>
+        <div class="char-name">Draco</div>
+        <div class="char-cost">⭐ 800</div>
+      </div>
+    </div>
+
+    <div class="section-title">Real Rewards</div>
+    <div class="real-rewards">
+      <div class="real-row">
+        <div class="real-ic a">🎟️</div>
+        <div class="real-info">
+          <div class="real-name">Movie Night</div>
+          <div class="real-meta">Parent-approved · 7 days streak</div>
+        </div>
+        <div class="real-cta">Claim</div>
+      </div>
+      <div class="real-row">
+        <div class="real-ic b">🍦</div>
+        <div class="real-info">
+          <div class="real-name">Ice Cream Treat</div>
+          <div class="real-meta">3 of 5 days completed</div>
+        </div>
+        <div class="real-cta locked">60%</div>
+      </div>
+      <div class="real-row">
+        <div class="real-ic c">🎨</div>
+        <div class="real-info">
+          <div class="real-name">Art Supplies</div>
+          <div class="real-meta">Reach 2,000 stars</div>
+        </div>
+        <div class="real-cta locked">Locked</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-tooth"></i><span>Brush</span></div>
+    <div class="tab-item active">
+      <i class="fas fa-gift"></i><span>Rewards</span>
+      <div class="tab-dot"></div>
+    </div>
+    <div class="tab-item"><i class="fas fa-graduation-cap"></i><span>Learn</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Me</span></div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrushQuest - Learn</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    scrollbar-width: none;
+    font-family: 'Inter', sans-serif;
+    background: #EEF2FF;
+    width: 100%; height: 100%;
+    overflow-x: hidden; overflow-y: auto;
+    color: #1E1B4B;
+  }
+  .display { font-family: 'Fredoka', sans-serif; }
+
+  .status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 28px 0 28px; height: 59px;
+    position: sticky; top: 0; z-index: 100; background: #EEF2FF;
+  }
+  .time { font-size: 16px; font-weight: 600; }
+  .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; left: 50%; transform: translateX(-50%); top: 10px;
+  }
+  .icons { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+  .battery { width: 27px; height: 12px; border: 1.5px solid #000; border-radius: 3px; padding: 1.5px; position: relative; }
+  .battery::after { content:''; position: absolute; right: -4px; top: 3px; width: 2px; height: 6px; background: #000; border-radius: 0 1px 1px 0; }
+  .battery-fill { width: 75%; height: 100%; background: #000; border-radius: 1.5px; }
+
+  .content { padding: 0 28px 120px 28px; }
+
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0 16px;
+  }
+  .title { font-size: 26px; font-weight: 700; font-family: 'Fredoka'; letter-spacing: -0.5px; }
+  .title-sub { font-size: 13px; color: #6366F1; margin-top: 2px; }
+  .lvl-pill {
+    background: #fff; padding: 8px 14px; border-radius: 18px;
+    font-size: 12px; font-weight: 700; color: #4F46E5;
+    display: flex; align-items: center; gap: 6px;
+    box-shadow: 0 2px 10px rgba(79,70,229,0.1);
+  }
+
+  /* Featured Video Lesson */
+  .featured {
+    border-radius: 28px; overflow: hidden;
+    position: relative; margin-bottom: 20px;
+    box-shadow: 0 14px 36px rgba(79,70,229,0.25);
+    aspect-ratio: 16/11;
+    background: url('https://images.unsplash.com/photo-1606811971618-4486d14f3f99?w=900&h=620&fit=crop') center/cover;
+  }
+  .featured::after {
+    content:''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(79,70,229,0.1) 0%, rgba(15,23,42,0.75) 100%);
+  }
+  .feat-badge {
+    position: absolute; top: 16px; left: 16px;
+    background: rgba(255,255,255,0.95);
+    padding: 6px 12px; border-radius: 14px;
+    font-size: 10px; font-weight: 700; color: #4F46E5;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    z-index: 2;
+  }
+  .feat-duration {
+    position: absolute; top: 16px; right: 16px;
+    background: rgba(0,0,0,0.55);
+    padding: 6px 12px; border-radius: 14px;
+    font-size: 11px; font-weight: 700; color: #fff;
+    display: flex; align-items: center; gap: 5px;
+    z-index: 2;
+  }
+  .play-circle {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 68px; height: 68px; border-radius: 50%;
+    background: rgba(255,255,255,0.95);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: #4F46E5;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    z-index: 2;
+  }
+  .feat-footer {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 18px 20px; color: #fff; z-index: 2;
+  }
+  .feat-title { font-size: 20px; font-weight: 700; font-family: 'Fredoka'; line-height: 1.2; }
+  .feat-meta {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; opacity: 0.9; margin-top: 6px;
+  }
+  .feat-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: #fff; }
+
+  /* Learning Path */
+  .path-card {
+    background: linear-gradient(135deg, #818CF8, #6366F1);
+    border-radius: 24px; padding: 20px;
+    color: #fff; margin-bottom: 18px;
+    position: relative; overflow: hidden;
+  }
+  .path-card::before {
+    content:''; position: absolute; top: -30px; right: -30px;
+    width: 150px; height: 150px;
+    background: radial-gradient(circle, rgba(255,255,255,0.18), transparent 60%);
+    border-radius: 50%;
+  }
+  .path-top { display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2; }
+  .path-emoji { font-size: 34px; }
+  .path-title { font-size: 16px; font-weight: 700; font-family: 'Fredoka'; margin-top: 8px; position: relative; z-index: 2; }
+  .path-bar {
+    margin-top: 12px; height: 8px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 10px; overflow: hidden;
+    position: relative; z-index: 2;
+  }
+  .path-bar span {
+    display: block; width: 60%; height: 100%;
+    background: linear-gradient(90deg, #FBBF24, #FDE68A);
+    border-radius: 10px;
+  }
+  .path-stat {
+    display: flex; justify-content: space-between;
+    font-size: 11px; opacity: 0.85;
+    margin-top: 8px; position: relative; z-index: 2;
+  }
+
+  .section-title {
+    font-size: 18px; font-weight: 700; font-family: 'Fredoka';
+    margin: 8px 0 12px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .section-title a { font-size: 12px; color: #6366F1; font-weight: 600; font-family: 'Inter'; }
+
+  /* Lesson list */
+  .lessons { display: flex; flex-direction: column; gap: 10px; }
+  .lesson {
+    background: #fff; border-radius: 20px; padding: 14px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 2px 12px rgba(79,70,229,0.06);
+  }
+  .les-thumb {
+    width: 64px; height: 64px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; flex-shrink: 0; position: relative;
+  }
+  .les-thumb.a { background: linear-gradient(135deg, #FDE68A, #FBBF24); }
+  .les-thumb.b { background: linear-gradient(135deg, #FCA5A5, #EF4444); }
+  .les-thumb.c { background: linear-gradient(135deg, #A7F3D0, #10B981); }
+  .les-thumb.d { background: linear-gradient(135deg, #C7D2FE, #6366F1); }
+  .les-play {
+    position: absolute; bottom: -4px; right: -4px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #fff; color: #4F46E5;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; border: 2px solid #EEF2FF;
+  }
+  .les-info { flex: 1; }
+  .les-name { font-size: 14px; font-weight: 700; line-height: 1.2; }
+  .les-meta { font-size: 11px; color: #94A3B8; margin-top: 3px; display: flex; align-items: center; gap: 6px; }
+  .les-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: #CBD5E1; }
+  .les-status {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #10B981; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+  }
+  .les-status.todo { background: #EEF2FF; color: #6366F1; }
+
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 90px; background: rgba(238,242,255,0.95);
+    backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: flex-start;
+    padding-top: 12px; border-top: 0.5px solid rgba(0,0,0,0.06);
+  }
+  .tab-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 600; color: #94A3B8;
+  }
+  .tab-item.active { color: #6366F1; }
+  .tab-item i { font-size: 22px; }
+  .tab-dot { width: 4px; height: 4px; border-radius: 50%; background: #6366F1; }
+  .home-indicator {
+    width: 134px; height: 5px; background: #1A1A1A; border-radius: 3px;
+    position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <div>
+        <div class="title">Tooth Academy</div>
+        <div class="title-sub">Learn like a dentist in training</div>
+      </div>
+      <div class="lvl-pill"><i class="fas fa-graduation-cap"></i> Level 7</div>
+    </div>
+
+    <!-- Featured Video -->
+    <div class="featured">
+      <div class="feat-badge">📺 Today's Lesson</div>
+      <div class="feat-duration"><i class="fas fa-clock"></i> 3:24</div>
+      <div class="play-circle"><i class="fas fa-play"></i></div>
+      <div class="feat-footer">
+        <div class="feat-title">Meet the Plaque Monsters</div>
+        <div class="feat-meta">
+          <span>Episode 4</span><span class="dot"></span>
+          <span>+80 stars</span><span class="dot"></span>
+          <span>Dr. Maya</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Learning Path -->
+    <div class="path-card">
+      <div class="path-top">
+        <div>
+          <div style="font-size:11px;opacity:0.8;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Current Path</div>
+          <div class="path-title">🦷 Healthy Teeth 101</div>
+        </div>
+        <div class="path-emoji">🧪</div>
+      </div>
+      <div class="path-bar"><span></span></div>
+      <div class="path-stat">
+        <span>6 of 10 lessons</span>
+        <span>+240 stars earned</span>
+      </div>
+    </div>
+
+    <div class="section-title">Lessons <a href="#">All paths</a></div>
+    <div class="lessons">
+      <div class="lesson">
+        <div class="les-thumb a">🦠<div class="les-play"><i class="fas fa-play"></i></div></div>
+        <div class="les-info">
+          <div class="les-name">Why Plaque Is Sneaky</div>
+          <div class="les-meta"><span>2:50</span><div class="dot"></div><span>Biology</span><div class="dot"></div><span>+50 ⭐</span></div>
+        </div>
+        <div class="les-status"><i class="fas fa-check"></i></div>
+      </div>
+      <div class="lesson">
+        <div class="les-thumb b">🪥<div class="les-play"><i class="fas fa-play"></i></div></div>
+        <div class="les-info">
+          <div class="les-name">The Perfect Circle Motion</div>
+          <div class="les-meta"><span>3:12</span><div class="dot"></div><span>Technique</span><div class="dot"></div><span>+60 ⭐</span></div>
+        </div>
+        <div class="les-status"><i class="fas fa-check"></i></div>
+      </div>
+      <div class="lesson">
+        <div class="les-thumb c">🍬<div class="les-play"><i class="fas fa-play"></i></div></div>
+        <div class="les-info">
+          <div class="les-name">Sugar & Cavities Quest</div>
+          <div class="les-meta"><span>4:05</span><div class="dot"></div><span>Nutrition</span><div class="dot"></div><span>+80 ⭐</span></div>
+        </div>
+        <div class="les-status todo"><i class="fas fa-play"></i></div>
+      </div>
+      <div class="lesson">
+        <div class="les-thumb d">💗<div class="les-play"><i class="fas fa-play"></i></div></div>
+        <div class="les-info">
+          <div class="les-name">Your Gums Are Heroes Too</div>
+          <div class="les-meta"><span>3:40</span><div class="dot"></div><span>Biology</span><div class="dot"></div><span>+70 ⭐</span></div>
+        </div>
+        <div class="les-status todo"><i class="fas fa-lock"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-tooth"></i><span>Brush</span></div>
+    <div class="tab-item"><i class="fas fa-gift"></i><span>Rewards</span></div>
+    <div class="tab-item active">
+      <i class="fas fa-graduation-cap"></i><span>Learn</span>
+      <div class="tab-dot"></div>
+    </div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Me</span></div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>
