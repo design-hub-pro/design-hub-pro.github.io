@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RapidAid - Tasks</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; }
+  html, body {
+    scrollbar-width:none;
+    font-family:'Inter', sans-serif;
+    background:#FFF7ED;
+    width:100%; height:100%;
+    overflow-x:hidden; overflow-y:auto;
+    color:#0A0E1A;
+  }
+  .display { font-family:'Space Grotesk', sans-serif; letter-spacing:-0.5px; }
+
+  .status-bar {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 28px 0 28px; height:59px;
+    position:sticky; top:0; z-index:100; background:#FFF7ED;
+  }
+  .time { font-size:16px; font-weight:600; }
+  .dynamic-island {
+    width:120px; height:34px; background:#000; border-radius:20px;
+    position:absolute; left:50%; transform:translateX(-50%); top:10px;
+  }
+  .icons { display:flex; gap:6px; align-items:center; font-size:14px; }
+  .battery { width:27px; height:12px; border:1.5px solid #000; border-radius:3px; padding:1.5px; position:relative; }
+  .battery::after { content:''; position:absolute; right:-4px; top:3px; width:2px; height:6px; background:#000; border-radius:0 1px 1px 0; }
+  .battery-fill { width:80%; height:100%; background:#000; border-radius:1.5px; }
+
+  .content { padding:0 28px 120px 28px; }
+
+  .header {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 0 14px 0;
+  }
+  .h-title { font-size:26px; font-weight:800; letter-spacing:-0.5px; }
+  .h-btn {
+    width:40px; height:40px; border-radius:50%;
+    background:#fff; color:#DC2626;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; box-shadow:0 4px 12px rgba(220,38,38,0.12);
+  }
+
+  /* Summary */
+  .summary {
+    display:flex; gap:10px; margin-bottom:18px;
+  }
+  .sum-box {
+    flex:1; background:#fff;
+    border-radius:18px; padding:14px;
+    box-shadow:0 4px 14px rgba(10,14,26,0.06);
+  }
+  .sum-val {
+    font-size:26px; font-weight:800; letter-spacing:-0.5px;
+  }
+  .sum-val.r { color:#DC2626; }
+  .sum-val.a { color:#F59E0B; }
+  .sum-val.g { color:#10B981; }
+  .sum-lbl { font-size:10px; color:#78350F; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; margin-top:2px; }
+
+  /* Filter */
+  .chips {
+    display:flex; gap:8px; margin-bottom:14px; overflow-x:auto;
+    margin-left:-28px; margin-right:-28px; padding:2px 28px;
+  }
+  .chip {
+    padding:8px 14px; border-radius:18px;
+    background:#fff; color:#78350F;
+    font-size:11px; font-weight:700;
+    flex-shrink:0;
+    box-shadow:0 3px 10px rgba(10,14,26,0.05);
+  }
+  .chip.active { background:#0A0E1A; color:#fff; box-shadow:0 8px 20px rgba(10,14,26,0.25); }
+
+  /* Task card */
+  .task {
+    background:#fff; border-radius:22px;
+    padding:16px; margin-bottom:12px;
+    box-shadow:0 4px 18px rgba(10,14,26,0.06);
+    position:relative; overflow:hidden;
+  }
+  .task-head {
+    display:flex; align-items:flex-start; gap:12px; margin-bottom:12px;
+  }
+  .task-icon {
+    width:44px; height:44px; border-radius:13px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:17px; color:#fff; flex-shrink:0;
+  }
+  .ti-red { background:linear-gradient(135deg,#DC2626,#991B1B); }
+  .ti-amb { background:linear-gradient(135deg,#F59E0B,#D97706); }
+  .ti-blu { background:linear-gradient(135deg,#0EA5E9,#0369A1); }
+  .task-info { flex:1; }
+  .task-name { font-size:14px; font-weight:700; }
+  .task-addr { font-size:11px; color:#78350F; margin-top:2px; }
+  .task-sev {
+    padding:4px 9px; border-radius:10px;
+    font-size:9px; font-weight:800;
+    text-transform:uppercase; letter-spacing:0.5px;
+  }
+  .sev-critical { background:#FEE2E2; color:#991B1B; }
+  .sev-high { background:#FEF3C7; color:#92400E; }
+  .sev-normal { background:#DBEAFE; color:#1E40AF; }
+
+  .task-meta {
+    display:flex; gap:14px;
+    font-size:11px; color:#78350F; font-weight:600;
+    padding:8px 0;
+    border-top:1px solid #FED7AA;
+    border-bottom:1px solid #FED7AA;
+    margin-bottom:10px;
+  }
+  .task-meta i { margin-right:4px; color:#DC2626; }
+
+  .task-bottom {
+    display:flex; align-items:center; gap:10px;
+  }
+  .task-avs { display:flex; }
+  .ta {
+    width:26px; height:26px; border-radius:50%;
+    border:2px solid #fff; margin-left:-6px;
+    background-size:cover; background-position:center;
+  }
+  .ta:first-child { margin-left:0; }
+  .task-prog {
+    flex:1; font-size:10px; color:#78350F; font-weight:600;
+  }
+  .task-prog b { color:#0A0E1A; }
+  .accept-btn {
+    padding:9px 14px; border-radius:12px;
+    background:linear-gradient(135deg,#DC2626,#991B1B);
+    color:#fff; font-size:11px; font-weight:800;
+    text-transform:uppercase; letter-spacing:0.5px;
+    box-shadow:0 6px 16px rgba(220,38,38,0.35);
+  }
+  .accept-btn.done { background:#10B981; box-shadow:0 6px 16px rgba(16,185,129,0.3); }
+
+  .tab-bar {
+    position:absolute; bottom:0; left:0; right:0;
+    height:90px; background:rgba(255,247,237,0.92);
+    backdrop-filter:blur(20px);
+    display:flex; justify-content:space-around; align-items:flex-start;
+    padding-top:12px; border-top:0.5px solid rgba(10,14,26,0.08);
+  }
+  .tab-item {
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    font-size:10px; font-weight:600; color:#B8AA96;
+  }
+  .tab-item.active { color:#DC2626; }
+  .tab-item i { font-size:20px; }
+  .tab-dot { width:4px; height:4px; border-radius:50%; background:#DC2626; }
+  .tab-center {
+    width:58px; height:58px; border-radius:50%;
+    background:linear-gradient(135deg,#DC2626,#991B1B);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:22px; margin-top:-18px;
+    box-shadow:0 10px 26px rgba(220,38,38,0.5);
+  }
+  .home-indicator {
+    width:134px; height:5px; background:#1A1A1A; border-radius:3px;
+    position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <div>
+        <div class="h-title display">Response Tasks</div>
+        <div style="font-size:12px; color:#78350F; margin-top:2px;">Nearby · prioritized for you</div>
+      </div>
+      <div class="h-btn"><i class="fas fa-sliders"></i></div>
+    </div>
+
+    <div class="summary">
+      <div class="sum-box">
+        <div class="sum-val r">18</div>
+        <div class="sum-lbl">Open</div>
+      </div>
+      <div class="sum-box">
+        <div class="sum-val a">6</div>
+        <div class="sum-lbl">Accepted</div>
+      </div>
+      <div class="sum-box">
+        <div class="sum-val g">42</div>
+        <div class="sum-lbl">Completed</div>
+      </div>
+    </div>
+
+    <div class="chips">
+      <div class="chip active">All · 18</div>
+      <div class="chip">Medical</div>
+      <div class="chip">Rescue</div>
+      <div class="chip">Supply</div>
+      <div class="chip">Shelter</div>
+    </div>
+
+    <!-- Task 1 -->
+    <div class="task">
+      <div class="task-head">
+        <div class="task-icon ti-red"><i class="fas fa-heart-pulse"></i></div>
+        <div class="task-info">
+          <div class="task-name">Medical assist · elderly, leg injury</div>
+          <div class="task-addr">📍 Wenchuan Rd · 0.8 km · 2 min ago</div>
+        </div>
+        <div class="task-sev sev-critical">CRIT</div>
+      </div>
+      <div class="task-meta">
+        <span><i class="fas fa-clock"></i>ETA 4 min</span>
+        <span><i class="fas fa-users"></i>2 needed</span>
+        <span><i class="fas fa-kit-medical"></i>First aid kit</span>
+      </div>
+      <div class="task-bottom">
+        <div class="task-avs">
+          <div class="ta" style="background-image:url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&h=120&fit=crop');"></div>
+          <div class="ta" style="background-image:url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop');"></div>
+        </div>
+        <div class="task-prog"><b>1/2</b> responders</div>
+        <div class="accept-btn">Accept</div>
+      </div>
+    </div>
+
+    <!-- Task 2 -->
+    <div class="task">
+      <div class="task-head">
+        <div class="task-icon ti-amb"><i class="fas fa-bottle-water"></i></div>
+        <div class="task-info">
+          <div class="task-name">Supply delivery · water + food</div>
+          <div class="task-addr">📍 Shelter B · 1.5 km · 8 min ago</div>
+        </div>
+        <div class="task-sev sev-high">HIGH</div>
+      </div>
+      <div class="task-meta">
+        <span><i class="fas fa-clock"></i>Flex</span>
+        <span><i class="fas fa-users"></i>3 needed</span>
+        <span><i class="fas fa-truck"></i>Vehicle</span>
+      </div>
+      <div class="task-bottom">
+        <div class="task-avs">
+          <div class="ta" style="background-image:url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop');"></div>
+        </div>
+        <div class="task-prog"><b>1/3</b> responders</div>
+        <div class="accept-btn done">Joined</div>
+      </div>
+    </div>
+
+    <!-- Task 3 -->
+    <div class="task">
+      <div class="task-head">
+        <div class="task-icon ti-blu"><i class="fas fa-house-chimney-user"></i></div>
+        <div class="task-info">
+          <div class="task-name">Family of 4 needs shelter</div>
+          <div class="task-addr">📍 Block 14 · 2.1 km · 12 min ago</div>
+        </div>
+        <div class="task-sev sev-normal">NORM</div>
+      </div>
+      <div class="task-meta">
+        <span><i class="fas fa-clock"></i>Flex</span>
+        <span><i class="fas fa-users"></i>1 needed</span>
+        <span><i class="fas fa-car"></i>Transport</span>
+      </div>
+      <div class="task-bottom">
+        <div class="task-avs">
+          <div class="ta" style="background-image:url('https://images.unsplash.com/photo-1580489944761-15a19d654956?w=120&h=120&fit=crop');"></div>
+        </div>
+        <div class="task-prog"><b>0/1</b> responders</div>
+        <div class="accept-btn">Accept</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-map-location-dot"></i><span>Map</span></div>
+    <div class="tab-center"><i class="fas fa-bolt"></i></div>
+    <div class="tab-item active">
+      <i class="fas fa-hand-holding-heart"></i><span>Tasks</span>
+      <div class="tab-dot"></div>
+    </div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Me</span></div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

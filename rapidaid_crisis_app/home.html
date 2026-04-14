@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RapidAid - Home</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; }
+  html, body {
+    scrollbar-width:none;
+    font-family:'Inter', sans-serif;
+    background:#FFF7ED;
+    width:100%; height:100%;
+    overflow-x:hidden; overflow-y:auto;
+    color:#0A0E1A;
+  }
+  .display { font-family:'Space Grotesk', sans-serif; letter-spacing:-0.5px; }
+
+  .status-bar {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 28px 0 28px; height:59px;
+    position:sticky; top:0; z-index:100; background:#FFF7ED;
+  }
+  .time { font-size:16px; font-weight:600; }
+  .dynamic-island {
+    width:120px; height:34px; background:#000; border-radius:20px;
+    position:absolute; left:50%; transform:translateX(-50%); top:10px;
+  }
+  .icons { display:flex; gap:6px; align-items:center; font-size:14px; }
+  .battery { width:27px; height:12px; border:1.5px solid #000; border-radius:3px; padding:1.5px; position:relative; }
+  .battery::after { content:''; position:absolute; right:-4px; top:3px; width:2px; height:6px; background:#000; border-radius:0 1px 1px 0; }
+  .battery-fill { width:80%; height:100%; background:#000; border-radius:1.5px; }
+
+  .content { padding:0 28px 120px 28px; }
+
+  .header {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 0 18px 0;
+  }
+  .loc { font-size:11px; color:#78350F; text-transform:uppercase; letter-spacing:1px; font-weight:700; }
+  .loc i { color:#DC2626; margin-right:5px; }
+  .greet { font-size:24px; font-weight:800; margin-top:2px; letter-spacing:-0.5px; }
+  .avatar-wrap { position:relative; }
+  .avatar {
+    width:46px; height:46px; border-radius:14px;
+    background:linear-gradient(135deg,#DC2626,#F59E0B);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-weight:800; font-size:16px;
+    box-shadow:0 6px 18px rgba(220,38,38,0.3);
+  }
+  .role-dot {
+    position:absolute; bottom:-2px; right:-2px;
+    padding:2px 6px; border-radius:10px;
+    background:#10B981; color:#fff;
+    font-size:8px; font-weight:800;
+    border:2px solid #FFF7ED;
+  }
+
+  /* ALERT HERO */
+  .alert-card {
+    background:
+      linear-gradient(135deg,rgba(220,38,38,0.95) 0%,rgba(239,68,68,0.92) 50%,rgba(245,158,11,0.9) 100%),
+      url('https://images.unsplash.com/photo-1603481546238-487240415921?w=800&h=600&fit=crop') center/cover;
+    border-radius:30px; padding:22px;
+    position:relative; overflow:hidden;
+    box-shadow:0 18px 46px rgba(220,38,38,0.35);
+    margin-bottom:20px;
+    color:#fff;
+  }
+  .alert-top {
+    display:flex; justify-content:space-between; align-items:flex-start;
+    position:relative; z-index:2;
+  }
+  .alert-tag {
+    display:flex; align-items:center; gap:6px;
+    padding:6px 12px; border-radius:14px;
+    background:rgba(0,0,0,0.35);
+    backdrop-filter:blur(10px);
+    font-size:10px; font-weight:800;
+    text-transform:uppercase; letter-spacing:1.2px;
+  }
+  .live-dot {
+    width:7px; height:7px; border-radius:50%; background:#FBBF24;
+    box-shadow:0 0 10px #FBBF24;
+    animation:pulse 1.4s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+  .alert-level { font-size:22px; font-weight:800; }
+  .alert-level small { font-size:11px; display:block; font-weight:600; opacity:0.8; }
+
+  .alert-title { font-size:26px; font-weight:800; margin-top:16px; line-height:1.1; position:relative; z-index:2; }
+  .alert-meta { font-size:12px; color:rgba(255,255,255,0.85); margin-top:6px; position:relative; z-index:2; }
+
+  .alert-stats {
+    display:flex; gap:10px; margin-top:18px;
+    position:relative; z-index:2;
+  }
+  .as-box {
+    flex:1; background:rgba(0,0,0,0.25);
+    backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:16px; padding:12px;
+  }
+  .as-val { font-size:22px; font-weight:800; letter-spacing:-0.5px; }
+  .as-lbl { font-size:10px; color:rgba(255,255,255,0.75); margin-top:2px; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; }
+
+  /* SOS button */
+  .sos-btn {
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    padding:18px; border-radius:22px;
+    background:linear-gradient(135deg,#DC2626,#991B1B);
+    color:#fff; font-size:16px; font-weight:800;
+    box-shadow:0 14px 34px rgba(220,38,38,0.5), inset 0 -3px 0 rgba(0,0,0,0.25);
+    margin-bottom:22px;
+    letter-spacing:0.5px; text-transform:uppercase;
+    position:relative; overflow:hidden;
+  }
+  .sos-btn::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:50%;
+    background:rgba(255,255,255,0.1);
+  }
+  .sos-btn i { font-size:20px; position:relative; }
+  .sos-btn span { position:relative; }
+
+  /* Quick tiles */
+  .section-title {
+    font-size:16px; font-weight:700; margin-bottom:12px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .section-title a { font-size:12px; color:#DC2626; font-weight:600; }
+
+  .grid-2 {
+    display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;
+  }
+  .tile {
+    border-radius:22px; padding:16px;
+    min-height:128px; position:relative; overflow:hidden;
+    background:#fff;
+    box-shadow:0 4px 18px rgba(10,14,26,0.06);
+  }
+  .tile-icon {
+    width:40px; height:40px; border-radius:13px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:17px; color:#fff;
+    margin-bottom:10px;
+  }
+  .t1 .tile-icon { background:linear-gradient(135deg,#DC2626,#991B1B); }
+  .t2 .tile-icon { background:linear-gradient(135deg,#F59E0B,#D97706); }
+  .t3 .tile-icon { background:linear-gradient(135deg,#0EA5E9,#0369A1); }
+  .t4 .tile-icon { background:linear-gradient(135deg,#10B981,#047857); }
+  .tile-name { font-size:14px; font-weight:700; line-height:1.2; }
+  .tile-sub { font-size:11px; color:#78350F; margin-top:3px; font-weight:500; }
+  .tile-num {
+    font-size:28px; font-weight:800; letter-spacing:-0.5px;
+    margin-top:8px;
+    background:linear-gradient(135deg,#DC2626,#F59E0B);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+
+  /* Responders row */
+  .resp-card {
+    background:#0A0E1A; color:#fff;
+    border-radius:22px; padding:18px;
+    position:relative; overflow:hidden;
+  }
+  .resp-card::before {
+    content:''; position:absolute; top:-50px; right:-30px;
+    width:160px; height:160px;
+    background:radial-gradient(circle,rgba(16,185,129,0.35) 0%,transparent 65%);
+    border-radius:50%;
+  }
+  .resp-head {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:12px; position:relative; z-index:2;
+  }
+  .resp-title { font-size:14px; font-weight:700; }
+  .resp-tag {
+    font-size:10px; padding:4px 9px; border-radius:10px;
+    background:rgba(16,185,129,0.18); color:#6EE7B7;
+    font-weight:700;
+  }
+  .resp-avs { display:flex; align-items:center; position:relative; z-index:2; }
+  .ra {
+    width:34px; height:34px; border-radius:50%;
+    border:2px solid #0A0E1A; margin-left:-8px;
+    background-size:cover; background-position:center;
+  }
+  .ra:first-child { margin-left:0; }
+  .resp-text { font-size:12px; color:rgba(255,255,255,0.75); margin-left:12px; }
+  .resp-text b { color:#6EE7B7; font-weight:700; }
+
+  .tab-bar {
+    position:absolute; bottom:0; left:0; right:0;
+    height:90px; background:rgba(255,247,237,0.92);
+    backdrop-filter:blur(20px);
+    display:flex; justify-content:space-around; align-items:flex-start;
+    padding-top:12px; border-top:0.5px solid rgba(10,14,26,0.08);
+  }
+  .tab-item {
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    font-size:10px; font-weight:600; color:#B8AA96;
+  }
+  .tab-item.active { color:#DC2626; }
+  .tab-item i { font-size:20px; }
+  .tab-dot { width:4px; height:4px; border-radius:50%; background:#DC2626; }
+  .tab-center {
+    width:58px; height:58px; border-radius:50%;
+    background:linear-gradient(135deg,#DC2626,#991B1B);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:22px; margin-top:-18px;
+    box-shadow:0 10px 26px rgba(220,38,38,0.5);
+  }
+  .home-indicator {
+    width:134px; height:5px; background:#1A1A1A; border-radius:3px;
+    position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <div>
+        <div class="loc"><i class="fas fa-location-dot"></i>Sichuan · 31.8°N</div>
+        <div class="greet display">Stay alert, Alex.</div>
+      </div>
+      <div class="avatar-wrap">
+        <div class="avatar">AC</div>
+        <div class="role-dot">ACT</div>
+      </div>
+    </div>
+
+    <!-- Live alert -->
+    <div class="alert-card">
+      <div class="alert-top">
+        <div class="alert-tag"><span class="live-dot"></span> LIVE · 14 MIN AGO</div>
+        <div class="alert-level" style="text-align:right;">M 6.2<small>MAGNITUDE</small></div>
+      </div>
+      <div class="alert-title display">Earthquake<br>Alert · Level 3</div>
+      <div class="alert-meta">📍 18 km NE · Depth 12 km · Aftershock risk HIGH</div>
+      <div class="alert-stats">
+        <div class="as-box"><div class="as-val">247</div><div class="as-lbl">Reported</div></div>
+        <div class="as-box"><div class="as-val">1,840</div><div class="as-lbl">Safe</div></div>
+        <div class="as-box"><div class="as-val">62</div><div class="as-lbl">Responders</div></div>
+      </div>
+    </div>
+
+    <!-- SOS -->
+    <div class="sos-btn">
+      <i class="fas fa-bolt"></i><span>Tap · Hold for SOS</span>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="section-title">Quick Actions</div>
+    <div class="grid-2">
+      <div class="tile t1">
+        <div class="tile-icon"><i class="fas fa-triangle-exclamation"></i></div>
+        <div class="tile-name">Report<br>Incident</div>
+        <div class="tile-num">3</div>
+      </div>
+      <div class="tile t2">
+        <div class="tile-icon"><i class="fas fa-house-chimney-user"></i></div>
+        <div class="tile-name">Nearby<br>Shelters</div>
+        <div class="tile-num">12</div>
+      </div>
+      <div class="tile t3">
+        <div class="tile-icon"><i class="fas fa-book-medical"></i></div>
+        <div class="tile-name">First Aid<br>Videos</div>
+        <div class="tile-num">48</div>
+      </div>
+      <div class="tile t4">
+        <div class="tile-icon"><i class="fas fa-hand-holding-medical"></i></div>
+        <div class="tile-name">Volunteer<br>Tasks</div>
+        <div class="tile-num">18</div>
+      </div>
+    </div>
+
+    <!-- Responders -->
+    <div class="resp-card">
+      <div class="resp-head">
+        <div class="resp-title">Responders on-site</div>
+        <div class="resp-tag">● ACTIVE</div>
+      </div>
+      <div class="resp-avs">
+        <div class="ra" style="background-image:url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop');"></div>
+        <div class="ra" style="background-image:url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&h=120&fit=crop');"></div>
+        <div class="ra" style="background-image:url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop');"></div>
+        <div class="ra" style="background-image:url('https://images.unsplash.com/photo-1580489944761-15a19d654956?w=120&h=120&fit=crop');"></div>
+        <div class="resp-text"><b>62 responders</b> · 4 teams deployed</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item active">
+      <i class="fas fa-house"></i><span>Home</span>
+      <div class="tab-dot"></div>
+    </div>
+    <div class="tab-item"><i class="fas fa-map-location-dot"></i><span>Map</span></div>
+    <div class="tab-center"><i class="fas fa-bolt"></i></div>
+    <div class="tab-item"><i class="fas fa-hand-holding-heart"></i><span>Tasks</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Me</span></div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>
