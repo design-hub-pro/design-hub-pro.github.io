@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlanetPulse - Missions</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    scrollbar-width: none;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #F6FBF7;
+    width: 100%; height: 100%;
+    overflow-x: hidden; overflow-y: auto;
+    color: #07261B;
+  }
+  .status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 28px 0 28px; height: 59px;
+    position: sticky; top: 0; z-index: 100; background: #F6FBF7;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; left: 50%; transform: translateX(-50%); top: 10px;
+  }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+  .battery { width: 27px; height: 12px; border: 1.5px solid #000; border-radius: 3px; position: relative; padding: 1.5px; }
+  .battery::after { content: ''; position: absolute; right: -4px; top: 3px; width: 2px; height: 6px; background: #000; border-radius: 0 1px 1px 0; }
+  .battery-fill { width: 75%; height: 100%; background: #000; border-radius: 1.5px; }
+
+  .content { padding: 0 28px 120px 28px; }
+
+  .header {
+    padding: 10px 0 16px 0;
+  }
+  .h-label { font-size: 12px; color: #5B7A6E; font-weight: 600; }
+  .h-title { font-size: 28px; font-weight: 900; letter-spacing: -0.8px; }
+
+  /* Tabs */
+  .tabs {
+    display: flex; background: #E5EDE8;
+    border-radius: 16px; padding: 4px;
+    margin-bottom: 18px;
+  }
+  .tab {
+    flex: 1; text-align: center; padding: 10px;
+    font-size: 12px; font-weight: 700; color: #5B7A6E;
+    border-radius: 12px;
+  }
+  .tab.active { background: #fff; color: #07261B; box-shadow: 0 2px 8px rgba(7,38,27,0.08); }
+
+  /* Featured mission */
+  .featured {
+    border-radius: 28px; overflow: hidden;
+    position: relative; height: 240px;
+    background-image: linear-gradient(180deg, rgba(6,78,59,0.1) 0%, rgba(6,78,59,0.9) 100%), url('https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=900');
+    background-size: cover; background-position: center;
+    box-shadow: 0 12px 30px rgba(7,38,27,0.18);
+  }
+  .ft-top {
+    position: absolute; top: 18px; left: 18px; right: 18px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .ft-badge {
+    background: #FBBF24; color: #78350F;
+    padding: 6px 12px; border-radius: 20px;
+    font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .ft-play {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 15px;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .ft-bottom {
+    position: absolute; bottom: 18px; left: 18px; right: 18px; color: #fff;
+  }
+  .ft-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.15; }
+  .ft-meta { font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 6px; display: flex; align-items: center; gap: 12px; }
+  .ft-meta span { display: flex; align-items: center; gap: 5px; }
+  .ft-progress { margin-top: 12px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 10px; overflow: hidden; }
+  .ft-progress span { display: block; height: 100%; background: linear-gradient(90deg, #22C55E, #FBBF24); border-radius: 10px; width: 72%; }
+  .ft-progtext { font-size: 11px; color: rgba(255,255,255,0.85); margin-top: 5px; font-weight: 600; }
+
+  .section-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin: 22px 0 12px 0;
+  }
+  .section-title { font-size: 17px; font-weight: 800; letter-spacing: -0.4px; }
+  .section-head a { font-size: 12px; color: #10B981; font-weight: 600; }
+
+  /* Mission list */
+  .mission {
+    background: #fff; border-radius: 22px; padding: 14px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 2px 12px rgba(7,38,27,0.05);
+    margin-bottom: 10px;
+  }
+  .m-img {
+    width: 72px; height: 72px; border-radius: 18px;
+    background-size: cover; background-position: center;
+    flex-shrink: 0; position: relative;
+  }
+  .m-img .reward {
+    position: absolute; bottom: -4px; right: -4px;
+    background: #FBBF24; color: #78350F;
+    padding: 3px 7px; border-radius: 10px;
+    font-size: 10px; font-weight: 800;
+    border: 2px solid #fff;
+  }
+  .m-info { flex: 1; min-width: 0; }
+  .m-tag { font-size: 10px; font-weight: 700; color: #10B981; text-transform: uppercase; letter-spacing: 0.8px; }
+  .m-name { font-size: 14px; font-weight: 800; margin-top: 2px; letter-spacing: -0.3px; }
+  .m-meta { font-size: 11px; color: #5B7A6E; margin-top: 4px; display: flex; gap: 10px; }
+  .m-meta span { display: flex; align-items: center; gap: 4px; }
+  .m-avatars { display: flex; margin-top: 6px; align-items: center; }
+  .m-avatars div { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #fff; margin-left: -5px; background-size: cover; background-position: center; }
+  .m-avatars .more { background: #E5EDE8; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #07261B; }
+
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 90px; background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: flex-start;
+    padding-top: 12px; border-top: 0.5px solid rgba(0,0,0,0.06);
+  }
+  .tab-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 600; color: #9CB5AA;
+  }
+  .tab-item.active { color: #10B981; }
+  .tab-item i { font-size: 20px; }
+  .tab-fab {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, #10B981, #047857);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 22px;
+    box-shadow: 0 8px 20px rgba(16,185,129,0.4);
+    margin-top: -18px;
+  }
+  .home-indicator {
+    width: 134px; height: 5px; background: #1A1A1A; border-radius: 3px;
+    position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <div class="h-label">MISSIONS</div>
+      <div class="h-title">Take Action 🌍</div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active">Nearby</div>
+      <div class="tab">Joined</div>
+      <div class="tab">Online</div>
+    </div>
+
+    <!-- Featured -->
+    <div class="featured">
+      <div class="ft-top">
+        <div class="ft-badge">🔥 Featured</div>
+        <div class="ft-play"><i class="fas fa-play"></i></div>
+      </div>
+      <div class="ft-bottom">
+        <div class="ft-title">Redwood Forest<br>Reforestation</div>
+        <div class="ft-meta">
+          <span><i class="fas fa-users"></i> 1.2K joined</span>
+          <span><i class="fas fa-tree"></i> 8,400 trees</span>
+        </div>
+        <div class="ft-progress"><span></span></div>
+        <div class="ft-progtext">72% of 12,000 tree goal</div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <div class="section-title">Join This Week</div>
+      <a href="#">Map view</a>
+    </div>
+
+    <div class="mission">
+      <div class="m-img" style="background-image:url('https://images.unsplash.com/photo-1567095761054-7a02e69e5c43?w=300')">
+        <div class="reward">+250</div>
+      </div>
+      <div class="m-info">
+        <div class="m-tag">🌊 Beach Cleanup</div>
+        <div class="m-name">Ocean Beach Restoration</div>
+        <div class="m-meta">
+          <span><i class="fas fa-location-dot"></i> 1.2 km</span>
+          <span><i class="fas fa-clock"></i> Sat 9AM</span>
+        </div>
+        <div class="m-avatars">
+          <div style="background-image:url('https://i.pravatar.cc/40?img=12')"></div>
+          <div style="background-image:url('https://i.pravatar.cc/40?img=32')"></div>
+          <div style="background-image:url('https://i.pravatar.cc/40?img=47')"></div>
+          <div class="more">+45</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mission">
+      <div class="m-img" style="background-image:url('https://images.unsplash.com/photo-1503785640985-f62e3aeee448?w=300')">
+        <div class="reward">+180</div>
+      </div>
+      <div class="m-info">
+        <div class="m-tag">🌳 Tree Planting</div>
+        <div class="m-name">Golden Gate Saplings</div>
+        <div class="m-meta">
+          <span><i class="fas fa-location-dot"></i> 3.8 km</span>
+          <span><i class="fas fa-clock"></i> Sun 8AM</span>
+        </div>
+        <div class="m-avatars">
+          <div style="background-image:url('https://i.pravatar.cc/40?img=15')"></div>
+          <div style="background-image:url('https://i.pravatar.cc/40?img=28')"></div>
+          <div class="more">+22</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mission">
+      <div class="m-img" style="background-image:url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=300')">
+        <div class="reward">+120</div>
+      </div>
+      <div class="m-info">
+        <div class="m-tag">♻️ Recycling Drive</div>
+        <div class="m-name">Downtown E-Waste Event</div>
+        <div class="m-meta">
+          <span><i class="fas fa-location-dot"></i> 0.8 km</span>
+          <span><i class="fas fa-clock"></i> Fri 6PM</span>
+        </div>
+        <div class="m-avatars">
+          <div style="background-image:url('https://i.pravatar.cc/40?img=7')"></div>
+          <div style="background-image:url('https://i.pravatar.cc/40?img=18')"></div>
+          <div class="more">+31</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-map-location-dot"></i><span>Map</span></div>
+    <div class="tab-fab"><i class="fas fa-camera"></i></div>
+    <div class="tab-item active"><i class="fas fa-chart-simple"></i><span>Impact</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Me</span></div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

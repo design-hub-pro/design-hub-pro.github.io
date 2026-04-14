@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlanetPulse - Impact</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    scrollbar-width: none;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #F6FBF7;
+    width: 100%; height: 100%;
+    overflow-x: hidden; overflow-y: auto;
+    color: #07261B;
+  }
+  .status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 28px 0 28px; height: 59px;
+    position: sticky; top: 0; z-index: 100; background: #F6FBF7;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; left: 50%; transform: translateX(-50%); top: 10px;
+  }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+  .battery { width: 27px; height: 12px; border: 1.5px solid #000; border-radius: 3px; position: relative; padding: 1.5px; }
+  .battery::after { content: ''; position: absolute; right: -4px; top: 3px; width: 2px; height: 6px; background: #000; border-radius: 0 1px 1px 0; }
+  .battery-fill { width: 75%; height: 100%; background: #000; border-radius: 1.5px; }
+
+  .content { padding: 0 28px 120px 28px; }
+
+  .header { padding: 10px 0 18px 0; display: flex; justify-content: space-between; align-items: center; }
+  .h-label { font-size: 12px; color: #5B7A6E; font-weight: 600; }
+  .h-title { font-size: 26px; font-weight: 900; letter-spacing: -0.6px; }
+  .share {
+    width: 44px; height: 44px; border-radius: 14px;
+    background: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 15px; box-shadow: 0 2px 10px rgba(7,38,27,0.05);
+  }
+
+  /* Impact hero card */
+  .hero {
+    border-radius: 30px; overflow: hidden;
+    padding: 24px;
+    background:
+      radial-gradient(ellipse at 80% 20%, rgba(34,197,94,0.3) 0%, transparent 50%),
+      linear-gradient(145deg, #064E3B 0%, #065F46 100%);
+    color: #fff;
+    position: relative;
+    box-shadow: 0 16px 40px rgba(6,95,70,0.3);
+  }
+  .hero::before {
+    content:''; position: absolute; inset: 0;
+    background-image: url('https://images.unsplash.com/photo-1501854140801-50d01698950b?w=800');
+    background-size: cover; background-position: center;
+    opacity: 0.18; mix-blend-mode: screen;
+  }
+  .hero-top { position: relative; display: flex; justify-content: space-between; align-items: center; }
+  .hero-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: rgba(255,255,255,0.7); }
+  .period-pill {
+    background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
+    padding: 6px 12px; border-radius: 16px;
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; gap: 6px;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .co2-big { position: relative; margin-top: 10px; }
+  .co2-num { font-size: 54px; font-weight: 900; letter-spacing: -2px; line-height: 1; }
+  .co2-num small { font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.7); margin-left: 6px; }
+  .co2-sub { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 6px; }
+  .co2-sub b { color: #86EFAC; }
+
+  .chart {
+    margin-top: 20px; position: relative;
+    height: 90px;
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 6px;
+  }
+  .bar {
+    flex: 1; border-radius: 6px 6px 2px 2px;
+    background: linear-gradient(180deg, #22C55E, #10B981);
+    opacity: 0.7;
+    position: relative;
+  }
+  .bar.active { opacity: 1; background: linear-gradient(180deg, #FBBF24, #F59E0B); }
+  .bar.active::after {
+    content:''; position:absolute; top:-6px; left:50%; transform:translateX(-50%);
+    width: 8px; height: 8px; background: #FBBF24; border-radius: 50%;
+    border: 2px solid #fff;
+  }
+  .chart-labels {
+    display: flex; justify-content: space-between; margin-top: 8px;
+    font-size: 10px; color: rgba(255,255,255,0.6); font-weight: 600;
+  }
+
+  /* Stat grid */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+    margin-top: 16px;
+  }
+  .stat {
+    background: #fff; border-radius: 22px; padding: 16px;
+    box-shadow: 0 2px 12px rgba(7,38,27,0.05);
+  }
+  .stat-top { display: flex; justify-content: space-between; align-items: center; }
+  .stat-icn {
+    width: 38px; height: 38px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 15px;
+  }
+  .stat-icn.tree { background: linear-gradient(135deg, #34D399, #047857); }
+  .stat-icn.water { background: linear-gradient(135deg, #38BDF8, #0369A1); }
+  .stat-icn.waste { background: linear-gradient(135deg, #A78BFA, #7C3AED); }
+  .stat-icn.solar { background: linear-gradient(135deg, #FBBF24, #D97706); }
+  .stat-trend { font-size: 11px; font-weight: 700; color: #10B981; display: flex; align-items: center; gap: 3px; }
+  .stat-val { font-size: 28px; font-weight: 900; letter-spacing: -0.8px; margin-top: 12px; line-height: 1; }
+  .stat-val small { font-size: 12px; color: #5B7A6E; font-weight: 600; margin-left: 3px; }
+  .stat-lbl { font-size: 11px; color: #5B7A6E; margin-top: 2px; font-weight: 600; }
+
+  /* Badges row */
+  .section-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin: 22px 0 12px 0;
+  }
+  .section-title { font-size: 17px; font-weight: 800; letter-spacing: -0.4px; }
+  .section-head a { font-size: 12px; color: #10B981; font-weight: 600; }
+
+  .badges { display: flex; gap: 10px; overflow-x: auto; margin: 0 -28px; padding: 4px 28px; }
+  .badge {
+    flex-shrink: 0; width: 100px;
+    background: #fff; border-radius: 20px; padding: 14px 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    box-shadow: 0 2px 12px rgba(7,38,27,0.05);
+    text-align: center;
+  }
+  .bg-icn {
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: #fff;
+  }
+  .bg-icn.g1 { background: linear-gradient(135deg, #FBBF24, #F59E0B); }
+  .bg-icn.g2 { background: linear-gradient(135deg, #34D399, #047857); }
+  .bg-icn.g3 { background: linear-gradient(135deg, #38BDF8, #0369A1); }
+  .bg-icn.g4 { background: linear-gradient(135deg, #E5E7EB, #9CA3AF); opacity: 0.5; }
+  .bg-name { font-size: 11px; font-weight: 800; }
+  .bg-sub { font-size: 9px; color: #5B7A6E; font-weight: 600; }
+
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 90px; background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: flex-start;
+    padding-top: 12px; border-top: 0.5px solid rgba(0,0,0,0.06);
+  }
+  .tab-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 600; color: #9CB5AA;
+  }
+  .tab-item.active { color: #10B981; }
+  .tab-item i { font-size: 20px; }
+  .tab-fab {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, #10B981, #047857);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 22px;
+    box-shadow: 0 8px 20px rgba(16,185,129,0.4);
+    margin-top: -18px;
+  }
+  .home-indicator {
+    width: 134px; height: 5px; background: #1A1A1A; border-radius: 3px;
+    position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <div>
+        <div class="h-label">YOUR IMPACT</div>
+        <div class="h-title">Impact Dashboard</div>
+      </div>
+      <div class="share"><i class="fas fa-share-nodes"></i></div>
+    </div>
+
+    <div class="hero">
+      <div class="hero-top">
+        <div class="hero-label">CO₂ Offset · Lifetime</div>
+        <div class="period-pill"><i class="fas fa-calendar"></i> 2026</div>
+      </div>
+      <div class="co2-big">
+        <div class="co2-num">1,248<small>kg</small></div>
+        <div class="co2-sub">Equivalent to <b>57 trees planted</b> · Top 5% in SF</div>
+      </div>
+
+      <div class="chart">
+        <div class="bar" style="height:30%"></div>
+        <div class="bar" style="height:45%"></div>
+        <div class="bar" style="height:60%"></div>
+        <div class="bar" style="height:40%"></div>
+        <div class="bar" style="height:72%"></div>
+        <div class="bar active" style="height:88%"></div>
+        <div class="bar" style="height:55%"></div>
+      </div>
+      <div class="chart-labels">
+        <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat">
+        <div class="stat-top">
+          <div class="stat-icn tree"><i class="fas fa-tree"></i></div>
+          <div class="stat-trend"><i class="fas fa-arrow-up"></i> 12%</div>
+        </div>
+        <div class="stat-val">57<small>trees</small></div>
+        <div class="stat-lbl">Planted</div>
+      </div>
+      <div class="stat">
+        <div class="stat-top">
+          <div class="stat-icn water"><i class="fas fa-droplet"></i></div>
+          <div class="stat-trend"><i class="fas fa-arrow-up"></i> 8%</div>
+        </div>
+        <div class="stat-val">3.2K<small>L</small></div>
+        <div class="stat-lbl">Water Saved</div>
+      </div>
+      <div class="stat">
+        <div class="stat-top">
+          <div class="stat-icn waste"><i class="fas fa-recycle"></i></div>
+          <div class="stat-trend"><i class="fas fa-arrow-up"></i> 24%</div>
+        </div>
+        <div class="stat-val">84<small>kg</small></div>
+        <div class="stat-lbl">Waste Recycled</div>
+      </div>
+      <div class="stat">
+        <div class="stat-top">
+          <div class="stat-icn solar"><i class="fas fa-bolt"></i></div>
+          <div class="stat-trend"><i class="fas fa-arrow-up"></i> 18%</div>
+        </div>
+        <div class="stat-val">412<small>kWh</small></div>
+        <div class="stat-lbl">Energy Saved</div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <div class="section-title">Badges Earned</div>
+      <a href="#">View all</a>
+    </div>
+    <div class="badges">
+      <div class="badge">
+        <div class="bg-icn g1"><i class="fas fa-trophy"></i></div>
+        <div class="bg-name">Eco Hero</div>
+        <div class="bg-sub">Level 4</div>
+      </div>
+      <div class="badge">
+        <div class="bg-icn g2"><i class="fas fa-seedling"></i></div>
+        <div class="bg-name">Tree Guardian</div>
+        <div class="bg-sub">50+ planted</div>
+      </div>
+      <div class="badge">
+        <div class="bg-icn g3"><i class="fas fa-water"></i></div>
+        <div class="bg-name">Ocean Saver</div>
+        <div class="bg-sub">10 cleanups</div>
+      </div>
+      <div class="badge">
+        <div class="bg-icn g4"><i class="fas fa-lock"></i></div>
+        <div class="bg-name">Locked</div>
+        <div class="bg-sub">100 reports</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-map-location-dot"></i><span>Map</span></div>
+    <div class="tab-fab"><i class="fas fa-camera"></i></div>
+    <div class="tab-item active"><i class="fas fa-chart-simple"></i><span>Impact</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Me</span></div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

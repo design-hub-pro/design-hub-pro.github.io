@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlanetPulse - Report</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    scrollbar-width: none;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #07261B;
+    width: 100%; height: 100%;
+    overflow-x: hidden; overflow-y: auto;
+    color: #fff;
+  }
+  .status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 28px 0 28px; height: 59px;
+    position: sticky; top: 0; z-index: 100; background: #07261B;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 600; color: #fff; }
+  .status-bar .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; left: 50%; transform: translateX(-50%); top: 10px;
+  }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; font-size: 14px; color: #fff; }
+  .battery { width: 27px; height: 12px; border: 1.5px solid #fff; border-radius: 3px; position: relative; padding: 1.5px; }
+  .battery::after { content: ''; position: absolute; right: -4px; top: 3px; width: 2px; height: 6px; background: #fff; border-radius: 0 1px 1px 0; }
+  .battery-fill { width: 75%; height: 100%; background: #fff; border-radius: 1.5px; }
+
+  .content { padding: 0 28px 130px 28px; }
+
+  .top-row {
+    display: flex; justify-content: space-between; align-items: center; padding: 10px 0 18px 0;
+  }
+  .back-btn {
+    width: 44px; height: 44px; border-radius: 14px;
+    background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 14px;
+  }
+  .page-title { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+  .flash { width: 44px; height: 44px; border-radius: 14px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; }
+
+  /* Camera preview */
+  .camera {
+    position: relative;
+    border-radius: 32px; overflow: hidden;
+    height: 420px;
+    background-image: url('https://images.unsplash.com/photo-1621451537084-482c73073a0f?w=900');
+    background-size: cover; background-position: center;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+  }
+  .camera::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(6,78,59,0.55) 100%);
+  }
+  .scan-frame {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 220px; height: 220px;
+    border-radius: 28px;
+  }
+  .corner { position: absolute; width: 28px; height: 28px; border: 3px solid #22C55E; }
+  .corner.tl { top: 0; left: 0; border-right: none; border-bottom: none; border-top-left-radius: 14px; }
+  .corner.tr { top: 0; right: 0; border-left: none; border-bottom: none; border-top-right-radius: 14px; }
+  .corner.bl { bottom: 0; left: 0; border-right: none; border-top: none; border-bottom-left-radius: 14px; }
+  .corner.br { bottom: 0; right: 0; border-left: none; border-top: none; border-bottom-right-radius: 14px; }
+  .scan-line {
+    position: absolute; left: 10%; right: 10%; top: 50%; height: 2px;
+    background: linear-gradient(90deg, transparent, #22C55E, transparent);
+    box-shadow: 0 0 12px #22C55E;
+    animation: scan 2.4s infinite;
+  }
+  @keyframes scan { 0%,100%{top:10%;} 50%{top:90%;} }
+
+  .detect-pill {
+    position: absolute; top: 20px; left: 20px;
+    background: rgba(34,197,94,0.9); backdrop-filter: blur(10px);
+    padding: 8px 14px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; color: #fff;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .detect-pill i { animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+  .geo-pill {
+    position: absolute; top: 20px; right: 20px;
+    background: rgba(0,0,0,0.4); backdrop-filter: blur(10px);
+    padding: 8px 12px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; color: #fff;
+    display: flex; align-items: center; gap: 6px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .ai-result {
+    position: absolute; bottom: 18px; left: 18px; right: 18px;
+    background: rgba(255,255,255,0.95); backdrop-filter: blur(20px);
+    border-radius: 22px; padding: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .ai-icn {
+    width: 44px; height: 44px; border-radius: 14px;
+    background: linear-gradient(135deg, #10B981, #047857);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 18px; flex-shrink: 0;
+  }
+  .ai-text { flex: 1; color: #07261B; }
+  .ai-label { font-size: 10px; font-weight: 700; color: #10B981; text-transform: uppercase; letter-spacing: 1px; }
+  .ai-title { font-size: 15px; font-weight: 800; margin-top: 1px; }
+  .ai-meta { font-size: 11px; color: #5B7A6E; margin-top: 2px; }
+  .confidence {
+    background: #D1FAE5; color: #065F46;
+    padding: 6px 10px; border-radius: 14px;
+    font-size: 11px; font-weight: 800;
+  }
+
+  /* Category selector */
+  .section-title {
+    font-size: 15px; font-weight: 800; letter-spacing: -0.3px;
+    margin: 20px 0 12px 0; color: #fff;
+  }
+  .section-title small { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 500; margin-left: 6px; }
+
+  .cats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  }
+  .cat {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px; padding: 12px 6px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.75);
+  }
+  .cat.active { background: rgba(16,185,129,0.2); border-color: #10B981; color: #fff; }
+  .cat i { font-size: 18px; }
+  .cat.active i { color: #22C55E; }
+
+  /* Severity */
+  .sev-row {
+    display: flex; gap: 8px; margin-top: 14px;
+  }
+  .sev {
+    flex: 1; padding: 14px 10px; border-radius: 16px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+    font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7);
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .sev .d { width: 10px; height: 10px; border-radius: 50%; }
+  .sev.low .d { background: #22C55E; }
+  .sev.med .d { background: #F59E0B; }
+  .sev.high { background: rgba(239,68,68,0.15); border-color: #EF4444; color: #fff; }
+  .sev.high .d { background: #EF4444; box-shadow: 0 0 10px #EF4444; }
+
+  .submit-bar {
+    position: absolute; bottom: 90px; left: 0; right: 0;
+    padding: 0 28px;
+  }
+  .submit-btn {
+    width: 100%; padding: 18px;
+    background: linear-gradient(135deg, #10B981, #047857);
+    color: #fff; font-size: 16px; font-weight: 800;
+    border-radius: 22px; border: none;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    box-shadow: 0 10px 30px rgba(16,185,129,0.5);
+  }
+
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 90px; background: rgba(7,38,27,0.95);
+    backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: flex-start;
+    padding-top: 12px; border-top: 0.5px solid rgba(255,255,255,0.1);
+  }
+  .tab-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.4);
+  }
+  .tab-item.active { color: #10B981; }
+  .tab-item i { font-size: 20px; }
+  .tab-fab {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, #10B981, #047857);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 22px;
+    box-shadow: 0 8px 20px rgba(16,185,129,0.4);
+    margin-top: -18px;
+  }
+  .home-indicator {
+    width: 134px; height: 5px; background: #fff; border-radius: 3px;
+    position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="top-row">
+      <div class="back-btn"><i class="fas fa-chevron-left"></i></div>
+      <div class="page-title">Report Pollution</div>
+      <div class="flash"><i class="fas fa-bolt"></i></div>
+    </div>
+
+    <div class="camera">
+      <div class="detect-pill"><i class="fas fa-circle" style="font-size:8px"></i> AI DETECTING</div>
+      <div class="geo-pill"><i class="fas fa-location-dot"></i> 37.7749°N</div>
+
+      <div class="scan-frame">
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+        <div class="scan-line"></div>
+      </div>
+
+      <div class="ai-result">
+        <div class="ai-icn"><i class="fas fa-brain"></i></div>
+        <div class="ai-text">
+          <div class="ai-label">AI Detected</div>
+          <div class="ai-title">Plastic Waste · Shoreline</div>
+          <div class="ai-meta">~24 items · Ocean Beach</div>
+        </div>
+        <div class="confidence">97%</div>
+      </div>
+    </div>
+
+    <div class="section-title">Category <small>auto-detected</small></div>
+    <div class="cats">
+      <div class="cat active"><i class="fas fa-trash"></i>Plastic</div>
+      <div class="cat"><i class="fas fa-smog"></i>Smog</div>
+      <div class="cat"><i class="fas fa-oil-can"></i>Oil</div>
+      <div class="cat"><i class="fas fa-tree"></i>Deforest</div>
+    </div>
+
+    <div class="section-title">Severity</div>
+    <div class="sev-row">
+      <div class="sev low"><div class="d"></div>Low</div>
+      <div class="sev med"><div class="d"></div>Medium</div>
+      <div class="sev high"><div class="d"></div>High</div>
+    </div>
+  </div>
+
+  <div class="submit-bar">
+    <button class="submit-btn"><i class="fas fa-paper-plane"></i> Submit Report · +50 pts</button>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-map-location-dot"></i><span>Map</span></div>
+    <div class="tab-fab"><i class="fas fa-camera"></i></div>
+    <div class="tab-item"><i class="fas fa-chart-simple"></i><span>Impact</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Me</span></div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>
