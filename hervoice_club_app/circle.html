@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HerVoice - Circle</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fraunces:wght@500;600;700;800&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; }
+  html, body {
+    scrollbar-width:none;
+    font-family:'Inter', sans-serif;
+    background:#FFF7FB;
+    width:100%; height:100%;
+    overflow-x:hidden; overflow-y:auto;
+    color:#4C0519;
+  }
+  .serif { font-family:'Fraunces', serif; letter-spacing:-0.5px; }
+
+  .status-bar {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 28px 0 28px; height:59px;
+    position:sticky; top:0; z-index:100; background:#FFF7FB;
+  }
+  .time { font-size:16px; font-weight:600; }
+  .dynamic-island {
+    width:120px; height:34px; background:#000; border-radius:20px;
+    position:absolute; left:50%; transform:translateX(-50%); top:10px;
+  }
+  .icons { display:flex; gap:6px; align-items:center; font-size:14px; }
+  .battery { width:27px; height:12px; border:1.5px solid #000; border-radius:3px; padding:1.5px; position:relative; }
+  .battery::after { content:''; position:absolute; right:-4px; top:3px; width:2px; height:6px; background:#000; border-radius:0 1px 1px 0; }
+  .battery-fill { width:80%; height:100%; background:#000; border-radius:1.5px; }
+
+  .content { padding:0 28px 120px 28px; }
+
+  .header {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:8px 0 14px 0;
+  }
+  .h-title { font-size:26px; font-weight:700; }
+  .h-btn {
+    width:40px; height:40px; border-radius:50%;
+    background:#fff; color:#DB2777;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; box-shadow:0 4px 12px rgba(190,24,93,0.1);
+  }
+
+  /* Safe zone banner */
+  .safe-banner {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 14px; border-radius:16px;
+    background:linear-gradient(135deg,#DCFCE7,#A7F3D0);
+    border:1px solid #86EFAC;
+    margin-bottom:18px;
+  }
+  .safe-banner i { color:#059669; font-size:14px; }
+  .safe-text { font-size:11px; color:#065F46; font-weight:600; }
+
+  /* Story hero */
+  .story-hero {
+    border-radius:26px; overflow:hidden;
+    height:200px; position:relative;
+    margin-bottom:20px;
+    background:
+      linear-gradient(180deg, rgba(76,5,25,0) 30%, rgba(147,51,234,0.9) 100%),
+      url('https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=800&h=600&fit=crop') center/cover;
+    box-shadow:0 16px 40px rgba(147,51,234,0.28);
+  }
+  .sh-tag {
+    position:absolute; top:14px; left:14px;
+    padding:5px 10px; border-radius:12px;
+    background:rgba(255,255,255,0.22);
+    backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,0.3);
+    color:#fff; font-size:10px; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.6px;
+  }
+  .sh-duration {
+    position:absolute; top:14px; right:14px;
+    padding:5px 10px; border-radius:12px;
+    background:rgba(0,0,0,0.4);
+    backdrop-filter:blur(6px);
+    color:#fff; font-size:11px; font-weight:600;
+  }
+  .sh-bottom {
+    position:absolute; bottom:16px; left:18px; right:18px;
+    color:#fff;
+  }
+  .sh-title { font-size:19px; font-weight:700; line-height:1.2; }
+  .sh-meta { font-size:11px; color:rgba(255,255,255,0.85); margin-top:6px; display:flex; align-items:center; gap:6px; }
+  .sh-anon {
+    width:22px; height:22px; border-radius:50%;
+    background:rgba(255,255,255,0.25);
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px;
+  }
+
+  /* Posts list */
+  .section-title {
+    font-size:16px; font-weight:700; margin-bottom:12px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .section-title a { font-size:12px; color:#DB2777; font-weight:600; }
+
+  .post {
+    background:#fff; border-radius:22px;
+    padding:16px; margin-bottom:12px;
+    box-shadow:0 3px 14px rgba(190,24,93,0.06);
+  }
+  .post-head {
+    display:flex; align-items:center; gap:10px; margin-bottom:10px;
+  }
+  .post-av {
+    width:36px; height:36px; border-radius:50%;
+    background:linear-gradient(135deg,#F9A8D4,#C4B5FD);
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px;
+  }
+  .post-info { flex:1; }
+  .post-name { font-size:13px; font-weight:700; }
+  .post-time { font-size:10px; color:#9F1239; margin-top:1px; }
+  .post-topic {
+    padding:4px 9px; border-radius:10px;
+    background:#FCE7F3; color:#DB2777;
+    font-size:10px; font-weight:700;
+  }
+  .post-text {
+    font-size:13px; color:#4C0519;
+    line-height:1.5;
+  }
+  .post-actions {
+    display:flex; align-items:center; gap:18px; margin-top:12px;
+    padding-top:10px; border-top:1px solid #FCE7F3;
+    font-size:12px; color:#9F1239;
+  }
+  .post-action { display:flex; align-items:center; gap:6px; font-weight:600; }
+  .post-action i { font-size:13px; }
+  .post-action.hug { color:#DB2777; }
+  .post-action.hug i { color:#EC4899; }
+
+  .tab-bar {
+    position:absolute; bottom:0; left:0; right:0;
+    height:90px; background:rgba(255,255,255,0.92);
+    backdrop-filter:blur(20px);
+    display:flex; justify-content:space-around; align-items:flex-start;
+    padding-top:12px; border-top:0.5px solid rgba(219,39,119,0.1);
+  }
+  .tab-item {
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    font-size:10px; font-weight:600; color:#F9A8D4;
+  }
+  .tab-item.active { color:#DB2777; }
+  .tab-item i { font-size:20px; }
+  .tab-dot { width:4px; height:4px; border-radius:50%; background:#DB2777; }
+  .tab-center {
+    width:56px; height:56px; border-radius:50%;
+    background:linear-gradient(135deg,#DB2777,#9333EA);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:22px; margin-top:-18px;
+    box-shadow:0 10px 26px rgba(219,39,119,0.45);
+  }
+  .home-indicator {
+    width:134px; height:5px; background:#1A1A1A; border-radius:3px;
+    position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <div class="h-title serif">Sister Circle</div>
+      <div class="h-btn"><i class="fas fa-pen"></i></div>
+    </div>
+
+    <div class="safe-banner">
+      <i class="fas fa-shield-heart"></i>
+      <div class="safe-text">Safe zone · moderated by Ms. Rivera · AI keeps it kind</div>
+    </div>
+
+    <div class="story-hero">
+      <div class="sh-tag">✨ Story of the Week</div>
+      <div class="sh-duration">2:14</div>
+      <div class="sh-bottom">
+        <div class="sh-title serif">How I stood up<br>for my friend.</div>
+        <div class="sh-meta">
+          <div class="sh-anon">🦋</div>
+          Anonymous · 7th grade
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Recent Posts <a href="#">Filter</a></div>
+
+    <div class="post">
+      <div class="post-head">
+        <div class="post-av">🌸</div>
+        <div class="post-info">
+          <div class="post-name">Anonymous Butterfly</div>
+          <div class="post-time">8th grade · 2h ago</div>
+        </div>
+        <div class="post-topic">Confidence</div>
+      </div>
+      <div class="post-text">I used to be scared to speak in class. After the "Speak Up Safely" workshop, I raised my hand 3 times today 💪✨</div>
+      <div class="post-actions">
+        <div class="post-action hug"><i class="fas fa-heart"></i> 42 hugs</div>
+        <div class="post-action"><i class="fas fa-comment"></i> 8</div>
+        <div class="post-action"><i class="fas fa-bookmark"></i></div>
+      </div>
+    </div>
+
+    <div class="post">
+      <div class="post-head">
+        <div class="post-av">🌻</div>
+        <div class="post-info">
+          <div class="post-name">Anonymous Sunflower</div>
+          <div class="post-time">7th grade · 5h ago</div>
+        </div>
+        <div class="post-topic">Question</div>
+      </div>
+      <div class="post-text">How do you tell someone you don't like when they touch your arm? I don't want to be mean but it makes me uncomfortable 💭</div>
+      <div class="post-actions">
+        <div class="post-action hug"><i class="fas fa-heart"></i> 68 hugs</div>
+        <div class="post-action"><i class="fas fa-comment"></i> 14</div>
+        <div class="post-action"><i class="fas fa-bookmark"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-calendar"></i><span>Events</span></div>
+    <div class="tab-center"><i class="fas fa-shield-heart"></i></div>
+    <div class="tab-item active">
+      <i class="fas fa-users"></i><span>Circle</span>
+      <div class="tab-dot"></div>
+    </div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Me</span></div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>
