@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>平行心灵 - 安全</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; }
+  html, body {
+    scrollbar-width:none;
+    font-family:'Inter', sans-serif;
+    background:#FAF7FF;
+    width:100%; height:100%;
+    overflow-x:hidden; overflow-y:auto;
+    color:#1E1B4B;
+  }
+  .display { font-family:'Space Grotesk', sans-serif; letter-spacing:-0.5px; }
+
+  .status-bar {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 28px 0 28px; height:59px;
+    background:transparent;
+    position:sticky; top:0; z-index:100;
+  }
+  .time { font-size:16px; font-weight:600; }
+  .dynamic-island {
+    width:120px; height:34px; background:#000; border-radius:20px;
+    position:absolute; left:50%; transform:translateX(-50%); top:10px;
+  }
+  .icons { display:flex; gap:6px; align-items:center; font-size:14px; }
+  .battery { width:27px; height:12px; border:1.5px solid #000; border-radius:3px; padding:1.5px; position:relative; }
+  .battery::after { content:''; position:absolute; right:-4px; top:3px; width:2px; height:6px; background:#000; border-radius:0 1px 1px 0; }
+  .battery-fill { width:80%; height:100%; background:#000; border-radius:1.5px; }
+
+  .content { padding:0 28px 120px 28px; }
+  .nav {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:8px 0 14px 0;
+  }
+  .nav-btn {
+    width:40px; height:40px; border-radius:50%;
+    background:#fff; color:#7C3AED;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; box-shadow:0 4px 14px rgba(30,27,75,0.08);
+  }
+  .nav-title { font-size:16px; font-weight:600; }
+
+  .page-title { font-size:28px; font-weight:700; margin:4px 0 4px 0; }
+  .page-sub { font-size:13px; color:#8B85B2; margin-bottom:20px; }
+
+  /* Shield status card */
+  .shield-card {
+    background:linear-gradient(140deg,#10B981 0%,#059669 60%,#047857 100%);
+    border-radius:28px; padding:22px;
+    box-shadow:0 18px 40px rgba(16,185,129,0.32);
+    position:relative; overflow:hidden; color:#fff;
+    margin-bottom:20px;
+  }
+  .shield-card::before {
+    content:''; position:absolute; top:-60px; right:-40px;
+    width:200px; height:200px;
+    background:radial-gradient(circle,rgba(255,255,255,0.2) 0%, transparent 65%);
+    border-radius:50%;
+  }
+  .shield-head {
+    display:flex; justify-content:space-between; align-items:center;
+    position:relative; z-index:2;
+  }
+  .shield-icon-big {
+    width:54px; height:54px; border-radius:18px;
+    background:rgba(255,255,255,0.18);
+    backdrop-filter:blur(10px);
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px;
+  }
+  .active-pill {
+    padding:6px 12px; border-radius:14px;
+    background:rgba(255,255,255,0.18);
+    font-size:11px; font-weight:700;
+    display:flex; align-items:center; gap:6px;
+  }
+  .green-dot { width:7px; height:7px; border-radius:50%; background:#A7F3D0; box-shadow:0 0 10px #A7F3D0; }
+  .shield-title {
+    font-size:22px; font-weight:700; margin-top:16px;
+    position:relative; z-index:2;
+  }
+  .shield-sub { font-size:13px; color:rgba(255,255,255,0.8); margin-top:4px; position:relative; z-index:2; }
+  .shield-stats {
+    display:flex; gap:10px; margin-top:16px;
+    position:relative; z-index:2;
+  }
+  .ss-box {
+    flex:1; background:rgba(255,255,255,0.14);
+    backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,0.18);
+    border-radius:16px; padding:12px;
+  }
+  .ss-val { font-size:22px; font-weight:800; letter-spacing:-0.5px; }
+  .ss-lbl { font-size:10px; color:rgba(255,255,255,0.75); margin-top:2px; text-transform:uppercase; letter-spacing:0.6px; font-weight:600; }
+
+  /* Control list */
+  .section-title {
+    font-size:15px; font-weight:700; margin:20px 0 12px 0;
+  }
+  .control-list {
+    background:#fff; border-radius:22px; overflow:hidden;
+    box-shadow:0 4px 18px rgba(30,27,75,0.06);
+  }
+  .control-row {
+    display:flex; align-items:center; gap:14px;
+    padding:16px;
+  }
+  .control-row + .control-row { border-top:1px solid #F5F1FF; }
+  .ctrl-icon {
+    width:42px; height:42px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:17px; flex-shrink:0; color:#fff;
+  }
+  .ci1 { background:linear-gradient(135deg,#8B5CF6,#6D28D9); }
+  .ci2 { background:linear-gradient(135deg,#06B6D4,#0891B2); }
+  .ci3 { background:linear-gradient(135deg,#F472B6,#EC4899); }
+  .ci4 { background:linear-gradient(135deg,#F59E0B,#D97706); }
+  .ctrl-info { flex:1; }
+  .ctrl-name { font-size:14px; font-weight:700; }
+  .ctrl-sub { font-size:11px; color:#8B85B2; margin-top:2px; }
+  .toggle {
+    width:42px; height:26px; border-radius:14px;
+    background:#10B981; position:relative; flex-shrink:0;
+  }
+  .toggle::after {
+    content:''; position:absolute; top:3px; right:3px;
+    width:20px; height:20px; border-radius:50%; background:#fff;
+    box-shadow:0 2px 6px rgba(0,0,0,0.15);
+  }
+  .toggle.off { background:#E9E3FF; }
+  .toggle.off::after { right:auto; left:3px; }
+
+  /* Crisis bridge */
+  .crisis-card {
+    margin-top:18px; padding:18px;
+    border-radius:24px;
+    background:linear-gradient(135deg,#FEE2E2,#FECACA);
+    border:1px solid #FCA5A5;
+    display:flex; align-items:center; gap:14px;
+  }
+  .crisis-icon {
+    width:52px; height:52px; border-radius:18px;
+    background:linear-gradient(135deg,#EF4444,#DC2626);
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    font-size:22px; flex-shrink:0;
+    box-shadow:0 10px 24px rgba(239,68,68,0.35);
+  }
+  .crisis-info { flex:1; }
+  .crisis-title { font-size:15px; font-weight:700; color:#7F1D1D; }
+  .crisis-sub { font-size:11px; color:#991B1B; margin-top:2px; }
+  .crisis-btn {
+    padding:10px 14px; border-radius:14px;
+    background:#DC2626; color:#fff;
+    font-size:12px; font-weight:700;
+  }
+
+  .tab-bar {
+    position:absolute; bottom:0; left:0; right:0;
+    height:90px; background:rgba(255,255,255,0.92);
+    backdrop-filter:blur(20px);
+    display:flex; justify-content:space-around; align-items:flex-start;
+    padding-top:12px; border-top:0.5px solid rgba(30,27,75,0.08);
+  }
+  .tab-item {
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    font-size:10px; font-weight:600; color:#B4AEDB;
+  }
+  .tab-item.active { color:#7C3AED; }
+  .tab-item i { font-size:20px; }
+  .tab-dot { width:4px; height:4px; border-radius:50%; background:#7C3AED; }
+  .tab-center {
+    width:56px; height:56px; border-radius:50%;
+    background:linear-gradient(135deg,#7C3AED,#06B6D4);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:22px; margin-top:-18px;
+    box-shadow:0 10px 26px rgba(124,58,237,0.4);
+  }
+  .home-indicator {
+    width:134px; height:5px; background:#1A1A1A; border-radius:3px;
+    position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="nav">
+      <div class="nav-btn"><i class="fas fa-chevron-left"></i></div>
+      <div class="nav-title">安全与隐私</div>
+      <div class="nav-btn"><i class="fas fa-question"></i></div>
+    </div>
+
+    <div class="page-title display">你的守护<br>正在运行。</div>
+    <div class="page-sub">本月已拦截 47 项风险 · 消息零存储</div>
+
+    <!-- Shield status -->
+    <div class="shield-card">
+      <div class="shield-head">
+        <div class="shield-icon-big">🛡️</div>
+        <div class="active-pill"><span class="green-dot"></span> 运行中</div>
+      </div>
+      <div class="shield-title">AI 安全守护</div>
+      <div class="shield-sub">本地运行 · 数据主权 · 零知识加密</div>
+      <div class="shield-stats">
+        <div class="ss-box">
+          <div class="ss-val">47</div>
+          <div class="ss-lbl">已拦截</div>
+        </div>
+        <div class="ss-box">
+          <div class="ss-val">0</div>
+          <div class="ss-lbl">已存储</div>
+        </div>
+        <div class="ss-box">
+          <div class="ss-val">100%</div>
+          <div class="ss-lbl">加密</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">隐私控制</div>
+    <div class="control-list">
+      <div class="control-row">
+        <div class="ctrl-icon ci1"><i class="fas fa-user-secret"></i></div>
+        <div class="ctrl-info">
+          <div class="ctrl-name">匿名模式</div>
+          <div class="ctrl-sub">对同伴隐藏真实身份</div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="control-row">
+        <div class="ctrl-icon ci2"><i class="fas fa-database"></i></div>
+        <div class="ctrl-info">
+          <div class="ctrl-name">数据主权存储</div>
+          <div class="ctrl-sub">数据仅存于本国</div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="control-row">
+        <div class="ctrl-icon ci3"><i class="fas fa-triangle-exclamation"></i></div>
+        <div class="ctrl-info">
+          <div class="ctrl-name">敏感词过滤</div>
+          <div class="ctrl-sub">自动柔化自伤相关语言</div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="control-row">
+        <div class="ctrl-icon ci4"><i class="fas fa-user-shield"></i></div>
+        <div class="ctrl-info">
+          <div class="ctrl-name">监护人共管（16岁以下）</div>
+          <div class="ctrl-sub">可选家长/学校协同守护</div>
+        </div>
+        <div class="toggle off"></div>
+      </div>
+    </div>
+
+    <!-- Crisis bridge -->
+    <div class="crisis-card">
+      <div class="crisis-icon"><i class="fas fa-phone-volume"></i></div>
+      <div class="crisis-info">
+        <div class="crisis-title">危机救援 · 24/7</div>
+        <div class="crisis-sub">一键接通本国认证心理咨询师</div>
+      </div>
+      <div class="crisis-btn">立即接入</div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>首页</span></div>
+    <div class="tab-item"><i class="fas fa-comments"></i><span>聊天</span></div>
+    <div class="tab-center"><i class="fas fa-bolt"></i></div>
+    <div class="tab-item"><i class="fas fa-earth-americas"></i><span>全球</span></div>
+    <div class="tab-item active">
+      <i class="fas fa-shield-halved"></i><span>安全</span>
+      <div class="tab-dot"></div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>
