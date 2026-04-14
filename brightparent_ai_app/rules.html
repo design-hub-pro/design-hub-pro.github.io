@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrightParent - Family AI Rules</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Instrument+Serif:wght@400&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; }
+  html, body {
+    scrollbar-width:none;
+    font-family:'Inter', sans-serif;
+    background:linear-gradient(180deg,#FFF7ED 0%,#FEF3C7 60%,#FAF5FF 100%);
+    width:100%; height:100%;
+    overflow-x:hidden; overflow-y:auto;
+    color:#1E1B4B;
+  }
+  .serif { font-family:'Instrument Serif', serif; font-style:italic; font-weight:400; }
+
+  .status-bar {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 28px 0 28px; height:59px;
+    position:sticky; top:0; z-index:100; background:transparent;
+  }
+  .time { font-size:16px; font-weight:600; }
+  .dynamic-island {
+    width:120px; height:34px; background:#000; border-radius:20px;
+    position:absolute; left:50%; transform:translateX(-50%); top:10px;
+  }
+  .icons { display:flex; gap:6px; align-items:center; font-size:14px; }
+  .battery { width:27px; height:12px; border:1.5px solid #000; border-radius:3px; padding:1.5px; position:relative; }
+  .battery::after { content:''; position:absolute; right:-4px; top:3px; width:2px; height:6px; background:#000; border-radius:0 1px 1px 0; }
+  .battery-fill { width:80%; height:100%; background:#000; border-radius:1.5px; }
+
+  .content { padding:0 28px 60px 28px; }
+  .nav {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:8px 0 14px 0;
+  }
+  .nav-btn {
+    width:40px; height:40px; border-radius:50%;
+    background:#fff; color:#6366F1;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; box-shadow:0 4px 12px rgba(99,102,241,0.12);
+  }
+  .nav-title { font-size:15px; font-weight:700; }
+
+  /* Scroll hero */
+  .hero-card {
+    background:
+      linear-gradient(135deg,rgba(249,115,22,0.92),rgba(234,88,12,0.92)),
+      url('https://images.unsplash.com/photo-1511895426328-dc8714191300?w=800&h=600&fit=crop') center/cover;
+    border-radius:28px;
+    padding:22px;
+    color:#fff;
+    margin-bottom:20px;
+    position:relative; overflow:hidden;
+    box-shadow:0 18px 40px rgba(249,115,22,0.3);
+  }
+  .hero-card::before {
+    content:''; position:absolute; top:-60px; right:-40px;
+    width:220px; height:220px;
+    background:radial-gradient(circle,rgba(255,255,255,0.18) 0%, transparent 65%);
+    border-radius:50%;
+  }
+  .hc-tag {
+    display:inline-block; padding:5px 11px; border-radius:11px;
+    background:rgba(255,255,255,0.2);
+    backdrop-filter:blur(10px);
+    font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px;
+    position:relative; z-index:2;
+  }
+  .hc-title {
+    font-size:26px; font-weight:700; line-height:1.1;
+    margin-top:10px; position:relative; z-index:2;
+  }
+  .hc-title em { font-family:'Instrument Serif', serif; font-style:italic; font-weight:400; }
+
+  .hc-stats {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:18px; position:relative; z-index:2;
+  }
+  .hc-progress { flex:1; margin-right:14px; }
+  .hc-bar {
+    height:6px; background:rgba(255,255,255,0.22);
+    border-radius:10px; overflow:hidden;
+  }
+  .hc-bar span { display:block; height:100%; width:62%; background:#FBBF24; border-radius:10px; }
+  .hc-label { font-size:11px; margin-top:6px; opacity:0.9; }
+  .hc-val { font-size:28px; font-weight:800; letter-spacing:-0.5px; }
+
+  /* Rules list */
+  .section-title {
+    font-size:15px; font-weight:700; margin:10px 0 12px 0;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .section-title a { font-size:12px; color:#6366F1; font-weight:600; }
+
+  .rule {
+    background:#fff; border-radius:20px;
+    padding:14px; margin-bottom:10px;
+    display:flex; align-items:center; gap:12px;
+    box-shadow:0 3px 12px rgba(99,102,241,0.06);
+  }
+  .rule-check {
+    width:28px; height:28px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; flex-shrink:0;
+  }
+  .rc-done { background:linear-gradient(135deg,#10B981,#059669); color:#fff; }
+  .rc-pend { background:#F3E8FF; color:#A78BFA; border:1.5px dashed #C4B5FD; }
+  .rule-info { flex:1; }
+  .rule-text { font-size:13px; font-weight:700; line-height:1.3; }
+  .rule-meta { font-size:10px; color:#8B85B2; margin-top:2px; }
+  .rule-avs { display:flex; }
+  .rav {
+    width:22px; height:22px; border-radius:50%;
+    border:2px solid #fff; margin-left:-6px;
+    background-size:cover;
+  }
+  .rav:first-child { margin-left:0; }
+
+  /* Add button */
+  .add-rule {
+    width:100%; padding:14px;
+    border-radius:18px;
+    background:#fff;
+    border:1.5px dashed #A78BFA;
+    color:#6366F1; font-size:13px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    margin-bottom:16px;
+  }
+
+  /* Agreement signature */
+  .agreement {
+    background:linear-gradient(135deg,#EEF2FF,#DDD6FE);
+    border-radius:22px; padding:18px;
+    border:1.5px solid #C4B5FD;
+    margin-top:10px;
+  }
+  .agr-title { font-size:14px; font-weight:700; color:#4338CA; margin-bottom:10px; }
+  .agr-sigs {
+    display:flex; gap:10px;
+  }
+  .sig {
+    flex:1; padding:10px;
+    background:#fff; border-radius:14px;
+    text-align:center;
+  }
+  .sig-av {
+    width:36px; height:36px; border-radius:50%;
+    background-size:cover; background-position:center;
+    border:2px solid #fff; box-shadow:0 2px 8px rgba(99,102,241,0.2);
+    margin:0 auto 6px;
+  }
+  .sig-name { font-size:11px; font-weight:700; }
+  .sig-status { font-size:9px; font-weight:600; margin-top:2px; }
+  .sig-done { color:#10B981; }
+  .sig-pend { color:#F59E0B; }
+
+  .home-indicator {
+    width:134px; height:5px; background:#1A1A1A; border-radius:3px;
+    position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="nav">
+      <div class="nav-btn"><i class="fas fa-chevron-left"></i></div>
+      <div class="nav-title">Family AI Rules</div>
+      <div class="nav-btn"><i class="fas fa-share"></i></div>
+    </div>
+
+    <!-- Hero -->
+    <div class="hero-card">
+      <div class="hc-tag">🏡 Our Agreement</div>
+      <div class="hc-title">Rules we <em>agreed on</em><br>together.</div>
+      <div class="hc-stats">
+        <div class="hc-progress">
+          <div class="hc-bar"><span></span></div>
+          <div class="hc-label">5 of 8 rules active</div>
+        </div>
+        <div class="hc-val">62%</div>
+      </div>
+    </div>
+
+    <div class="section-title">Active rules <a href="#">Edit</a></div>
+
+    <div class="rule">
+      <div class="rule-check rc-done"><i class="fas fa-check"></i></div>
+      <div class="rule-info">
+        <div class="rule-text">No AI for essays without citing sources</div>
+        <div class="rule-meta">Agreed · 12 days ago</div>
+      </div>
+      <div class="rule-avs">
+        <div class="rav" style="background-image:url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop');"></div>
+        <div class="rav" style="background-image:url('https://images.unsplash.com/photo-1519340333755-c190675bf659?w=80&h=80&fit=crop');"></div>
+      </div>
+    </div>
+
+    <div class="rule">
+      <div class="rule-check rc-done"><i class="fas fa-check"></i></div>
+      <div class="rule-info">
+        <div class="rule-text">No AI chatbots before bedtime</div>
+        <div class="rule-meta">Agreed · 10 days ago</div>
+      </div>
+      <div class="rule-avs">
+        <div class="rav" style="background-image:url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop');"></div>
+        <div class="rav" style="background-image:url('https://images.unsplash.com/photo-1519340333755-c190675bf659?w=80&h=80&fit=crop');"></div>
+      </div>
+    </div>
+
+    <div class="rule">
+      <div class="rule-check rc-done"><i class="fas fa-check"></i></div>
+      <div class="rule-info">
+        <div class="rule-text">Always tell mom when AI gives weird answers</div>
+        <div class="rule-meta">Agreed · 8 days ago</div>
+      </div>
+      <div class="rule-avs">
+        <div class="rav" style="background-image:url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop');"></div>
+        <div class="rav" style="background-image:url('https://images.unsplash.com/photo-1519340333755-c190675bf659?w=80&h=80&fit=crop');"></div>
+      </div>
+    </div>
+
+    <div class="rule">
+      <div class="rule-check rc-pend">?</div>
+      <div class="rule-info">
+        <div class="rule-text">Show parents any AI images created</div>
+        <div class="rule-meta">Pending Emma's agreement</div>
+      </div>
+    </div>
+
+    <button class="add-rule">
+      <i class="fas fa-plus"></i> Draft a new rule together
+    </button>
+
+    <div class="agreement">
+      <div class="agr-title">Family signatures</div>
+      <div class="agr-sigs">
+        <div class="sig">
+          <div class="sig-av" style="background-image:url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop');"></div>
+          <div class="sig-name">Mom</div>
+          <div class="sig-status sig-done">✓ signed</div>
+        </div>
+        <div class="sig">
+          <div class="sig-av" style="background-image:url('https://images.unsplash.com/photo-1519340333755-c190675bf659?w=80&h=80&fit=crop');"></div>
+          <div class="sig-name">Emma</div>
+          <div class="sig-status sig-done">✓ signed</div>
+        </div>
+        <div class="sig">
+          <div class="sig-av" style="background-image:url('https://images.unsplash.com/photo-1503919005314-30d93d07d823?w=80&h=80&fit=crop');"></div>
+          <div class="sig-name">Liam</div>
+          <div class="sig-status sig-pend">○ waiting</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+</body>
+</html>
