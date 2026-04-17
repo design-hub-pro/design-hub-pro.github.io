@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ActiveCircle - Schedule</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { scrollbar-width: none; width: 100%; height: 100%; overflow-x: hidden; font-family: 'Inter', -apple-system, sans-serif; background: #F8F7FC; }
+
+  .status-bar { height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center; background: #F8F7FC; position: sticky; top: 0; z-index: 100; }
+  .status-time { font-size: 16px; font-weight: 600; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 14px; }
+  .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+  .page-title { font-size: 28px; font-weight: 800; color: #1a1a2e; margin-top: 8px; }
+
+  .month-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+  .month-label { font-size: 17px; font-weight: 700; color: #1a1a2e; }
+  .month-arrows { display: flex; gap: 12px; }
+  .month-arrow { width: 34px; height: 34px; background: #EFEFF4; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #555; font-size: 13px; }
+
+  .week-row { display: flex; justify-content: space-between; margin-top: 18px; }
+  .day-col { text-align: center; flex: 1; }
+  .day-label { font-size: 12px; color: #8E8E93; font-weight: 500; }
+  .day-num { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; color: #1a1a2e; margin: 8px auto 0; }
+  .day-num.today { background: #6C5CE7; color: white; }
+  .day-num.has-event { position: relative; }
+  .day-num.has-event::after { content: ''; width: 6px; height: 6px; background: #FF6B35; border-radius: 50%; position: absolute; bottom: -4px; }
+
+  .section-title { font-size: 18px; font-weight: 700; color: #1a1a2e; margin-top: 28px; margin-bottom: 16px; }
+
+  .timeline { position: relative; padding-left: 20px; }
+  .timeline::before { content: ''; position: absolute; left: 6px; top: 8px; bottom: 8px; width: 2px; background: #EFEFF4; }
+  .timeline-item { position: relative; margin-bottom: 18px; }
+  .timeline-dot { width: 14px; height: 14px; border-radius: 50%; position: absolute; left: -20px; top: 4px; border: 3px solid; }
+  .timeline-card { background: white; border-radius: 18px; padding: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+  .timeline-time { font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+  .timeline-name { font-size: 15px; font-weight: 700; color: #1a1a2e; }
+  .timeline-meta { font-size: 12px; color: #8E8E93; margin-top: 4px; }
+  .timeline-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  .timeline-group { display: flex; align-items: center; gap: 8px; }
+  .timeline-group-img { width: 24px; height: 24px; border-radius: 8px; object-fit: cover; }
+  .timeline-group-name { font-size: 12px; color: #6C5CE7; font-weight: 600; }
+  .timeline-rsvp { font-size: 11px; font-weight: 600; padding: 5px 14px; border-radius: 20px; border: none; }
+
+  .empty-slot { background: white; border-radius: 18px; padding: 20px; text-align: center; margin-bottom: 18px; border: 2px dashed #E0E0E0; }
+  .empty-slot i { font-size: 24px; color: #C7C7CC; }
+  .empty-slot p { font-size: 13px; color: #8E8E93; margin-top: 6px; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 90px; background: white; display: flex; justify-content: space-around; align-items: flex-start; padding-top: 12px; border-top: 1px solid #f0f0f0; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .tab-item i { font-size: 22px; color: #C7C7CC; }
+  .tab-item span { font-size: 10px; color: #C7C7CC; font-weight: 500; }
+  .tab-item.active i { color: #6C5CE7; }
+  .tab-item.active span { color: #6C5CE7; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-title">Schedule</div>
+
+    <div class="month-nav">
+      <span class="month-label">April 2026</span>
+      <div class="month-arrows">
+        <div class="month-arrow"><i class="fas fa-chevron-left"></i></div>
+        <div class="month-arrow"><i class="fas fa-chevron-right"></i></div>
+      </div>
+    </div>
+
+    <div class="week-row">
+      <div class="day-col">
+        <div class="day-label">Mon</div>
+        <div class="day-num">14</div>
+      </div>
+      <div class="day-col">
+        <div class="day-label">Tue</div>
+        <div class="day-num has-event">15</div>
+      </div>
+      <div class="day-col">
+        <div class="day-label">Wed</div>
+        <div class="day-num has-event">16</div>
+      </div>
+      <div class="day-col">
+        <div class="day-label">Thu</div>
+        <div class="day-num today has-event">17</div>
+      </div>
+      <div class="day-col">
+        <div class="day-label">Fri</div>
+        <div class="day-num has-event">18</div>
+      </div>
+      <div class="day-col">
+        <div class="day-label">Sat</div>
+        <div class="day-num has-event">19</div>
+      </div>
+      <div class="day-col">
+        <div class="day-label">Sun</div>
+        <div class="day-num">20</div>
+      </div>
+    </div>
+
+    <div class="section-title">Today's Activities</div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background: #FFE0D0; border-color: #FF6B35;"></div>
+        <div class="timeline-card">
+          <div class="timeline-time" style="color: #FF6B35;">9:00 AM - 11:00 AM</div>
+          <div class="timeline-name">Ping Pong Open Play</div>
+          <div class="timeline-meta"><i class="fas fa-map-marker-alt"></i> Community Center, Room B</div>
+          <div class="timeline-bottom">
+            <div class="timeline-group">
+              <img class="timeline-group-img" src="https://images.unsplash.com/photo-1609710228159-0fa9bd7c0827?w=60&h=60&fit=crop" alt="">
+              <span class="timeline-group-name">Golden Paddle</span>
+            </div>
+            <button class="timeline-rsvp" style="background:#E8F5E9;color:#00B894;">Joined</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background: #E8DEFF; border-color: #6C5CE7;"></div>
+        <div class="timeline-card">
+          <div class="timeline-time" style="color: #6C5CE7;">10:30 AM - 12:00 PM</div>
+          <div class="timeline-name">Tai Chi Morning Flow</div>
+          <div class="timeline-meta"><i class="fas fa-map-marker-alt"></i> Elm Park, North Lawn</div>
+          <div class="timeline-bottom">
+            <div class="timeline-group">
+              <img class="timeline-group-img" src="https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?w=60&h=60&fit=crop" alt="">
+              <span class="timeline-group-name">Sunrise Tai Chi</span>
+            </div>
+            <button class="timeline-rsvp" style="background:#E8DEFF;color:#6C5CE7;">RSVP</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background: #FFEAA7; border-color: #FDCB6E;"></div>
+        <div class="timeline-card">
+          <div class="timeline-time" style="color: #F39C12;">2:00 PM - 3:30 PM</div>
+          <div class="timeline-name">Beginner Kung Fu</div>
+          <div class="timeline-meta"><i class="fas fa-map-marker-alt"></i> Lincoln Recreation Hall</div>
+          <div class="timeline-bottom">
+            <div class="timeline-group">
+              <img class="timeline-group-img" src="https://images.unsplash.com/photo-1555597673-b21d5c935865?w=60&h=60&fit=crop" alt="">
+              <span class="timeline-group-name">Dragon Fist</span>
+            </div>
+            <button class="timeline-rsvp" style="background:#FFF3E0;color:#F39C12;">RSVP</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background: #D4EFDF; border-color: #00B894;"></div>
+        <div class="timeline-card">
+          <div class="timeline-time" style="color: #00B894;">4:00 PM - 5:00 PM</div>
+          <div class="timeline-name">Sunset Walking Group</div>
+          <div class="timeline-meta"><i class="fas fa-map-marker-alt"></i> Riverside Trail</div>
+          <div class="timeline-bottom">
+            <div class="timeline-group">
+              <img class="timeline-group-img" src="https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=60&h=60&fit=crop" alt="">
+              <span class="timeline-group-name">Happy Walkers</span>
+            </div>
+            <button class="timeline-rsvp" style="background:#E8F5E9;color:#00B894;">Joined</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-compass"></i>
+      <span>Explore</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-calendar-days"></i>
+      <span>Schedule</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-comments"></i>
+      <span>Chat</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>
