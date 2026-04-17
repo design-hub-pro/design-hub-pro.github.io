@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RecoVision - Scan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+        .status-bar { height: 59px; padding: 0 28px; }
+        .pose-skeleton { position: absolute; }
+        .joint { width: 12px; height: 12px; background: #22d3ee; border-radius: 50%; position: absolute; box-shadow: 0 0 12px rgba(34,211,238,0.8); }
+        .bone { position: absolute; height: 3px; background: linear-gradient(90deg, #22d3ee, #818cf8); border-radius: 2px; transform-origin: left center; box-shadow: 0 0 8px rgba(34,211,238,0.4); }
+        @keyframes pulse-ring { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
+        .pulse-ring { animation: pulse-ring 1.5s ease-out infinite; }
+        @keyframes scan-line { 0% { top: 20%; } 100% { top: 80%; } }
+        .scan-line { animation: scan-line 2s ease-in-out infinite alternate; }
+        .feedback-card { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+    </style>
+</head>
+<body>
+    <!-- Camera View Background -->
+    <div class="absolute inset-0">
+        <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=500&h=1000&fit=crop" class="w-full h-full object-cover opacity-70">
+    </div>
+
+    <!-- Scan Line -->
+    <div class="scan-line absolute left-8 right-8 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent z-10"></div>
+
+    <!-- Status Bar -->
+    <div class="status-bar flex items-end justify-between pb-2 relative z-20">
+        <div class="flex items-center gap-1">
+            <span class="text-sm font-semibold text-white">9:41</span>
+        </div>
+        <div class="w-[126px] h-[37px] bg-black rounded-full mt-3"></div>
+        <div class="flex items-center gap-1.5 text-white">
+            <i class="fas fa-signal text-xs"></i>
+            <i class="fas fa-wifi text-xs"></i>
+            <i class="fas fa-battery-full text-xs"></i>
+        </div>
+    </div>
+
+    <!-- Top Controls -->
+    <div class="absolute top-16 left-0 right-0 px-28 z-20">
+        <div class="flex items-center justify-between">
+            <div class="w-10 h-10 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center">
+                <i class="fas fa-xmark text-white"></i>
+            </div>
+            <div class="flex items-center gap-2 bg-black/40 backdrop-blur-md rounded-full px-4 py-2">
+                <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <span class="text-white text-sm font-medium">Recording</span>
+            </div>
+            <div class="w-10 h-10 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center">
+                <i class="fas fa-rotate text-white"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pose Skeleton Overlay -->
+    <div class="pose-skeleton z-10" style="left: 50%; top: 50%; transform: translate(-50%, -50%);">
+        <!-- Head -->
+        <div class="joint" style="left: 80px; top: -100px;"></div>
+        <!-- Neck -->
+        <div class="joint" style="left: 80px; top: -70px;"></div>
+        <!-- Left Shoulder -->
+        <div class="joint" style="left: 30px; top: -50px;"></div>
+        <!-- Right Shoulder -->
+        <div class="joint" style="left: 130px; top: -50px;"></div>
+        <!-- Left Elbow -->
+        <div class="joint" style="left: -10px; top: -10px;"></div>
+        <!-- Right Elbow -->
+        <div class="joint" style="left: 170px; top: -10px;"></div>
+        <!-- Left Wrist -->
+        <div class="joint" style="left: -30px; top: 30px;"></div>
+        <!-- Right Wrist -->
+        <div class="joint" style="left: 190px; top: 30px;"></div>
+        <!-- Left Hip -->
+        <div class="joint" style="left: 50px; top: 30px;"></div>
+        <!-- Right Hip -->
+        <div class="joint" style="left: 110px; top: 30px;"></div>
+        <!-- Left Knee -->
+        <div class="joint" style="left: 40px; top: 100px;"></div>
+        <!-- Right Knee - highlighted -->
+        <div class="joint" style="left: 120px; top: 100px; background: #f59e0b; box-shadow: 0 0 16px rgba(245,158,11,0.8);">
+            <div class="absolute inset-0 rounded-full bg-amber-400 pulse-ring"></div>
+        </div>
+        <!-- Left Ankle -->
+        <div class="joint" style="left: 35px; top: 170px;"></div>
+        <!-- Right Ankle -->
+        <div class="joint" style="left: 125px; top: 170px;"></div>
+
+        <!-- Bones -->
+        <div class="bone" style="left: 80px; top: -98px; width: 30px; transform: rotate(90deg);"></div>
+        <div class="bone" style="left: 32px; top: -58px; width: 52px; transform: rotate(10deg);"></div>
+        <div class="bone" style="left: 82px; top: -58px; width: 52px; transform: rotate(-10deg);"></div>
+        <div class="bone" style="left: -8px; top: -48px; width: 55px; transform: rotate(45deg);"></div>
+        <div class="bone" style="left: 132px; top: -48px; width: 55px; transform: rotate(-45deg);"></div>
+        <div class="bone" style="left: -28px; top: -8px; width: 45px; transform: rotate(60deg);"></div>
+        <div class="bone" style="left: 172px; top: -8px; width: 45px; transform: rotate(-60deg);"></div>
+        <div class="bone" style="left: 52px; top: -48px; width: 80px; transform: rotate(90deg);"></div>
+        <div class="bone" style="left: 112px; top: -48px; width: 80px; transform: rotate(90deg);"></div>
+        <div class="bone" style="left: 42px; top: 32px; width: 72px; transform: rotate(82deg);"></div>
+        <div class="bone" style="left: 112px; top: 32px; width: 72px; transform: rotate(98deg); background: linear-gradient(90deg, #f59e0b, #ef4444);"></div>
+        <div class="bone" style="left: 37px; top: 102px; width: 72px; transform: rotate(86deg);"></div>
+        <div class="bone" style="left: 123px; top: 102px; width: 72px; transform: rotate(94deg); background: linear-gradient(90deg, #f59e0b, #ef4444);"></div>
+    </div>
+
+    <!-- Real-time Angle Indicator -->
+    <div class="absolute z-20" style="right: 40px; top: 50%; transform: translateY(20px);">
+        <div class="bg-black/50 backdrop-blur-md rounded-2xl p-3 text-center">
+            <p class="text-cyan-400 text-[10px] font-medium">KNEE ANGLE</p>
+            <p class="text-3xl font-bold text-white">127°</p>
+            <p class="text-amber-400 text-[10px] font-medium mt-1">Target: 135°</p>
+        </div>
+    </div>
+
+    <!-- AI Feedback Panel -->
+    <div class="absolute bottom-0 left-0 right-0 z-20">
+        <div class="feedback-card bg-black/60 rounded-t-3xl p-5 pb-8">
+            <!-- Exercise Info -->
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-white font-bold text-lg">Seated Knee Extension</h3>
+                    <p class="text-gray-400 text-xs">Rep 4 of 12 · Set 2 of 3</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl font-bold text-white">02:34</span>
+                </div>
+            </div>
+
+            <!-- Real-time Feedback -->
+            <div class="bg-amber-500/20 border border-amber-500/30 rounded-2xl p-3 mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-amber-500/30 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-lightbulb text-amber-400 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-amber-300 text-sm font-medium">Extend 8° more</p>
+                        <p class="text-amber-200/60 text-xs">Slow down the movement for better control</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics Row -->
+            <div class="grid grid-cols-3 gap-3">
+                <div class="bg-white/10 rounded-xl p-2.5 text-center">
+                    <p class="text-green-400 text-xl font-bold">92</p>
+                    <p class="text-gray-400 text-[10px]">Form Score</p>
+                </div>
+                <div class="bg-white/10 rounded-xl p-2.5 text-center">
+                    <p class="text-cyan-400 text-xl font-bold">3.2s</p>
+                    <p class="text-gray-400 text-[10px]">Rep Time</p>
+                </div>
+                <div class="bg-white/10 rounded-xl p-2.5 text-center">
+                    <p class="text-purple-400 text-xl font-bold">85%</p>
+                    <p class="text-gray-400 text-[10px]">ROM</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
