@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CourtCut AI - Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', -apple-system, sans-serif; scrollbar-width: none; }
+        *::-webkit-scrollbar { display: none; }
+        body { width: 100%; height: 100%; margin: 0; padding: 0; background: #000; overflow-x: hidden; }
+        .gradient-orange { background: linear-gradient(135deg, #FF6B35, #FF8C42); }
+        .card-dark { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); }
+        .glow-orange { box-shadow: 0 0 20px rgba(255,107,53,0.3); }
+        .timeline-track { background: rgba(255,255,255,0.08); }
+        .timeline-clip { background: linear-gradient(90deg, rgba(255,107,53,0.4), rgba(255,140,66,0.4)); border: 1px solid rgba(255,107,53,0.5); }
+        .timeline-clip-blue { background: linear-gradient(90deg, rgba(99,102,241,0.4), rgba(139,92,246,0.4)); border: 1px solid rgba(99,102,241,0.5); }
+        .playhead { width: 2px; background: #FF6B35; position: absolute; top: 0; bottom: 0; z-index: 10; }
+    </style>
+</head>
+<body class="bg-black text-white">
+    <!-- Status Bar -->
+    <div class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl" style="padding: 14px 28px 0 28px; height: 59px; box-sizing: border-box;">
+        <div class="flex justify-between items-center">
+            <div class="text-sm font-semibold">9:41</div>
+            <div class="w-[126px] h-[37px] bg-black rounded-full absolute left-1/2 -translate-x-1/2 top-[10px]"></div>
+            <div class="flex items-center gap-1.5">
+                <i class="fas fa-signal text-xs"></i>
+                <i class="fas fa-wifi text-xs"></i>
+                <i class="fas fa-battery-full text-xs"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div style="padding: 8px 28px 12px 28px;">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
+                    <i class="fas fa-arrow-left text-sm"></i>
+                </div>
+                <h1 class="text-lg font-bold">Editor</h1>
+            </div>
+            <div class="gradient-orange rounded-full px-4 py-2">
+                <span class="text-white text-xs font-semibold"><i class="fas fa-download mr-1"></i>Export</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Preview -->
+    <div style="padding: 0 28px 16px 28px;">
+        <div class="relative rounded-2xl overflow-hidden" style="height: 220px;">
+            <img src="https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&h=500&fit=crop" class="w-full h-full object-cover" alt="">
+            <div class="absolute inset-0 bg-black/20"></div>
+            <!-- Pose overlay lines -->
+            <svg class="absolute inset-0 w-full h-full" viewBox="0 0 400 220" fill="none">
+                <line x1="210" y1="50" x2="210" y2="100" stroke="#FF6B35" stroke-width="2.5" opacity="0.7"/>
+                <line x1="210" y1="70" x2="185" y2="100" stroke="#FF6B35" stroke-width="2.5" opacity="0.7"/>
+                <line x1="210" y1="70" x2="240" y2="90" stroke="#FF6B35" stroke-width="2.5" opacity="0.7"/>
+                <line x1="210" y1="100" x2="195" y2="150" stroke="#FF6B35" stroke-width="2.5" opacity="0.7"/>
+                <line x1="210" y1="100" x2="225" y2="145" stroke="#FF6B35" stroke-width="2.5" opacity="0.7"/>
+                <circle cx="210" cy="45" r="5" fill="#FF6B35" opacity="0.8"/>
+                <circle cx="185" cy="100" r="3" fill="#FF8C42" opacity="0.8"/>
+                <circle cx="240" cy="90" r="3" fill="#FF8C42" opacity="0.8"/>
+            </svg>
+            <!-- Play controls -->
+            <div class="absolute inset-0 flex items-center justify-center">
+                <div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
+                    <i class="fas fa-pause text-white text-lg"></i>
+                </div>
+            </div>
+            <!-- Time code -->
+            <div class="absolute bottom-3 left-3 right-3 flex justify-between items-center">
+                <span class="text-white text-xs font-mono bg-black/50 px-2 py-1 rounded">00:04.12</span>
+                <span class="text-white text-xs font-mono bg-black/50 px-2 py-1 rounded">00:28.00</span>
+            </div>
+            <!-- AI badge -->
+            <div class="absolute top-3 right-3 bg-orange-500/80 backdrop-blur text-[10px] px-2 py-1 rounded-full font-bold">
+                <i class="fas fa-magic mr-1"></i>AI Enhanced
+            </div>
+        </div>
+    </div>
+
+    <!-- Playback Controls -->
+    <div style="padding: 0 28px 16px 28px;">
+        <div class="flex items-center justify-center gap-6">
+            <div class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
+                <i class="fas fa-backward text-xs"></i>
+            </div>
+            <div class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
+                <i class="fas fa-step-backward text-xs"></i>
+            </div>
+            <div class="w-12 h-12 rounded-full gradient-orange flex items-center justify-center glow-orange">
+                <i class="fas fa-pause text-white"></i>
+            </div>
+            <div class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
+                <i class="fas fa-step-forward text-xs"></i>
+            </div>
+            <div class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
+                <i class="fas fa-forward text-xs"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline -->
+    <div style="padding: 0 28px 16px 28px;">
+        <div class="flex justify-between items-center mb-2">
+            <span class="text-[10px] text-gray-500 font-mono">0:00</span>
+            <span class="text-[10px] text-gray-500 font-mono">0:07</span>
+            <span class="text-[10px] text-gray-500 font-mono">0:14</span>
+            <span class="text-[10px] text-gray-500 font-mono">0:21</span>
+            <span class="text-[10px] text-gray-500 font-mono">0:28</span>
+        </div>
+        <!-- Video track -->
+        <div class="relative timeline-track rounded-lg h-10 mb-2 overflow-hidden">
+            <div class="playhead" style="left: 15%;"></div>
+            <div class="flex h-full">
+                <div class="h-full w-[8%]" style="background: url('https://images.unsplash.com/photo-1546519638-68e109498ffc?w=50&h=40&fit=crop') center/cover;"></div>
+                <div class="h-full w-[8%]" style="background: url('https://images.unsplash.com/photo-1574623452334-1e0ac2b3ccb4?w=50&h=40&fit=crop') center/cover;"></div>
+                <div class="h-full w-[8%]" style="background: url('https://images.unsplash.com/photo-1608245449230-4ac19066d2d0?w=50&h=40&fit=crop') center/cover;"></div>
+                <div class="h-full w-[8%]" style="background: url('https://images.unsplash.com/photo-1519861531473-9200262188bf?w=50&h=40&fit=crop') center/cover;"></div>
+                <div class="h-full w-[8%]" style="background: url('https://images.unsplash.com/photo-1504450758481-7338bbe75c8e?w=50&h=40&fit=crop') center/cover;"></div>
+                <div class="h-full w-[8%]" style="background: url('https://images.unsplash.com/photo-1515523110800-9415d13b84a8?w=50&h=40&fit=crop') center/cover;"></div>
+                <div class="h-full w-[8%]" style="background: url('https://images.unsplash.com/photo-1546519638-68e109498ffc?w=50&h=40&fit=crop') center/cover;"></div>
+                <div class="h-full w-[8%]" style="background: url('https://images.unsplash.com/photo-1574623452334-1e0ac2b3ccb4?w=50&h=40&fit=crop') center/cover;"></div>
+                <div class="h-full w-[8%]" style="background: url('https://images.unsplash.com/photo-1608245449230-4ac19066d2d0?w=50&h=40&fit=crop') center/cover;"></div>
+                <div class="h-full w-[8%]" style="background: url('https://images.unsplash.com/photo-1519861531473-9200262188bf?w=50&h=40&fit=crop') center/cover;"></div>
+                <div class="h-full w-[10%]" style="background: url('https://images.unsplash.com/photo-1504450758481-7338bbe75c8e?w=50&h=40&fit=crop') center/cover;"></div>
+                <div class="h-full w-[10%]" style="background: url('https://images.unsplash.com/photo-1515523110800-9415d13b84a8?w=50&h=40&fit=crop') center/cover;"></div>
+            </div>
+        </div>
+        <!-- Highlight markers -->
+        <div class="relative timeline-track rounded h-5 mb-2">
+            <div class="absolute h-full rounded timeline-clip" style="left: 8%; width: 15%;"></div>
+            <div class="absolute h-full rounded timeline-clip" style="left: 35%; width: 12%;"></div>
+            <div class="absolute h-full rounded timeline-clip" style="left: 62%; width: 18%;"></div>
+            <div class="absolute h-full rounded timeline-clip-blue" style="left: 85%; width: 10%;"></div>
+            <div class="playhead" style="left: 15%;"></div>
+        </div>
+        <!-- Audio waveform -->
+        <div class="relative timeline-track rounded h-6 flex items-center px-1 gap-px overflow-hidden">
+            <div class="playhead" style="left: 15%;"></div>
+            <!-- Simplified waveform bars -->
+            <div class="flex items-center gap-px h-full w-full">
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 30%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 50%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 80%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 60%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 40%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 70%"></div>
+                <div class="w-1 bg-green-500/50 rounded-full" style="height: 90%"></div>
+                <div class="w-1 bg-green-500/50 rounded-full" style="height: 100%"></div>
+                <div class="w-1 bg-green-500/50 rounded-full" style="height: 75%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 55%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 35%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 60%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 85%"></div>
+                <div class="w-1 bg-green-500/50 rounded-full" style="height: 95%"></div>
+                <div class="w-1 bg-green-500/50 rounded-full" style="height: 70%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 45%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 30%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 55%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 75%"></div>
+                <div class="w-1 bg-green-500/50 rounded-full" style="height: 90%"></div>
+                <div class="w-1 bg-green-500/50 rounded-full" style="height: 65%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 40%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 50%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 80%"></div>
+                <div class="w-1 bg-green-500/50 rounded-full" style="height: 85%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 55%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 35%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 60%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 70%"></div>
+                <div class="w-1 bg-green-500/40 rounded-full" style="height: 45%"></div>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 mt-2">
+            <span class="text-[10px] text-gray-500"><span class="inline-block w-2 h-2 bg-orange-500/60 rounded mr-1"></span>Highlights</span>
+            <span class="text-[10px] text-gray-500"><span class="inline-block w-2 h-2 bg-indigo-500/60 rounded mr-1"></span>Transitions</span>
+            <span class="text-[10px] text-gray-500"><span class="inline-block w-2 h-2 bg-green-500/60 rounded mr-1"></span>Audio</span>
+        </div>
+    </div>
+
+    <!-- Editing Tools -->
+    <div style="padding: 0 28px 16px 28px;">
+        <div class="flex gap-2 overflow-x-auto">
+            <div class="card-dark rounded-xl px-4 py-2.5 flex items-center gap-2 flex-shrink-0">
+                <i class="fas fa-cut text-orange-400 text-sm"></i>
+                <span class="text-xs">Trim</span>
+            </div>
+            <div class="card-dark rounded-xl px-4 py-2.5 flex items-center gap-2 flex-shrink-0">
+                <i class="fas fa-magic text-purple-400 text-sm"></i>
+                <span class="text-xs">Effects</span>
+            </div>
+            <div class="card-dark rounded-xl px-4 py-2.5 flex items-center gap-2 flex-shrink-0">
+                <i class="fas fa-music text-green-400 text-sm"></i>
+                <span class="text-xs">Music</span>
+            </div>
+            <div class="card-dark rounded-xl px-4 py-2.5 flex items-center gap-2 flex-shrink-0">
+                <i class="fas fa-font text-blue-400 text-sm"></i>
+                <span class="text-xs">Text</span>
+            </div>
+            <div class="card-dark rounded-xl px-4 py-2.5 flex items-center gap-2 flex-shrink-0">
+                <i class="fas fa-tachometer-alt text-yellow-400 text-sm"></i>
+                <span class="text-xs">Speed</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Suggestions -->
+    <div style="padding: 0 28px 120px 28px;">
+        <div class="card-dark rounded-2xl p-4">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg gradient-orange flex items-center justify-center">
+                    <i class="fas fa-brain text-white text-xs"></i>
+                </div>
+                <span class="text-sm font-semibold">AI Suggestions</span>
+            </div>
+            <div class="space-y-2">
+                <div class="flex items-center gap-3 bg-white/5 rounded-xl p-2.5">
+                    <i class="fas fa-film text-orange-400 text-xs"></i>
+                    <span class="text-xs text-gray-300 flex-1">Add slow-mo to dunk at 0:14</span>
+                    <span class="text-[10px] text-orange-400 font-medium">Apply</span>
+                </div>
+                <div class="flex items-center gap-3 bg-white/5 rounded-xl p-2.5">
+                    <i class="fas fa-music text-purple-400 text-xs"></i>
+                    <span class="text-xs text-gray-300 flex-1">Sync beat drop to crossover</span>
+                    <span class="text-[10px] text-orange-400 font-medium">Apply</span>
+                </div>
+                <div class="flex items-center gap-3 bg-white/5 rounded-xl p-2.5">
+                    <i class="fas fa-exchange-alt text-green-400 text-xs"></i>
+                    <span class="text-xs text-gray-300 flex-1">Smooth transition at 0:22</span>
+                    <span class="text-[10px] text-orange-400 font-medium">Apply</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="absolute bottom-0 left-0 right-0 bg-black/90 backdrop-blur-xl border-t border-white/10" style="padding: 10px 28px 30px 28px;">
+        <div class="flex justify-between items-center">
+            <div class="flex flex-col items-center gap-1">
+                <i class="fas fa-home text-gray-500 text-lg"></i>
+                <span class="text-[10px] text-gray-500">Home</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+                <i class="fas fa-fire text-gray-500 text-lg"></i>
+                <span class="text-[10px] text-gray-500">Highlights</span>
+            </div>
+            <div class="flex flex-col items-center gap-1 -mt-4">
+                <div class="w-14 h-14 rounded-2xl gradient-orange flex items-center justify-center glow-orange">
+                    <i class="fas fa-plus text-white text-xl"></i>
+                </div>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+                <i class="fas fa-film text-orange-400 text-lg"></i>
+                <span class="text-[10px] text-orange-400 font-medium">Editor</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+                <i class="fas fa-user text-gray-500 text-lg"></i>
+                <span class="text-[10px] text-gray-500">Profile</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
