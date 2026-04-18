@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroMotion - Stress Monitor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        body { width: 100%; height: 100%; overflow-x: hidden; background: #050510; color: #fff; }
+        .glass-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(20px); }
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        .pulse-soft { animation: pulse-soft 3s ease-in-out infinite; }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div style="height: 59px; padding: 0 28px;" class="flex items-center justify-between">
+        <span class="text-sm font-semibold">9:41</span>
+        <div class="bg-black rounded-full px-5 py-1" style="min-width: 120px; height: 28px;"></div>
+        <div class="flex items-center gap-1.5">
+            <i class="fas fa-signal text-xs"></i>
+            <i class="fas fa-wifi text-xs"></i>
+            <i class="fas fa-battery-full text-xs"></i>
+        </div>
+    </div>
+
+    <div style="padding: 0 28px; padding-bottom: 100px; overflow-y: auto; height: calc(100% - 59px);">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-5">
+            <h1 class="text-xl font-bold">Stress Monitor</h1>
+            <div class="flex items-center gap-2 bg-white/10 rounded-full px-3 py-1.5">
+                <div class="w-2 h-2 bg-green-400 rounded-full pulse-soft"></div>
+                <span class="text-xs text-gray-300">Live</span>
+            </div>
+        </div>
+
+        <!-- Current Stress Level - Gauge -->
+        <div class="glass-card rounded-2xl p-6 mb-5 relative overflow-hidden">
+            <div class="flex justify-center mb-4">
+                <div class="relative">
+                    <svg width="200" height="120" viewBox="0 0 200 120">
+                        <!-- Gauge background -->
+                        <path d="M20,100 A80,80 0 0,1 180,100" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="12" stroke-linecap="round"/>
+                        <!-- Green zone -->
+                        <path d="M20,100 A80,80 0 0,1 60,32" fill="none" stroke="#22c55e" stroke-width="12" stroke-linecap="round" opacity="0.3"/>
+                        <!-- Yellow zone -->
+                        <path d="M60,32 A80,80 0 0,1 140,32" fill="none" stroke="#eab308" stroke-width="12" stroke-linecap="round" opacity="0.3"/>
+                        <!-- Red zone -->
+                        <path d="M140,32 A80,80 0 0,1 180,100" fill="none" stroke="#ef4444" stroke-width="12" stroke-linecap="round" opacity="0.3"/>
+                        <!-- Active gauge (low stress) -->
+                        <path d="M20,100 A80,80 0 0,1 75,28" fill="none" stroke="url(#stressGauge)" stroke-width="12" stroke-linecap="round"/>
+                        <!-- Needle dot -->
+                        <circle cx="75" cy="28" r="6" fill="white" filter="url(#glowW)"/>
+                        <defs>
+                            <linearGradient id="stressGauge" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#22c55e"/>
+                                <stop offset="100%" style="stop-color:#86efac"/>
+                            </linearGradient>
+                            <filter id="glowW"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                        </defs>
+                    </svg>
+                    <div class="absolute bottom-2 left-1/2 -translate-x-1/2 text-center">
+                        <span class="text-3xl font-bold text-green-400">Low</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-500 px-4">
+                <span>Calm</span>
+                <span>Moderate</span>
+                <span>High</span>
+            </div>
+            <div class="grid grid-cols-3 gap-3 mt-4">
+                <div class="bg-white/5 rounded-xl p-3 text-center">
+                    <div class="text-lg font-bold text-green-400">28</div>
+                    <p class="text-gray-500 text-xs">Stress Index</p>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3 text-center">
+                    <div class="text-lg font-bold text-blue-400">1.8</div>
+                    <p class="text-gray-500 text-xs">Beta/Alpha</p>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3 text-center">
+                    <div class="text-lg font-bold text-purple-400">0.62</div>
+                    <p class="text-gray-500 text-xs">Asymmetry</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stress Throughout the Day -->
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="font-semibold">Today's Stress Pattern</h2>
+        </div>
+        <div class="glass-card rounded-2xl p-5 mb-5">
+            <div class="h-32 relative">
+                <svg width="100%" height="128" viewBox="0 0 360 128" preserveAspectRatio="none">
+                    <!-- Zone backgrounds -->
+                    <rect x="0" y="0" width="360" height="43" fill="rgba(239,68,68,0.05)"/>
+                    <rect x="0" y="43" width="360" height="42" fill="rgba(234,179,8,0.05)"/>
+                    <rect x="0" y="85" width="360" height="43" fill="rgba(34,197,94,0.05)"/>
+                    <!-- Area fill -->
+                    <path d="M0,90 Q30,85 60,70 Q90,50 120,35 Q150,55 180,75 Q210,90 240,95 Q270,100 300,85 Q330,80 360,90 L360,128 L0,128 Z" fill="url(#stressArea)" opacity="0.4"/>
+                    <!-- Stress line -->
+                    <path d="M0,90 Q30,85 60,70 Q90,50 120,35 Q150,55 180,75 Q210,90 240,95 Q270,100 300,85 Q330,80 360,90" fill="none" stroke="url(#stressLine)" stroke-width="2.5" stroke-linecap="round"/>
+                    <!-- Event markers -->
+                    <circle cx="120" cy="35" r="5" fill="#ef4444" stroke="#fff" stroke-width="1.5"/>
+                    <circle cx="240" cy="95" r="5" fill="#22c55e" stroke="#fff" stroke-width="1.5"/>
+                    <defs>
+                        <linearGradient id="stressArea" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" style="stop-color:#eab308;stop-opacity:0.3"/>
+                            <stop offset="100%" style="stop-color:#22c55e;stop-opacity:0"/>
+                        </linearGradient>
+                        <linearGradient id="stressLine" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#22c55e"/>
+                            <stop offset="30%" style="stop-color:#eab308"/>
+                            <stop offset="40%" style="stop-color:#ef4444"/>
+                            <stop offset="60%" style="stop-color:#eab308"/>
+                            <stop offset="100%" style="stop-color:#22c55e"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div class="absolute top-0 right-2 flex flex-col justify-between h-full text-xs text-gray-500 py-1">
+                    <span>High</span>
+                    <span>Med</span>
+                    <span>Low</span>
+                </div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-500 mt-2">
+                <span>6 AM</span><span>9 AM</span><span>12 PM</span><span>3 PM</span><span>Now</span>
+            </div>
+            <!-- Event annotations -->
+            <div class="mt-3 space-y-2">
+                <div class="flex items-center gap-2 bg-red-500/10 rounded-lg p-2.5">
+                    <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span class="text-xs text-gray-300">10:30 AM — Peak stress during meeting</span>
+                </div>
+                <div class="flex items-center gap-2 bg-green-500/10 rounded-lg p-2.5">
+                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span class="text-xs text-gray-300">2:00 PM — Relaxed after meditation</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mental Load Indicators -->
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="font-semibold">Mental Load Breakdown</h2>
+        </div>
+        <div class="glass-card rounded-2xl p-5 mb-5">
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between mb-1.5">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-brain text-purple-400 text-sm"></i>
+                            <span class="text-sm">Cognitive Load</span>
+                        </div>
+                        <span class="text-sm font-semibold text-yellow-400">Medium</span>
+                    </div>
+                    <div class="h-2.5 bg-white/10 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-yellow-500 to-amber-400 rounded-full" style="width: 55%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between mb-1.5">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-heart text-red-400 text-sm"></i>
+                            <span class="text-sm">Emotional Arousal</span>
+                        </div>
+                        <span class="text-sm font-semibold text-green-400">Low</span>
+                    </div>
+                    <div class="h-2.5 bg-white/10 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full" style="width: 30%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between mb-1.5">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-exclamation-triangle text-orange-400 text-sm"></i>
+                            <span class="text-sm">Anxiety Level</span>
+                        </div>
+                        <span class="text-sm font-semibold text-green-400">Low</span>
+                    </div>
+                    <div class="h-2.5 bg-white/10 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full" style="width: 22%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between mb-1.5">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-battery-half text-cyan-400 text-sm"></i>
+                            <span class="text-sm">Mental Fatigue</span>
+                        </div>
+                        <span class="text-sm font-semibold text-yellow-400">Medium</span>
+                    </div>
+                    <div class="h-2.5 bg-white/10 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-yellow-500 to-amber-400 rounded-full" style="width: 48%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Frontal Asymmetry -->
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="font-semibold">Frontal Asymmetry (FAA)</h2>
+        </div>
+        <div class="glass-card rounded-2xl p-5 mb-5">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="flex-1 text-center">
+                    <p class="text-gray-400 text-xs mb-1">Left Frontal (F3)</p>
+                    <div class="text-xl font-bold text-blue-400">8.4 <span class="text-xs text-gray-500 font-normal">µV²</span></div>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                        <i class="fas fa-smile text-green-400"></i>
+                    </div>
+                    <span class="text-xs text-green-400 mt-1">Positive</span>
+                </div>
+                <div class="flex-1 text-center">
+                    <p class="text-gray-400 text-xs mb-1">Right Frontal (F4)</p>
+                    <div class="text-xl font-bold text-purple-400">6.2 <span class="text-xs text-gray-500 font-normal">µV²</span></div>
+                </div>
+            </div>
+            <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-3">
+                <p class="text-xs text-gray-300"><i class="fas fa-info-circle text-indigo-400 mr-1"></i>Higher left frontal alpha indicates positive affect — associated with approach motivation and lower stress</p>
+            </div>
+        </div>
+
+        <!-- Weekly Comparison -->
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="font-semibold">Weekly Average</h2>
+        </div>
+        <div class="glass-card rounded-2xl p-5 mb-5">
+            <div class="flex items-end justify-between gap-2" style="height: 90px;">
+                <div class="flex-1 flex flex-col items-center gap-1">
+                    <div class="w-full rounded-t-lg" style="height: 50px; background: linear-gradient(to top, rgba(234,179,8,0.3), rgba(234,179,8,0.6));"></div>
+                    <span class="text-xs text-gray-500">M</span>
+                </div>
+                <div class="flex-1 flex flex-col items-center gap-1">
+                    <div class="w-full rounded-t-lg" style="height: 65px; background: linear-gradient(to top, rgba(239,68,68,0.3), rgba(239,68,68,0.6));"></div>
+                    <span class="text-xs text-gray-500">T</span>
+                </div>
+                <div class="flex-1 flex flex-col items-center gap-1">
+                    <div class="w-full rounded-t-lg" style="height: 40px; background: linear-gradient(to top, rgba(234,179,8,0.3), rgba(234,179,8,0.5));"></div>
+                    <span class="text-xs text-gray-500">W</span>
+                </div>
+                <div class="flex-1 flex flex-col items-center gap-1">
+                    <div class="w-full rounded-t-lg" style="height: 30px; background: linear-gradient(to top, rgba(34,197,94,0.3), rgba(34,197,94,0.6));"></div>
+                    <span class="text-xs text-gray-500">T</span>
+                </div>
+                <div class="flex-1 flex flex-col items-center gap-1">
+                    <div class="w-full rounded-t-lg" style="height: 25px; background: linear-gradient(to top, rgba(34,197,94,0.4), rgba(34,197,94,0.8));"></div>
+                    <span class="text-xs text-white font-medium">F</span>
+                </div>
+                <div class="flex-1 flex flex-col items-center gap-1">
+                    <div class="w-full rounded-t-lg" style="height: 20px; background: linear-gradient(to top, rgba(34,197,94,0.3), rgba(34,197,94,0.5));"></div>
+                    <span class="text-xs text-gray-500">S</span>
+                </div>
+                <div class="flex-1 flex flex-col items-center gap-1">
+                    <div class="w-full rounded-t-lg" style="height: 15px; background: linear-gradient(to top, rgba(34,197,94,0.3), rgba(34,197,94,0.5));"></div>
+                    <span class="text-xs text-gray-500">S</span>
+                </div>
+            </div>
+            <div class="flex items-center justify-center gap-2 mt-3">
+                <i class="fas fa-arrow-down text-green-400 text-xs"></i>
+                <span class="text-green-400 text-xs font-medium">Stress decreased 18% this week</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 85px; padding-bottom: 20px;" class="bg-black/90 backdrop-blur-xl border-t border-white/10 flex items-center justify-around px-4">
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-home text-gray-500"></i>
+            <span class="text-xs text-gray-500">Home</span>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-crosshairs text-gray-500"></i>
+            <span class="text-xs text-gray-500">Focus</span>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-heart-pulse text-rose-400"></i>
+            <span class="text-xs text-rose-400 font-medium">Stress</span>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-moon text-gray-500"></i>
+            <span class="text-xs text-gray-500">Sleep</span>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-user text-gray-500"></i>
+            <span class="text-xs text-gray-500">Profile</span>
+        </div>
+    </div>
+</body>
+</html>
