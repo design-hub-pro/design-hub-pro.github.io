@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpineAlign AI — Rehab Session</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+*::-webkit-scrollbar{display:none;}
+html,body{width:100%;height:100%;overflow:hidden;scrollbar-width:none;font-family:'Inter',-apple-system,sans-serif;background:#0F172A;}
+
+.screen{width:100%;height:100%;position:relative;overflow:hidden;}
+
+.status-bar{height:59px;padding:16px 28px 0;display:flex;justify-content:space-between;align-items:center;position:absolute;top:0;left:0;right:0;z-index:20;}
+.status-time{font-size:16px;font-weight:700;color:#fff;}
+.status-icons{display:flex;align-items:center;gap:6px;}
+.status-icons i{font-size:13px;color:#fff;}
+.dynamic-island{width:120px;height:36px;background:#000;border-radius:20px;position:absolute;top:12px;left:50%;transform:translateX(-50%);}
+
+/* Camera/exercise view */
+.exercise-view{position:absolute;inset:0;z-index:0;}
+.exercise-view img{width:100%;height:100%;object-fit:cover;filter:brightness(0.5);}
+
+/* Top bar */
+.top-bar{position:absolute;top:70px;left:28px;right:28px;z-index:15;display:flex;justify-content:space-between;align-items:center;}
+.close-btn{width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.4);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.1);}
+.close-btn i{color:#fff;font-size:16px;}
+.timer-display{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.4);backdrop-filter:blur(10px);padding:8px 16px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);}
+.timer-dot{width:8px;height:8px;border-radius:50%;background:#EF4444;animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.timer-text{font-size:16px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;}
+
+/* AI Coach bubble */
+.ai-coach{position:absolute;top:130px;left:28px;right:28px;z-index:15;}
+.coach-bubble{background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);border:1px solid rgba(20,184,166,0.3);border-radius:20px;padding:16px;display:flex;gap:12px;align-items:flex-start;}
+.coach-avatar{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#14B8A6,#0EA5E9);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.coach-avatar i{font-size:16px;color:#fff;}
+.coach-text{flex:1;}
+.coach-name{font-size:11px;font-weight:700;color:#14B8A6;margin-bottom:4px;}
+.coach-msg{font-size:13px;color:#fff;line-height:1.4;font-weight:500;}
+.coach-feedback{display:inline-flex;align-items:center;gap:4px;margin-top:8px;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;}
+.coach-feedback.good{background:rgba(16,185,129,0.2);color:#10B981;}
+.coach-feedback.adjust{background:rgba(245,158,11,0.2);color:#F59E0B;}
+
+/* Pose overlay - skeleton */
+.pose-skeleton{position:absolute;inset:0;z-index:8;}
+.kp{position:absolute;width:12px;height:12px;border-radius:50%;background:#14B8A6;border:2px solid #fff;box-shadow:0 0 10px rgba(20,184,166,0.5);z-index:9;}
+
+/* Guide overlay - target pose */
+.target-pose{position:absolute;top:20%;left:50%;transform:translateX(-50%);width:180px;height:380px;border:2px solid rgba(99,102,241,0.3);border-radius:20px;z-index:6;}
+.target-label{position:absolute;top:-24px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:rgba(99,102,241,0.6);white-space:nowrap;letter-spacing:0.5px;}
+
+/* Bottom panel */
+.bottom-panel{position:absolute;bottom:0;left:0;right:0;z-index:15;padding:0 28px 40px;}
+
+/* Exercise info */
+.exercise-info-bar{display:flex;align-items:center;gap:12px;margin-bottom:16px;background:rgba(0,0,0,0.4);backdrop-filter:blur(10px);border-radius:18px;padding:14px 16px;border:1px solid rgba(255,255,255,0.08);}
+.exercise-num{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#6366F1,#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0;}
+.exercise-detail{flex:1;}
+.exercise-name{font-size:14px;font-weight:700;color:#fff;}
+.exercise-rep{font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;}
+.rep-counter{text-align:center;}
+.rep-num{font-size:28px;font-weight:900;color:#fff;}
+.rep-label{font-size:10px;color:rgba(255,255,255,0.4);}
+
+/* Accuracy meter */
+.accuracy-bar{margin-bottom:16px;}
+.accuracy-header{display:flex;justify-content:space-between;margin-bottom:6px;}
+.accuracy-label{font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);}
+.accuracy-val{font-size:13px;font-weight:800;color:#10B981;}
+.accuracy-track{width:100%;height:6px;background:rgba(255,255,255,0.1);border-radius:6px;overflow:hidden;}
+.accuracy-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#14B8A6,#10B981);transition:width 0.5s;}
+
+/* Controls */
+.controls{display:flex;align-items:center;justify-content:center;gap:24px;}
+.ctrl-btn{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.15);}
+.ctrl-btn i{color:#fff;font-size:17px;}
+.pause-btn{width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,#14B8A6,#0EA5E9);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 30px rgba(20,184,166,0.35);}
+.pause-btn i{color:#fff;font-size:22px;}
+
+/* Progress dots */
+.progress-dots{display:flex;justify-content:center;gap:6px;margin-bottom:16px;}
+.dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.15);}
+.dot.done{background:#14B8A6;}
+.dot.current{background:#fff;box-shadow:0 0 8px rgba(255,255,255,0.5);}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="exercise-view">
+    <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80" alt="" style="filter:brightness(0.35) saturate(0.7);">
+  </div>
+
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div class="close-btn"><i class="fas fa-xmark"></i></div>
+    <div class="timer-display">
+      <div class="timer-dot"></div>
+      <span class="timer-text">04:32</span>
+    </div>
+  </div>
+
+  <!-- AI Coach -->
+  <div class="ai-coach">
+    <div class="coach-bubble">
+      <div class="coach-avatar"><i class="fas fa-robot"></i></div>
+      <div class="coach-text">
+        <div class="coach-name">AI Coach</div>
+        <div class="coach-msg">Keep your shoulders level. Slowly rotate your torso to the left.</div>
+        <div class="coach-feedback good"><i class="fas fa-check-circle"></i>Form looks great!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Target pose guide -->
+  <div class="target-pose">
+    <div class="target-label">TARGET POSITION</div>
+  </div>
+
+  <!-- Keypoints -->
+  <div class="kp" style="top:22%;left:50%;transform:translate(-50%,-50%);"></div>
+  <div class="kp" style="top:27%;left:50%;transform:translate(-50%,-50%);"></div>
+  <div class="kp" style="top:30%;left:36%;transform:translate(-50%,-50%);"></div>
+  <div class="kp" style="top:30%;left:64%;transform:translate(-50%,-50%);"></div>
+  <div class="kp" style="top:40%;left:30%;transform:translate(-50%,-50%);"></div>
+  <div class="kp" style="top:40%;left:70%;transform:translate(-50%,-50%);"></div>
+  <div class="kp" style="top:50%;left:42%;transform:translate(-50%,-50%);"></div>
+  <div class="kp" style="top:50%;left:58%;transform:translate(-50%,-50%);"></div>
+
+  <!-- Bottom panel -->
+  <div class="bottom-panel">
+    <!-- Progress dots -->
+    <div class="progress-dots">
+      <div class="dot done"></div>
+      <div class="dot done"></div>
+      <div class="dot done"></div>
+      <div class="dot done"></div>
+      <div class="dot current"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+
+    <!-- Exercise info -->
+    <div class="exercise-info-bar">
+      <div class="exercise-num">5</div>
+      <div class="exercise-detail">
+        <div class="exercise-name">Thoracic Rotation</div>
+        <div class="exercise-rep">Hold for 15 seconds each side</div>
+      </div>
+      <div class="rep-counter">
+        <div class="rep-num">6<span style="font-size:16px;color:rgba(255,255,255,0.4);">/8</span></div>
+        <div class="rep-label">reps</div>
+      </div>
+    </div>
+
+    <!-- Accuracy -->
+    <div class="accuracy-bar">
+      <div class="accuracy-header">
+        <span class="accuracy-label">Form Accuracy</span>
+        <span class="accuracy-val">94%</span>
+      </div>
+      <div class="accuracy-track">
+        <div class="accuracy-fill" style="width:94%;"></div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="ctrl-btn"><i class="fas fa-backward-step"></i></div>
+      <div class="pause-btn"><i class="fas fa-pause"></i></div>
+      <div class="ctrl-btn"><i class="fas fa-forward-step"></i></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

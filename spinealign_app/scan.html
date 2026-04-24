@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpineAlign AI — AI Pose Scan</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+*::-webkit-scrollbar{display:none;}
+html,body{width:100%;height:100%;overflow:hidden;scrollbar-width:none;font-family:'Inter',-apple-system,sans-serif;background:#000;}
+
+.screen{width:100%;height:100%;position:relative;overflow:hidden;}
+
+.status-bar{height:59px;padding:16px 28px 0;display:flex;justify-content:space-between;align-items:center;position:absolute;top:0;left:0;right:0;z-index:20;}
+.status-time{font-size:16px;font-weight:700;color:#fff;}
+.status-icons{display:flex;align-items:center;gap:6px;}
+.status-icons i{font-size:13px;color:#fff;}
+.dynamic-island{width:120px;height:36px;background:#000;border-radius:20px;position:absolute;top:12px;left:50%;transform:translateX(-50%);}
+
+/* Camera feed simulation */
+.camera-feed{position:absolute;inset:0;z-index:0;}
+.camera-feed img{width:100%;height:100%;object-fit:cover;filter:brightness(0.7);}
+
+/* AR overlay */
+.ar-overlay{position:absolute;inset:0;z-index:5;}
+
+/* Skeleton visualization using SVG */
+.skeleton-svg{position:absolute;inset:0;width:100%;height:100%;}
+
+/* Top bar */
+.scan-topbar{position:absolute;top:70px;left:28px;right:28px;z-index:15;display:flex;justify-content:space-between;align-items:center;}
+.scan-back{width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.4);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.1);}
+.scan-back i{color:#fff;font-size:16px;}
+.scan-mode{display:flex;gap:6px;}
+.mode-pill{padding:8px 14px;border-radius:20px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.6);background:rgba(0,0,0,0.4);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1);}
+.mode-pill.active{color:#fff;background:rgba(20,184,166,0.7);border-color:#14B8A6;}
+
+/* AI Analysis panel */
+.ai-panel{position:absolute;top:130px;left:28px;right:28px;z-index:15;}
+.ai-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,0.5);backdrop-filter:blur(10px);border:1px solid rgba(20,184,166,0.3);padding:6px 12px;border-radius:20px;margin-bottom:12px;}
+.ai-dot{width:8px;height:8px;border-radius:50%;background:#14B8A6;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.ai-text{font-size:11px;font-weight:600;color:#14B8A6;}
+
+/* Pose keypoints */
+.keypoint{position:absolute;width:14px;height:14px;border-radius:50%;background:#14B8A6;border:2px solid #fff;box-shadow:0 0 12px rgba(20,184,166,0.6);z-index:10;}
+.keypoint::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1px solid rgba(20,184,166,0.3);animation:ring 2s infinite;}
+@keyframes ring{0%{transform:scale(1);opacity:1;}100%{transform:scale(2);opacity:0;}}
+
+/* Connection lines - using pseudo elements */
+.bone-line{position:absolute;height:3px;background:linear-gradient(90deg,#14B8A6,#0EA5E9);border-radius:2px;z-index:8;opacity:0.8;box-shadow:0 0 8px rgba(20,184,166,0.4);}
+
+/* Pose silhouette area */
+.pose-guide{position:absolute;top:15%;left:50%;transform:translateX(-50%);width:200px;height:440px;border:2px dashed rgba(20,184,166,0.25);border-radius:20px;z-index:6;}
+
+/* Keypoints positioned for standing pose */
+.kp-head{top:18%;left:50%;transform:translate(-50%,-50%);}
+.kp-neck{top:23%;left:50%;transform:translate(-50%,-50%);}
+.kp-lshoulder{top:26%;left:37%;transform:translate(-50%,-50%);}
+.kp-rshoulder{top:26%;left:63%;transform:translate(-50%,-50%);}
+.kp-lelbow{top:36%;left:30%;transform:translate(-50%,-50%);}
+.kp-relbow{top:36%;left:70%;transform:translate(-50%,-50%);}
+.kp-lwrist{top:44%;left:26%;transform:translate(-50%,-50%);}
+.kp-rwrist{top:44%;left:74%;transform:translate(-50%,-50%);}
+.kp-lhip{top:48%;left:42%;transform:translate(-50%,-50%);}
+.kp-rhip{top:48%;left:58%;transform:translate(-50%,-50%);}
+.kp-lknee{top:62%;left:40%;transform:translate(-50%,-50%);}
+.kp-rknee{top:62%;left:60%;transform:translate(-50%,-50%);}
+.kp-lankle{top:76%;left:38%;transform:translate(-50%,-50%);}
+.kp-rankle{top:76%;left:62%;transform:translate(-50%,-50%);}
+
+/* Angle indicators */
+.angle-indicator{position:absolute;z-index:12;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);border-radius:12px;padding:6px 10px;display:flex;align-items:center;gap:5px;border:1px solid rgba(20,184,166,0.3);}
+.angle-val{font-size:14px;font-weight:800;color:#fff;}
+.angle-unit{font-size:10px;color:rgba(255,255,255,0.5);}
+.angle-good{border-color:rgba(16,185,129,0.4);}
+.angle-good .angle-val{color:#10B981;}
+.angle-warn{border-color:rgba(245,158,11,0.4);}
+.angle-warn .angle-val{color:#F59E0B;}
+
+/* Bottom panel */
+.bottom-panel{position:absolute;bottom:0;left:0;right:0;z-index:15;padding:0 28px 40px;}
+
+.metrics-row{display:flex;gap:8px;margin-bottom:16px;}
+.metric{flex:1;background:rgba(0,0,0,0.5);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:14px;text-align:center;}
+.metric-val{font-size:22px;font-weight:900;color:#fff;letter-spacing:-0.5px;}
+.metric-label{font-size:10px;color:rgba(255,255,255,0.4);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;}
+
+/* Capture button */
+.capture-row{display:flex;align-items:center;justify-content:center;gap:24px;}
+.capture-btn{width:72px;height:72px;border-radius:50%;border:4px solid #fff;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;}
+.capture-inner{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#14B8A6,#0EA5E9);display:flex;align-items:center;justify-content:center;}
+.capture-inner i{font-size:22px;color:#fff;}
+.side-btn{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.15);}
+.side-btn i{color:#fff;font-size:17px;}
+
+/* Spine curvature indicator */
+.spine-line{position:absolute;top:20%;left:50%;z-index:9;width:4px;height:55%;transform:translateX(-50%);}
+.spine-segment{width:4px;height:8px;margin-bottom:3px;border-radius:2px;}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="camera-feed">
+    <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80" alt="" style="filter:brightness(0.4) saturate(0.7);">
+  </div>
+
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <!-- Top controls -->
+  <div class="scan-topbar">
+    <div class="scan-back"><i class="fas fa-arrow-left"></i></div>
+    <div class="scan-mode">
+      <div class="mode-pill active">Posture</div>
+      <div class="mode-pill">Scoliosis</div>
+      <div class="mode-pill">ROM</div>
+    </div>
+  </div>
+
+  <!-- AI Status -->
+  <div class="ai-panel">
+    <div class="ai-badge">
+      <div class="ai-dot"></div>
+      <span class="ai-text">AI Analyzing Pose — 17 keypoints detected</span>
+    </div>
+  </div>
+
+  <!-- Pose guide outline -->
+  <div class="pose-guide"></div>
+
+  <!-- Keypoints -->
+  <div class="keypoint kp-head"></div>
+  <div class="keypoint kp-neck"></div>
+  <div class="keypoint kp-lshoulder"></div>
+  <div class="keypoint kp-rshoulder"></div>
+  <div class="keypoint kp-lelbow"></div>
+  <div class="keypoint kp-relbow"></div>
+  <div class="keypoint kp-lwrist"></div>
+  <div class="keypoint kp-rwrist"></div>
+  <div class="keypoint kp-lhip"></div>
+  <div class="keypoint kp-rhip"></div>
+  <div class="keypoint kp-lknee"></div>
+  <div class="keypoint kp-rknee"></div>
+  <div class="keypoint kp-lankle"></div>
+  <div class="keypoint kp-rankle"></div>
+
+  <!-- Angle indicators -->
+  <div class="angle-indicator angle-good" style="top:25%;right:28px;">
+    <span class="angle-val">2.1°</span>
+    <span class="angle-unit">shoulder tilt</span>
+  </div>
+  <div class="angle-indicator angle-warn" style="top:47%;left:28px;">
+    <span class="angle-val">8.4°</span>
+    <span class="angle-unit">spine curve</span>
+  </div>
+  <div class="angle-indicator angle-good" style="top:61%;right:28px;">
+    <span class="angle-val">1.2°</span>
+    <span class="angle-unit">hip tilt</span>
+  </div>
+
+  <!-- Bottom -->
+  <div class="bottom-panel">
+    <div class="metrics-row">
+      <div class="metric">
+        <div class="metric-val" style="color:#10B981;">Good</div>
+        <div class="metric-label">Posture</div>
+      </div>
+      <div class="metric">
+        <div class="metric-val">17<span style="font-size:13px;color:rgba(255,255,255,0.4);">/17</span></div>
+        <div class="metric-label">Keypoints</div>
+      </div>
+      <div class="metric">
+        <div class="metric-val" style="color:#14B8A6;">94%</div>
+        <div class="metric-label">Confidence</div>
+      </div>
+    </div>
+
+    <div class="capture-row">
+      <div class="side-btn"><i class="fas fa-images"></i></div>
+      <div class="capture-btn">
+        <div class="capture-inner"><i class="fas fa-camera"></i></div>
+      </div>
+      <div class="side-btn"><i class="fas fa-rotate"></i></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

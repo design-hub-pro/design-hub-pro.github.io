@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpineAlign AI — Exercises</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+*::-webkit-scrollbar{display:none;}
+html,body{width:100%;height:100%;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;font-family:'Inter',-apple-system,sans-serif;background:#F8FAFC;}
+
+.status-bar{height:59px;padding:16px 28px 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;background:#F8FAFC;}
+.status-time{font-size:16px;font-weight:700;color:#0F172A;}
+.status-icons{display:flex;align-items:center;gap:6px;}
+.status-icons i{font-size:13px;color:#0F172A;}
+.dynamic-island{width:120px;height:36px;background:#000;border-radius:20px;position:absolute;top:12px;left:50%;transform:translateX(-50%);}
+
+.content{padding:8px 28px 120px;}
+
+.page-title{font-size:28px;font-weight:900;color:#0F172A;letter-spacing:-1px;margin-bottom:4px;}
+.page-sub{font-size:13px;color:#94A3B8;margin-bottom:20px;}
+
+/* Active session card */
+.active-session{background:linear-gradient(135deg,#6366F1,#8B5CF6);border-radius:24px;padding:22px;margin-bottom:24px;position:relative;overflow:hidden;}
+.active-session::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.08);}
+.session-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;position:relative;z-index:1;}
+.session-badge{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.15);padding:5px 10px;border-radius:10px;}
+.session-badge i{font-size:9px;}
+.session-timer{font-size:13px;font-weight:700;color:rgba(255,255,255,0.8);}
+.session-title{font-size:18px;font-weight:800;color:#fff;margin-bottom:6px;position:relative;z-index:1;}
+.session-meta{display:flex;align-items:center;gap:12px;font-size:12px;color:rgba(255,255,255,0.6);position:relative;z-index:1;margin-bottom:16px;}
+.session-progress-bar{width:100%;height:6px;background:rgba(255,255,255,0.15);border-radius:6px;overflow:hidden;position:relative;z-index:1;margin-bottom:8px;}
+.session-progress-fill{height:100%;background:#fff;border-radius:6px;}
+.session-progress-text{display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,0.5);position:relative;z-index:1;}
+
+/* Category filters */
+.filters{display:flex;gap:8px;margin-bottom:20px;overflow-x:auto;padding-bottom:4px;}
+.filter{padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;color:#64748B;background:#fff;border:1px solid #E2E8F0;white-space:nowrap;cursor:pointer;}
+.filter.active{background:#0F172A;color:#fff;border-color:#0F172A;}
+
+/* Section */
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.section-title{font-size:17px;font-weight:800;color:#0F172A;letter-spacing:-0.3px;}
+.section-link{font-size:12px;font-weight:600;color:#14B8A6;}
+
+/* Horizontal scroll cards */
+.h-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;margin-bottom:24px;}
+.exercise-card{min-width:200px;background:#fff;border-radius:20px;overflow:hidden;border:1px solid #F1F5F9;flex-shrink:0;}
+.exercise-thumb{width:100%;height:130px;position:relative;overflow:hidden;}
+.exercise-thumb img{width:100%;height:100%;object-fit:cover;}
+.exercise-thumb .overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,0.5) 100%);}
+.exercise-thumb .duration{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);padding:4px 8px;border-radius:8px;font-size:10px;font-weight:600;color:#fff;display:flex;align-items:center;gap:4px;}
+.exercise-thumb .play-btn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;}
+.exercise-thumb .play-btn i{font-size:14px;color:#6366F1;margin-left:2px;}
+.exercise-thumb .difficulty{position:absolute;top:8px;right:8px;padding:4px 8px;border-radius:8px;font-size:9px;font-weight:700;text-transform:uppercase;}
+.difficulty.easy{background:rgba(16,185,129,0.9);color:#fff;}
+.difficulty.medium{background:rgba(245,158,11,0.9);color:#fff;}
+.difficulty.hard{background:rgba(239,68,68,0.9);color:#fff;}
+.exercise-info{padding:14px;}
+.exercise-name{font-size:14px;font-weight:700;color:#0F172A;margin-bottom:4px;}
+.exercise-target{font-size:11px;color:#94A3B8;}
+
+/* AI Recommended */
+.ai-card{background:#fff;border-radius:20px;padding:16px;border:1px solid #F1F5F9;margin-bottom:12px;display:flex;gap:14px;align-items:center;}
+.ai-card-thumb{width:70px;height:70px;border-radius:16px;overflow:hidden;flex-shrink:0;position:relative;}
+.ai-card-thumb img{width:100%;height:100%;object-fit:cover;}
+.ai-card-thumb .ai-tag{position:absolute;top:4px;left:4px;background:linear-gradient(135deg,#14B8A6,#0EA5E9);padding:2px 6px;border-radius:6px;font-size:8px;font-weight:700;color:#fff;}
+.ai-card-info{flex:1;}
+.ai-card-name{font-size:14px;font-weight:700;color:#0F172A;margin-bottom:3px;}
+.ai-card-meta{display:flex;align-items:center;gap:8px;font-size:11px;color:#94A3B8;margin-bottom:6px;}
+.ai-card-meta i{font-size:9px;color:#14B8A6;}
+.ai-card-reason{font-size:11px;color:#6366F1;font-weight:500;background:rgba(99,102,241,0.08);padding:3px 8px;border-radius:6px;display:inline-block;}
+.ai-card-play{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#14B8A6,#0EA5E9);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ai-card-play i{font-size:14px;color:#fff;margin-left:2px;}
+
+/* Tab Bar */
+.tab-bar{position:absolute;bottom:0;left:0;right:0;height:88px;background:#fff;border-top:1px solid #F1F5F9;display:flex;justify-content:space-around;align-items:flex-start;padding-top:12px;z-index:100;}
+.tab{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
+.tab i{font-size:20px;color:#CBD5E1;}
+.tab span{font-size:10px;font-weight:600;color:#CBD5E1;}
+.tab.active i{color:#14B8A6;}
+.tab.active span{color:#14B8A6;}
+</style>
+</head>
+<body>
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="content">
+  <div class="page-title">Exercises</div>
+  <p class="page-sub">AI-guided rehabilitation routines</p>
+
+  <!-- Active Session -->
+  <div class="active-session">
+    <div class="session-top">
+      <div class="session-badge"><i class="fas fa-bolt"></i>In Progress</div>
+      <span class="session-timer">04:32 left</span>
+    </div>
+    <div class="session-title">Scoliosis Correction Series</div>
+    <div class="session-meta">
+      <span><i class="fas fa-layer-group" style="margin-right:4px;"></i>8 exercises</span>
+      <span><i class="fas fa-clock" style="margin-right:4px;"></i>20 min</span>
+    </div>
+    <div class="session-progress-bar"><div class="session-progress-fill" style="width:60%;"></div></div>
+    <div class="session-progress-text"><span>Exercise 5 of 8</span><span>60%</span></div>
+  </div>
+
+  <!-- Category filters -->
+  <div class="filters">
+    <div class="filter active">All</div>
+    <div class="filter">Scoliosis</div>
+    <div class="filter">Back Pain</div>
+    <div class="filter">Shoulder</div>
+    <div class="filter">Sports Rehab</div>
+    <div class="filter">Post-Op</div>
+  </div>
+
+  <!-- Guided Programs -->
+  <div class="section-head">
+    <span class="section-title">Guided Programs</span>
+    <span class="section-link">See All</span>
+  </div>
+  <div class="h-scroll">
+    <div class="exercise-card">
+      <div class="exercise-thumb">
+        <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80" alt="">
+        <div class="overlay"></div>
+        <div class="play-btn"><i class="fas fa-play"></i></div>
+        <div class="duration"><i class="fas fa-clock"></i>15 min</div>
+        <div class="difficulty easy">Easy</div>
+      </div>
+      <div class="exercise-info">
+        <div class="exercise-name">Spinal Decompression</div>
+        <div class="exercise-target">Lower back · 6 exercises</div>
+      </div>
+    </div>
+    <div class="exercise-card">
+      <div class="exercise-thumb">
+        <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=80" alt="">
+        <div class="overlay"></div>
+        <div class="play-btn"><i class="fas fa-play"></i></div>
+        <div class="duration"><i class="fas fa-clock"></i>20 min</div>
+        <div class="difficulty medium">Medium</div>
+      </div>
+      <div class="exercise-info">
+        <div class="exercise-name">Core Strengthening</div>
+        <div class="exercise-target">Core · Stability · 8 exercises</div>
+      </div>
+    </div>
+    <div class="exercise-card">
+      <div class="exercise-thumb">
+        <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80" alt="">
+        <div class="overlay"></div>
+        <div class="play-btn"><i class="fas fa-play"></i></div>
+        <div class="duration"><i class="fas fa-clock"></i>12 min</div>
+        <div class="difficulty easy">Easy</div>
+      </div>
+      <div class="exercise-info">
+        <div class="exercise-name">Flexibility & Stretch</div>
+        <div class="exercise-target">Full body · 5 exercises</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Recommended -->
+  <div class="section-head">
+    <span class="section-title">AI Recommended</span>
+    <span class="section-link">Refresh</span>
+  </div>
+
+  <div class="ai-card">
+    <div class="ai-card-thumb">
+      <img src="https://images.unsplash.com/photo-1552196563-55cd4e45efb3?w=200&q=80" alt="">
+      <div class="ai-tag">AI</div>
+    </div>
+    <div class="ai-card-info">
+      <div class="ai-card-name">Thoracic Rotation</div>
+      <div class="ai-card-meta"><i class="fas fa-clock"></i>8 min<i class="fas fa-fire"></i>Low</div>
+      <div class="ai-card-reason"><i class="fas fa-wand-magic-sparkles" style="margin-right:4px;font-size:9px;"></i>Based on your scan</div>
+    </div>
+    <div class="ai-card-play"><i class="fas fa-play"></i></div>
+  </div>
+
+  <div class="ai-card">
+    <div class="ai-card-thumb">
+      <img src="https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=200&q=80" alt="">
+      <div class="ai-tag">AI</div>
+    </div>
+    <div class="ai-card-info">
+      <div class="ai-card-name">Schroth Method Basics</div>
+      <div class="ai-card-meta"><i class="fas fa-clock"></i>15 min<i class="fas fa-fire"></i>Medium</div>
+      <div class="ai-card-reason"><i class="fas fa-wand-magic-sparkles" style="margin-right:4px;font-size:9px;"></i>For your scoliosis type</div>
+    </div>
+    <div class="ai-card-play"><i class="fas fa-play"></i></div>
+  </div>
+
+  <div class="ai-card">
+    <div class="ai-card-thumb">
+      <img src="https://images.unsplash.com/photo-1573384666979-2b1e160d2d08?w=200&q=80" alt="">
+      <div class="ai-tag">AI</div>
+    </div>
+    <div class="ai-card-info">
+      <div class="ai-card-name">Hip Flexor Release</div>
+      <div class="ai-card-meta"><i class="fas fa-clock"></i>10 min<i class="fas fa-fire"></i>Low</div>
+      <div class="ai-card-reason"><i class="fas fa-wand-magic-sparkles" style="margin-right:4px;font-size:9px;"></i>Compensatory pattern</div>
+    </div>
+    <div class="ai-card-play"><i class="fas fa-play"></i></div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab"><i class="fas fa-house"></i><span>Home</span></div>
+  <div class="tab"><i class="fas fa-camera"></i><span>Scan</span></div>
+  <div class="tab active"><i class="fas fa-dumbbell"></i><span>Exercises</span></div>
+  <div class="tab"><i class="fas fa-chart-line"></i><span>Progress</span></div>
+  <div class="tab"><i class="fas fa-user"></i><span>Profile</span></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpineAlign AI — Progress</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+*::-webkit-scrollbar{display:none;}
+html,body{width:100%;height:100%;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;font-family:'Inter',-apple-system,sans-serif;background:#F8FAFC;}
+
+.status-bar{height:59px;padding:16px 28px 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;background:#F8FAFC;}
+.status-time{font-size:16px;font-weight:700;color:#0F172A;}
+.status-icons{display:flex;align-items:center;gap:6px;}
+.status-icons i{font-size:13px;color:#0F172A;}
+.dynamic-island{width:120px;height:36px;background:#000;border-radius:20px;position:absolute;top:12px;left:50%;transform:translateX(-50%);}
+
+.content{padding:8px 28px 120px;}
+
+.page-title{font-size:28px;font-weight:900;color:#0F172A;letter-spacing:-1px;margin-bottom:4px;}
+.page-sub{font-size:13px;color:#94A3B8;margin-bottom:20px;}
+
+/* Time filter */
+.time-filter{display:flex;background:#fff;border-radius:14px;padding:4px;margin-bottom:20px;border:1px solid #F1F5F9;}
+.time-btn{flex:1;padding:8px;text-align:center;font-size:12px;font-weight:600;color:#94A3B8;border-radius:10px;cursor:pointer;}
+.time-btn.active{background:#0F172A;color:#fff;}
+
+/* Score trend card */
+.trend-card{background:linear-gradient(135deg,#0F172A,#1E293B);border-radius:24px;padding:24px;margin-bottom:20px;position:relative;overflow:hidden;}
+.trend-card::before{content:'';position:absolute;bottom:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(20,184,166,0.12),transparent 70%);}
+.trend-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;position:relative;z-index:1;}
+.trend-label{font-size:12px;font-weight:600;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;}
+.trend-change{display:flex;align-items:center;gap:4px;font-size:13px;font-weight:700;color:#10B981;}
+.trend-change i{font-size:10px;}
+.trend-score{font-size:48px;font-weight:900;color:#fff;letter-spacing:-2px;position:relative;z-index:1;margin-bottom:4px;}
+.trend-score span{font-size:20px;color:rgba(255,255,255,0.4);}
+.trend-sub{font-size:12px;color:rgba(255,255,255,0.4);position:relative;z-index:1;margin-bottom:20px;}
+
+/* Chart area */
+.chart-area{position:relative;z-index:1;height:100px;display:flex;align-items:flex-end;gap:4px;}
+.chart-bar{flex:1;border-radius:6px 6px 0 0;min-height:8px;transition:all 0.3s;}
+.chart-labels{display:flex;justify-content:space-between;margin-top:8px;position:relative;z-index:1;}
+.chart-label{font-size:10px;color:rgba(255,255,255,0.3);font-weight:500;}
+
+/* Body map */
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;margin-top:24px;}
+.section-title{font-size:17px;font-weight:800;color:#0F172A;letter-spacing:-0.3px;}
+
+.bodymap-card{background:#fff;border-radius:24px;padding:24px;border:1px solid #F1F5F9;margin-bottom:20px;text-align:center;}
+.body-visual{position:relative;height:280px;margin-bottom:16px;}
+.body-silhouette{width:120px;margin:0 auto;opacity:0.15;}
+/* SVG body outline */
+.body-outline{width:100%;height:100%;display:flex;justify-content:center;}
+.body-outline svg{height:260px;}
+/* Body region indicators */
+.region{position:absolute;display:flex;align-items:center;gap:6px;}
+.region-dot{width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+.region-dot.green{background:#10B981;}
+.region-dot.yellow{background:#F59E0B;}
+.region-dot.red{background:#EF4444;}
+.region-label{background:#fff;border-radius:10px;padding:4px 10px;font-size:11px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,0.08);white-space:nowrap;}
+.region-label .val{font-weight:800;margin-left:4px;}
+.region-label .val.green{color:#10B981;}
+.region-label .val.yellow{color:#F59E0B;}
+
+.region.neck{top:32px;left:55%;transform:translateX(10px);}
+.region.shoulder{top:68px;right:20px;}
+.region.spine{top:130px;left:15px;}
+.region.hip{top:180px;right:15px;}
+.region.knee{top:230px;left:20px;}
+
+/* Milestones */
+.milestone-card{background:#fff;border-radius:16px;padding:16px;border:1px solid #F1F5F9;margin-bottom:10px;display:flex;gap:14px;align-items:center;}
+.milestone-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.milestone-icon i{font-size:18px;color:#fff;}
+.milestone-icon.teal{background:linear-gradient(135deg,#14B8A6,#0EA5E9);}
+.milestone-icon.purple{background:linear-gradient(135deg,#6366F1,#8B5CF6);}
+.milestone-icon.amber{background:linear-gradient(135deg,#F59E0B,#EF4444);}
+.milestone-info{flex:1;}
+.milestone-name{font-size:13px;font-weight:700;color:#0F172A;}
+.milestone-date{font-size:11px;color:#94A3B8;margin-top:2px;}
+.milestone-badge{padding:4px 10px;border-radius:8px;font-size:10px;font-weight:700;}
+.milestone-badge.achieved{background:rgba(16,185,129,0.1);color:#10B981;}
+.milestone-badge.progress{background:rgba(99,102,241,0.1);color:#6366F1;}
+
+/* Stats grid */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}
+.stat-block{background:#fff;border-radius:18px;padding:18px;border:1px solid #F1F5F9;text-align:center;}
+.stat-big{font-size:32px;font-weight:900;letter-spacing:-1px;line-height:1;}
+.stat-big.teal{color:#14B8A6;}
+.stat-big.indigo{color:#6366F1;}
+.stat-big.emerald{color:#10B981;}
+.stat-big.amber{color:#F59E0B;}
+.stat-desc{font-size:11px;color:#94A3B8;margin-top:4px;font-weight:500;}
+.stat-trend{display:flex;align-items:center;justify-content:center;gap:3px;margin-top:6px;font-size:11px;font-weight:600;}
+.stat-trend.up{color:#10B981;}
+.stat-trend.up i{font-size:9px;}
+
+/* Tab Bar */
+.tab-bar{position:absolute;bottom:0;left:0;right:0;height:88px;background:#fff;border-top:1px solid #F1F5F9;display:flex;justify-content:space-around;align-items:flex-start;padding-top:12px;z-index:100;}
+.tab{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
+.tab i{font-size:20px;color:#CBD5E1;}
+.tab span{font-size:10px;font-weight:600;color:#CBD5E1;}
+.tab.active i{color:#14B8A6;}
+.tab.active span{color:#14B8A6;}
+</style>
+</head>
+<body>
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="content">
+  <div class="page-title">Progress</div>
+  <p class="page-sub">Track your rehabilitation journey</p>
+
+  <!-- Time filter -->
+  <div class="time-filter">
+    <div class="time-btn">Week</div>
+    <div class="time-btn active">Month</div>
+    <div class="time-btn">3 Months</div>
+    <div class="time-btn">Year</div>
+  </div>
+
+  <!-- Score Trend -->
+  <div class="trend-card">
+    <div class="trend-header">
+      <span class="trend-label">Posture Score</span>
+      <span class="trend-change"><i class="fas fa-arrow-up"></i>+12 pts</span>
+    </div>
+    <div class="trend-score">78<span>/100</span></div>
+    <div class="trend-sub">Great improvement over last month</div>
+    <div class="chart-area">
+      <div class="chart-bar" style="height:30%;background:rgba(20,184,166,0.3);"></div>
+      <div class="chart-bar" style="height:35%;background:rgba(20,184,166,0.35);"></div>
+      <div class="chart-bar" style="height:40%;background:rgba(20,184,166,0.4);"></div>
+      <div class="chart-bar" style="height:38%;background:rgba(20,184,166,0.4);"></div>
+      <div class="chart-bar" style="height:45%;background:rgba(20,184,166,0.45);"></div>
+      <div class="chart-bar" style="height:50%;background:rgba(20,184,166,0.5);"></div>
+      <div class="chart-bar" style="height:48%;background:rgba(20,184,166,0.5);"></div>
+      <div class="chart-bar" style="height:55%;background:rgba(20,184,166,0.55);"></div>
+      <div class="chart-bar" style="height:52%;background:rgba(20,184,166,0.55);"></div>
+      <div class="chart-bar" style="height:58%;background:rgba(20,184,166,0.6);"></div>
+      <div class="chart-bar" style="height:60%;background:rgba(20,184,166,0.65);"></div>
+      <div class="chart-bar" style="height:62%;background:rgba(20,184,166,0.65);"></div>
+      <div class="chart-bar" style="height:65%;background:rgba(20,184,166,0.7);"></div>
+      <div class="chart-bar" style="height:68%;background:rgba(20,184,166,0.75);"></div>
+      <div class="chart-bar" style="height:70%;background:rgba(20,184,166,0.75);"></div>
+      <div class="chart-bar" style="height:72%;background:rgba(20,184,166,0.8);"></div>
+      <div class="chart-bar" style="height:70%;background:rgba(20,184,166,0.8);"></div>
+      <div class="chart-bar" style="height:75%;background:rgba(20,184,166,0.85);"></div>
+      <div class="chart-bar" style="height:73%;background:rgba(20,184,166,0.85);"></div>
+      <div class="chart-bar" style="height:78%;background:rgba(20,184,166,0.9);"></div>
+      <div class="chart-bar" style="height:76%;background:rgba(20,184,166,0.9);"></div>
+      <div class="chart-bar" style="height:80%;background:rgba(20,184,166,0.95);"></div>
+      <div class="chart-bar" style="height:78%;background:#14B8A6;"></div>
+      <div class="chart-bar" style="height:82%;background:#14B8A6;"></div>
+      <div class="chart-bar" style="height:80%;background:#14B8A6;"></div>
+      <div class="chart-bar" style="height:85%;background:#14B8A6;"></div>
+      <div class="chart-bar" style="height:83%;background:#14B8A6;"></div>
+      <div class="chart-bar" style="height:88%;background:linear-gradient(180deg,#14B8A6,#0EA5E9);"></div>
+      <div class="chart-bar" style="height:86%;background:linear-gradient(180deg,#14B8A6,#0EA5E9);"></div>
+      <div class="chart-bar" style="height:90%;background:linear-gradient(180deg,#14B8A6,#0EA5E9);"></div>
+    </div>
+    <div class="chart-labels">
+      <span class="chart-label">Mar 25</span>
+      <span class="chart-label">Apr 1</span>
+      <span class="chart-label">Apr 8</span>
+      <span class="chart-label">Apr 15</span>
+      <span class="chart-label">Apr 24</span>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <div class="stat-block">
+      <div class="stat-big teal">42</div>
+      <div class="stat-desc">Sessions Completed</div>
+      <div class="stat-trend up"><i class="fas fa-arrow-up"></i>+8 this month</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-big indigo">6.2<span style="font-size:16px;">°</span></div>
+      <div class="stat-desc">Cobb Angle Improvement</div>
+      <div class="stat-trend up"><i class="fas fa-arrow-up"></i>-2.1° reduction</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-big emerald">12</div>
+      <div class="stat-desc">Day Streak</div>
+      <div class="stat-trend up"><i class="fas fa-arrow-up"></i>Personal best!</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-big amber">93<span style="font-size:16px;">%</span></div>
+      <div class="stat-desc">Exercise Accuracy</div>
+      <div class="stat-trend up"><i class="fas fa-arrow-up"></i>+5% vs last month</div>
+    </div>
+  </div>
+
+  <!-- Body Map -->
+  <div class="section-head">
+    <span class="section-title">Body Assessment Map</span>
+  </div>
+  <div class="bodymap-card">
+    <div class="body-visual">
+      <!-- Simple body outline using CSS -->
+      <div style="position:absolute;left:50%;top:10px;transform:translateX(-50%);width:44px;height:44px;border-radius:50%;background:#E2E8F0;"></div>
+      <div style="position:absolute;left:50%;top:56px;transform:translateX(-50%);width:2px;height:30px;background:#E2E8F0;"></div>
+      <div style="position:absolute;left:50%;top:80px;transform:translateX(-50%);width:80px;height:4px;background:#E2E8F0;border-radius:2px;"></div>
+      <div style="position:absolute;left:50%;top:86px;transform:translateX(-50%);width:60px;height:70px;background:#E2E8F0;border-radius:8px;"></div>
+      <div style="position:absolute;left:50%;top:86px;transform:translateX(-50%) translateX(-44px);width:2px;height:60px;background:#E2E8F0;"></div>
+      <div style="position:absolute;left:50%;top:86px;transform:translateX(-50%) translateX(44px);width:2px;height:60px;background:#E2E8F0;"></div>
+      <div style="position:absolute;left:50%;top:158px;transform:translateX(-50%) translateX(-16px);width:2px;height:70px;background:#E2E8F0;"></div>
+      <div style="position:absolute;left:50%;top:158px;transform:translateX(-50%) translateX(16px);width:2px;height:70px;background:#E2E8F0;"></div>
+      <div style="position:absolute;left:50%;top:230px;transform:translateX(-50%) translateX(-16px);width:2px;height:50px;background:#E2E8F0;"></div>
+      <div style="position:absolute;left:50%;top:230px;transform:translateX(-50%) translateX(16px);width:2px;height:50px;background:#E2E8F0;"></div>
+
+      <!-- Region indicators -->
+      <div class="region neck">
+        <div class="region-dot green"></div>
+        <div class="region-label">Neck <span class="val green">Good</span></div>
+      </div>
+      <div class="region shoulder">
+        <div class="region-label">Shoulder <span class="val yellow">-2.1°</span></div>
+        <div class="region-dot yellow"></div>
+      </div>
+      <div class="region spine">
+        <div class="region-dot yellow"></div>
+        <div class="region-label">T-Spine <span class="val yellow">8.4°</span></div>
+      </div>
+      <div class="region hip">
+        <div class="region-label">Hips <span class="val green">OK</span></div>
+        <div class="region-dot green"></div>
+      </div>
+      <div class="region knee">
+        <div class="region-dot green"></div>
+        <div class="region-label">Knees <span class="val green">Normal</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Milestones -->
+  <div class="section-head">
+    <span class="section-title">Milestones</span>
+  </div>
+
+  <div class="milestone-card">
+    <div class="milestone-icon teal"><i class="fas fa-trophy"></i></div>
+    <div class="milestone-info">
+      <div class="milestone-name">30-Day Exercise Streak</div>
+      <div class="milestone-date">18 days remaining</div>
+    </div>
+    <span class="milestone-badge progress">40%</span>
+  </div>
+
+  <div class="milestone-card">
+    <div class="milestone-icon purple"><i class="fas fa-medal"></i></div>
+    <div class="milestone-info">
+      <div class="milestone-name">Posture Score 75+</div>
+      <div class="milestone-date">Achieved Apr 20, 2026</div>
+    </div>
+    <span class="milestone-badge achieved">Done</span>
+  </div>
+
+  <div class="milestone-card">
+    <div class="milestone-icon amber"><i class="fas fa-star"></i></div>
+    <div class="milestone-info">
+      <div class="milestone-name">First AI Scan Completed</div>
+      <div class="milestone-date">Achieved Mar 15, 2026</div>
+    </div>
+    <span class="milestone-badge achieved">Done</span>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab"><i class="fas fa-house"></i><span>Home</span></div>
+  <div class="tab"><i class="fas fa-camera"></i><span>Scan</span></div>
+  <div class="tab"><i class="fas fa-dumbbell"></i><span>Exercises</span></div>
+  <div class="tab active"><i class="fas fa-chart-line"></i><span>Progress</span></div>
+  <div class="tab"><i class="fas fa-user"></i><span>Profile</span></div>
+</div>
+</body>
+</html>
