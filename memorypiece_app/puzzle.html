@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemoryPiece - Puzzle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        body { width: 100%; height: 100%; overflow-x: hidden; background: #1A1A2E; }
+        .status-bar { height: 59px; padding: 0 28px; }
+        .content-area { padding: 0 28px; }
+        .puzzle-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 3px;
+            aspect-ratio: 4/3;
+        }
+        .puzzle-piece {
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .puzzle-piece.placed {
+            opacity: 1;
+        }
+        .puzzle-piece.empty {
+            background: rgba(255,255,255,0.05);
+            border: 2px dashed rgba(255,255,255,0.15);
+        }
+        .puzzle-piece.hint {
+            background: rgba(245, 158, 11, 0.15);
+            border: 2px dashed rgba(245, 158, 11, 0.4);
+            animation: pulse-hint 2s infinite;
+        }
+        @keyframes pulse-hint {
+            0%, 100% { border-color: rgba(245, 158, 11, 0.4); }
+            50% { border-color: rgba(245, 158, 11, 0.8); }
+        }
+        .piece-tray {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 12px 0;
+        }
+        .tray-piece {
+            flex-shrink: 0;
+            width: 80px;
+            height: 60px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.2);
+            transition: all 0.2s;
+        }
+        .tray-piece.selected {
+            border-color: #F59E0B;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+            transform: scale(1.05);
+        }
+        .ghost-preview {
+            position: absolute;
+            inset: 0;
+            opacity: 0.15;
+        }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div class="status-bar flex items-end justify-between pb-2">
+        <div class="text-sm font-semibold text-white/80">9:41</div>
+        <div class="w-[126px] h-[37px] bg-white/20 rounded-full mt-3"></div>
+        <div class="flex items-center gap-1.5">
+            <i class="fas fa-signal text-sm text-white/80"></i>
+            <i class="fas fa-wifi text-sm text-white/80"></i>
+            <i class="fas fa-battery-full text-sm text-white/80"></i>
+        </div>
+    </div>
+
+    <!-- Top Bar -->
+    <div class="content-area pt-2 pb-3">
+        <div class="flex items-center justify-between">
+            <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+                <i class="fas fa-arrow-left text-white/80"></i>
+            </div>
+            <div class="text-center">
+                <p class="text-white font-bold text-sm">Christmas 2019</p>
+                <p class="text-white/50 text-xs">12 Pieces</p>
+            </div>
+            <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+                <i class="fas fa-lightbulb text-amber-400"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="content-area mt-2">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-white/50 text-xs font-medium">Progress</span>
+            <span class="text-amber-400 text-xs font-bold">7 / 12</span>
+        </div>
+        <div class="w-full bg-white/10 rounded-full h-2">
+            <div class="bg-gradient-to-r from-amber-400 to-amber-500 h-2 rounded-full transition-all" style="width: 58%"></div>
+        </div>
+    </div>
+
+    <!-- Reference Thumbnail -->
+    <div class="content-area mt-4">
+        <div class="flex items-center gap-3">
+            <div class="relative w-16 h-12 rounded-lg overflow-hidden border border-white/20 flex-shrink-0">
+                <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=200&h=150&fit=crop" class="w-full h-full object-cover blur-sm opacity-50" alt="reference">
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <i class="fas fa-eye text-white/40 text-xs"></i>
+                </div>
+            </div>
+            <div>
+                <p class="text-white/40 text-[10px] uppercase tracking-wider font-medium">Reference Photo</p>
+                <p class="text-white/60 text-xs">Tap to peek (blurred)</p>
+            </div>
+            <div class="ml-auto flex items-center gap-1.5">
+                <i class="fas fa-clock text-amber-400/60 text-xs"></i>
+                <span class="text-amber-400/80 text-xs font-medium">4:32</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Puzzle Board -->
+    <div class="content-area mt-5">
+        <div class="puzzle-board bg-white/5 rounded-2xl p-2">
+            <!-- Row 1 -->
+            <div class="puzzle-piece placed rounded overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=400&h=300&fit=crop" class="w-full h-full object-cover" style="object-position: 0% 0%;" alt="piece">
+            </div>
+            <div class="puzzle-piece placed rounded overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=400&h=300&fit=crop" class="w-full h-full object-cover" style="object-position: 33% 0%;" alt="piece">
+            </div>
+            <div class="puzzle-piece hint rounded">
+                <div class="ghost-preview rounded overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=400&h=300&fit=crop" class="w-full h-full object-cover" style="object-position: 66% 0%;" alt="ghost">
+                </div>
+            </div>
+            <div class="puzzle-piece placed rounded overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=400&h=300&fit=crop" class="w-full h-full object-cover" style="object-position: 100% 0%;" alt="piece">
+            </div>
+            <!-- Row 2 -->
+            <div class="puzzle-piece placed rounded overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=400&h=300&fit=crop" class="w-full h-full object-cover" style="object-position: 0% 50%;" alt="piece">
+            </div>
+            <div class="puzzle-piece empty rounded"></div>
+            <div class="puzzle-piece placed rounded overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=400&h=300&fit=crop" class="w-full h-full object-cover" style="object-position: 66% 50%;" alt="piece">
+            </div>
+            <div class="puzzle-piece empty rounded"></div>
+            <!-- Row 3 -->
+            <div class="puzzle-piece empty rounded"></div>
+            <div class="puzzle-piece placed rounded overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=400&h=300&fit=crop" class="w-full h-full object-cover" style="object-position: 33% 100%;" alt="piece">
+            </div>
+            <div class="puzzle-piece empty rounded"></div>
+            <div class="puzzle-piece placed rounded overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=400&h=300&fit=crop" class="w-full h-full object-cover" style="object-position: 100% 100%;" alt="piece">
+            </div>
+        </div>
+    </div>
+
+    <!-- Piece Tray -->
+    <div class="content-area mt-4">
+        <p class="text-white/40 text-[10px] uppercase tracking-wider font-medium mb-1">Remaining Pieces</p>
+        <div class="piece-tray">
+            <div class="tray-piece selected">
+                <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=200&h=150&fit=crop" class="w-full h-full object-cover" style="object-position: 66% 0%;" alt="piece">
+            </div>
+            <div class="tray-piece">
+                <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=200&h=150&fit=crop" class="w-full h-full object-cover" style="object-position: 33% 50%;" alt="piece">
+            </div>
+            <div class="tray-piece">
+                <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=200&h=150&fit=crop" class="w-full h-full object-cover" style="object-position: 0% 100%;" alt="piece">
+            </div>
+            <div class="tray-piece">
+                <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=200&h=150&fit=crop" class="w-full h-full object-cover" style="object-position: 100% 50%;" alt="piece">
+            </div>
+            <div class="tray-piece">
+                <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=200&h=150&fit=crop" class="w-full h-full object-cover" style="object-position: 66% 100%;" alt="piece">
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="content-area mt-4 pb-8">
+        <div class="flex gap-3">
+            <div class="flex-1 bg-white/10 rounded-2xl py-3 flex items-center justify-center gap-2">
+                <i class="fas fa-undo text-white/60 text-sm"></i>
+                <span class="text-white/60 text-sm font-medium">Undo</span>
+            </div>
+            <div class="flex-1 bg-white/10 rounded-2xl py-3 flex items-center justify-center gap-2">
+                <i class="fas fa-magic text-amber-400 text-sm"></i>
+                <span class="text-amber-400 text-sm font-medium">Hint</span>
+            </div>
+            <div class="flex-1 bg-white/10 rounded-2xl py-3 flex items-center justify-center gap-2">
+                <i class="fas fa-volume-up text-white/60 text-sm"></i>
+                <span class="text-white/60 text-sm font-medium">Audio</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
