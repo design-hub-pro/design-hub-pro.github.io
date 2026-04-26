@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RallyUp — Map</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+* { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+.screen { width: 100%; height: 100%; position: relative; background: #d6e8d3; overflow: hidden; }
+.status-bar { height: 59px; padding: 0 28px; display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 12px; position: relative; z-index: 30; }
+.dynamic-island { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); width: 124px; height: 36px; background: black; border-radius: 20px; }
+.tab-bar {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 92px;
+  background: rgba(255,255,255,0.92); backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(0,0,0,0.05);
+  display: flex; padding: 14px 28px 28px;
+  z-index: 20;
+}
+/* Map background */
+.map {
+  position: absolute; inset: 0;
+  background: #dbeadf;
+  background-image:
+    radial-gradient(circle at 20% 30%, #c5dec6 0%, transparent 30%),
+    radial-gradient(circle at 80% 70%, #b9d6c1 0%, transparent 35%),
+    radial-gradient(circle at 50% 50%, #cee2ce 0%, transparent 30%);
+}
+/* Roads */
+.road {
+  position: absolute;
+  background: white;
+  box-shadow: 0 0 0 1px #e5e7eb;
+}
+.road-h { height: 12px; left: 0; right: 0; }
+.road-v { width: 12px; top: 0; bottom: 0; }
+.road-thin { background: #f3f4f6; }
+.water {
+  position: absolute;
+  background: #b8dbe8;
+  border-radius: 50%;
+  filter: blur(2px);
+}
+.park {
+  position: absolute;
+  background: #a3d39c;
+  border-radius: 30px;
+  opacity: 0.7;
+}
+.pin {
+  position: absolute;
+  width: 44px; height: 44px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  cursor: pointer;
+}
+.pin i { transform: rotate(45deg); }
+.pin-bg { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+.bottom-sheet {
+  position: absolute; left: 0; right: 0; bottom: 92px;
+  background: white;
+  border-radius: 28px 28px 0 0;
+  padding: 12px 0 16px;
+  box-shadow: 0 -10px 30px rgba(0,0,0,0.08);
+  z-index: 15;
+  height: 360px;
+}
+.handle {
+  width: 40px; height: 4px; background: #d4d4d8; border-radius: 4px;
+  margin: 0 auto 14px;
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <!-- Map -->
+  <div class="map">
+    <!-- Parks -->
+    <div class="park" style="left:30px;top:120px;width:140px;height:90px;"></div>
+    <div class="park" style="right:50px;top:280px;width:120px;height:120px;"></div>
+    <div class="park" style="left:60px;bottom:260px;width:160px;height:80px;"></div>
+    <!-- Water -->
+    <div class="water" style="right:-40px;top:80px;width:160px;height:160px;opacity:0.6;"></div>
+    <!-- Roads -->
+    <div class="road road-h" style="top:200px;"></div>
+    <div class="road road-h road-thin" style="top:380px;height:8px;"></div>
+    <div class="road road-h" style="top:540px;"></div>
+    <div class="road road-v" style="left:130px;"></div>
+    <div class="road road-v road-thin" style="left:280px;width:8px;"></div>
+    <div class="road road-v" style="right:90px;"></div>
+
+    <!-- Pins -->
+    <div class="pin" style="left:80px;top:170px;background:#84cc16;">
+      <div class="pin-bg" style="background:#65a30d;">
+        <i class="fas fa-basketball text-white text-sm"></i>
+      </div>
+    </div>
+    <div class="pin" style="left:200px;top:300px;background:#fb923c;">
+      <div class="pin-bg" style="background:#ea580c;">
+        <i class="fas fa-futbol text-white text-sm"></i>
+      </div>
+    </div>
+    <div class="pin" style="right:120px;top:240px;background:#84cc16;">
+      <div class="pin-bg" style="background:#65a30d;">
+        <i class="fas fa-table-tennis-paddle-ball text-white text-sm"></i>
+      </div>
+    </div>
+    <div class="pin" style="left:160px;top:480px;background:#84cc16;">
+      <div class="pin-bg" style="background:#65a30d;">
+        <i class="fas fa-volleyball text-white text-sm"></i>
+      </div>
+    </div>
+    <div class="pin" style="right:150px;top:430px;background:#3b82f6;">
+      <div class="pin-bg" style="background:#2563eb;">
+        <i class="fas fa-baseball-bat-ball text-white text-sm"></i>
+      </div>
+    </div>
+    <!-- User location -->
+    <div style="position:absolute;left:218px;top:368px;">
+      <div style="width:60px;height:60px;background:rgba(132,204,22,0.2);border-radius:50%;position:absolute;left:-22px;top:-22px;animation:pulse 2s infinite;"></div>
+      <div style="width:16px;height:16px;background:#22c55e;border-radius:50%;border:3px solid white;box-shadow:0 0 0 1px #22c55e, 0 4px 8px rgba(0,0,0,0.2);"></div>
+    </div>
+  </div>
+
+  <!-- Status bar (transparent overlay) -->
+  <div class="status-bar">
+    <span class="text-sm font-semibold text-zinc-900">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="flex items-center gap-1.5 text-zinc-900">
+      <i class="fas fa-signal text-xs"></i>
+      <i class="fas fa-wifi text-xs"></i>
+      <i class="fas fa-battery-full text-sm"></i>
+    </div>
+  </div>
+
+  <!-- Top search & filters -->
+  <div class="absolute top-[72px] left-7 right-7 z-30">
+    <div class="bg-white rounded-2xl shadow-md flex items-center px-4 py-3 mb-3">
+      <i class="fas fa-search text-zinc-400 mr-2"></i>
+      <input type="text" placeholder="Find players, courts, sports" class="flex-1 outline-none text-sm font-medium text-zinc-900 placeholder-zinc-400"/>
+      <button class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center">
+        <i class="fas fa-sliders text-white text-xs"></i>
+      </button>
+    </div>
+    <div class="flex gap-2 overflow-x-auto no-scrollbar">
+      <button class="flex-shrink-0 bg-zinc-900 text-white rounded-full px-3 py-1.5 text-[11px] font-bold flex items-center gap-1">
+        <i class="fas fa-bolt text-lime-400 text-[10px]"></i> Live now
+      </button>
+      <button class="flex-shrink-0 bg-white text-zinc-700 rounded-full px-3 py-1.5 text-[11px] font-semibold shadow-sm">Today</button>
+      <button class="flex-shrink-0 bg-white text-zinc-700 rounded-full px-3 py-1.5 text-[11px] font-semibold shadow-sm">All sports</button>
+      <button class="flex-shrink-0 bg-white text-zinc-700 rounded-full px-3 py-1.5 text-[11px] font-semibold shadow-sm">Open spots</button>
+    </div>
+  </div>
+
+  <!-- Floating recenter button -->
+  <button class="absolute right-7 bottom-[480px] z-15 w-11 h-11 rounded-full bg-white shadow-lg flex items-center justify-center" style="z-index:14;">
+    <i class="fas fa-location-crosshairs text-zinc-700"></i>
+  </button>
+
+  <!-- Bottom sheet -->
+  <div class="bottom-sheet">
+    <div class="handle"></div>
+    <div class="px-7 flex items-center justify-between mb-3">
+      <div>
+        <p class="text-[18px] font-black text-zinc-900">8 games nearby</p>
+        <p class="text-xs text-zinc-500">within 2 miles • next 24h</p>
+      </div>
+      <button class="text-xs font-semibold text-lime-600 bg-lime-50 px-3 py-1.5 rounded-full">List view</button>
+    </div>
+
+    <div class="px-7 flex gap-3 overflow-x-auto no-scrollbar pb-2">
+      <!-- Game card 1 -->
+      <div class="flex-shrink-0 w-[260px] bg-zinc-900 rounded-2xl p-4 text-white relative overflow-hidden">
+        <div class="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-lime-400/20 blur-2xl"></div>
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 bg-lime-400 rounded-full animate-pulse"></span>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-lime-400">Live</span>
+          </div>
+          <span class="text-[10px] text-zinc-400 font-medium">0.4 mi</span>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center mb-3">
+          <i class="fas fa-basketball text-white"></i>
+        </div>
+        <p class="text-[10px] uppercase tracking-wider font-bold text-zinc-400 mb-1">Riverside Park</p>
+        <p class="font-bold text-[14px] mb-3">5v5 Pickup • Today 6:30PM</p>
+        <div class="flex items-center justify-between">
+          <div class="flex -space-x-1.5">
+            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=60&q=80" class="w-6 h-6 rounded-full ring-2 ring-zinc-900 object-cover"/>
+            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&q=80" class="w-6 h-6 rounded-full ring-2 ring-zinc-900 object-cover"/>
+            <div class="w-6 h-6 rounded-full bg-zinc-700 ring-2 ring-zinc-900 flex items-center justify-center text-[8px] font-bold">+8</div>
+          </div>
+          <span class="text-[10px] bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold">2 left</span>
+        </div>
+      </div>
+
+      <!-- Game card 2 -->
+      <div class="flex-shrink-0 w-[260px] bg-white rounded-2xl p-4 border border-zinc-100">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Tomorrow • 8AM</span>
+          <span class="text-[10px] text-zinc-400 font-medium">0.6 mi</span>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center mb-3">
+          <i class="fas fa-table-tennis-paddle-ball text-white"></i>
+        </div>
+        <p class="text-[10px] uppercase tracking-wider font-bold text-zinc-500 mb-1">Lincoln Tennis Club</p>
+        <p class="font-bold text-[14px] mb-3 text-zinc-900">Tennis Doubles • Mixed</p>
+        <div class="flex items-center justify-between">
+          <div class="flex -space-x-1.5">
+            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60&q=80" class="w-6 h-6 rounded-full ring-2 ring-white object-cover"/>
+            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&q=80" class="w-6 h-6 rounded-full ring-2 ring-white object-cover"/>
+            <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=60&q=80" class="w-6 h-6 rounded-full ring-2 ring-white object-cover"/>
+          </div>
+          <span class="text-[10px] bg-lime-100 text-lime-700 px-2 py-0.5 rounded-full font-bold">3/4</span>
+        </div>
+      </div>
+
+      <!-- Game card 3 -->
+      <div class="flex-shrink-0 w-[260px] bg-white rounded-2xl p-4 border border-zinc-100">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Sun • 11AM</span>
+          <span class="text-[10px] text-zinc-400 font-medium">1.2 mi</span>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center mb-3">
+          <i class="fas fa-futbol text-white"></i>
+        </div>
+        <p class="text-[10px] uppercase tracking-wider font-bold text-zinc-500 mb-1">Greenfield Stadium</p>
+        <p class="font-bold text-[14px] mb-3 text-zinc-900">Sunday Soccer League</p>
+      </div>
+    </div>
+
+    <div class="px-7 mt-3 flex items-center gap-2">
+      <button class="flex-1 bg-lime-400 text-zinc-900 font-bold text-sm py-3 rounded-xl flex items-center justify-center gap-2">
+        <i class="fas fa-plus"></i> Host a game
+      </button>
+      <button class="w-12 h-12 rounded-xl bg-zinc-100 flex items-center justify-center">
+        <i class="fas fa-users text-zinc-700"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <button class="flex-1 flex flex-col items-center gap-1">
+      <i class="fas fa-house text-zinc-400 text-[18px]"></i>
+      <span class="text-[10px] font-medium text-zinc-400">Home</span>
+    </button>
+    <button class="flex-1 flex flex-col items-center gap-1">
+      <i class="fas fa-map-location-dot text-zinc-900 text-[18px]"></i>
+      <span class="text-[10px] font-bold text-zinc-900">Map</span>
+    </button>
+    <button class="flex-1 flex items-center justify-center">
+      <div class="w-12 h-12 rounded-full bg-lime-400 flex items-center justify-center -mt-3 shadow-lg shadow-lime-400/40">
+        <i class="fas fa-plus text-zinc-900 text-lg"></i>
+      </div>
+    </button>
+    <button class="flex-1 flex flex-col items-center gap-1">
+      <i class="fas fa-trophy text-zinc-400 text-[18px]"></i>
+      <span class="text-[10px] font-medium text-zinc-400">Tournaments</span>
+    </button>
+    <button class="flex-1 flex flex-col items-center gap-1">
+      <i class="fas fa-user text-zinc-400 text-[18px]"></i>
+      <span class="text-[10px] font-medium text-zinc-400">Profile</span>
+    </button>
+  </div>
+</div>
+</body>
+</html>
