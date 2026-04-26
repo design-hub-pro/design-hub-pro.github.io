@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VetStrong - Wellness</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  * { scrollbar-width: none; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #0A0E1A; color: #fff; width: 100%; height: 100%; overflow-x: hidden; }
+
+  .status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; position: sticky; top: 0; z-index: 100; background: #0A0E1A; }
+  .status-time { font-size: 17px; font-weight: 600; }
+  .status-icons { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .dynamic-island { width: 120px; height: 36px; background: #000; border-radius: 20px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+  .page-title { font-size: 28px; font-weight: 900; margin-bottom: 6px; }
+  .page-sub { font-size: 14px; color: rgba(255,255,255,0.45); margin-bottom: 20px; }
+
+  .mood-card { background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(167,139,250,0.1)); border: 1px solid rgba(124,58,237,0.2); border-radius: 24px; padding: 20px; margin-bottom: 24px; }
+  .mood-q { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+  .mood-row { display: flex; justify-content: space-between; }
+  .mood-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .mood-emoji { font-size: 32px; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.06); }
+  .mood-emoji.selected { background: rgba(124,58,237,0.3); border: 2px solid #A78BFA; }
+  .mood-label { font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 500; }
+
+  .quick-access { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+  .qa-card { border-radius: 20px; padding: 18px; position: relative; overflow: hidden; }
+  .qa-card.green { background: linear-gradient(135deg, rgba(13,148,136,0.3), rgba(13,148,136,0.1)); border: 1px solid rgba(13,148,136,0.2); }
+  .qa-card.blue { background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(59,130,246,0.1)); border: 1px solid rgba(59,130,246,0.2); }
+  .qa-card.pink { background: linear-gradient(135deg, rgba(236,72,153,0.3), rgba(236,72,153,0.1)); border: 1px solid rgba(236,72,153,0.2); }
+  .qa-card.amber { background: linear-gradient(135deg, rgba(245,158,11,0.3), rgba(245,158,11,0.1)); border: 1px solid rgba(245,158,11,0.2); }
+  .qa-icon { font-size: 24px; margin-bottom: 10px; }
+  .qa-card.green .qa-icon { color: #2DD4BF; }
+  .qa-card.blue .qa-icon { color: #60A5FA; }
+  .qa-card.pink .qa-icon { color: #F472B6; }
+  .qa-card.amber .qa-icon { color: #FBBF24; }
+  .qa-title { font-size: 14px; font-weight: 700; }
+  .qa-desc { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 4px; line-height: 1.4; }
+
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .section-title { font-size: 18px; font-weight: 800; }
+  .section-link { font-size: 13px; color: #FFB347; font-weight: 600; }
+
+  .workshop-card { background: rgba(255,255,255,0.06); border-radius: 20px; overflow: hidden; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.06); }
+  .workshop-img { width: 100%; height: 140px; object-fit: cover; position: relative; }
+  .workshop-img-wrap { position: relative; }
+  .workshop-tag { position: absolute; top: 12px; left: 12px; padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; background: rgba(124,58,237,0.8); text-transform: uppercase; letter-spacing: 0.5px; }
+  .workshop-date { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; }
+  .workshop-body { padding: 14px 16px; }
+  .workshop-name { font-size: 15px; font-weight: 700; }
+  .workshop-meta { display: flex; gap: 12px; margin-top: 6px; font-size: 11px; color: rgba(255,255,255,0.4); }
+  .workshop-btn { background: rgba(124,58,237,0.2); color: #A78BFA; border: none; padding: 8px 20px; border-radius: 50px; font-size: 12px; font-weight: 700; margin-top: 10px; cursor: pointer; }
+
+  .resource-card { background: rgba(255,255,255,0.06); border-radius: 16px; padding: 14px; display: flex; gap: 12px; align-items: center; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.06); }
+  .resource-icon { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .resource-icon.r1 { background: linear-gradient(135deg, #0D9488, #2DD4BF); }
+  .resource-icon.r2 { background: linear-gradient(135deg, #7C3AED, #A78BFA); }
+  .resource-icon.r3 { background: linear-gradient(135deg, #3B82F6, #60A5FA); }
+  .resource-info { flex: 1; }
+  .resource-name { font-size: 14px; font-weight: 600; }
+  .resource-desc { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+  .resource-arrow { font-size: 14px; color: rgba(255,255,255,0.3); }
+
+  .crisis-banner { background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(239,68,68,0.1)); border: 1px solid rgba(239,68,68,0.3); border-radius: 20px; padding: 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .crisis-icon { width: 44px; height: 44px; border-radius: 50%; background: rgba(239,68,68,0.2); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #EF4444; flex-shrink: 0; }
+  .crisis-info { flex: 1; }
+  .crisis-title { font-size: 14px; font-weight: 700; color: #FCA5A5; }
+  .crisis-text { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .crisis-call { background: #EF4444; color: #fff; border: none; padding: 8px 16px; border-radius: 50px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(10,14,26,0.95); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; color: rgba(255,255,255,0.35); font-weight: 500; }
+  .tab-item.active { color: #FFB347; }
+  .tab-item i { font-size: 22px; }
+  .tab-indicator { width: 4px; height: 4px; border-radius: 50%; background: #FFB347; margin-top: 2px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:14px"></i>
+      <i class="fas fa-wifi" style="font-size:14px"></i>
+      <i class="fas fa-battery-full" style="font-size:16px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-title">Wellness</div>
+    <div class="page-sub">Your mental health matters</div>
+
+    <!-- Crisis Banner -->
+    <div class="crisis-banner">
+      <div class="crisis-icon"><i class="fas fa-phone"></i></div>
+      <div class="crisis-info">
+        <div class="crisis-title">Veterans Crisis Line</div>
+        <div class="crisis-text">24/7 confidential support</div>
+      </div>
+      <button class="crisis-call">988</button>
+    </div>
+
+    <!-- Mood Check -->
+    <div class="mood-card">
+      <div class="mood-q">How are you feeling today?</div>
+      <div class="mood-row">
+        <div class="mood-item">
+          <div class="mood-emoji selected">😊</div>
+          <div class="mood-label">Great</div>
+        </div>
+        <div class="mood-item">
+          <div class="mood-emoji">🙂</div>
+          <div class="mood-label">Good</div>
+        </div>
+        <div class="mood-item">
+          <div class="mood-emoji">😐</div>
+          <div class="mood-label">Okay</div>
+        </div>
+        <div class="mood-item">
+          <div class="mood-emoji">😔</div>
+          <div class="mood-label">Low</div>
+        </div>
+        <div class="mood-item">
+          <div class="mood-emoji">😢</div>
+          <div class="mood-label">Tough</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Access -->
+    <div class="quick-access">
+      <div class="qa-card green">
+        <div class="qa-icon"><i class="fas fa-brain"></i></div>
+        <div class="qa-title">Meditation</div>
+        <div class="qa-desc">Guided sessions</div>
+      </div>
+      <div class="qa-card blue">
+        <div class="qa-icon"><i class="fas fa-comments"></i></div>
+        <div class="qa-title">Peer Support</div>
+        <div class="qa-desc">Talk with veterans</div>
+      </div>
+      <div class="qa-card pink">
+        <div class="qa-icon"><i class="fas fa-book-open"></i></div>
+        <div class="qa-title">Journal</div>
+        <div class="qa-desc">Track your thoughts</div>
+      </div>
+      <div class="qa-card amber">
+        <div class="qa-icon"><i class="fas fa-moon"></i></div>
+        <div class="qa-title">Sleep Aid</div>
+        <div class="qa-desc">Better rest tonight</div>
+      </div>
+    </div>
+
+    <!-- Workshops -->
+    <div class="section-header">
+      <div class="section-title">Workshops</div>
+      <div class="section-link">View All</div>
+    </div>
+
+    <div class="workshop-card">
+      <div class="workshop-img-wrap">
+        <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&h=300&fit=crop" class="workshop-img" alt="">
+        <div class="workshop-tag">Upcoming</div>
+        <div class="workshop-date"><i class="fas fa-calendar"></i> Sat, Apr 28</div>
+      </div>
+      <div class="workshop-body">
+        <div class="workshop-name">Stress Through Movement</div>
+        <div class="workshop-meta">
+          <span><i class="fas fa-clock"></i> 10:00 AM</span>
+          <span><i class="fas fa-users"></i> 42 enrolled</span>
+          <span><i class="fas fa-video"></i> Online</span>
+        </div>
+        <button class="workshop-btn">Register</button>
+      </div>
+    </div>
+
+    <div class="workshop-card">
+      <div class="workshop-img-wrap">
+        <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&h=300&fit=crop" class="workshop-img" alt="">
+        <div class="workshop-tag">Upcoming</div>
+        <div class="workshop-date"><i class="fas fa-calendar"></i> Mon, Apr 30</div>
+      </div>
+      <div class="workshop-body">
+        <div class="workshop-name">Mindful Breathing 101</div>
+        <div class="workshop-meta">
+          <span><i class="fas fa-clock"></i> 6:00 PM</span>
+          <span><i class="fas fa-users"></i> 28 enrolled</span>
+          <span><i class="fas fa-video"></i> Online</span>
+        </div>
+        <button class="workshop-btn">Register</button>
+      </div>
+    </div>
+
+    <!-- Resources -->
+    <div class="section-header" style="margin-top:10px">
+      <div class="section-title">Resources</div>
+    </div>
+
+    <div class="resource-card">
+      <div class="resource-icon r1"><i class="fas fa-shield-heart"></i></div>
+      <div class="resource-info">
+        <div class="resource-name">PTSD Support</div>
+        <div class="resource-desc">Tools and guidance for recovery</div>
+      </div>
+      <div class="resource-arrow"><i class="fas fa-chevron-right"></i></div>
+    </div>
+
+    <div class="resource-card">
+      <div class="resource-icon r2"><i class="fas fa-people-group"></i></div>
+      <div class="resource-info">
+        <div class="resource-name">Discussion Groups</div>
+        <div class="resource-desc">Safe spaces to share and connect</div>
+      </div>
+      <div class="resource-arrow"><i class="fas fa-chevron-right"></i></div>
+    </div>
+
+    <div class="resource-card">
+      <div class="resource-icon r3"><i class="fas fa-hand-holding-heart"></i></div>
+      <div class="resource-info">
+        <div class="resource-name">VA Benefits Guide</div>
+        <div class="resource-desc">Navigate your healthcare benefits</div>
+      </div>
+      <div class="resource-arrow"><i class="fas fa-chevron-right"></i></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-dumbbell"></i>
+      <span>Workouts</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-video"></i>
+      <span>Classes</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-users"></i>
+      <span>Community</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-heart-pulse"></i>
+      <span>Wellness</span>
+      <div class="tab-indicator"></div>
+    </div>
+  </div>
+</body>
+</html>

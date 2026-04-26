@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VetStrong - Workouts</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  * { scrollbar-width: none; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #0A0E1A; color: #fff; width: 100%; height: 100%; overflow-x: hidden; }
+
+  .status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; position: sticky; top: 0; z-index: 100; background: #0A0E1A; }
+  .status-time { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+  .status-icons { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .dynamic-island { width: 120px; height: 36px; background: #000; border-radius: 20px; margin: 0 auto; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+
+  .page-title { font-size: 28px; font-weight: 900; margin-bottom: 20px; }
+
+  .day-selector { display: flex; gap: 8px; margin-bottom: 24px; overflow-x: auto; padding-bottom: 4px; }
+  .day-item { display: flex; flex-direction: column; align-items: center; min-width: 48px; padding: 10px 6px; border-radius: 16px; background: rgba(255,255,255,0.06); }
+  .day-item.active { background: linear-gradient(135deg, #FFB347, #FF6B35); }
+  .day-item.completed { border: 1.5px solid #2DD4BF; }
+  .day-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; }
+  .day-item.active .day-label { color: rgba(255,255,255,0.9); }
+  .day-num { font-size: 18px; font-weight: 800; margin-top: 2px; }
+  .day-dot { width: 5px; height: 5px; border-radius: 50%; background: #2DD4BF; margin-top: 4px; }
+
+  .weekly-progress { background: rgba(255,255,255,0.06); border-radius: 20px; padding: 18px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,0.06); }
+  .wp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .wp-title { font-size: 15px; font-weight: 700; }
+  .wp-stat { font-size: 13px; color: #2DD4BF; font-weight: 600; }
+  .wp-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.08); border-radius: 8px; }
+  .wp-fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg, #FFB347, #FF6B35); }
+  .wp-days { display: flex; justify-content: space-between; margin-top: 10px; }
+  .wp-day { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .wp-day-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+  .wp-day-circle.done { background: linear-gradient(135deg, #FFB347, #FF6B35); }
+  .wp-day-circle.today { background: rgba(255,179,71,0.2); border: 2px solid #FFB347; }
+  .wp-day-circle.future { background: rgba(255,255,255,0.06); }
+  .wp-day-label { font-size: 9px; color: rgba(255,255,255,0.4); text-transform: uppercase; font-weight: 600; }
+
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .section-title { font-size: 18px; font-weight: 800; }
+  .section-link { font-size: 13px; color: #FFB347; font-weight: 600; }
+
+  .category-scroll { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 24px; margin: 0 -28px 24px; padding: 0 28px; }
+  .cat-card { min-width: 130px; height: 140px; border-radius: 20px; position: relative; overflow: hidden; flex-shrink: 0; }
+  .cat-card img { width: 100%; height: 100%; object-fit: cover; }
+  .cat-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 60%); display: flex; flex-direction: column; justify-content: flex-end; padding: 14px; }
+  .cat-name { font-size: 14px; font-weight: 700; }
+  .cat-count { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+  .workout-card { background: rgba(255,255,255,0.06); border-radius: 20px; overflow: hidden; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.06); }
+  .workout-img { width: 100%; height: 160px; object-fit: cover; position: relative; }
+  .workout-img-container { position: relative; }
+  .workout-duration { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; }
+  .workout-level { position: absolute; top: 12px; left: 12px; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .workout-level.beginner { background: rgba(45,212,191,0.3); color: #2DD4BF; }
+  .workout-level.intermediate { background: rgba(255,179,71,0.3); color: #FFB347; }
+  .workout-level.advanced { background: rgba(239,68,68,0.3); color: #EF4444; }
+  .workout-body { padding: 16px; }
+  .workout-name { font-size: 16px; font-weight: 700; }
+  .workout-meta { display: flex; gap: 14px; margin-top: 6px; font-size: 12px; color: rgba(255,255,255,0.5); }
+  .workout-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+  .workout-trainer { display: flex; align-items: center; gap: 8px; }
+  .workout-trainer img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+  .workout-trainer span { font-size: 12px; color: rgba(255,255,255,0.6); }
+  .workout-start { background: linear-gradient(135deg, #FFB347, #FF6B35); color: #fff; border: none; padding: 8px 20px; border-radius: 50px; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .play-btn { width: 52px; height: 52px; border-radius: 50%; background: rgba(255,179,71,0.9); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(10,14,26,0.95); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; color: rgba(255,255,255,0.35); font-weight: 500; }
+  .tab-item.active { color: #FFB347; }
+  .tab-item i { font-size: 22px; }
+  .tab-indicator { width: 4px; height: 4px; border-radius: 50%; background: #FFB347; margin-top: 2px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:14px"></i>
+      <i class="fas fa-wifi" style="font-size:14px"></i>
+      <i class="fas fa-battery-full" style="font-size:16px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-title">Workouts</div>
+
+    <!-- Weekly Progress -->
+    <div class="weekly-progress">
+      <div class="wp-header">
+        <div class="wp-title">Weekly Goal</div>
+        <div class="wp-stat">4/6 days</div>
+      </div>
+      <div class="wp-bar"><div class="wp-fill" style="width:67%"></div></div>
+      <div class="wp-days">
+        <div class="wp-day">
+          <div class="wp-day-circle done"><i class="fas fa-check" style="font-size:11px"></i></div>
+          <div class="wp-day-label">Mon</div>
+        </div>
+        <div class="wp-day">
+          <div class="wp-day-circle done"><i class="fas fa-check" style="font-size:11px"></i></div>
+          <div class="wp-day-label">Tue</div>
+        </div>
+        <div class="wp-day">
+          <div class="wp-day-circle done"><i class="fas fa-check" style="font-size:11px"></i></div>
+          <div class="wp-day-label">Wed</div>
+        </div>
+        <div class="wp-day">
+          <div class="wp-day-circle done"><i class="fas fa-check" style="font-size:11px"></i></div>
+          <div class="wp-day-label">Thu</div>
+        </div>
+        <div class="wp-day">
+          <div class="wp-day-circle today"><span style="font-size:11px;font-weight:700">F</span></div>
+          <div class="wp-day-label">Fri</div>
+        </div>
+        <div class="wp-day">
+          <div class="wp-day-circle future"></div>
+          <div class="wp-day-label">Sat</div>
+        </div>
+        <div class="wp-day">
+          <div class="wp-day-circle future"></div>
+          <div class="wp-day-label">Sun</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Categories -->
+    <div class="section-header">
+      <div class="section-title">Categories</div>
+    </div>
+    <div class="category-scroll">
+      <div class="cat-card">
+        <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=300&h=300&fit=crop" alt="">
+        <div class="cat-overlay">
+          <div class="cat-name">Strength</div>
+          <div class="cat-count">24 workouts</div>
+        </div>
+      </div>
+      <div class="cat-card">
+        <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=300&h=300&fit=crop" alt="">
+        <div class="cat-overlay">
+          <div class="cat-name">HIIT</div>
+          <div class="cat-count">18 workouts</div>
+        </div>
+      </div>
+      <div class="cat-card">
+        <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=300&h=300&fit=crop" alt="">
+        <div class="cat-overlay">
+          <div class="cat-name">Yoga</div>
+          <div class="cat-count">15 workouts</div>
+        </div>
+      </div>
+      <div class="cat-card">
+        <img src="https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=300&h=300&fit=crop" alt="">
+        <div class="cat-overlay">
+          <div class="cat-name">Recovery</div>
+          <div class="cat-count">12 workouts</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Workout List -->
+    <div class="section-header">
+      <div class="section-title">Recommended</div>
+      <div class="section-link">Filter</div>
+    </div>
+
+    <div class="workout-card">
+      <div class="workout-img-container">
+        <img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&h=300&fit=crop" class="workout-img" alt="">
+        <div class="workout-duration"><i class="fas fa-clock"></i> 35 min</div>
+        <div class="workout-level intermediate">Intermediate</div>
+        <div class="play-overlay"><div class="play-btn"><i class="fas fa-play" style="margin-left:3px"></i></div></div>
+      </div>
+      <div class="workout-body">
+        <div class="workout-name">Tactical Strength Training</div>
+        <div class="workout-meta">
+          <span><i class="fas fa-fire"></i> 420 cal</span>
+          <span><i class="fas fa-dumbbell"></i> 10 exercises</span>
+        </div>
+        <div class="workout-bottom">
+          <div class="workout-trainer">
+            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face" alt="">
+            <span>Coach Davis</span>
+          </div>
+          <button class="workout-start">Start</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="workout-card">
+      <div class="workout-img-container">
+        <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&h=300&fit=crop" class="workout-img" alt="">
+        <div class="workout-duration"><i class="fas fa-clock"></i> 20 min</div>
+        <div class="workout-level beginner">Beginner</div>
+        <div class="play-overlay"><div class="play-btn"><i class="fas fa-play" style="margin-left:3px"></i></div></div>
+      </div>
+      <div class="workout-body">
+        <div class="workout-name">Morning Mobility Flow</div>
+        <div class="workout-meta">
+          <span><i class="fas fa-fire"></i> 180 cal</span>
+          <span><i class="fas fa-dumbbell"></i> 8 exercises</span>
+        </div>
+        <div class="workout-bottom">
+          <div class="workout-trainer">
+            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face" alt="">
+            <span>Coach Rivera</span>
+          </div>
+          <button class="workout-start">Start</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-dumbbell"></i>
+      <span>Workouts</span>
+      <div class="tab-indicator"></div>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-video"></i>
+      <span>Classes</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-users"></i>
+      <span>Community</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-heart-pulse"></i>
+      <span>Wellness</span>
+    </div>
+  </div>
+</body>
+</html>
