@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pointe - Practice</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  * { scrollbar-width: none; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #0D0B14; color: #fff; width: 100%; height: 100%; overflow-x: hidden; }
+
+  .status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; position: sticky; top: 0; z-index: 100; background: #0D0B14; }
+  .status-time { font-size: 17px; font-weight: 600; }
+  .status-icons { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .dynamic-island { width: 120px; height: 36px; background: #000; border-radius: 20px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+
+  .back-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .back-btn { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 14px; color: rgba(255,255,255,0.6); }
+  .back-title { font-size: 18px; font-weight: 700; }
+  .move-badge { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 6px; background: rgba(45,212,191,0.15); color: #2DD4BF; margin-left: auto; }
+
+  /* Video Section */
+  .video-section { margin-bottom: 20px; }
+  .video-label { font-size: 12px; font-weight: 700; color: #E8A0BF; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+  .video-container { border-radius: 24px; overflow: hidden; position: relative; height: 220px; background: #1a1625; }
+  .video-container img { width: 100%; height: 100%; object-fit: cover; }
+  .video-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .video-top { display: flex; justify-content: space-between; padding: 14px; }
+  .video-pip { font-size: 10px; font-weight: 600; background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 8px; backdrop-filter: blur(10px); }
+  .video-time { font-size: 10px; font-weight: 600; background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 8px; backdrop-filter: blur(10px); }
+  .video-center { flex: 1; display: flex; align-items: center; justify-content: center; }
+  .video-play { width: 56px; height: 56px; border-radius: 50%; background: rgba(232,160,191,0.9); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .video-bottom { padding: 14px; }
+  .video-progress { width: 100%; height: 4px; background: rgba(255,255,255,0.15); border-radius: 4px; }
+  .video-progress-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #E8A0BF, #C9A0DC); width: 35%; }
+
+  /* Camera Section */
+  .camera-section { margin-bottom: 20px; }
+  .camera-container { border-radius: 24px; overflow: hidden; position: relative; height: 260px; background: #1a1625; border: 2px dashed rgba(232,160,191,0.3); }
+  .camera-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+  .camera-icon { width: 64px; height: 64px; border-radius: 50%; background: rgba(232,160,191,0.15); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #E8A0BF; }
+  .camera-text { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.6); }
+  .camera-sub { font-size: 12px; color: rgba(255,255,255,0.35); text-align: center; max-width: 220px; }
+  .camera-start { background: linear-gradient(135deg, #E8A0BF, #C97AAF); color: #fff; border: none; padding: 12px 32px; border-radius: 50px; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+
+  /* Pose Skeleton Overlay */
+  .skeleton-dots { position: absolute; inset: 0; }
+  .skel-dot { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: #E8A0BF; border: 2px solid #fff; }
+  .skel-line { position: absolute; height: 2px; background: rgba(232,160,191,0.6); transform-origin: left center; }
+
+  /* AI Status */
+  .ai-status { background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(201,160,220,0.1)); border: 1px solid rgba(124,58,237,0.2); border-radius: 20px; padding: 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 14px; }
+  .ai-icon { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #7C3AED, #A78BFA); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .ai-info { flex: 1; }
+  .ai-title { font-size: 14px; font-weight: 700; }
+  .ai-desc { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+  .ai-ready { width: 10px; height: 10px; border-radius: 50%; background: #2DD4BF; flex-shrink: 0; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* Tips */
+  .tips-card { background: rgba(255,255,255,0.06); border-radius: 20px; padding: 16px; border: 1px solid rgba(255,255,255,0.06); }
+  .tips-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+  .tip-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+  .tip-dot { width: 6px; height: 6px; border-radius: 50%; background: #E8A0BF; margin-top: 6px; flex-shrink: 0; }
+  .tip-text { font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.4; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(13,11,20,0.95); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; color: rgba(255,255,255,0.35); font-weight: 500; }
+  .tab-item.active { color: #E8A0BF; }
+  .tab-item i { font-size: 22px; }
+  .tab-indicator { width: 4px; height: 4px; border-radius: 50%; background: #E8A0BF; margin-top: 2px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:14px"></i>
+      <i class="fas fa-wifi" style="font-size:14px"></i>
+      <i class="fas fa-battery-full" style="font-size:16px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="back-row">
+      <div class="back-btn"><i class="fas fa-chevron-left"></i></div>
+      <div class="back-title">Arabesque</div>
+      <div class="move-badge">Beginner</div>
+    </div>
+
+    <!-- Reference Video -->
+    <div class="video-section">
+      <div class="video-label"><i class="fas fa-play-circle"></i> Reference Video</div>
+      <div class="video-container">
+        <img src="https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=800&h=500&fit=crop" alt="">
+        <div class="video-overlay">
+          <div class="video-top">
+            <div class="video-pip"><i class="fas fa-expand"></i> Full</div>
+            <div class="video-time"><i class="fas fa-clock"></i> 2:34 / 8:00</div>
+          </div>
+          <div class="video-center">
+            <div class="video-play"><i class="fas fa-pause"></i></div>
+          </div>
+          <div class="video-bottom">
+            <div class="video-progress"><div class="video-progress-fill"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Camera Capture -->
+    <div class="camera-section">
+      <div class="video-label"><i class="fas fa-camera"></i> Your Practice</div>
+      <div class="camera-container">
+        <div class="camera-placeholder">
+          <div class="camera-icon"><i class="fas fa-camera"></i></div>
+          <div class="camera-text">Position your camera</div>
+          <div class="camera-sub">Stand 6-8 feet away with full body visible</div>
+          <button class="camera-start"><i class="fas fa-video"></i> &nbsp;Start Recording</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Status -->
+    <div class="ai-status">
+      <div class="ai-icon"><i class="fas fa-robot"></i></div>
+      <div class="ai-info">
+        <div class="ai-title">AI Pose Estimation Ready</div>
+        <div class="ai-desc">17 key points tracked in real-time</div>
+      </div>
+      <div class="ai-ready"></div>
+    </div>
+
+    <!-- Tips -->
+    <div class="tips-card">
+      <div class="tips-title"><i class="fas fa-lightbulb" style="color:#FFD700"></i> &nbsp;Tips for Arabesque</div>
+      <div class="tip-item">
+        <div class="tip-dot"></div>
+        <div class="tip-text">Keep your standing leg straight and engaged</div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-dot"></div>
+        <div class="tip-text">Extend your back leg to at least 45 degrees</div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-dot"></div>
+        <div class="tip-text">Keep your hips square and level</div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-dot"></div>
+        <div class="tip-text">Arms extended in a long, graceful line</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-music"></i>
+      <span>Moves</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-camera"></i>
+      <span>Practice</span>
+      <div class="tab-indicator"></div>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-chart-line"></i>
+      <span>Feedback</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>

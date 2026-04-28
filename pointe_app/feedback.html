@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pointe - Feedback</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  * { scrollbar-width: none; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #0D0B14; color: #fff; width: 100%; height: 100%; overflow-x: hidden; }
+
+  .status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; position: sticky; top: 0; z-index: 100; background: #0D0B14; }
+  .status-time { font-size: 17px; font-weight: 600; }
+  .status-icons { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .dynamic-island { width: 120px; height: 36px; background: #000; border-radius: 20px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+
+  .back-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .back-btn { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 14px; color: rgba(255,255,255,0.6); }
+  .back-title { font-size: 18px; font-weight: 700; }
+
+  /* Score Circle */
+  .score-section { text-align: center; margin-bottom: 24px; }
+  .score-ring { width: 160px; height: 160px; border-radius: 50%; background: conic-gradient(#E8A0BF 0deg, #C9A0DC 230deg, rgba(255,255,255,0.06) 230deg, rgba(255,255,255,0.06) 360deg); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; position: relative; }
+  .score-ring-inner { width: 130px; height: 130px; border-radius: 50%; background: #0D0B14; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .score-num { font-size: 48px; font-weight: 900; background: linear-gradient(135deg, #E8A0BF, #C9A0DC); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; }
+  .score-label { font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 500; margin-top: 2px; }
+  .score-move { font-size: 16px; font-weight: 700; }
+  .score-improve { font-size: 13px; color: #2DD4BF; margin-top: 4px; font-weight: 600; }
+
+  /* Comparison */
+  .comparison { display: flex; gap: 10px; margin-bottom: 24px; }
+  .comp-card { flex: 1; border-radius: 20px; overflow: hidden; position: relative; height: 180px; }
+  .comp-card img { width: 100%; height: 100%; object-fit: cover; }
+  .comp-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%); display: flex; flex-direction: column; justify-content: flex-end; padding: 12px; }
+  .comp-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .comp-label.ref { color: #C9A0DC; }
+  .comp-label.you { color: #2DD4BF; }
+  /* Pose dots on comparison */
+  .comp-dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid #fff; }
+  .comp-dot.good { background: #2DD4BF; }
+  .comp-dot.warn { background: #FBBF24; }
+  .comp-dot.bad { background: #F87171; }
+
+  /* Body Part Scores */
+  .section-title { font-size: 18px; font-weight: 800; margin-bottom: 14px; }
+
+  .body-scores { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .body-item { background: rgba(255,255,255,0.06); border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,0.06); }
+  .body-icon { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .body-icon.great { background: rgba(45,212,191,0.15); color: #2DD4BF; }
+  .body-icon.good { background: rgba(232,160,191,0.15); color: #E8A0BF; }
+  .body-icon.needs { background: rgba(251,191,36,0.15); color: #FBBF24; }
+  .body-icon.poor { background: rgba(248,113,113,0.15); color: #F87171; }
+  .body-info { flex: 1; }
+  .body-name { font-size: 14px; font-weight: 600; }
+  .body-bar { width: 100%; height: 5px; background: rgba(255,255,255,0.08); border-radius: 5px; margin-top: 6px; }
+  .body-bar-fill { height: 100%; border-radius: 5px; }
+  .body-bar-fill.great { background: #2DD4BF; }
+  .body-bar-fill.good { background: #E8A0BF; }
+  .body-bar-fill.needs { background: #FBBF24; }
+  .body-bar-fill.poor { background: #F87171; }
+  .body-score { font-size: 18px; font-weight: 800; flex-shrink: 0; min-width: 36px; text-align: right; }
+  .body-score.great { color: #2DD4BF; }
+  .body-score.good { color: #E8A0BF; }
+  .body-score.needs { color: #FBBF24; }
+  .body-score.poor { color: #F87171; }
+
+  /* AI Feedback */
+  .feedback-card { background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(201,160,220,0.1)); border: 1px solid rgba(124,58,237,0.2); border-radius: 20px; padding: 18px; margin-bottom: 20px; }
+  .feedback-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .feedback-ai { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #7C3AED, #A78BFA); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .feedback-title { font-size: 14px; font-weight: 700; }
+  .feedback-items { display: flex; flex-direction: column; gap: 8px; }
+  .fb-item { display: flex; align-items: flex-start; gap: 8px; }
+  .fb-icon { font-size: 14px; margin-top: 1px; flex-shrink: 0; }
+  .fb-icon.pos { color: #2DD4BF; }
+  .fb-icon.imp { color: #FBBF24; }
+  .fb-text { font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.4; }
+
+  /* Buttons */
+  .action-btns { display: flex; gap: 10px; }
+  .btn-primary { flex: 1; background: linear-gradient(135deg, #E8A0BF, #C97AAF); color: #fff; border: none; padding: 14px; border-radius: 50px; font-size: 14px; font-weight: 700; cursor: pointer; text-align: center; }
+  .btn-secondary { flex: 1; background: rgba(255,255,255,0.06); color: #fff; border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 50px; font-size: 14px; font-weight: 700; cursor: pointer; text-align: center; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(13,11,20,0.95); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; color: rgba(255,255,255,0.35); font-weight: 500; }
+  .tab-item.active { color: #E8A0BF; }
+  .tab-item i { font-size: 22px; }
+  .tab-indicator { width: 4px; height: 4px; border-radius: 50%; background: #E8A0BF; margin-top: 2px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:14px"></i>
+      <i class="fas fa-wifi" style="font-size:14px"></i>
+      <i class="fas fa-battery-full" style="font-size:16px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="back-row">
+      <div class="back-btn"><i class="fas fa-chevron-left"></i></div>
+      <div class="back-title">AI Feedback</div>
+    </div>
+
+    <!-- Score -->
+    <div class="score-section">
+      <div class="score-ring">
+        <div class="score-ring-inner">
+          <div class="score-num">87</div>
+          <div class="score-label">out of 100</div>
+        </div>
+      </div>
+      <div class="score-move">Arabesque</div>
+      <div class="score-improve"><i class="fas fa-arrow-up"></i> +5 from last attempt</div>
+    </div>
+
+    <!-- Side-by-Side Comparison -->
+    <div class="section-title">Pose Comparison</div>
+    <div class="comparison">
+      <div class="comp-card">
+        <img src="https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=400&h=400&fit=crop" alt="">
+        <div class="comp-dot good" style="top:30%;left:48%"></div>
+        <div class="comp-dot good" style="top:42%;left:38%"></div>
+        <div class="comp-dot good" style="top:42%;left:58%"></div>
+        <div class="comp-dot good" style="top:60%;left:45%"></div>
+        <div class="comp-dot good" style="top:75%;left:40%"></div>
+        <div class="comp-overlay">
+          <div class="comp-label ref"><i class="fas fa-star"></i> Reference</div>
+        </div>
+      </div>
+      <div class="comp-card">
+        <img src="https://images.unsplash.com/photo-1508807526345-15e9b5f4eaff?w=400&h=400&fit=crop" alt="">
+        <div class="comp-dot good" style="top:30%;left:50%"></div>
+        <div class="comp-dot good" style="top:42%;left:40%"></div>
+        <div class="comp-dot warn" style="top:42%;left:60%"></div>
+        <div class="comp-dot good" style="top:60%;left:47%"></div>
+        <div class="comp-dot warn" style="top:75%;left:42%"></div>
+        <div class="comp-overlay">
+          <div class="comp-label you"><i class="fas fa-user"></i> You</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body Part Scores -->
+    <div class="section-title">Body Analysis</div>
+    <div class="body-scores">
+      <div class="body-item">
+        <div class="body-icon great"><i class="fas fa-hand"></i></div>
+        <div class="body-info">
+          <div class="body-name">Arms</div>
+          <div class="body-bar"><div class="body-bar-fill great" style="width:95%"></div></div>
+        </div>
+        <div class="body-score great">95</div>
+      </div>
+      <div class="body-item">
+        <div class="body-icon good"><i class="fas fa-person"></i></div>
+        <div class="body-info">
+          <div class="body-name">Torso</div>
+          <div class="body-bar"><div class="body-bar-fill good" style="width:88%"></div></div>
+        </div>
+        <div class="body-score good">88</div>
+      </div>
+      <div class="body-item">
+        <div class="body-icon needs"><i class="fas fa-shoe-prints"></i></div>
+        <div class="body-info">
+          <div class="body-name">Standing Leg</div>
+          <div class="body-bar"><div class="body-bar-fill needs" style="width:78%"></div></div>
+        </div>
+        <div class="body-score needs">78</div>
+      </div>
+      <div class="body-item">
+        <div class="body-icon needs"><i class="fas fa-angles-up"></i></div>
+        <div class="body-info">
+          <div class="body-name">Back Leg</div>
+          <div class="body-bar"><div class="body-bar-fill needs" style="width:75%"></div></div>
+        </div>
+        <div class="body-score needs">75</div>
+      </div>
+      <div class="body-item">
+        <div class="body-icon great"><i class="fas fa-head-side"></i></div>
+        <div class="body-info">
+          <div class="body-name">Head & Neck</div>
+          <div class="body-bar"><div class="body-bar-fill great" style="width:94%"></div></div>
+        </div>
+        <div class="body-score great">94</div>
+      </div>
+    </div>
+
+    <!-- AI Feedback -->
+    <div class="feedback-card">
+      <div class="feedback-header">
+        <div class="feedback-ai"><i class="fas fa-robot"></i></div>
+        <div class="feedback-title">AI Coach Feedback</div>
+      </div>
+      <div class="feedback-items">
+        <div class="fb-item">
+          <div class="fb-icon pos"><i class="fas fa-check-circle"></i></div>
+          <div class="fb-text">Beautiful arm extension — clean line from shoulder to fingertips</div>
+        </div>
+        <div class="fb-item">
+          <div class="fb-icon pos"><i class="fas fa-check-circle"></i></div>
+          <div class="fb-text">Head position and neck alignment are excellent</div>
+        </div>
+        <div class="fb-item">
+          <div class="fb-icon imp"><i class="fas fa-exclamation-circle"></i></div>
+          <div class="fb-text">Try to straighten your standing leg — slight bend detected at the knee</div>
+        </div>
+        <div class="fb-item">
+          <div class="fb-icon imp"><i class="fas fa-exclamation-circle"></i></div>
+          <div class="fb-text">Lift your back leg 8° higher for proper arabesque height</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-btns">
+      <button class="btn-primary"><i class="fas fa-redo"></i> &nbsp;Try Again</button>
+      <button class="btn-secondary"><i class="fas fa-forward"></i> &nbsp;Next Move</button>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-music"></i>
+      <span>Moves</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-camera"></i>
+      <span>Practice</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-chart-line"></i>
+      <span>Feedback</span>
+      <div class="tab-indicator"></div>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>

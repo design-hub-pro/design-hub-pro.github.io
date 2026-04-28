@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pointe - Moves</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  * { scrollbar-width: none; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #0D0B14; color: #fff; width: 100%; height: 100%; overflow-x: hidden; }
+
+  .status-bar { height: 59px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; position: sticky; top: 0; z-index: 100; background: #0D0B14; }
+  .status-time { font-size: 17px; font-weight: 600; }
+  .status-icons { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .dynamic-island { width: 120px; height: 36px; background: #000; border-radius: 20px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+  .page-title { font-size: 28px; font-weight: 900; margin-bottom: 6px; }
+  .page-sub { font-size: 14px; color: rgba(255,255,255,0.45); margin-bottom: 18px; }
+
+  .search-bar { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.06); border-radius: 16px; padding: 12px 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.06); }
+  .search-bar i { color: rgba(255,255,255,0.3); font-size: 14px; }
+  .search-bar span { color: rgba(255,255,255,0.3); font-size: 14px; }
+
+  .filter-row { display: flex; gap: 8px; margin-bottom: 22px; overflow-x: auto; }
+  .filter-chip { padding: 8px 16px; border-radius: 50px; font-size: 13px; font-weight: 600; white-space: nowrap; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); }
+  .filter-chip.active { background: linear-gradient(135deg, #E8A0BF, #C97AAF); color: #fff; }
+
+  .category-scroll { display: flex; gap: 12px; overflow-x: auto; margin: 0 -28px 24px; padding: 0 28px; }
+  .cat-card { min-width: 130px; height: 100px; border-radius: 20px; position: relative; overflow: hidden; flex-shrink: 0; }
+  .cat-card img { width: 100%; height: 100%; object-fit: cover; }
+  .cat-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 60%); display: flex; flex-direction: column; justify-content: flex-end; padding: 12px; }
+  .cat-name { font-size: 13px; font-weight: 700; }
+  .cat-count { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .section-title { font-size: 18px; font-weight: 800; }
+  .section-link { font-size: 13px; color: #E8A0BF; font-weight: 600; }
+
+  .move-list { display: flex; flex-direction: column; gap: 10px; }
+  .move-card { background: rgba(255,255,255,0.06); border-radius: 20px; overflow: hidden; display: flex; gap: 14px; padding: 12px; align-items: center; border: 1px solid rgba(255,255,255,0.06); }
+  .move-thumb { width: 80px; height: 80px; border-radius: 16px; object-fit: cover; flex-shrink: 0; position: relative; }
+  .move-thumb-wrap { position: relative; flex-shrink: 0; }
+  .move-thumb-wrap .play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 30px; height: 30px; border-radius: 50%; background: rgba(232,160,191,0.85); display: flex; align-items: center; justify-content: center; font-size: 11px; }
+  .move-info { flex: 1; }
+  .move-name { font-size: 15px; font-weight: 700; }
+  .move-detail { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 3px; }
+  .move-tags { display: flex; gap: 6px; margin-top: 6px; }
+  .move-tag { font-size: 10px; padding: 3px 8px; border-radius: 6px; font-weight: 600; }
+  .move-tag.beginner { background: rgba(45,212,191,0.15); color: #2DD4BF; }
+  .move-tag.intermediate { background: rgba(232,160,191,0.15); color: #E8A0BF; }
+  .move-tag.advanced { background: rgba(239,68,68,0.15); color: #F87171; }
+  .move-score { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .move-score-num { font-size: 20px; font-weight: 900; background: linear-gradient(135deg, #E8A0BF, #C9A0DC); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .move-score-label { font-size: 9px; color: rgba(255,255,255,0.4); font-weight: 500; }
+  .move-new { font-size: 9px; color: #E8A0BF; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(13,11,20,0.95); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; color: rgba(255,255,255,0.35); font-weight: 500; }
+  .tab-item.active { color: #E8A0BF; }
+  .tab-item i { font-size: 22px; }
+  .tab-indicator { width: 4px; height: 4px; border-radius: 50%; background: #E8A0BF; margin-top: 2px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:14px"></i>
+      <i class="fas fa-wifi" style="font-size:14px"></i>
+      <i class="fas fa-battery-full" style="font-size:16px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-title">Moves Library</div>
+    <div class="page-sub">48 ballet moves to master</div>
+
+    <div class="search-bar">
+      <i class="fas fa-search"></i>
+      <span>Search moves...</span>
+    </div>
+
+    <div class="filter-row">
+      <div class="filter-chip active">All</div>
+      <div class="filter-chip">Beginner</div>
+      <div class="filter-chip">Intermediate</div>
+      <div class="filter-chip">Advanced</div>
+      <div class="filter-chip">Barre</div>
+    </div>
+
+    <!-- Categories -->
+    <div class="category-scroll">
+      <div class="cat-card">
+        <img src="https://images.unsplash.com/photo-1508807526345-15e9b5f4eaff?w=300&h=200&fit=crop" alt="">
+        <div class="cat-overlay">
+          <div class="cat-name">Positions</div>
+          <div class="cat-count">5 moves</div>
+        </div>
+      </div>
+      <div class="cat-card">
+        <img src="https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=300&h=200&fit=crop" alt="">
+        <div class="cat-overlay">
+          <div class="cat-name">Jumps</div>
+          <div class="cat-count">8 moves</div>
+        </div>
+      </div>
+      <div class="cat-card">
+        <img src="https://images.unsplash.com/photo-1594736797933-d0501ba2fe65?w=300&h=200&fit=crop" alt="">
+        <div class="cat-overlay">
+          <div class="cat-name">Turns</div>
+          <div class="cat-count">6 moves</div>
+        </div>
+      </div>
+      <div class="cat-card">
+        <img src="https://images.unsplash.com/photo-1562026700-7d78bb1b0832?w=300&h=200&fit=crop" alt="">
+        <div class="cat-overlay">
+          <div class="cat-name">Extensions</div>
+          <div class="cat-count">10 moves</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Move List -->
+    <div class="section-header">
+      <div class="section-title">All Moves</div>
+      <div class="section-link">Sort</div>
+    </div>
+
+    <div class="move-list">
+      <div class="move-card">
+        <div class="move-thumb-wrap">
+          <img src="https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=200&h=200&fit=crop" class="move-thumb" alt="">
+          <div class="play-btn"><i class="fas fa-play" style="margin-left:1px"></i></div>
+        </div>
+        <div class="move-info">
+          <div class="move-name">Arabesque</div>
+          <div class="move-detail"><i class="fas fa-clock"></i> 8 min &bull; Video + AI</div>
+          <div class="move-tags">
+            <span class="move-tag beginner">Beginner</span>
+          </div>
+        </div>
+        <div class="move-score">
+          <div class="move-score-num">92</div>
+          <div class="move-score-label">Best Score</div>
+        </div>
+      </div>
+
+      <div class="move-card">
+        <div class="move-thumb-wrap">
+          <img src="https://images.unsplash.com/photo-1508807526345-15e9b5f4eaff?w=200&h=200&fit=crop" class="move-thumb" alt="">
+          <div class="play-btn"><i class="fas fa-play" style="margin-left:1px"></i></div>
+        </div>
+        <div class="move-info">
+          <div class="move-name">Plié</div>
+          <div class="move-detail"><i class="fas fa-clock"></i> 6 min &bull; Video + AI</div>
+          <div class="move-tags">
+            <span class="move-tag beginner">Beginner</span>
+          </div>
+        </div>
+        <div class="move-score">
+          <div class="move-score-num">88</div>
+          <div class="move-score-label">Best Score</div>
+        </div>
+      </div>
+
+      <div class="move-card">
+        <div class="move-thumb-wrap">
+          <img src="https://images.unsplash.com/photo-1594736797933-d0501ba2fe65?w=200&h=200&fit=crop" class="move-thumb" alt="">
+          <div class="play-btn"><i class="fas fa-play" style="margin-left:1px"></i></div>
+        </div>
+        <div class="move-info">
+          <div class="move-name">Pirouette</div>
+          <div class="move-detail"><i class="fas fa-clock"></i> 12 min &bull; Video + AI</div>
+          <div class="move-tags">
+            <span class="move-tag intermediate">Intermediate</span>
+          </div>
+        </div>
+        <div class="move-score">
+          <div class="move-score-num">76</div>
+          <div class="move-score-label">Best Score</div>
+        </div>
+      </div>
+
+      <div class="move-card">
+        <div class="move-thumb-wrap">
+          <img src="https://images.unsplash.com/photo-1562026700-7d78bb1b0832?w=200&h=200&fit=crop" class="move-thumb" alt="">
+          <div class="play-btn"><i class="fas fa-play" style="margin-left:1px"></i></div>
+        </div>
+        <div class="move-info">
+          <div class="move-name">Relevé</div>
+          <div class="move-detail"><i class="fas fa-clock"></i> 5 min &bull; Video + AI</div>
+          <div class="move-tags">
+            <span class="move-tag beginner">Beginner</span>
+          </div>
+        </div>
+        <div class="move-score">
+          <div class="move-score-num">95</div>
+          <div class="move-score-label">Best Score</div>
+        </div>
+      </div>
+
+      <div class="move-card">
+        <div class="move-thumb-wrap">
+          <img src="https://images.unsplash.com/photo-1574271143515-5cddf8da19be?w=200&h=200&fit=crop" class="move-thumb" alt="">
+          <div class="play-btn"><i class="fas fa-play" style="margin-left:1px"></i></div>
+        </div>
+        <div class="move-info">
+          <div class="move-name">Grand Jeté</div>
+          <div class="move-detail"><i class="fas fa-clock"></i> 15 min &bull; Video + AI</div>
+          <div class="move-tags">
+            <span class="move-tag advanced">Advanced</span>
+          </div>
+        </div>
+        <div class="move-score">
+          <div class="move-new">New</div>
+        </div>
+      </div>
+
+      <div class="move-card">
+        <div class="move-thumb-wrap">
+          <img src="https://images.unsplash.com/photo-1547153760-18fc86324498?w=200&h=200&fit=crop" class="move-thumb" alt="">
+          <div class="play-btn"><i class="fas fa-play" style="margin-left:1px"></i></div>
+        </div>
+        <div class="move-info">
+          <div class="move-name">Tendu</div>
+          <div class="move-detail"><i class="fas fa-clock"></i> 5 min &bull; Video + AI</div>
+          <div class="move-tags">
+            <span class="move-tag beginner">Beginner</span>
+          </div>
+        </div>
+        <div class="move-score">
+          <div class="move-score-num">90</div>
+          <div class="move-score-label">Best Score</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-music"></i>
+      <span>Moves</span>
+      <div class="tab-indicator"></div>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-camera"></i>
+      <span>Practice</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-chart-line"></i>
+      <span>Feedback</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>
