@@ -6,6 +6,7 @@ const STUDENT_WORK = {
   totalFields: 15,
   filledFields: 8,
   progressPct: 35,
+  mantou: { earned: 7, total: 35 },
   activeMilestone: 3,
   activeMilestoneTitle: "Feature Planning",
   milestones: [
@@ -85,6 +86,10 @@ function renderDrawer() {
           <span class="pct">${w.progressPct}%</span>
         </div>
         <div class="dr-bar"><div class="dr-bar-fill" style="width:${w.progressPct}%"></div></div>
+        <div class="dr-progress-row" style="margin-top:10px;margin-bottom:0">
+          <span><span class="mantou-coin"></span><b>${w.mantou.earned}</b> 馒头 collected</span>
+          <span class="pct" style="color:var(--tea);background:var(--milk-soft);padding:2px 10px;border-radius:100px;font-size:11px">${w.mantou.total} to grad day</span>
+        </div>
       </div>
       <div class="dr-body">
         <a href="milestone-${w.activeMilestone}.html" class="dr-resume">
@@ -133,6 +138,17 @@ document.querySelectorAll('.copy-btn').forEach(b=>{
   });
 });
 
+// ============= TOPNAV — heavier shadow on scroll =============
+const topnav = document.querySelector('.topnav');
+if (topnav) {
+  const onScroll = () => {
+    if (window.scrollY > 24) topnav.classList.add('scrolled');
+    else topnav.classList.remove('scrolled');
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+}
+
 // ============= FADE-IN ON SCROLL =============
 const io = new IntersectionObserver((entries)=>{
   entries.forEach(en=>{
@@ -150,15 +166,104 @@ document.querySelectorAll('[data-fade]').forEach(el=>{
   io.observe(el);
 });
 
+// ============= REWARD POPUP =============
+// Per-milestone reward config
+const MILESTONE_REWARDS = {
+  1: { mantou: 3, title: "Discovery", emoji: "🔍", praise: "You found the angle. The user is real now." },
+  2: { mantou: 4, title: "Brand Identity", emoji: "🪪", praise: "Your brand has a face. Take it out for a spin." },
+  3: { mantou: 5, title: "Feature Planning", emoji: "🧠", praise: "You picked the moves that make this app unmistakable." },
+  4: { mantou: 4, title: "User Flow", emoji: "🗺️", praise: "Every tap mapped. Now it actually feels like an app." },
+  5: { mantou: 6, title: "UI Design", emoji: "🎨", praise: "Pixels, on brand. Your moodboard is now a real interface." },
+  6: { mantou: 8, title: "Build the Prototype", emoji: "🛠️", praise: "You shipped a real prototype. Family-dinner moment." },
+  7: { mantou: 5, title: "Launch", emoji: "🚀", praise: "Pitch locked. Demo Day, here you come." }
+};
+
+function detectMilestone() {
+  const path = location.pathname;
+  const match = path.match(/milestone-(\d+)/);
+  return match ? parseInt(match[1]) : null;
+}
+
+function showReward(milestoneNum) {
+  const w = STUDENT_WORK;
+  const r = MILESTONE_REWARDS[milestoneNum];
+  if (!r) return;
+
+  const newEarned = Math.min(w.mantou.earned + r.mantou, w.mantou.total);
+  const newPct = Math.round((newEarned / w.mantou.total) * 100);
+
+  const colors = ['#FF6B9D','#FFB088','#FFC94D','#7BB661','#9B6BD8','#5EEAD4'];
+  const confetti = Array.from({length:24}).map(() => {
+    const left = Math.random()*100;
+    const dx = (Math.random()*200 - 100);
+    const delay = Math.random()*0.4;
+    const c = colors[Math.floor(Math.random()*colors.length)];
+    return `<span class="confetti-bit" style="left:${left}%;background:${c};--dx:${dx}px;animation-delay:${delay}s"></span>`;
+  }).join('');
+
+  const html = `
+    <div class="reward-overlay" id="reward-ov">
+      <div class="reward-card">
+        <div class="reward-confetti">${confetti}</div>
+        <div class="reward-mascot" style="background-image:url(https://cm-idea-images.s3.us-west-1.amazonaws.com/1777501761002-image-1.png)"></div>
+        <h2 class="reward-title">Milestone <span class="grad">${r.emoji} ${r.title}</span><br>shipped!</h2>
+        <p class="reward-sub">${r.praise}<br>Coach Mei has been notified for review.</p>
+
+        <div class="reward-prize">
+          <div class="reward-prize-coin"></div>
+          <div class="reward-prize-text">
+            <div class="amt">+${r.mantou} 馒头</div>
+            <div class="label">added to your collection</div>
+          </div>
+        </div>
+
+        <div class="reward-progress">
+          <div class="row">
+            <span><b>${newEarned}</b> of ${w.mantou.total} 馒头 collected</span>
+            <span class="pct">${newPct}%</span>
+          </div>
+          <div class="pbar"><div class="pfill" id="reward-pfill"></div></div>
+        </div>
+
+        <div class="reward-actions">
+          ${milestoneNum < 7
+            ? `<a href="milestone-${milestoneNum+1}.html" class="btn-reward-primary">Unlock Milestone ${milestoneNum+1} →</a>`
+            : `<a href="index.html" class="btn-reward-primary">🏆 Mission Complete · Back to hub</a>`
+          }
+          <button class="btn-reward-secondary" id="reward-close">Stay on this page</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', html);
+  const ov = document.getElementById('reward-ov');
+  const close = () => { ov.classList.remove('show'); setTimeout(()=>ov.remove(), 350); document.body.style.overflow=''; };
+  requestAnimationFrame(() => {
+    ov.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => { document.getElementById('reward-pfill').style.width = newPct + '%'; }, 200);
+  });
+  document.getElementById('reward-close').addEventListener('click', close);
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  document.addEventListener('keydown', function escClose(e){
+    if (e.key === 'Escape') { close(); document.removeEventListener('keydown', escClose); }
+  });
+}
+
 // ============= SUBMIT / DRAFT BUTTONS =============
 document.querySelectorAll('.btn-submit').forEach(btn=>{
   if(btn.disabled) return;
   btn.addEventListener('click',e=>{
     e.preventDefault();
-    btn.classList.add('success');
-    const orig = btn.innerHTML;
-    btn.innerHTML = '✓ Submitted! Coach notified';
-    setTimeout(()=>{ btn.classList.remove('success'); btn.innerHTML = orig; }, 2400);
+    const ms = detectMilestone();
+    if (ms) {
+      showReward(ms);
+    } else {
+      btn.classList.add('success');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '✓ Submitted!';
+      setTimeout(()=>{ btn.classList.remove('success'); btn.innerHTML = orig; }, 2000);
+    }
   });
 });
 document.querySelectorAll('.btn-draft').forEach(btn=>{
