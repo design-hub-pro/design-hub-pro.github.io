@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrthoMotion AI - Pose Scan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        body { width: 100%; height: 100vh; overflow: hidden; background: #000; }
+        .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; }
+        .skeleton-line { position: absolute; height: 3px; background: #14b8a6; border-radius: 2px; }
+        .joint-dot { position: absolute; width: 12px; height: 12px; background: #5eead4; border: 2px solid #14b8a6; border-radius: 50%; }
+        @keyframes pulse-glow { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+        .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+        @keyframes scan-line { 0% { top: 15%; } 100% { top: 80%; } }
+        .scan-line { animation: scan-line 2s ease-in-out infinite alternate; }
+    </style>
+</head>
+<body>
+    <div class="w-full h-full relative overflow-hidden">
+        <!-- Camera View Background -->
+        <div class="absolute inset-0">
+            <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80" class="w-full h-full object-cover opacity-70" alt="pose">
+            <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/70"></div>
+        </div>
+
+        <!-- Scanning Line Effect -->
+        <div class="scan-line absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-teal-400 to-transparent z-10"></div>
+
+        <!-- Pose Skeleton Overlay -->
+        <div class="absolute inset-0 z-10 pulse-glow">
+            <!-- Head -->
+            <div class="joint-dot" style="left: 50%; top: 18%; transform: translate(-50%, -50%);"></div>
+            <!-- Shoulders -->
+            <div class="joint-dot" style="left: 38%; top: 28%; transform: translate(-50%, -50%);"></div>
+            <div class="joint-dot" style="left: 62%; top: 27%; transform: translate(-50%, -50%);"></div>
+            <!-- Spine line -->
+            <div class="skeleton-line" style="left: 50%; top: 18%; width: 0; height: 35%; transform: translateX(-50%);"></div>
+            <!-- Shoulder line -->
+            <div class="skeleton-line" style="left: 38%; top: 27.5%; width: 24%; transform: translateX(0);"></div>
+            <!-- Elbows -->
+            <div class="joint-dot" style="left: 30%; top: 40%; transform: translate(-50%, -50%);"></div>
+            <div class="joint-dot" style="left: 70%; top: 39%; transform: translate(-50%, -50%);"></div>
+            <!-- Hip -->
+            <div class="joint-dot" style="left: 43%; top: 53%; transform: translate(-50%, -50%);"></div>
+            <div class="joint-dot" style="left: 57%; top: 53%; transform: translate(-50%, -50%);"></div>
+            <!-- Hip line -->
+            <div class="skeleton-line" style="left: 43%; top: 53%; width: 14%;"></div>
+            <!-- Knees -->
+            <div class="joint-dot" style="left: 40%; top: 70%; transform: translate(-50%, -50%);"></div>
+            <div class="joint-dot" style="left: 60%; top: 70%; transform: translate(-50%, -50%);"></div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="relative z-20 flex justify-between items-center px-7 pt-4 pb-2" style="height: 59px;">
+            <span class="text-white text-sm font-semibold">9:41</span>
+            <div class="w-32 h-8 bg-black rounded-full"></div>
+            <div class="flex items-center gap-1.5">
+                <i class="fas fa-signal text-white text-xs"></i>
+                <i class="fas fa-wifi text-white text-xs"></i>
+                <i class="fas fa-battery-full text-white text-xs"></i>
+            </div>
+        </div>
+
+        <!-- Top Nav -->
+        <div class="relative z-20 flex items-center justify-between px-7 pt-2">
+            <div class="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center">
+                <i class="fas fa-arrow-left text-white text-sm"></i>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <span class="text-white text-sm font-semibold">AI Scanning</span>
+            </div>
+            <div class="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center">
+                <i class="fas fa-question text-white text-sm"></i>
+            </div>
+        </div>
+
+        <!-- AI Analysis Panel -->
+        <div class="absolute bottom-0 left-0 right-0 z-20">
+            <div class="bg-black/60 backdrop-blur-xl rounded-t-3xl px-7 pt-5 pb-20">
+                <!-- Confidence Badge -->
+                <div class="flex items-center justify-center mb-4">
+                    <div class="bg-teal-500/20 border border-teal-500/30 rounded-full px-4 py-1.5 flex items-center gap-2">
+                        <div class="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></div>
+                        <span class="text-teal-400 text-xs font-semibold">17 Key Points Detected</span>
+                    </div>
+                </div>
+
+                <!-- Measurements -->
+                <div class="grid grid-cols-3 gap-3 mb-4">
+                    <div class="bg-white/10 rounded-xl p-3 text-center">
+                        <p class="text-gray-400 text-xs mb-1">Shoulder Tilt</p>
+                        <p class="text-white text-xl font-bold">2.3°</p>
+                        <div class="flex items-center justify-center gap-1 mt-1">
+                            <div class="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                            <span class="text-green-400 text-xs">Normal</span>
+                        </div>
+                    </div>
+                    <div class="bg-white/10 rounded-xl p-3 text-center">
+                        <p class="text-gray-400 text-xs mb-1">Cobb Angle</p>
+                        <p class="text-white text-xl font-bold">8.5°</p>
+                        <div class="flex items-center justify-center gap-1 mt-1">
+                            <div class="w-1.5 h-1.5 bg-yellow-400 rounded-full"></div>
+                            <span class="text-yellow-400 text-xs">Mild</span>
+                        </div>
+                    </div>
+                    <div class="bg-white/10 rounded-xl p-3 text-center">
+                        <p class="text-gray-400 text-xs mb-1">Hip Alignment</p>
+                        <p class="text-white text-xl font-bold">1.1°</p>
+                        <div class="flex items-center justify-center gap-1 mt-1">
+                            <div class="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                            <span class="text-green-400 text-xs">Normal</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Capture Button -->
+                <button class="w-full py-4 bg-gradient-to-r from-teal-400 to-cyan-500 rounded-2xl text-white font-bold text-sm shadow-lg shadow-teal-500/30 flex items-center justify-center gap-2">
+                    <i class="fas fa-camera"></i>
+                    Capture Full Analysis
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar bg-black/80 backdrop-blur-md border-t border-white/10 px-7 py-3 z-30">
+            <div class="flex items-center justify-between">
+                <div class="flex flex-col items-center gap-1">
+                    <i class="fas fa-home text-gray-500"></i>
+                    <span class="text-xs text-gray-500">Home</span>
+                </div>
+                <div class="flex flex-col items-center gap-1">
+                    <i class="fas fa-camera text-teal-400"></i>
+                    <span class="text-xs text-teal-400 font-medium">Scan</span>
+                </div>
+                <div class="flex flex-col items-center gap-1">
+                    <i class="fas fa-dumbbell text-gray-500"></i>
+                    <span class="text-xs text-gray-500">Rehab</span>
+                </div>
+                <div class="flex flex-col items-center gap-1">
+                    <i class="fas fa-chart-line text-gray-500"></i>
+                    <span class="text-xs text-gray-500">Progress</span>
+                </div>
+                <div class="flex flex-col items-center gap-1">
+                    <i class="fas fa-user text-gray-500"></i>
+                    <span class="text-xs text-gray-500">Profile</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
