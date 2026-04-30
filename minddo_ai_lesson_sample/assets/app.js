@@ -7,6 +7,7 @@ const STUDENT_WORK = {
   filledFields: 8,
   progressPct: 35,
   mantou: { earned: 7, total: 35 },
+  course: { name: "Mobile App Dev with AI", missionNum: 7, totalMissions: 20, missionsDone: 6 },
   activeMilestone: 3,
   activeMilestoneTitle: "Feature Planning",
   milestones: [
@@ -77,7 +78,7 @@ function renderDrawer() {
     <div class="drawer-backdrop" id="drawer-bd"></div>
     <aside class="work-drawer" id="work-drawer" aria-hidden="true">
       <div class="dr-head">
-        <h2>📋 My Mission Work<small>${w.studentName} · all submissions</small></h2>
+        <h2>📋 My Work<small>Mission ${String(w.course.missionNum).padStart(2,'0')} of ${w.course.totalMissions} · ${w.course.name}</small></h2>
         <button class="dr-close" id="dr-close" aria-label="Close">×</button>
       </div>
       <div class="dr-progress">
@@ -101,6 +102,14 @@ function renderDrawer() {
           <span class="arrow">→</span>
         </a>
         ${milestonesHtml}
+        <a href="course.html" class="dr-course-link">
+          <span class="em">📚</span>
+          <div class="meta">
+            <small>Cross-mission navigation</small>
+            <b>Browse all 20 missions in this course</b>
+          </div>
+          <span class="arrow">→</span>
+        </a>
       </div>
     </aside>
   `;
