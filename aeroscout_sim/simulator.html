@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroScout Sim — Live Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #f8fafc; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        .terrain {
+            background:
+                radial-gradient(ellipse at 30% 40%, rgba(217, 119, 6, 0.18) 0%, transparent 25%),
+                radial-gradient(ellipse at 65% 60%, rgba(220, 38, 38, 0.22) 0%, transparent 18%),
+                radial-gradient(ellipse at 80% 30%, rgba(245, 158, 11, 0.12) 0%, transparent 22%),
+                linear-gradient(135deg, #14532d 0%, #166534 30%, #15803d 55%, #166534 100%);
+            background-color: #166534;
+        }
+        .contour {
+            background-image:
+                repeating-radial-gradient(circle at 30% 40%, transparent 0, transparent 28px, rgba(255,255,255,0.08) 28px, rgba(255,255,255,0.08) 30px),
+                repeating-radial-gradient(circle at 65% 60%, transparent 0, transparent 36px, rgba(255,255,255,0.06) 36px, rgba(255,255,255,0.06) 38px),
+                repeating-radial-gradient(circle at 78% 25%, transparent 0, transparent 24px, rgba(255,255,255,0.07) 24px, rgba(255,255,255,0.07) 26px);
+        }
+        @keyframes ping-soft {
+            0% { transform: scale(0.8); opacity: 0.7; }
+            100% { transform: scale(2.2); opacity: 0; }
+        }
+        .ping { animation: ping-soft 2s cubic-bezier(0,0,0.2,1) infinite; }
+
+        @keyframes drone-fly-1 {
+            0% { transform: translate(20px, 60px); }
+            25% { transform: translate(180px, 30px); }
+            50% { transform: translate(280px, 90px); }
+            75% { transform: translate(160px, 140px); }
+            100% { transform: translate(20px, 60px); }
+        }
+        @keyframes drone-fly-2 {
+            0% { transform: translate(360px, 200px); }
+            33% { transform: translate(420px, 100px); }
+            66% { transform: translate(480px, 220px); }
+            100% { transform: translate(360px, 200px); }
+        }
+        @keyframes drone-fly-3 {
+            0% { transform: translate(120px, 280px); }
+            50% { transform: translate(220px, 240px); }
+            100% { transform: translate(120px, 280px); }
+        }
+        .drone-1 { animation: drone-fly-1 28s linear infinite; }
+        .drone-2 { animation: drone-fly-2 22s linear infinite; }
+        .drone-3 { animation: drone-fly-3 18s linear infinite; }
+
+        @keyframes spin-fast { to { transform: rotate(360deg); } }
+        .rotor::before, .rotor::after {
+            content: ''; position: absolute; width: 18px; height: 2px; background: rgba(255,255,255,0.7);
+            top: 50%; left: 50%; transform-origin: center; border-radius: 2px;
+        }
+        .rotor::before { transform: translate(-50%, -50%) rotate(0deg); animation: spin-fast 0.15s linear infinite; }
+
+        .grid-overlay {
+            background-image:
+                linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+<div class="flex min-h-screen">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col">
+        <div class="p-5 border-b border-slate-100">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-500 flex items-center justify-center">
+                    <i class="fas fa-helicopter text-white text-sm"></i>
+                </div>
+                <div>
+                    <div class="font-bold text-slate-900 leading-tight">AeroScout</div>
+                    <div class="text-[11px] text-slate-500 leading-tight">Fire Patrol Simulator</div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 px-3 py-4 space-y-1 text-sm">
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">Workspace</div>
+            <a href="home.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                <i class="fas fa-chart-pie w-4"></i>Dashboard
+            </a>
+            <a href="simulator.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-emerald-50 text-emerald-700 font-medium">
+                <i class="fas fa-satellite-dish w-4"></i>Live Simulator
+            </a>
+            <a href="scenarios.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                <i class="fas fa-mountain w-4"></i>Scenarios
+            </a>
+            <a href="fleet.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                <i class="fas fa-drone w-4"></i>Drone Fleet
+            </a>
+
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mt-5 mb-2">Insights</div>
+            <a href="analysis.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                <i class="fas fa-chart-line w-4"></i>Analytics
+            </a>
+            <a href="planning.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                <i class="fas fa-calculator w-4"></i>Fleet Planning
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 flex flex-col min-w-0">
+        <!-- Top bar -->
+        <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 justify-between">
+            <div class="flex items-center gap-3">
+                <h1 class="text-base font-semibold text-slate-900">Live Simulator</h1>
+                <span class="text-xs px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 font-medium flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>Recording
+                </span>
+                <span class="text-xs text-slate-500">Run #2417 · started 00:42:18 ago</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button class="text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded-lg text-sm flex items-center gap-2"><i class="fas fa-floppy-disk"></i>Save</button>
+                <button class="text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded-lg text-sm flex items-center gap-2"><i class="fas fa-share-from-square"></i>Share</button>
+                <button class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2"><i class="fas fa-stop"></i>Stop</button>
+            </div>
+        </header>
+
+        <!-- Body -->
+        <div class="flex-1 flex overflow-hidden">
+
+            <!-- Left rail: parameters -->
+            <div class="w-72 bg-white border-r border-slate-200 overflow-y-auto p-5 space-y-5">
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-900 mb-3">Region</h3>
+                    <div class="space-y-2">
+                        <div class="border border-slate-200 rounded-lg p-3">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs text-slate-500">Total area</span>
+                                <span class="text-xs mono font-semibold text-slate-900">1,840 km²</span>
+                            </div>
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs text-slate-500">Terrain</span>
+                                <span class="text-xs font-medium text-slate-900">Mountain forest</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-slate-500">Avg slope</span>
+                                <span class="text-xs mono font-semibold text-slate-900">22°</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-900 mb-3">Drone Parameters</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="text-slate-600">Cruise speed</span>
+                                <span class="mono font-semibold text-emerald-700">68 km/h</span>
+                            </div>
+                            <input type="range" min="30" max="120" value="68" class="w-full accent-emerald-600">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="text-slate-600">Endurance</span>
+                                <span class="mono font-semibold text-emerald-700">52 min</span>
+                            </div>
+                            <input type="range" min="20" max="120" value="52" class="w-full accent-emerald-600">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="text-slate-600">Detect radius</span>
+                                <span class="mono font-semibold text-emerald-700">1.4 km</span>
+                            </div>
+                            <input type="range" min="0.5" max="3" step="0.1" value="1.4" class="w-full accent-emerald-600">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="text-slate-600">Fleet size</span>
+                                <span class="mono font-semibold text-emerald-700">8</span>
+                            </div>
+                            <input type="range" min="2" max="32" value="8" class="w-full accent-emerald-600">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-900 mb-3">Coordination</h3>
+                    <div class="space-y-1.5">
+                        <label class="flex items-center justify-between text-xs px-3 py-2 rounded-lg border border-emerald-200 bg-emerald-50">
+                            <span class="font-medium text-emerald-700">Adaptive swarm</span>
+                            <input type="radio" name="coord" checked class="accent-emerald-600">
+                        </label>
+                        <label class="flex items-center justify-between text-xs px-3 py-2 rounded-lg border border-slate-200">
+                            <span class="text-slate-700">Risk-weighted</span>
+                            <input type="radio" name="coord" class="accent-emerald-600">
+                        </label>
+                        <label class="flex items-center justify-between text-xs px-3 py-2 rounded-lg border border-slate-200">
+                            <span class="text-slate-700">Sector relay</span>
+                            <input type="radio" name="coord" class="accent-emerald-600">
+                        </label>
+                        <label class="flex items-center justify-between text-xs px-3 py-2 rounded-lg border border-slate-200">
+                            <span class="text-slate-700">Static grid</span>
+                            <input type="radio" name="coord" class="accent-emerald-600">
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-900 mb-3">Environment</h3>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between"><span class="text-slate-500">Wind</span><span class="mono text-slate-900">SW 14 km/h</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Humidity</span><span class="mono text-slate-900">38% RH</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Temperature</span><span class="mono text-slate-900">26 °C</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">FWI</span><span class="mono text-amber-600 font-semibold">19.8 (High)</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map viewport -->
+            <div class="flex-1 relative bg-slate-900">
+                <div class="absolute inset-0 terrain contour grid-overlay">
+
+                    <!-- Heat hotspots -->
+                    <div class="absolute" style="top: 38%; left: 30%;">
+                        <div class="absolute w-12 h-12 rounded-full bg-rose-500/40 ping"></div>
+                        <div class="absolute w-12 h-12 rounded-full bg-rose-500/40 ping" style="animation-delay: 0.5s;"></div>
+                        <div class="relative w-6 h-6 rounded-full bg-rose-500 border-2 border-white shadow-lg flex items-center justify-center">
+                            <i class="fas fa-fire text-white text-[10px]"></i>
+                        </div>
+                    </div>
+
+                    <div class="absolute" style="top: 62%; left: 65%;">
+                        <div class="absolute w-10 h-10 rounded-full bg-amber-500/40 ping"></div>
+                        <div class="relative w-5 h-5 rounded-full bg-amber-500 border-2 border-white shadow-lg flex items-center justify-center">
+                            <i class="fas fa-temperature-high text-white text-[8px]"></i>
+                        </div>
+                    </div>
+
+                    <!-- Drones -->
+                    <div class="absolute drone-1">
+                        <div class="relative">
+                            <div class="absolute w-32 h-32 rounded-full border border-emerald-300/40 -translate-x-1/2 -translate-y-1/2 left-3 top-3"></div>
+                            <div class="w-7 h-7 rounded-full bg-white shadow-lg flex items-center justify-center border-2 border-emerald-500">
+                                <i class="fas fa-drone text-emerald-600 text-xs"></i>
+                            </div>
+                            <div class="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] mono bg-slate-900/80 text-white px-1.5 py-0.5 rounded whitespace-nowrap">D-01</div>
+                        </div>
+                    </div>
+
+                    <div class="absolute drone-2">
+                        <div class="relative">
+                            <div class="absolute w-32 h-32 rounded-full border border-emerald-300/40 -translate-x-1/2 -translate-y-1/2 left-3 top-3"></div>
+                            <div class="w-7 h-7 rounded-full bg-white shadow-lg flex items-center justify-center border-2 border-emerald-500">
+                                <i class="fas fa-drone text-emerald-600 text-xs"></i>
+                            </div>
+                            <div class="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] mono bg-slate-900/80 text-white px-1.5 py-0.5 rounded whitespace-nowrap">D-02</div>
+                        </div>
+                    </div>
+
+                    <div class="absolute drone-3">
+                        <div class="relative">
+                            <div class="absolute w-32 h-32 rounded-full border border-rose-300/50 -translate-x-1/2 -translate-y-1/2 left-3 top-3"></div>
+                            <div class="w-7 h-7 rounded-full bg-white shadow-lg flex items-center justify-center border-2 border-rose-500">
+                                <i class="fas fa-drone text-rose-600 text-xs"></i>
+                            </div>
+                            <div class="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] mono bg-rose-600 text-white px-1.5 py-0.5 rounded whitespace-nowrap">D-04 · INVESTIGATE</div>
+                        </div>
+                    </div>
+
+                    <!-- Static drones -->
+                    <div class="absolute" style="top: 18%; left: 70%;">
+                        <div class="w-7 h-7 rounded-full bg-white shadow-lg flex items-center justify-center border-2 border-emerald-500">
+                            <i class="fas fa-drone text-emerald-600 text-xs"></i>
+                        </div>
+                        <div class="text-[10px] mono bg-slate-900/80 text-white px-1.5 py-0.5 rounded mt-1 inline-block">D-05</div>
+                    </div>
+                    <div class="absolute" style="top: 75%; left: 22%;">
+                        <div class="w-7 h-7 rounded-full bg-white shadow-lg flex items-center justify-center border-2 border-emerald-500">
+                            <i class="fas fa-drone text-emerald-600 text-xs"></i>
+                        </div>
+                        <div class="text-[10px] mono bg-slate-900/80 text-white px-1.5 py-0.5 rounded mt-1 inline-block">D-06</div>
+                    </div>
+
+                    <!-- Base station -->
+                    <div class="absolute" style="bottom: 12%; right: 12%;">
+                        <div class="w-10 h-10 rounded-xl bg-white shadow-xl flex items-center justify-center border-2 border-sky-500">
+                            <i class="fas fa-tower-broadcast text-sky-600"></i>
+                        </div>
+                        <div class="text-[10px] mono bg-slate-900/80 text-white px-2 py-0.5 rounded mt-1 inline-block">BASE-A</div>
+                    </div>
+
+                    <!-- Compass -->
+                    <div class="absolute top-4 right-4 w-14 h-14 rounded-full bg-slate-900/70 border border-white/20 flex items-center justify-center text-white text-xs">
+                        <div class="flex flex-col items-center gap-0.5">
+                            <i class="fas fa-location-arrow text-[10px] -rotate-45"></i>
+                            <span class="mono font-semibold">N</span>
+                        </div>
+                    </div>
+
+                    <!-- Scale -->
+                    <div class="absolute bottom-4 left-4 bg-slate-900/70 text-white text-[11px] px-3 py-1.5 rounded-lg flex items-center gap-2">
+                        <div class="w-16 h-0.5 bg-white"></div>
+                        <span class="mono">5 km</span>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="absolute top-4 left-4 bg-slate-900/70 backdrop-blur-sm rounded-xl px-4 py-3 text-white text-xs space-y-1.5">
+                        <div class="text-[10px] uppercase tracking-wider opacity-70 mb-1">Legend</div>
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Patrol drone</div>
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-rose-500"></span>Confirmed hotspot</div>
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-amber-500"></span>Thermal flare</div>
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-sky-500"></span>Base station</div>
+                    </div>
+
+                </div>
+
+                <!-- Bottom telemetry strip -->
+                <div class="absolute bottom-4 right-4 left-32 bg-slate-900/85 backdrop-blur-sm rounded-2xl px-5 py-3 flex items-center gap-6 text-white">
+                    <div class="flex items-center gap-3">
+                        <button class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center"><i class="fas fa-backward-step text-xs"></i></button>
+                        <button class="w-10 h-10 rounded-full bg-emerald-500 hover:bg-emerald-600 flex items-center justify-center"><i class="fas fa-pause text-sm"></i></button>
+                        <button class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center"><i class="fas fa-forward-step text-xs"></i></button>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] uppercase tracking-wider opacity-60">Speed</span>
+                        <div class="flex bg-white/10 rounded-md p-0.5 gap-0.5">
+                            <button class="text-[10px] px-2 py-1 rounded">1×</button>
+                            <button class="text-[10px] px-2 py-1 rounded">5×</button>
+                            <button class="text-[10px] px-2 py-1 rounded bg-white/20 font-semibold">20×</button>
+                            <button class="text-[10px] px-2 py-1 rounded">100×</button>
+                        </div>
+                    </div>
+                    <div class="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden relative">
+                        <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full" style="width: 47%"></div>
+                    </div>
+                    <div class="text-xs mono opacity-80 whitespace-nowrap">00:42:18 / 01:30:00</div>
+                </div>
+            </div>
+
+            <!-- Right rail: telemetry -->
+            <div class="w-72 bg-white border-l border-slate-200 overflow-y-auto">
+                <div class="p-5 border-b border-slate-100">
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="text-sm font-semibold text-slate-900">Live Metrics</h3>
+                        <span class="text-[10px] mono text-emerald-600 font-medium">● LIVE</span>
+                    </div>
+                    <p class="text-xs text-slate-500">Tick #1,242 · 250 ms step</p>
+                </div>
+
+                <div class="p-5 grid grid-cols-2 gap-3 border-b border-slate-100">
+                    <div>
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400">Coverage</div>
+                        <div class="text-xl font-bold text-slate-900 mono">87%</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400">Avg Detect</div>
+                        <div class="text-xl font-bold text-slate-900 mono">6:48</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400">Hotspots</div>
+                        <div class="text-xl font-bold text-rose-600 mono">2</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400">False+</div>
+                        <div class="text-xl font-bold text-slate-900 mono">1</div>
+                    </div>
+                </div>
+
+                <div class="p-5 border-b border-slate-100">
+                    <h4 class="text-xs font-semibold text-slate-900 mb-3 uppercase tracking-wider">Drone Status</h4>
+                    <div class="space-y-2.5">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 rounded-md bg-emerald-100 flex items-center justify-center"><i class="fas fa-drone text-emerald-600 text-xs"></i></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between text-xs"><span class="font-medium">D-01</span><span class="mono text-slate-500">88%</span></div>
+                                <div class="h-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-500" style="width:88%"></div></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 rounded-md bg-emerald-100 flex items-center justify-center"><i class="fas fa-drone text-emerald-600 text-xs"></i></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between text-xs"><span class="font-medium">D-02</span><span class="mono text-slate-500">76%</span></div>
+                                <div class="h-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-500" style="width:76%"></div></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center"><i class="fas fa-drone text-amber-600 text-xs"></i></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between text-xs"><span class="font-medium">D-03</span><span class="mono text-slate-500">42%</span></div>
+                                <div class="h-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-amber-500" style="width:42%"></div></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 rounded-md bg-rose-100 flex items-center justify-center"><i class="fas fa-drone text-rose-600 text-xs"></i></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between text-xs"><span class="font-medium">D-04</span><span class="mono text-rose-600">INVESTIGATE</span></div>
+                                <div class="h-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-rose-500" style="width:67%"></div></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 rounded-md bg-emerald-100 flex items-center justify-center"><i class="fas fa-drone text-emerald-600 text-xs"></i></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between text-xs"><span class="font-medium">D-05</span><span class="mono text-slate-500">81%</span></div>
+                                <div class="h-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-500" style="width:81%"></div></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 rounded-md bg-emerald-100 flex items-center justify-center"><i class="fas fa-drone text-emerald-600 text-xs"></i></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between text-xs"><span class="font-medium">D-06</span><span class="mono text-slate-500">94%</span></div>
+                                <div class="h-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-500" style="width:94%"></div></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 rounded-md bg-slate-100 flex items-center justify-center"><i class="fas fa-drone text-slate-400 text-xs"></i></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between text-xs"><span class="font-medium text-slate-400">D-07</span><span class="mono text-slate-400">CHARGING</span></div>
+                                <div class="h-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-sky-400" style="width:34%"></div></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 rounded-md bg-slate-100 flex items-center justify-center"><i class="fas fa-drone text-slate-400 text-xs"></i></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between text-xs"><span class="font-medium text-slate-400">D-08</span><span class="mono text-slate-400">STANDBY</span></div>
+                                <div class="h-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-slate-300" style="width:100%"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-5">
+                    <h4 class="text-xs font-semibold text-slate-900 mb-3 uppercase tracking-wider">Event Log</h4>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex gap-2">
+                            <span class="mono text-slate-400">42:04</span>
+                            <span class="text-rose-600 font-medium">D-04 confirmed hotspot at 31.42N 103.81E</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <span class="mono text-slate-400">37:51</span>
+                            <span class="text-amber-600">D-02 reporting thermal flare, investigating</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <span class="mono text-slate-400">29:18</span>
+                            <span class="text-slate-600">Sector 3-N reassigned to D-04 (risk-weighted)</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <span class="mono text-slate-400">22:00</span>
+                            <span class="text-sky-600">D-07 returning to BASE-A for swap</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <span class="mono text-slate-400">11:42</span>
+                            <span class="text-slate-600">All drones airborne · patrol grid initialised</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

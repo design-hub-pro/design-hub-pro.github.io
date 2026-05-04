@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroScout Sim — Fleet Planning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #f8fafc; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+<div class="flex min-h-screen">
+
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col">
+        <div class="p-5 border-b border-slate-100">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-500 flex items-center justify-center">
+                    <i class="fas fa-helicopter text-white text-sm"></i>
+                </div>
+                <div>
+                    <div class="font-bold text-slate-900 leading-tight">AeroScout</div>
+                    <div class="text-[11px] text-slate-500 leading-tight">Fire Patrol Simulator</div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 px-3 py-4 space-y-1 text-sm">
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">Workspace</div>
+            <a href="home.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100"><i class="fas fa-chart-pie w-4"></i>Dashboard</a>
+            <a href="simulator.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100"><i class="fas fa-satellite-dish w-4"></i>Live Simulator</a>
+            <a href="scenarios.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100"><i class="fas fa-mountain w-4"></i>Scenarios</a>
+            <a href="fleet.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100"><i class="fas fa-drone w-4"></i>Drone Fleet</a>
+
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mt-5 mb-2">Insights</div>
+            <a href="analysis.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100"><i class="fas fa-chart-line w-4"></i>Analytics</a>
+            <a href="planning.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-emerald-50 text-emerald-700 font-medium"><i class="fas fa-calculator w-4"></i>Fleet Planning</a>
+        </nav>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0">
+        <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 justify-between">
+            <h1 class="text-base font-semibold text-slate-900">Fleet Planning Calculator</h1>
+            <div class="flex items-center gap-2">
+                <button class="text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded-lg text-sm flex items-center gap-2"><i class="fas fa-clock-rotate-left"></i>History</button>
+                <button class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-1.5 rounded-lg flex items-center gap-2"><i class="fas fa-bolt"></i>Run Optimisation</button>
+            </div>
+        </header>
+
+        <div class="flex-1 p-6 overflow-y-auto">
+
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-slate-900">How many drones do you need?</h2>
+                <p class="text-sm text-slate-500 mt-0.5">Enter a region and a target response SLA. The simulator iterates fleet configurations and recommends the cost-optimal mix.</p>
+            </div>
+
+            <div class="grid grid-cols-3 gap-5">
+
+                <!-- Inputs -->
+                <div class="col-span-1 space-y-4">
+
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                        <h3 class="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2"><i class="fas fa-1 text-[10px] bg-emerald-100 text-emerald-700 w-5 h-5 rounded-full flex items-center justify-center"></i>Region & SLA</h3>
+
+                        <label class="block text-xs text-slate-600 mb-1.5 font-medium">Region area (km²)</label>
+                        <input value="1840" class="w-full mono border border-slate-200 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-emerald-400">
+
+                        <label class="block text-xs text-slate-600 mb-1.5 font-medium">Terrain</label>
+                        <select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-emerald-400">
+                            <option>Mountain forest (steep)</option>
+                            <option>Mixed forest (rolling)</option>
+                            <option>Plateau</option>
+                            <option>Foothill</option>
+                        </select>
+
+                        <label class="block text-xs text-slate-600 mb-1.5 font-medium">Target detection time</label>
+                        <div class="flex gap-2 mb-3">
+                            <input value="10" class="w-20 mono border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400">
+                            <select class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400">
+                                <option>min · P50</option>
+                                <option>min · P90</option>
+                                <option>min · P95</option>
+                            </select>
+                        </div>
+
+                        <label class="block text-xs text-slate-600 mb-1.5 font-medium">FWI envelope</label>
+                        <div class="flex gap-1 bg-slate-100 rounded-lg p-1">
+                            <button class="text-xs px-3 py-1.5 rounded-md flex-1 text-slate-600">Low</button>
+                            <button class="text-xs px-3 py-1.5 rounded-md flex-1 bg-white text-slate-900 font-medium shadow-sm">High</button>
+                            <button class="text-xs px-3 py-1.5 rounded-md flex-1 text-slate-600">Extreme</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                        <h3 class="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2"><i class="fas fa-2 text-[10px] bg-emerald-100 text-emerald-700 w-5 h-5 rounded-full flex items-center justify-center"></i>Drone Mix</h3>
+
+                        <div class="space-y-3">
+                            <label class="flex items-center justify-between text-xs px-3 py-2 rounded-lg border border-emerald-200 bg-emerald-50">
+                                <div>
+                                    <div class="font-semibold text-emerald-700">Scout-X3</div>
+                                    <div class="text-slate-600 text-[11px]">68 km/h · R=1.4 · ¥185k</div>
+                                </div>
+                                <input type="checkbox" checked class="accent-emerald-600">
+                            </label>
+                            <label class="flex items-center justify-between text-xs px-3 py-2 rounded-lg border border-slate-200">
+                                <div>
+                                    <div class="font-semibold text-slate-700">Falcon-R1 (rapid)</div>
+                                    <div class="text-slate-600 text-[11px]">112 km/h · R=0.9 · ¥240k</div>
+                                </div>
+                                <input type="checkbox" checked class="accent-emerald-600">
+                            </label>
+                            <label class="flex items-center justify-between text-xs px-3 py-2 rounded-lg border border-slate-200">
+                                <div>
+                                    <div class="font-semibold text-slate-700">Carrier-M2 (relay)</div>
+                                    <div class="text-slate-600 text-[11px]">82 km/h · R=2.1 · ¥420k</div>
+                                </div>
+                                <input type="checkbox" class="accent-emerald-600">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                        <h3 class="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2"><i class="fas fa-3 text-[10px] bg-emerald-100 text-emerald-700 w-5 h-5 rounded-full flex items-center justify-center"></i>Constraints</h3>
+
+                        <label class="block text-xs text-slate-600 mb-1.5 font-medium">CAPEX budget (¥)</label>
+                        <input value="3,500,000" class="w-full mono border border-slate-200 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-emerald-400">
+
+                        <label class="block text-xs text-slate-600 mb-1.5 font-medium">Base stations</label>
+                        <input value="3" class="w-full mono border border-slate-200 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-emerald-400">
+
+                        <label class="flex items-center gap-2 text-xs text-slate-700">
+                            <input type="checkbox" checked class="accent-emerald-600">
+                            Include 25% redundancy buffer
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div class="col-span-2 space-y-5">
+
+                    <!-- Recommendation card -->
+                    <div class="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <div class="text-xs uppercase tracking-wider text-emerald-700 font-semibold mb-1"><i class="fas fa-circle-check mr-1"></i>Cost-optimal solution</div>
+                                <h3 class="text-2xl font-bold text-slate-900">10 drones across 3 bases</h3>
+                                <p class="text-sm text-slate-600 mt-1">Meets P50 ≤ 10 min · expected P90 = 14:42</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-[10px] text-slate-500 uppercase tracking-wider">CAPEX</div>
+                                <div class="text-2xl font-bold text-slate-900 mono">¥2.18 M</div>
+                                <div class="text-[10px] text-slate-500">62% of budget</div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="bg-white/70 rounded-xl p-3 border border-white">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <div class="w-7 h-7 rounded-md bg-emerald-100 flex items-center justify-center"><i class="fas fa-drone text-emerald-700 text-xs"></i></div>
+                                    <div class="font-semibold text-sm text-slate-900">Scout-X3</div>
+                                </div>
+                                <div class="mono text-2xl font-bold text-slate-900">8 <span class="text-sm text-slate-400 font-normal">×</span></div>
+                                <div class="text-[11px] text-slate-500">Continuous patrol grid</div>
+                            </div>
+                            <div class="bg-white/70 rounded-xl p-3 border border-white">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <div class="w-7 h-7 rounded-md bg-sky-100 flex items-center justify-center"><i class="fas fa-drone-front text-sky-700 text-xs"></i></div>
+                                    <div class="font-semibold text-sm text-slate-900">Falcon-R1</div>
+                                </div>
+                                <div class="mono text-2xl font-bold text-slate-900">2 <span class="text-sm text-slate-400 font-normal">×</span></div>
+                                <div class="text-[11px] text-slate-500">Rapid investigate</div>
+                            </div>
+                            <div class="bg-white/70 rounded-xl p-3 border border-white">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <div class="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center"><i class="fas fa-tower-broadcast text-amber-700 text-xs"></i></div>
+                                    <div class="font-semibold text-sm text-slate-900">Bases</div>
+                                </div>
+                                <div class="mono text-2xl font-bold text-slate-900">3 <span class="text-sm text-slate-400 font-normal">×</span></div>
+                                <div class="text-[11px] text-slate-500">SW · NE · Centre</div>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-emerald-200/60 mt-5 pt-4 grid grid-cols-4 gap-3">
+                            <div>
+                                <div class="text-[10px] text-slate-500 uppercase">P50</div>
+                                <div class="mono text-base font-bold text-emerald-700">8:54</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-slate-500 uppercase">P90</div>
+                                <div class="mono text-base font-bold text-emerald-700">14:42</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-slate-500 uppercase">Coverage / hr</div>
+                                <div class="mono text-base font-bold text-slate-900">2,540 km²</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-slate-500 uppercase">5-yr OPEX</div>
+                                <div class="mono text-base font-bold text-slate-900">¥1.4 M</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trade-off curve -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                        <div class="flex items-start justify-between mb-1">
+                            <h3 class="font-semibold text-slate-900">Cost vs. Detection Time Trade-off</h3>
+                            <span class="text-[11px] text-slate-500">5,000 simulated configs</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-4">Pareto frontier shown in green; recommended config marked.</p>
+                        <canvas id="paretoChart" height="160"></canvas>
+                    </div>
+
+                    <!-- Coordination plan -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                        <h3 class="font-semibold text-slate-900 mb-3">Coordination Plan</h3>
+                        <p class="text-xs text-slate-500 mb-4">Recommended division of labour for the chosen mix</p>
+
+                        <div class="space-y-3">
+                            <div class="flex gap-4 p-3 rounded-xl border border-slate-100">
+                                <div class="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-route text-emerald-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-semibold text-slate-900">Continuous sweep · 6 × Scout-X3</div>
+                                    <p class="text-xs text-slate-600 mt-0.5">Adaptive grid sweep across 3 sectors. Each Scout rotates to base every 45 min for hot-swap.</p>
+                                </div>
+                                <div class="text-xs mono text-slate-500 self-center">68 km/h</div>
+                            </div>
+
+                            <div class="flex gap-4 p-3 rounded-xl border border-slate-100">
+                                <div class="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-bullseye text-amber-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-semibold text-slate-900">High-risk loitering · 2 × Scout-X3</div>
+                                    <p class="text-xs text-slate-600 mt-0.5">Concentrated above ridges with FWI > 18, prioritised by historic ignition density.</p>
+                                </div>
+                                <div class="text-xs mono text-slate-500 self-center">68 km/h</div>
+                            </div>
+
+                            <div class="flex gap-4 p-3 rounded-xl border border-slate-100">
+                                <div class="w-9 h-9 rounded-lg bg-rose-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-bolt text-rose-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-semibold text-slate-900">Rapid investigate · 2 × Falcon-R1</div>
+                                    <p class="text-xs text-slate-600 mt-0.5">On-call quad responders launched for any flare confidence ≥ 50%. Confirms in &lt;3 min.</p>
+                                </div>
+                                <div class="text-xs mono text-slate-500 self-center">112 km/h</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+// Pareto scatter
+const points = [];
+for (let n = 2; n <= 24; n++) {
+    for (let r = 0.6; r <= 2.4; r += 0.2) {
+        const t = +(1840 / (n * Math.PI * r * r * 1.2) * 7.4 + 1.5).toFixed(2);
+        const cost = +((n * (185 + Math.random() * 30) + Math.random() * 100) / 100).toFixed(2);
+        points.push({ x: cost, y: t, n, r });
+    }
+}
+const sorted = points.slice().sort((a,b) => a.x - b.x);
+const pareto = [];
+let bestY = Infinity;
+for (const p of sorted) { if (p.y < bestY) { pareto.push(p); bestY = p.y; } }
+
+new Chart(document.getElementById('paretoChart'), {
+    type: 'scatter',
+    data: {
+        datasets: [
+            {
+                label: 'Configurations',
+                data: points,
+                backgroundColor: 'rgba(148, 163, 184, 0.35)',
+                pointRadius: 3,
+                pointHoverRadius: 5
+            },
+            {
+                label: 'Pareto frontier',
+                data: pareto,
+                backgroundColor: '#10b981',
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                showLine: true,
+                borderColor: '#10b981',
+                borderWidth: 2
+            },
+            {
+                label: 'Recommended',
+                data: [{ x: 21.8, y: 8.9 }],
+                backgroundColor: '#dc2626',
+                pointRadius: 9,
+                pointHoverRadius: 10,
+                pointStyle: 'star'
+            }
+        ]
+    },
+    options: {
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
+        scales: {
+            x: { title: { display: true, text: 'CAPEX (¥, hundred-thousands)', font: { size: 11 } }, grid: { color: '#f1f5f9' } },
+            y: { title: { display: true, text: 'P50 detect time (min)', font: { size: 11 } }, grid: { color: '#f1f5f9' } }
+        }
+    }
+});
+</script>
+</body>
+</html>
