@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrbitGuard Sim — Game Theory Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        body { background: #f1f5f9; }
+        .matrix-cell {
+            display: flex; align-items: center; justify-content: center; flex-direction: column;
+            border-radius: 12px; padding: 14px; min-height: 78px;
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+<div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col">
+        <div class="p-5 border-b border-slate-100">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-500 flex items-center justify-center">
+                    <i class="fas fa-satellite text-white text-sm"></i>
+                </div>
+                <div>
+                    <div class="font-bold text-slate-900 leading-tight">OrbitGuard</div>
+                    <div class="text-[11px] text-slate-500 leading-tight">Debris Mitigation Sim</div>
+                </div>
+            </div>
+        </div>
+        <nav class="flex-1 px-3 py-4 space-y-1 text-sm">
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">Mission Control</div>
+            <a href="home.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100"><i class="fas fa-gauge w-4"></i>Dashboard</a>
+            <a href="simulator.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100"><i class="fas fa-globe w-4"></i>Orbital Simulator</a>
+            <a href="prediction.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100"><i class="fas fa-brain w-4"></i>Collision AI</a>
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mt-5 mb-2">Multi-Agent</div>
+            <a href="agents.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100"><i class="fas fa-rocket w-4"></i>Cleanup Fleet</a>
+            <a href="gametheory.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-indigo-50 text-indigo-700 font-medium"><i class="fas fa-chess w-4"></i>Game Theory</a>
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mt-5 mb-2">Research</div>
+            <a href="analysis.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100"><i class="fas fa-chart-line w-4"></i>Analytics</a>
+        </nav>
+        <div class="p-3 border-t border-slate-100">
+            <div class="bg-gradient-to-br from-indigo-50 to-cyan-50 rounded-xl p-3">
+                <div class="flex items-center gap-2 mb-1.5">
+                    <i class="fas fa-handshake text-indigo-600 text-xs"></i>
+                    <div class="text-xs font-semibold text-slate-800">Mechanism design</div>
+                </div>
+                <p class="text-[11px] text-slate-600 leading-snug">VCG-style debris auction with cascade-risk subsidy.</p>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0">
+        <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 justify-between">
+            <div class="flex items-center gap-3">
+                <h1 class="text-base font-semibold text-slate-900">Game Theory Engine</h1>
+                <span class="text-xs px-2 py-0.5 rounded-md bg-violet-100 text-violet-700 font-medium mono">N=4 agency simulation</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="text-slate-500 hover:text-slate-700"><i class="fas fa-rotate"></i></button>
+                <button class="text-slate-500 hover:text-slate-700"><i class="fas fa-cog"></i></button>
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-indigo-500 flex items-center justify-center text-white text-xs font-semibold">YS</div>
+            </div>
+        </header>
+
+        <div class="flex-1 p-6 overflow-y-auto">
+
+            <!-- Scenario framing -->
+            <div class="bg-gradient-to-br from-slate-900 to-indigo-900 text-white rounded-2xl p-6 mb-6 relative overflow-hidden">
+                <div class="absolute -right-16 -top-12 w-72 h-72 rounded-full bg-cyan-500/15 blur-3xl"></div>
+                <div class="absolute -right-32 bottom-0 w-80 h-80 rounded-full bg-violet-500/10 blur-3xl"></div>
+                <div class="relative z-10 flex items-start justify-between gap-8">
+                    <div class="max-w-2xl">
+                        <div class="text-[11px] uppercase tracking-wider text-cyan-300 font-semibold mb-2">Research Question 03</div>
+                        <h2 class="text-2xl font-bold mb-2">Can a game-theoretic mechanism beat unilateral cleanup?</h2>
+                        <p class="text-slate-300 text-sm leading-relaxed">Each agency pays to remove debris and benefits from a safer orbital commons. Removing debris that threatens others is a positive externality — selfish play under-supplies cleanup. We model debris removal as a repeated public-goods game with side-payments and ask whether a VCG-style auction reaches the social optimum.</p>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 flex-shrink-0">
+                        <div class="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                            <div class="text-[10px] uppercase tracking-wider text-cyan-300">Agencies</div>
+                            <div class="text-2xl font-bold mt-1">4</div>
+                        </div>
+                        <div class="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                            <div class="text-[10px] uppercase tracking-wider text-cyan-300">Equilibria</div>
+                            <div class="text-2xl font-bold mt-1">3</div>
+                        </div>
+                        <div class="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                            <div class="text-[10px] uppercase tracking-wider text-cyan-300">PoA</div>
+                            <div class="text-2xl font-bold mt-1">1.62</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payoff matrix + strategy radar -->
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="col-span-2 bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-semibold text-slate-900">Payoff matrix · two-agency reduction</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Net utility per agency · cleanup cost minus collision risk savings (USD M, annual)</p>
+                        </div>
+                        <span class="text-xs text-rose-700 bg-rose-50 px-2 py-1 rounded-full font-medium">Defect–Defect = Nash</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div></div>
+                        <div class="text-center text-xs font-semibold text-slate-700 py-2">Agency B · Cooperate</div>
+                        <div class="text-center text-xs font-semibold text-slate-700 py-2">Agency B · Defect</div>
+
+                        <div class="flex items-center justify-end pr-2 text-xs font-semibold text-slate-700">A · Cooperate</div>
+                        <div class="matrix-cell bg-emerald-50 border-2 border-emerald-200">
+                            <div class="text-[10px] text-slate-500 mb-1">Pareto-optimal</div>
+                            <div class="font-bold text-slate-900 mono">+18, +18</div>
+                        </div>
+                        <div class="matrix-cell bg-amber-50 border border-amber-200">
+                            <div class="text-[10px] text-slate-500 mb-1">Sucker payoff</div>
+                            <div class="font-bold text-slate-900 mono">−12, +24</div>
+                        </div>
+
+                        <div class="flex items-center justify-end pr-2 text-xs font-semibold text-slate-700">A · Defect</div>
+                        <div class="matrix-cell bg-amber-50 border border-amber-200">
+                            <div class="text-[10px] text-slate-500 mb-1">Free-rider</div>
+                            <div class="font-bold text-slate-900 mono">+24, −12</div>
+                        </div>
+                        <div class="matrix-cell bg-rose-50 border-2 border-rose-300">
+                            <div class="text-[10px] text-rose-700 mb-1 font-semibold">⚐ Nash · tragedy</div>
+                            <div class="font-bold text-slate-900 mono">−4, −4</div>
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-500 mt-3 leading-snug">Without coordination, defection is dominant. The OrbitGuard auction adds a per-removal subsidy <span class="mono text-slate-700">σ = 8.4M</span> funded by a Pigouvian tax on launches, which flips Cooperate–Cooperate into the unique Nash equilibrium.</div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <h3 class="font-semibold text-slate-900 mb-4">Strategy fingerprint</h3>
+                    <div style="height:240px"><canvas id="radarChart"></canvas></div>
+                    <div class="text-[11px] text-slate-500 mt-3 leading-snug text-center">Cooperative > Nash-mix > Greedy across every dimension once cascade externality is priced in.</div>
+                </div>
+            </div>
+
+            <!-- Auction + convergence -->
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="col-span-2 bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-semibold text-slate-900">Convergence to Nash equilibrium · 200-round play</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Cooperation rate vs. round, by mechanism</p>
+                        </div>
+                        <div class="flex items-center gap-3 text-xs">
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>VCG auction</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>Tit-for-tat</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>No mechanism</span>
+                        </div>
+                    </div>
+                    <div style="height:240px"><canvas id="convChart"></canvas></div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <h3 class="font-semibold text-slate-900 mb-3">Live debris auction</h3>
+                    <p class="text-xs text-slate-500 mb-4">Round 218 · 14 lots</p>
+                    <div class="space-y-3 text-sm">
+                        <div class="border border-slate-100 rounded-xl p-3">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-semibold text-slate-900 mono">Lot #218-a · #38271</span>
+                                <span class="text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-medium">Awarded</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 mb-2">802 km · Pc 3.2e-3 · cascade weight ×4.1</div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-600">Winner</span>
+                                <span class="font-semibold text-slate-900">SWP-A07</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-600">Bid · subsidy</span>
+                                <span class="font-semibold text-slate-900 mono">$3.1M · $8.4M</span>
+                            </div>
+                        </div>
+                        <div class="border border-slate-100 rounded-xl p-3">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-semibold text-slate-900 mono">Lot #218-b · #44209</span>
+                                <span class="text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-medium">Awarded</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 mb-2">820 km · Pc 1.4e-3 · cascade weight ×3.6</div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-600">Winner</span>
+                                <span class="font-semibold text-slate-900">FLC-B05</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-600">Bid · subsidy</span>
+                                <span class="font-semibold text-slate-900 mono">$2.8M · $7.2M</span>
+                            </div>
+                        </div>
+                        <div class="border border-slate-100 rounded-xl p-3">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-semibold text-slate-900 mono">Lot #218-c · cluster F</span>
+                                <span class="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-medium">Open · 3 bids</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 mb-2">1,180 km · Pc 6.8e-4 · cascade weight ×2.2</div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-600">High bid</span>
+                                <span class="font-semibold text-slate-900">SWP-A11 · $2.4M</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Equilibrium summary cards -->
+            <div class="grid grid-cols-3 gap-4">
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-9 h-9 rounded-lg bg-rose-50 flex items-center justify-center"><i class="fas fa-skull text-rose-600"></i></div>
+                        <div>
+                            <div class="font-semibold text-slate-900">Selfish baseline</div>
+                            <div class="text-[11px] text-slate-500">No coordination</div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between text-xs"><span class="text-slate-600">Cooperation rate</span><span class="font-semibold text-rose-600 mono">21%</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-slate-600">Debris cleared / yr</span><span class="font-semibold text-slate-900 mono">812</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-slate-600">Kessler index Δ</span><span class="font-semibold text-rose-600 mono">+0.04</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-slate-600">Social welfare</span><span class="font-semibold text-rose-600 mono">−$48M</span></div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-9 h-9 rounded-lg bg-cyan-50 flex items-center justify-center"><i class="fas fa-shuffle text-cyan-600"></i></div>
+                        <div>
+                            <div class="font-semibold text-slate-900">Tit-for-tat</div>
+                            <div class="text-[11px] text-slate-500">Reactive reciprocity</div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between text-xs"><span class="text-slate-600">Cooperation rate</span><span class="font-semibold text-cyan-600 mono">63%</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-slate-600">Debris cleared / yr</span><span class="font-semibold text-slate-900 mono">2,140</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-slate-600">Kessler index Δ</span><span class="font-semibold text-amber-600 mono">−0.18</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-slate-600">Social welfare</span><span class="font-semibold text-slate-700 mono">+$112M</span></div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-emerald-50 to-cyan-50 rounded-2xl border-2 border-emerald-300 p-5 relative">
+                    <span class="absolute top-3 right-3 text-[10px] uppercase tracking-wider bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold">Best</span>
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center"><i class="fas fa-crown text-emerald-600"></i></div>
+                        <div>
+                            <div class="font-semibold text-slate-900">VCG auction + subsidy</div>
+                            <div class="text-[11px] text-slate-500">OrbitGuard mechanism</div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between text-xs"><span class="text-slate-600">Cooperation rate</span><span class="font-semibold text-emerald-700 mono">94%</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-slate-600">Debris cleared / yr</span><span class="font-semibold text-slate-900 mono">3,841</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-slate-600">Kessler index Δ</span><span class="font-semibold text-emerald-700 mono">−0.42</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-slate-600">Social welfare</span><span class="font-semibold text-emerald-700 mono">+$284M</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+new Chart(document.getElementById('radarChart'), {
+    type:'radar',
+    data:{
+        labels:['Debris cleared','Fuel efficiency','Coverage','Coop. rate','Welfare','Robustness'],
+        datasets:[
+            { label:'Cooperative', data:[94,82,88,94,92,86], borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.18)', borderWidth:2, pointRadius:3, pointBackgroundColor:'#10b981' },
+            { label:'Nash-mix',    data:[78,71,72,74,76,80], borderColor:'#06b6d4', backgroundColor:'rgba(6,182,212,0.12)', borderWidth:2, pointRadius:3, pointBackgroundColor:'#06b6d4' },
+            { label:'Selfish',     data:[45,52,38,21,32,48], borderColor:'#e11d48', backgroundColor:'rgba(225,29,72,0.10)', borderWidth:2, pointRadius:3, pointBackgroundColor:'#e11d48' }
+        ]
+    },
+    options:{
+        plugins:{ legend:{ display:true, position:'bottom', labels:{ font:{size:10}, boxWidth:10 } } },
+        scales:{
+            r:{
+                beginAtZero:true, max:100,
+                grid:{ color:'#e5e7eb' }, angleLines:{ color:'#e5e7eb' },
+                pointLabels:{ font:{size:10}, color:'#475569' },
+                ticks:{ display:false, stepSize:25 }
+            }
+        },
+        responsive:true, maintainAspectRatio:false
+    }
+});
+
+new Chart(document.getElementById('convChart'), {
+    type:'line',
+    data:{
+        labels: Array.from({length:21}, (_,i)=>i*10),
+        datasets:[
+            { label:'VCG auction', data:[20,42,58,71,80,86,89,91,92,93,94,94,94,94,94,94,94,94,94,94,94], borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.10)', tension:0.4, fill:true, borderWidth:2.5, pointRadius:0 },
+            { label:'Tit-for-tat', data:[20,28,35,40,46,50,53,56,58,60,61,62,62,63,63,63,63,63,63,63,63], borderColor:'#6366f1', tension:0.4, fill:false, borderWidth:2.5, pointRadius:0 },
+            { label:'No mechanism', data:[20,24,26,25,23,22,21,21,21,20,20,21,21,21,21,21,21,21,21,21,21], borderColor:'#e11d48', tension:0.4, fill:false, borderWidth:2.5, pointRadius:0 }
+        ]
+    },
+    options:{
+        plugins:{ legend:{ display:false } },
+        scales:{
+            y:{ min:0, max:100, grid:{ color:'#f1f5f9' }, ticks:{ color:'#94a3b8', font:{size:11}, callback:v=>v+'%' } },
+            x:{ grid:{ display:false }, ticks:{ color:'#94a3b8', font:{size:11} } }
+        },
+        responsive:true, maintainAspectRatio:false
+    }
+});
+</script>
+</body>
+</html>

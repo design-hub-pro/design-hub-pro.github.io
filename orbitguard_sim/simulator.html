@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrbitGuard Sim — Orbital Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        body { background: #020617; color: #e2e8f0; }
+        .panel { background: rgba(15,23,42,0.7); border: 1px solid rgba(148,163,184,0.12); backdrop-filter: blur(8px); }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+        /* Earth + orbits canvas */
+        .space-bg {
+            background:
+                radial-gradient(ellipse at 30% 30%, rgba(56,189,248,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 70%, rgba(124,58,237,0.06) 0%, transparent 60%),
+                #020617;
+        }
+        .star { position: absolute; background: white; border-radius: 50%; opacity: 0.6; }
+        .star.s1 { width: 1px; height: 1px; }
+        .star.s2 { width: 2px; height: 2px; opacity: 0.8; }
+        .earth {
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+            width: 240px; height: 240px; border-radius: 50%;
+            background:
+                radial-gradient(circle at 35% 35%, #38bdf8 0%, #1e40af 40%, #0c1a4d 80%);
+            box-shadow:
+                inset -30px -30px 60px rgba(0,0,0,0.6),
+                0 0 60px rgba(56,189,248,0.25);
+        }
+        .earth::after {
+            content:''; position:absolute; inset:0; border-radius:50%;
+            background:
+                radial-gradient(ellipse at 25% 30%, rgba(34,197,94,0.5) 0 12%, transparent 20%),
+                radial-gradient(ellipse at 60% 25%, rgba(34,197,94,0.45) 0 8%, transparent 14%),
+                radial-gradient(ellipse at 35% 65%, rgba(34,197,94,0.4) 0 10%, transparent 18%),
+                radial-gradient(ellipse at 70% 60%, rgba(34,197,94,0.45) 0 9%, transparent 16%);
+            mix-blend-mode: screen; opacity: 0.7;
+        }
+        .orbit {
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+            border: 1px dashed rgba(148,163,184,0.2); border-radius: 50%;
+        }
+        .orbit-glow { border: 1px solid rgba(99,102,241,0.4); box-shadow: 0 0 30px rgba(99,102,241,0.15) inset; }
+        .orbit-danger { border: 1px solid rgba(244,63,94,0.5); box-shadow: 0 0 40px rgba(244,63,94,0.18) inset; }
+
+        @keyframes spin1 { to { transform: translate(-50%,-50%) rotate(360deg); } }
+        .rotor { position:absolute; left:50%; top:50%; transform: translate(-50%,-50%); }
+
+        .agent {
+            position:absolute; width: 14px; height: 14px; border-radius: 4px;
+            background: linear-gradient(135deg, #06b6d4, #6366f1);
+            box-shadow: 0 0 12px rgba(6,182,212,0.7);
+            border: 1.5px solid white;
+        }
+        .agent::after {
+            content:''; position:absolute; inset:-6px; border-radius:8px; border:1px solid rgba(6,182,212,0.4);
+        }
+        .debris {
+            position:absolute; width: 5px; height: 5px; border-radius: 50%;
+            background: #f43f5e; box-shadow: 0 0 6px rgba(244,63,94,0.7);
+        }
+        .debris.warn { background:#f59e0b; box-shadow: 0 0 6px rgba(245,158,11,0.7);}
+        .debris.ok { background:#94a3b8; box-shadow: none; opacity: 0.7;}
+        .target-ring {
+            position:absolute; width: 32px; height: 32px; border-radius:50%;
+            border: 1.5px solid #f43f5e; animation: pulseRing 1.5s ease-in-out infinite;
+        }
+        @keyframes pulseRing {
+            0%,100% { transform: scale(0.85); opacity: 0.9; }
+            50%     { transform: scale(1.15); opacity: 0.4; }
+        }
+        .laser {
+            position: absolute; height: 1.5px;
+            background: linear-gradient(to right, transparent, #06b6d4, transparent);
+            box-shadow: 0 0 6px #06b6d4;
+            transform-origin: left center;
+        }
+
+        .slider {
+            -webkit-appearance: none; appearance:none; width:100%; height:4px; background:rgba(148,163,184,0.2); border-radius:4px; outline:none;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance:none; width:14px; height:14px; background: linear-gradient(135deg, #06b6d4, #6366f1); border-radius:50%; cursor:pointer; border:2px solid white;
+        }
+
+        .pulse-dot::before {
+            content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:6px;animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    </style>
+</head>
+<body>
+
+<div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 panel border-r border-slate-800 flex flex-col">
+        <div class="p-5 border-b border-slate-800/60">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-500 flex items-center justify-center">
+                    <i class="fas fa-satellite text-white text-sm"></i>
+                </div>
+                <div>
+                    <div class="font-bold text-white leading-tight">OrbitGuard</div>
+                    <div class="text-[11px] text-slate-400 leading-tight">Debris Mitigation Sim</div>
+                </div>
+            </div>
+        </div>
+        <nav class="flex-1 px-3 py-4 space-y-1 text-sm">
+            <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">Mission Control</div>
+            <a href="home.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60"><i class="fas fa-gauge w-4"></i>Dashboard</a>
+            <a href="simulator.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-cyan-500/10 text-cyan-300 font-medium border border-cyan-500/20"><i class="fas fa-globe w-4"></i>Orbital Simulator</a>
+            <a href="prediction.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60"><i class="fas fa-brain w-4"></i>Collision AI</a>
+            <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-3 mt-5 mb-2">Multi-Agent</div>
+            <a href="agents.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60"><i class="fas fa-rocket w-4"></i>Cleanup Fleet</a>
+            <a href="gametheory.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60"><i class="fas fa-chess w-4"></i>Game Theory</a>
+            <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-3 mt-5 mb-2">Research</div>
+            <a href="analysis.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60"><i class="fas fa-chart-line w-4"></i>Analytics</a>
+        </nav>
+        <div class="p-3 border-t border-slate-800/60">
+            <div class="bg-cyan-500/5 border border-cyan-500/20 rounded-xl p-3">
+                <div class="flex items-center gap-2 mb-1.5">
+                    <i class="fas fa-bolt text-cyan-400 text-xs"></i>
+                    <div class="text-xs font-semibold text-white">SGP4 Engine</div>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-snug">Two-line element propagation @ 60 Hz tick.</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 flex flex-col min-w-0">
+        <header class="h-14 panel border-b border-slate-800/60 flex items-center px-6 justify-between">
+            <div class="flex items-center gap-3">
+                <h1 class="text-base font-semibold text-white">Live Orbital Simulator</h1>
+                <span class="text-xs px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 font-medium mono">Sim 04 · epoch 2,418</span>
+                <span class="text-xs text-emerald-400 font-medium pulse-dot">Streaming · 120× warp</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="text-slate-400 hover:text-white"><i class="fas fa-camera-retro"></i></button>
+                <button class="text-slate-400 hover:text-white"><i class="fas fa-cog"></i></button>
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-indigo-500 flex items-center justify-center text-white text-xs font-semibold">YS</div>
+            </div>
+        </header>
+
+        <div class="flex-1 grid grid-cols-12 gap-4 p-4 overflow-hidden">
+
+            <!-- Left controls -->
+            <div class="col-span-3 space-y-4 overflow-y-auto pr-1 scrollbar-hide">
+                <div class="panel rounded-2xl p-4">
+                    <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-3">Scenario</div>
+                    <div class="space-y-2">
+                        <div class="bg-cyan-500/10 border border-cyan-500/30 rounded-lg px-3 py-2 text-sm flex items-center gap-2">
+                            <i class="fas fa-circle-dot text-cyan-400 text-xs"></i>
+                            <span class="font-medium text-white">Kessler-Lite · LEO 600 km</span>
+                        </div>
+                        <div class="border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-800/40 cursor-pointer">FY-1C aftermath</div>
+                        <div class="border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-800/40 cursor-pointer">Mega-constellation strain</div>
+                        <div class="border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-800/40 cursor-pointer">Custom (load TLE)</div>
+                    </div>
+                </div>
+
+                <div class="panel rounded-2xl p-4">
+                    <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-3">Strategy</div>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <button class="border border-slate-800 hover:bg-slate-800/40 text-slate-300 rounded-lg px-2 py-2 font-medium">Greedy</button>
+                        <button class="border border-slate-800 hover:bg-slate-800/40 text-slate-300 rounded-lg px-2 py-2 font-medium">Selfish</button>
+                        <button class="bg-indigo-500/15 border border-indigo-500/40 text-indigo-200 rounded-lg px-2 py-2 font-medium">Cooperative</button>
+                        <button class="border border-slate-800 hover:bg-slate-800/40 text-slate-300 rounded-lg px-2 py-2 font-medium">Nash-mix</button>
+                    </div>
+                </div>
+
+                <div class="panel rounded-2xl p-4 space-y-4">
+                    <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Parameters</div>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1.5"><span class="text-slate-300">Time multiplier</span><span class="mono text-cyan-300">120×</span></div>
+                        <input type="range" class="slider" value="60">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1.5"><span class="text-slate-300">Agents on station</span><span class="mono text-cyan-300">12</span></div>
+                        <input type="range" class="slider" value="60">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1.5"><span class="text-slate-300">Δv budget / agent</span><span class="mono text-cyan-300">800 m/s</span></div>
+                        <input type="range" class="slider" value="50">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1.5"><span class="text-slate-300">Capture radius</span><span class="mono text-cyan-300">0.8 km</span></div>
+                        <input type="range" class="slider" value="40">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1.5"><span class="text-slate-300">Debris density</span><span class="mono text-cyan-300">High</span></div>
+                        <input type="range" class="slider" value="80">
+                    </div>
+                </div>
+
+                <div class="panel rounded-2xl p-4">
+                    <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-3">Layers</div>
+                    <div class="space-y-2 text-sm">
+                        <label class="flex items-center justify-between text-slate-300"><span><i class="fas fa-meteor text-rose-400 mr-2"></i>Debris field</span><input type="checkbox" checked class="accent-cyan-500"></label>
+                        <label class="flex items-center justify-between text-slate-300"><span><i class="fas fa-rocket text-cyan-400 mr-2"></i>Cleanup agents</span><input type="checkbox" checked class="accent-cyan-500"></label>
+                        <label class="flex items-center justify-between text-slate-300"><span><i class="fas fa-circle-nodes text-indigo-400 mr-2"></i>Orbit planes</span><input type="checkbox" checked class="accent-cyan-500"></label>
+                        <label class="flex items-center justify-between text-slate-300"><span><i class="fas fa-fire text-amber-400 mr-2"></i>Risk heatmap</span><input type="checkbox" class="accent-cyan-500"></label>
+                        <label class="flex items-center justify-between text-slate-300"><span><i class="fas fa-route text-emerald-400 mr-2"></i>Capture trails</span><input type="checkbox" checked class="accent-cyan-500"></label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center viewport -->
+            <div class="col-span-6 panel rounded-2xl space-bg relative overflow-hidden">
+                <!-- Top bar overlay -->
+                <div class="absolute top-3 left-3 right-3 z-20 flex items-center justify-between">
+                    <div class="flex gap-2 text-xs">
+                        <span class="px-2 py-1 rounded-md bg-slate-900/60 border border-slate-700/40 text-slate-300 mono">LEO · 6,978 km</span>
+                        <span class="px-2 py-1 rounded-md bg-slate-900/60 border border-slate-700/40 text-slate-300 mono">i = 51.6°</span>
+                        <span class="px-2 py-1 rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-300 mono">3 imminent</span>
+                    </div>
+                    <div class="flex gap-1">
+                        <button class="w-8 h-8 rounded-md bg-slate-900/60 border border-slate-700/40 hover:bg-slate-800 text-slate-300"><i class="fas fa-pause text-xs"></i></button>
+                        <button class="w-8 h-8 rounded-md bg-slate-900/60 border border-slate-700/40 hover:bg-slate-800 text-slate-300"><i class="fas fa-forward-step text-xs"></i></button>
+                        <button class="w-8 h-8 rounded-md bg-slate-900/60 border border-slate-700/40 hover:bg-slate-800 text-slate-300"><i class="fas fa-magnifying-glass-plus text-xs"></i></button>
+                    </div>
+                </div>
+
+                <!-- Stars -->
+                <div class="star s1" style="left:8%;top:10%"></div>
+                <div class="star s2" style="left:14%;top:22%"></div>
+                <div class="star s1" style="left:23%;top:18%"></div>
+                <div class="star s1" style="left:35%;top:8%"></div>
+                <div class="star s2" style="left:48%;top:14%"></div>
+                <div class="star s1" style="left:62%;top:22%"></div>
+                <div class="star s1" style="left:74%;top:9%"></div>
+                <div class="star s2" style="left:88%;top:18%"></div>
+                <div class="star s1" style="left:9%;top:38%"></div>
+                <div class="star s1" style="left:18%;top:62%"></div>
+                <div class="star s2" style="left:36%;top:78%"></div>
+                <div class="star s1" style="left:54%;top:88%"></div>
+                <div class="star s1" style="left:72%;top:80%"></div>
+                <div class="star s2" style="left:90%;top:64%"></div>
+                <div class="star s1" style="left:84%;top:42%"></div>
+                <div class="star s2" style="left:6%;top:80%"></div>
+
+                <!-- Earth + orbits -->
+                <div class="earth"></div>
+                <div class="orbit" style="width:340px;height:340px"></div>
+                <div class="orbit orbit-glow" style="width:430px;height:430px"></div>
+                <div class="orbit orbit-danger" style="width:520px;height:520px"></div>
+                <div class="orbit" style="width:610px;height:610px"></div>
+
+                <!-- Debris (relative to center) -->
+                <div class="debris" style="left:calc(50% - 215px); top:50%"></div>
+                <div class="debris" style="left:calc(50% + 200px); top:calc(50% + 65px)"></div>
+                <div class="debris warn" style="left:calc(50% - 130px); top:calc(50% - 130px)"></div>
+                <div class="debris" style="left:calc(50% + 70px); top:calc(50% - 165px)"></div>
+                <div class="debris ok" style="left:calc(50% - 280px); top:calc(50% + 90px)"></div>
+                <div class="debris ok" style="left:calc(50% + 290px); top:calc(50% - 60px)"></div>
+                <div class="debris ok" style="left:calc(50% - 60px); top:calc(50% + 230px)"></div>
+                <div class="debris warn" style="left:calc(50% + 235px); top:calc(50% + 95px)"></div>
+                <div class="debris" style="left:calc(50% - 175px); top:calc(50% + 175px)"></div>
+                <div class="debris ok" style="left:calc(50% + 80px); top:calc(50% + 290px)"></div>
+                <div class="debris ok" style="left:calc(50% - 295px); top:calc(50% - 80px)"></div>
+                <div class="debris" style="left:calc(50% + 165px); top:calc(50% - 240px)"></div>
+                <div class="debris ok" style="left:calc(50% - 100px); top:calc(50% - 280px)"></div>
+                <div class="debris warn" style="left:calc(50% - 240px); top:calc(50% - 60px)"></div>
+
+                <!-- Targets (rings around debris under attack) -->
+                <div class="target-ring" style="left:calc(50% - 130px - 9px); top:calc(50% - 130px - 9px)"></div>
+                <div class="target-ring" style="left:calc(50% + 235px - 9px); top:calc(50% + 95px - 9px)"></div>
+
+                <!-- Cleanup agents -->
+                <div class="agent" style="left:calc(50% - 100px); top:calc(50% - 95px)"></div>
+                <div class="agent" style="left:calc(50% + 195px); top:calc(50% + 75px)"></div>
+                <div class="agent" style="left:calc(50% - 175px); top:calc(50% + 80px)"></div>
+                <div class="agent" style="left:calc(50% + 50px); top:calc(50% - 195px)"></div>
+                <div class="agent" style="left:calc(50% + 220px); top:calc(50% - 110px)"></div>
+                <div class="agent" style="left:calc(50% - 250px); top:calc(50% - 130px)"></div>
+
+                <!-- Lasers / capture beams -->
+                <div class="laser" style="left:calc(50% - 100px); top:calc(50% - 95px); width: 38px; transform: rotate(225deg);"></div>
+                <div class="laser" style="left:calc(50% + 195px); top:calc(50% + 75px); width: 50px; transform: rotate(15deg);"></div>
+
+                <!-- Telemetry overlay (bottom) -->
+                <div class="absolute bottom-3 left-3 right-3 z-20 grid grid-cols-4 gap-2">
+                    <div class="bg-slate-900/70 border border-slate-700/40 rounded-lg px-3 py-2">
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400">Tracked</div>
+                        <div class="text-sm font-bold text-white mono">2,418 / 34,217</div>
+                    </div>
+                    <div class="bg-slate-900/70 border border-slate-700/40 rounded-lg px-3 py-2">
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400">Captured this run</div>
+                        <div class="text-sm font-bold text-emerald-400 mono">241</div>
+                    </div>
+                    <div class="bg-slate-900/70 border border-slate-700/40 rounded-lg px-3 py-2">
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400">Avg Δv used</div>
+                        <div class="text-sm font-bold text-white mono">312 m/s</div>
+                    </div>
+                    <div class="bg-slate-900/70 border border-slate-700/40 rounded-lg px-3 py-2">
+                        <div class="text-[10px] uppercase tracking-wider text-slate-400">Pc 24h forward</div>
+                        <div class="text-sm font-bold text-amber-400 mono">5.4e-3</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right telemetry rail -->
+            <div class="col-span-3 space-y-4 overflow-y-auto pl-1 scrollbar-hide">
+                <div class="panel rounded-2xl p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Selected agent</div>
+                        <span class="text-[10px] mono text-cyan-300">SWP-A07</span>
+                    </div>
+                    <div class="bg-gradient-to-br from-cyan-500/10 to-indigo-500/10 border border-cyan-500/20 rounded-xl p-3">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-indigo-500 flex items-center justify-center"><i class="fas fa-rocket text-white text-xs"></i></div>
+                            <div>
+                                <div class="font-semibold text-white text-sm">Sweeper-A07</div>
+                                <div class="text-[10px] text-slate-400">Class · Long-range net</div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs mt-3">
+                            <div><div class="text-[10px] text-slate-400">Altitude</div><div class="font-semibold text-white mono">612 km</div></div>
+                            <div><div class="text-[10px] text-slate-400">Inclination</div><div class="font-semibold text-white mono">52.1°</div></div>
+                            <div><div class="text-[10px] text-slate-400">Δv left</div><div class="font-semibold text-emerald-400 mono">524 m/s</div></div>
+                            <div><div class="text-[10px] text-slate-400">Captured</div><div class="font-semibold text-white mono">21 / 30</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel rounded-2xl p-4">
+                    <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-3">Live event log</div>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex items-start gap-2">
+                            <span class="mono text-slate-500">12:04:01</span>
+                            <span class="text-emerald-400 font-medium">CAPTURE</span>
+                            <span class="text-slate-300 truncate">A07 ← #38271 · −0.21Δv</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="mono text-slate-500">12:03:48</span>
+                            <span class="text-cyan-400 font-medium">BID</span>
+                            <span class="text-slate-300 truncate">Auction #218 ← 4 bidders</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="mono text-slate-500">12:02:12</span>
+                            <span class="text-rose-400 font-medium">CONJ</span>
+                            <span class="text-slate-300 truncate">Pc 3.2e-3 · TCA 02:14:08</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="mono text-slate-500">12:01:05</span>
+                            <span class="text-amber-400 font-medium">DEFER</span>
+                            <span class="text-slate-300 truncate">B02 lots → A09 (fuel)</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="mono text-slate-500">12:00:33</span>
+                            <span class="text-indigo-400 font-medium">REPLAN</span>
+                            <span class="text-slate-300 truncate">C03 reroute @ 540 km</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="mono text-slate-500">11:59:17</span>
+                            <span class="text-emerald-400 font-medium">CAPTURE</span>
+                            <span class="text-slate-300 truncate">B05 ← #44209 · −0.18Δv</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="mono text-slate-500">11:58:02</span>
+                            <span class="text-cyan-400 font-medium">BID</span>
+                            <span class="text-slate-300 truncate">Auction #217 closed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel rounded-2xl p-4">
+                    <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-3">Run statistics</div>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Coverage of LEO-A</span><span class="text-white mono">68%</span></div>
+                            <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-cyan-500 to-indigo-500 rounded-full" style="width:68%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Cooperation rate</span><span class="text-white mono">81%</span></div>
+                            <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden"><div class="h-full bg-emerald-500 rounded-full" style="width:81%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Fuel consumption</span><span class="text-white mono">39%</span></div>
+                            <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden"><div class="h-full bg-amber-500 rounded-full" style="width:39%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Cascade risk delta</span><span class="text-emerald-400 mono">−42.7%</span></div>
+                            <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden"><div class="h-full bg-emerald-500 rounded-full" style="width:43%"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

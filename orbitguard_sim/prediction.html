@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrbitGuard Sim — Collision AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        body { background: #f1f5f9; }
+        .heat-cell { transition: transform 0.15s; }
+        .heat-cell:hover { transform: scale(1.15); z-index: 5; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+<div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col">
+        <div class="p-5 border-b border-slate-100">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-500 flex items-center justify-center">
+                    <i class="fas fa-satellite text-white text-sm"></i>
+                </div>
+                <div>
+                    <div class="font-bold text-slate-900 leading-tight">OrbitGuard</div>
+                    <div class="text-[11px] text-slate-500 leading-tight">Debris Mitigation Sim</div>
+                </div>
+            </div>
+        </div>
+        <nav class="flex-1 px-3 py-4 space-y-1 text-sm">
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">Mission Control</div>
+            <a href="home.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100"><i class="fas fa-gauge w-4"></i>Dashboard</a>
+            <a href="simulator.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100"><i class="fas fa-globe w-4"></i>Orbital Simulator</a>
+            <a href="prediction.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-indigo-50 text-indigo-700 font-medium"><i class="fas fa-brain w-4"></i>Collision AI</a>
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mt-5 mb-2">Multi-Agent</div>
+            <a href="agents.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100"><i class="fas fa-rocket w-4"></i>Cleanup Fleet</a>
+            <a href="gametheory.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100"><i class="fas fa-chess w-4"></i>Game Theory</a>
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mt-5 mb-2">Research</div>
+            <a href="analysis.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100"><i class="fas fa-chart-line w-4"></i>Analytics</a>
+        </nav>
+        <div class="p-3 border-t border-slate-100">
+            <div class="bg-gradient-to-br from-indigo-50 to-cyan-50 rounded-xl p-3">
+                <div class="flex items-center gap-2 mb-1.5">
+                    <i class="fas fa-database text-indigo-600 text-xs"></i>
+                    <div class="text-xs font-semibold text-slate-800">Training set</div>
+                </div>
+                <p class="text-[11px] text-slate-600 leading-snug">Space-Track CDM corpus 2009–2025 (1.4M conjunctions)</p>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0">
+        <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 justify-between">
+            <div class="flex items-center gap-3">
+                <h1 class="text-base font-semibold text-slate-900">AI Collision Prediction</h1>
+                <span class="text-xs px-2 py-0.5 rounded-md bg-violet-100 text-violet-700 font-medium mono">XGBoost + LSTM ensemble</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="text-slate-500 hover:text-slate-700"><i class="fas fa-rotate"></i></button>
+                <button class="text-slate-500 hover:text-slate-700"><i class="fas fa-cog"></i></button>
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-indigo-500 flex items-center justify-center text-white text-xs font-semibold">YS</div>
+            </div>
+        </header>
+
+        <div class="flex-1 p-6 overflow-y-auto">
+
+            <!-- Top performance -->
+            <div class="grid grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="text-xs text-slate-500 mb-1">Test AUC-ROC</div>
+                    <div class="text-3xl font-bold text-slate-900">0.943</div>
+                    <div class="text-[11px] text-emerald-600 mt-1"><i class="fas fa-arrow-up text-[10px]"></i> +0.027 vs baseline</div>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="text-xs text-slate-500 mb-1">Recall @ Pc &gt; 1e-4</div>
+                    <div class="text-3xl font-bold text-slate-900">88.2%</div>
+                    <div class="text-[11px] text-emerald-600 mt-1"><i class="fas fa-arrow-up text-[10px]"></i> +6.4 pp</div>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="text-xs text-slate-500 mb-1">Lead time (median)</div>
+                    <div class="text-3xl font-bold text-slate-900">38.7 h</div>
+                    <div class="text-[11px] text-slate-500 mt-1">vs 19.4 h SGP4-only</div>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="text-xs text-slate-500 mb-1">Inference / TLE</div>
+                    <div class="text-3xl font-bold text-slate-900">2.1 ms</div>
+                    <div class="text-[11px] text-slate-500 mt-1">on single A100</div>
+                </div>
+            </div>
+
+            <!-- Risk heatmap + curves -->
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="col-span-2 bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-semibold text-slate-900">High-risk collision zones · LEO altitude × inclination</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Predicted Pc density · 24h forward · log scale</p>
+                        </div>
+                        <div class="flex items-center gap-2 text-[11px] text-slate-500">
+                            <span>Low</span>
+                            <div class="flex">
+                                <div class="w-4 h-3" style="background:#dbeafe"></div>
+                                <div class="w-4 h-3" style="background:#fef3c7"></div>
+                                <div class="w-4 h-3" style="background:#fde68a"></div>
+                                <div class="w-4 h-3" style="background:#fbbf24"></div>
+                                <div class="w-4 h-3" style="background:#f97316"></div>
+                                <div class="w-4 h-3" style="background:#dc2626"></div>
+                                <div class="w-4 h-3" style="background:#7f1d1d"></div>
+                            </div>
+                            <span>High</span>
+                        </div>
+                    </div>
+
+                    <!-- Heatmap -->
+                    <div class="flex">
+                        <!-- Y-axis labels -->
+                        <div class="flex flex-col justify-between text-[10px] text-slate-400 mr-2 py-1 mono">
+                            <span>1200</span><span>1000</span><span>900</span><span>800</span><span>700</span><span>600</span><span>500</span><span>400</span>
+                        </div>
+                        <!-- Cells -->
+                        <div class="flex-1">
+                            <div id="heatmap" class="grid grid-cols-12 gap-0.5"></div>
+                            <div class="grid grid-cols-12 gap-0.5 mt-2 text-[10px] text-slate-400 mono text-center">
+                                <span>0°</span><span>15</span><span>30</span><span>45</span><span>52</span><span>60</span><span>70</span><span>80</span><span>87</span><span>92</span><span>98</span><span>105</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-500 mt-3 text-center">Altitude (km) · Inclination (deg) — hotspot at 800–900 km / 98° (sun-synch corridor) and 530 km / 53° (Starlink shell)</div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <h3 class="font-semibold text-slate-900 mb-3">Precision–Recall</h3>
+                    <div style="height:170px"><canvas id="prCurve"></canvas></div>
+                    <div class="grid grid-cols-2 gap-3 mt-3 text-xs">
+                        <div class="bg-slate-50 rounded-lg p-2.5">
+                            <div class="text-slate-500">F1 (best)</div>
+                            <div class="font-bold text-slate-900 text-lg">0.812</div>
+                        </div>
+                        <div class="bg-slate-50 rounded-lg p-2.5">
+                            <div class="text-slate-500">PR-AUC</div>
+                            <div class="font-bold text-slate-900 text-lg">0.879</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature importance + training -->
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <h3 class="font-semibold text-slate-900 mb-4">Feature importance</h3>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-700">Relative velocity Δv</span><span class="font-semibold text-slate-900 mono">0.241</span></div>
+                            <div class="h-2 bg-slate-100 rounded-full"><div class="h-full bg-indigo-500 rounded-full" style="width:96%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-700">Miss-distance covariance</span><span class="font-semibold text-slate-900 mono">0.198</span></div>
+                            <div class="h-2 bg-slate-100 rounded-full"><div class="h-full bg-indigo-500 rounded-full" style="width:79%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-700">Combined object size</span><span class="font-semibold text-slate-900 mono">0.156</span></div>
+                            <div class="h-2 bg-slate-100 rounded-full"><div class="h-full bg-cyan-500 rounded-full" style="width:62%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-700">Δ inclination</span><span class="font-semibold text-slate-900 mono">0.121</span></div>
+                            <div class="h-2 bg-slate-100 rounded-full"><div class="h-full bg-cyan-500 rounded-full" style="width:48%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-700">Solar flux F10.7</span><span class="font-semibold text-slate-900 mono">0.094</span></div>
+                            <div class="h-2 bg-slate-100 rounded-full"><div class="h-full bg-emerald-500 rounded-full" style="width:38%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-700">TCA jitter (LSTM)</span><span class="font-semibold text-slate-900 mono">0.082</span></div>
+                            <div class="h-2 bg-slate-100 rounded-full"><div class="h-full bg-emerald-500 rounded-full" style="width:33%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-700">Drag area / mass</span><span class="font-semibold text-slate-900 mono">0.058</span></div>
+                            <div class="h-2 bg-slate-100 rounded-full"><div class="h-full bg-emerald-500 rounded-full" style="width:23%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-700">Origin event flag</span><span class="font-semibold text-slate-900 mono">0.050</span></div>
+                            <div class="h-2 bg-slate-100 rounded-full"><div class="h-full bg-slate-400 rounded-full" style="width:20%"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-slate-900">Training loss · 50 epochs</h3>
+                        <span class="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-medium">Converged</span>
+                    </div>
+                    <div style="height:170px"><canvas id="lossChart"></canvas></div>
+                    <div class="grid grid-cols-3 gap-2 mt-3 text-xs">
+                        <div class="text-center bg-slate-50 rounded-lg p-2"><div class="text-slate-500">Train</div><div class="font-bold text-slate-900 mono">0.083</div></div>
+                        <div class="text-center bg-slate-50 rounded-lg p-2"><div class="text-slate-500">Val</div><div class="font-bold text-slate-900 mono">0.094</div></div>
+                        <div class="text-center bg-slate-50 rounded-lg p-2"><div class="text-slate-500">Test</div><div class="font-bold text-slate-900 mono">0.097</div></div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <h3 class="font-semibold text-slate-900 mb-4">Confusion · Pc &gt; 1e-4 threshold</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="bg-emerald-100 border border-emerald-200 rounded-xl p-3 text-center">
+                            <div class="text-[10px] uppercase tracking-wider text-emerald-700 font-semibold">True Positive</div>
+                            <div class="text-2xl font-bold text-emerald-700 mt-1">1,247</div>
+                            <div class="text-[10px] text-emerald-600 mt-0.5">88.2%</div>
+                        </div>
+                        <div class="bg-amber-100 border border-amber-200 rounded-xl p-3 text-center">
+                            <div class="text-[10px] uppercase tracking-wider text-amber-700 font-semibold">False Negative</div>
+                            <div class="text-2xl font-bold text-amber-700 mt-1">167</div>
+                            <div class="text-[10px] text-amber-600 mt-0.5">11.8%</div>
+                        </div>
+                        <div class="bg-rose-100 border border-rose-200 rounded-xl p-3 text-center">
+                            <div class="text-[10px] uppercase tracking-wider text-rose-700 font-semibold">False Positive</div>
+                            <div class="text-2xl font-bold text-rose-700 mt-1">388</div>
+                            <div class="text-[10px] text-rose-600 mt-0.5">3.4%</div>
+                        </div>
+                        <div class="bg-slate-100 border border-slate-200 rounded-xl p-3 text-center">
+                            <div class="text-[10px] uppercase tracking-wider text-slate-600 font-semibold">True Negative</div>
+                            <div class="text-2xl font-bold text-slate-700 mt-1">10,964</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">96.6%</div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-slate-500 mt-3 text-center">Holdout · 12,766 conjunctions · 2024–2025 split</div>
+                </div>
+            </div>
+
+            <!-- Recent predictions table -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="font-semibold text-slate-900">Forward prediction queue · next 72h</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Top 8 risk-ranked conjunctions surfaced by ensemble</p>
+                    </div>
+                    <button class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Export CDM CSV →</button>
+                </div>
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                            <th class="py-2 font-medium">Pair</th>
+                            <th class="py-2 font-medium">Altitude</th>
+                            <th class="py-2 font-medium">TCA</th>
+                            <th class="py-2 font-medium">Δv</th>
+                            <th class="py-2 font-medium">Miss</th>
+                            <th class="py-2 font-medium">Pc (model)</th>
+                            <th class="py-2 font-medium">Confidence</th>
+                            <th class="py-2 font-medium text-right">Recommended</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-slate-700">
+                        <tr class="border-b border-slate-50">
+                            <td class="py-2.5 mono">38271 ↔ 33759</td>
+                            <td class="py-2.5">802 km</td>
+                            <td class="py-2.5 mono">+02:14</td>
+                            <td class="py-2.5">14.2 km/s</td>
+                            <td class="py-2.5">42 m</td>
+                            <td class="py-2.5"><span class="text-rose-600 font-semibold">3.2e-3</span></td>
+                            <td class="py-2.5"><div class="w-16 h-1.5 bg-slate-100 rounded-full"><div class="h-full bg-rose-500 rounded-full" style="width:94%"></div></div></td>
+                            <td class="py-2.5 text-right"><span class="text-xs bg-rose-50 text-rose-700 px-2 py-1 rounded font-medium">Capture A07</span></td>
+                        </tr>
+                        <tr class="border-b border-slate-50">
+                            <td class="py-2.5 mono">52410 ↔ 30142</td>
+                            <td class="py-2.5">540 km</td>
+                            <td class="py-2.5 mono">+04:31</td>
+                            <td class="py-2.5">11.8 km/s</td>
+                            <td class="py-2.5">118 m</td>
+                            <td class="py-2.5"><span class="text-amber-600 font-semibold">8.4e-4</span></td>
+                            <td class="py-2.5"><div class="w-16 h-1.5 bg-slate-100 rounded-full"><div class="h-full bg-amber-500 rounded-full" style="width:81%"></div></div></td>
+                            <td class="py-2.5 text-right"><span class="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded font-medium">Reroute SL</span></td>
+                        </tr>
+                        <tr class="border-b border-slate-50">
+                            <td class="py-2.5 mono">42816 ↔ 47188</td>
+                            <td class="py-2.5">1,180 km</td>
+                            <td class="py-2.5 mono">+07:58</td>
+                            <td class="py-2.5">9.1 km/s</td>
+                            <td class="py-2.5">217 m</td>
+                            <td class="py-2.5"><span class="text-amber-600 font-semibold">2.7e-4</span></td>
+                            <td class="py-2.5"><div class="w-16 h-1.5 bg-slate-100 rounded-full"><div class="h-full bg-amber-500 rounded-full" style="width:73%"></div></div></td>
+                            <td class="py-2.5 text-right"><span class="text-xs bg-cyan-50 text-cyan-700 px-2 py-1 rounded font-medium">Track</span></td>
+                        </tr>
+                        <tr class="border-b border-slate-50">
+                            <td class="py-2.5 mono">19120 ↔ 49260</td>
+                            <td class="py-2.5">623 km</td>
+                            <td class="py-2.5 mono">+11:42</td>
+                            <td class="py-2.5">13.4 km/s</td>
+                            <td class="py-2.5">386 m</td>
+                            <td class="py-2.5"><span class="text-amber-600 font-semibold">1.1e-4</span></td>
+                            <td class="py-2.5"><div class="w-16 h-1.5 bg-slate-100 rounded-full"><div class="h-full bg-amber-500 rounded-full" style="width:69%"></div></div></td>
+                            <td class="py-2.5 text-right"><span class="text-xs bg-cyan-50 text-cyan-700 px-2 py-1 rounded font-medium">Track</span></td>
+                        </tr>
+                        <tr class="border-b border-slate-50">
+                            <td class="py-2.5 mono">26904 ↔ 51109</td>
+                            <td class="py-2.5">895 km</td>
+                            <td class="py-2.5 mono">+18:04</td>
+                            <td class="py-2.5">15.1 km/s</td>
+                            <td class="py-2.5">512 m</td>
+                            <td class="py-2.5"><span class="text-emerald-600 font-semibold">6.8e-5</span></td>
+                            <td class="py-2.5"><div class="w-16 h-1.5 bg-slate-100 rounded-full"><div class="h-full bg-emerald-500 rounded-full" style="width:62%"></div></div></td>
+                            <td class="py-2.5 text-right"><span class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded font-medium">Monitor</span></td>
+                        </tr>
+                        <tr>
+                            <td class="py-2.5 mono">30771 ↔ 44060</td>
+                            <td class="py-2.5">512 km</td>
+                            <td class="py-2.5 mono">+22:18</td>
+                            <td class="py-2.5">12.6 km/s</td>
+                            <td class="py-2.5">724 m</td>
+                            <td class="py-2.5"><span class="text-emerald-600 font-semibold">3.4e-5</span></td>
+                            <td class="py-2.5"><div class="w-16 h-1.5 bg-slate-100 rounded-full"><div class="h-full bg-emerald-500 rounded-full" style="width:56%"></div></div></td>
+                            <td class="py-2.5 text-right"><span class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded font-medium">Monitor</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+// Heatmap generation - 8 rows × 12 cols
+(function(){
+    const grid = document.getElementById('heatmap');
+    // intensity matrix [alt-row][inc-col], higher = hotter
+    const m = [
+        [1,1,2,3,3,2,2,3,4,3,2,1], // 1200
+        [1,2,2,3,4,3,3,4,5,4,3,2], // 1000
+        [2,2,3,4,5,4,4,5,6,5,4,3], // 900
+        [2,3,4,5,6,5,5,6,7,6,5,4], // 800 - SSO peak
+        [2,3,3,4,5,4,4,5,5,4,3,2], // 700
+        [3,3,4,5,6,4,3,3,3,3,2,2], // 600
+        [3,4,5,6,7,5,3,2,2,2,2,1], // 500 - Starlink shell peak
+        [2,2,3,4,4,3,2,2,1,1,1,1]  // 400
+    ];
+    const colors = ['#dbeafe','#fef3c7','#fde68a','#fbbf24','#f97316','#ea580c','#dc2626','#7f1d1d'];
+    m.forEach(row => row.forEach(v => {
+        const c = document.createElement('div');
+        c.className = 'heat-cell rounded-sm';
+        c.style.height = '22px';
+        c.style.background = colors[v];
+        grid.appendChild(c);
+    }));
+})();
+
+// PR Curve
+new Chart(document.getElementById('prCurve'), {
+    type:'line',
+    data:{
+        labels:['0','0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9','1.0'],
+        datasets:[
+            { label:'Ensemble', data:[1.0,0.98,0.96,0.94,0.91,0.88,0.83,0.76,0.65,0.45,0.0], borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,0.1)', tension:0.35, fill:true, borderWidth:2.5, pointRadius:0 },
+            { label:'SGP4 only', data:[1.0,0.92,0.84,0.74,0.64,0.54,0.45,0.36,0.27,0.16,0.0], borderColor:'#94a3b8', borderDash:[4,4], tension:0.35, fill:false, borderWidth:2, pointRadius:0 }
+        ]
+    },
+    options:{
+        plugins:{ legend:{ display:true, position:'bottom', labels:{ font:{size:10}, boxWidth:10 } } },
+        scales:{
+            y:{ min:0, max:1.05, grid:{ color:'#f1f5f9' }, ticks:{ color:'#94a3b8', font:{size:10} } },
+            x:{ grid:{ display:false }, ticks:{ color:'#94a3b8', font:{size:10} } }
+        },
+        responsive:true, maintainAspectRatio:false
+    }
+});
+
+// Loss
+new Chart(document.getElementById('lossChart'), {
+    type:'line',
+    data:{
+        labels: Array.from({length:50}, (_,i)=>i+1),
+        datasets:[
+            { label:'Train', data:[0.62,0.51,0.44,0.39,0.34,0.30,0.26,0.23,0.21,0.19,0.18,0.17,0.16,0.15,0.14,0.13,0.13,0.12,0.12,0.11,0.11,0.11,0.105,0.10,0.10,0.099,0.097,0.096,0.094,0.092,0.090,0.089,0.088,0.087,0.087,0.086,0.086,0.085,0.085,0.085,0.084,0.084,0.084,0.084,0.083,0.083,0.083,0.083,0.083,0.083], borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,0.08)', tension:0.4, fill:true, borderWidth:2, pointRadius:0 },
+            { label:'Val', data:[0.66,0.55,0.48,0.42,0.37,0.34,0.30,0.27,0.25,0.23,0.22,0.21,0.20,0.19,0.18,0.17,0.16,0.16,0.15,0.14,0.14,0.13,0.13,0.125,0.12,0.118,0.116,0.114,0.112,0.110,0.108,0.106,0.105,0.103,0.102,0.101,0.100,0.099,0.098,0.098,0.097,0.097,0.096,0.096,0.095,0.095,0.095,0.094,0.094,0.094], borderColor:'#06b6d4', tension:0.4, fill:false, borderWidth:2, pointRadius:0 }
+        ]
+    },
+    options:{
+        plugins:{ legend:{ display:true, position:'bottom', labels:{ font:{size:10}, boxWidth:10 } } },
+        scales:{
+            y:{ grid:{ color:'#f1f5f9' }, ticks:{ color:'#94a3b8', font:{size:10} } },
+            x:{ grid:{ display:false }, ticks:{ color:'#94a3b8', font:{size:9}, maxTicksLimit:6 } }
+        },
+        responsive:true, maintainAspectRatio:false
+    }
+});
+</script>
+</body>
+</html>

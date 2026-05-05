@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrbitGuard Sim — Game-Theoretic Space Debris Mitigation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        body { background: #020617; }
+        .preview-frame { border: 0; width: 1440px; height: 900px; transform: scale(0.62); transform-origin: top left; }
+        .preview-wrap { width: calc(1440px * 0.62); height: calc(900px * 0.62); overflow: hidden; }
+        .hero-bg {
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(99,102,241,0.20) 0%, transparent 45%),
+                radial-gradient(ellipse at 80% 60%, rgba(6,182,212,0.16) 0%, transparent 45%),
+                radial-gradient(ellipse at 60% 90%, rgba(124,58,237,0.14) 0%, transparent 40%),
+                linear-gradient(135deg, #0f172a 0%, #020617 100%);
+        }
+        .grid-bg {
+            background-image:
+                linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+        }
+        .stat-card { background: rgba(255,255,255,0.04); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.08); }
+        .page-card { background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 30px 60px -20px rgba(2, 6, 23, 0.6); }
+        .page-card.dark { background: #020617; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0); }
+            50% { transform: translateY(-12px) rotate(2deg); }
+        }
+        .floating { animation: float 6s ease-in-out infinite; }
+
+        @keyframes orbit-rotate { to { transform: rotate(360deg); } }
+        .orbit-decor {
+            position: absolute; width: 360px; height: 360px;
+            border: 1px solid rgba(99,102,241,0.18); border-radius: 50%;
+        }
+        .orbit-decor::before {
+            content:''; position:absolute; top:-4px; left:50%;
+            width:8px; height:8px; border-radius:50%;
+            background: linear-gradient(135deg,#06b6d4,#6366f1);
+            box-shadow: 0 0 12px rgba(99,102,241,0.8);
+            transform: translateX(-50%);
+        }
+    </style>
+</head>
+<body class="text-slate-100">
+
+    <!-- Hero -->
+    <section class="hero-bg grid-bg relative overflow-hidden">
+        <nav class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between relative z-10">
+            <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-500 flex items-center justify-center">
+                    <i class="fas fa-satellite text-white"></i>
+                </div>
+                <div>
+                    <div class="font-bold leading-tight">OrbitGuard Sim</div>
+                    <div class="text-[11px] text-slate-400 leading-tight">Game-Theoretic Debris Mitigation Platform</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 text-sm">
+                <span class="text-cyan-400 mono text-xs">v0.7 · ISEF 2026 Build</span>
+                <a href="home.html" target="_blank" class="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm font-medium">Open Mission Control <i class="fas fa-arrow-right ml-1 text-xs"></i></a>
+            </div>
+        </nav>
+
+        <div class="max-w-7xl mx-auto px-6 pt-12 pb-24 relative">
+            <div class="absolute top-12 right-6 w-72 h-72 rounded-full bg-cyan-500/10 blur-3xl floating"></div>
+            <div class="absolute top-32 right-32 orbit-decor floating" style="animation-delay:-2s"></div>
+
+            <div class="max-w-3xl relative z-10">
+                <span class="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-medium mb-6">
+                    <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                    ISEF 2026 · Computational research project
+                </span>
+                <h1 class="text-5xl md:text-6xl font-black leading-[1.05] tracking-tight mb-6">
+                    Stop Kessler before<br>
+                    <span class="bg-gradient-to-r from-cyan-400 via-indigo-300 to-violet-400 bg-clip-text text-transparent">it stops space.</span>
+                </h1>
+                <p class="text-lg text-slate-300 leading-relaxed max-w-2xl">
+                    OrbitGuard pairs an <span class="text-white font-medium">AI collision predictor</span> with a <span class="text-white font-medium">game-theoretic multi-agent auction</span> to decide which cleanup satellite tackles which piece of debris — answering the question every space agency is too polite to ask: <span class="text-white font-medium">who pays to clean up the orbital commons, and when?</span>
+                </p>
+
+                <div class="flex flex-wrap gap-3 mt-8">
+                    <a href="simulator.html" target="_blank" class="bg-white text-slate-900 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-100">
+                        <i class="fas fa-play mr-2"></i>Watch live simulation
+                    </a>
+                    <a href="gametheory.html" target="_blank" class="border border-white/20 hover:bg-white/5 px-5 py-2.5 rounded-lg text-sm font-semibold">
+                        <i class="fas fa-chess mr-2"></i>See the equilibrium
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-4 gap-4 mt-16 max-w-5xl relative z-10">
+                <div class="stat-card rounded-2xl p-5">
+                    <div class="text-[10px] uppercase tracking-wider text-cyan-300 font-semibold mb-1">Tracked debris</div>
+                    <div class="text-2xl font-bold text-white">34,217</div>
+                    <div class="text-xs text-slate-400 mt-1">≥10 cm objects in LEO</div>
+                </div>
+                <div class="stat-card rounded-2xl p-5">
+                    <div class="text-[10px] uppercase tracking-wider text-cyan-300 font-semibold mb-1">Simulation runs</div>
+                    <div class="text-2xl font-bold text-white">6,247</div>
+                    <div class="text-xs text-slate-400 mt-1">Over 50-year horizons</div>
+                </div>
+                <div class="stat-card rounded-2xl p-5">
+                    <div class="text-[10px] uppercase tracking-wider text-cyan-300 font-semibold mb-1">Cascade risk Δ</div>
+                    <div class="text-2xl font-bold text-emerald-300">−42.7%</div>
+                    <div class="text-xs text-slate-400 mt-1">VCG vs. status quo</div>
+                </div>
+                <div class="stat-card rounded-2xl p-5">
+                    <div class="text-[10px] uppercase tracking-wider text-cyan-300 font-semibold mb-1">Welfare gain</div>
+                    <div class="text-2xl font-bold text-white">$284M / yr</div>
+                    <div class="text-xs text-slate-400 mt-1">Net of cleanup spend</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Research questions banner -->
+    <section class="bg-slate-950 border-t border-white/5 py-16">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-10">
+                <div class="text-[11px] uppercase tracking-wider text-cyan-300 font-semibold mb-2">Three research questions</div>
+                <h2 class="text-3xl md:text-4xl font-bold text-white">Prediction · Decision · Coordination</h2>
+            </div>
+            <div class="grid grid-cols-3 gap-6">
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center mb-4">
+                        <i class="fas fa-brain text-cyan-400 text-lg"></i>
+                    </div>
+                    <div class="text-[10px] uppercase tracking-wider text-cyan-300 font-semibold mb-1">RQ1 · Prediction</div>
+                    <h3 class="font-bold text-white text-lg mb-2">Can ML predict high-risk collision zones?</h3>
+                    <p class="text-sm text-slate-400">XGBoost + LSTM ensemble trained on 1.4M Space-Track CDMs reaches AUC 0.943 with a 38.7-hour median lead time — almost double SGP4-only baselines.</p>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center mb-4">
+                        <i class="fas fa-rocket text-indigo-400 text-lg"></i>
+                    </div>
+                    <div class="text-[10px] uppercase tracking-wider text-indigo-300 font-semibold mb-1">RQ2 · Decision</div>
+                    <h3 class="font-bold text-white text-lg mb-2">How should agents pick targets under limited fuel?</h3>
+                    <p class="text-sm text-slate-400">Sixteen autonomous cleanup satellites — Sweepers, Falcons, Carriers, Scouts — each with bounded Δv. They bid on debris lots ranked by cascade-weighted Pc.</p>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center mb-4">
+                        <i class="fas fa-handshake text-violet-400 text-lg"></i>
+                    </div>
+                    <div class="text-[10px] uppercase tracking-wider text-violet-300 font-semibold mb-1">RQ3 · Coordination</div>
+                    <h3 class="font-bold text-white text-lg mb-2">Can game theory beat selfish play?</h3>
+                    <p class="text-sm text-slate-400">A VCG-style auction with Pigouvian launch tax flips Defect–Defect into the unique Nash equilibrium — 94% cooperation vs. 21% in the status-quo game.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Page previews -->
+    <section class="bg-slate-50 py-16">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-3">Six interfaces · one research workspace</h2>
+                <p class="text-slate-600 text-lg max-w-2xl mx-auto">From mission control to live simulator to the headline mechanism-design proof — every screen below is a clickable prototype.</p>
+            </div>
+
+            <!-- Page 1 -->
+            <div class="grid grid-cols-12 gap-8 items-center mb-16">
+                <div class="col-span-4">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-11 h-11 rounded-xl bg-indigo-100 flex items-center justify-center"><i class="fas fa-gauge text-indigo-600"></i></div>
+                        <span class="text-xs uppercase tracking-wider text-indigo-700 font-semibold">01 · Dashboard</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2">Mission Control</h3>
+                    <p class="text-slate-600 mb-4">Real-time overview of every active simulation: tracked debris, predicted conjunctions, agents on station, and a live Kessler-risk gauge across LEO bands.</p>
+                    <ul class="text-sm text-slate-700 space-y-1.5 mb-5">
+                        <li class="flex gap-2"><i class="fas fa-check text-indigo-500 mt-1 text-xs"></i>4-metric KPI strip with deltas</li>
+                        <li class="flex gap-2"><i class="fas fa-check text-indigo-500 mt-1 text-xs"></i>Strategy benchmark chart</li>
+                        <li class="flex gap-2"><i class="fas fa-check text-indigo-500 mt-1 text-xs"></i>Live conjunction watchlist</li>
+                    </ul>
+                    <a href="home.html" target="_blank" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium">Open in new tab <i class="fas fa-arrow-up-right-from-square text-xs"></i></a>
+                </div>
+                <div class="col-span-8">
+                    <div class="page-card preview-wrap">
+                        <iframe class="preview-frame" src="home.html"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 2 -->
+            <div class="grid grid-cols-12 gap-8 items-center mb-16">
+                <div class="col-span-8 order-2">
+                    <div class="page-card dark preview-wrap">
+                        <iframe class="preview-frame" src="simulator.html"></iframe>
+                    </div>
+                </div>
+                <div class="col-span-4 order-1">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-11 h-11 rounded-xl bg-cyan-100 flex items-center justify-center"><i class="fas fa-globe text-cyan-600"></i></div>
+                        <span class="text-xs uppercase tracking-wider text-cyan-700 font-semibold">02 · Live Simulator</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2">Orbital Simulator</h3>
+                    <p class="text-slate-600 mb-4">Watch debris, agents and capture beams sweep around Earth in a CPU-simulated LEO sandbox. Tweak Δv budgets, capture radius and time-warp — see strategy effects live.</p>
+                    <ul class="text-sm text-slate-700 space-y-1.5 mb-5">
+                        <li class="flex gap-2"><i class="fas fa-check text-indigo-500 mt-1 text-xs"></i>SGP4-propagated TLEs @ 60 Hz</li>
+                        <li class="flex gap-2"><i class="fas fa-check text-indigo-500 mt-1 text-xs"></i>Per-agent telemetry rail</li>
+                        <li class="flex gap-2"><i class="fas fa-check text-indigo-500 mt-1 text-xs"></i>Time-warp 1× → 1,000×</li>
+                    </ul>
+                    <a href="simulator.html" target="_blank" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium">Open in new tab <i class="fas fa-arrow-up-right-from-square text-xs"></i></a>
+                </div>
+            </div>
+
+            <!-- Page 3 -->
+            <div class="grid grid-cols-12 gap-8 items-center mb-16">
+                <div class="col-span-4">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-11 h-11 rounded-xl bg-violet-100 flex items-center justify-center"><i class="fas fa-brain text-violet-600"></i></div>
+                        <span class="text-xs uppercase tracking-wider text-violet-700 font-semibold">03 · AI Predictor</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2">Collision AI</h3>
+                    <p class="text-slate-600 mb-4">An XGBoost + LSTM ensemble forecasts conjunctions 38.7 hours ahead with AUC 0.943 — surfaced as a high-risk LEO heatmap and a forward 72-hour queue ready for dispatch.</p>
+                    <ul class="text-sm text-slate-700 space-y-1.5 mb-5">
+                        <li class="flex gap-2"><i class="fas fa-check text-indigo-500 mt-1 text-xs"></i>Altitude × inclination heatmap</li>
+                        <li class="flex gap-2"><i class="fas fa-check text-indigo-500 mt-1 text-xs"></i>Feature importance + PR curve</li>
+                        <li class="flex gap-2"><i class="fas fa-check text-indigo-500 mt-1 text-xs"></i>72h forward prediction queue</li>
+                    </ul>
+                    <a href="prediction.html" target="_blank" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium">Open in new tab <i class="fas fa-arrow-up-right-from-square text-xs"></i></a>
+                </div>
+                <div class="col-span-8">
+                    <div class="page-card preview-wrap">
+                        <iframe class="preview-frame" src="prediction.html"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 4 -->
+            <div class="grid grid-cols-12 gap-8 items-center mb-16">
+                <div class="col-span-8 order-2">
+                    <div class="page-card preview-wrap">
+                        <iframe class="preview-frame" src="agents.html"></iframe>
+                    </div>
+                </div>
+                <div class="col-span-4 order-1">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-11 h-11 rounded-xl bg-rose-100 flex items-center justify-center"><i class="fas fa-rocket text-rose-600"></i></div>
+                        <span class="text-xs uppercase tracking-wider text-rose-700 font-semibold">04 · Cleanup Fleet</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2">Multi-Agent Roster</h3>
+                    <p class="text-slate-600 mb-4">Four agent classes — Sweeper, Falcon, Carrier, Scout — with realistic Δv budgets, capture mechanics and unit costs. The roster shows live state and strategy bias for every unit.</p>
+                    <ul class="text-sm text-slate-700 space-y-1.5 mb-5">
+                        <li class="flex gap-2"><i class="fas fa-check text-indigo-500 mt-1 text-xs"></i>4 specialised satellite classes</li>
+                        <li class="flex gap-2"><i class="fas fa-check text-indigo-500 mt-1 text-xs"></i>Per-unit fuel and capture ledger</li>
+                        <li class="flex gap-2"><i class="fas fa-check text-indigo-500 mt-1 text-xs"></i>Cooperative · Selfish · Nash bias tags</li>
+                    </ul>
+                    <a href="agents.html" target="_blank" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium">Open in new tab <i class="fas fa-arrow-up-right-from-square text-xs"></i></a>
+                </div>
+            </div>
+
+            <!-- Page 5 -->
+            <div class="grid grid-cols-12 gap-8 items-center mb-16">
+                <div class="col-span-4">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-11 h-11 rounded-xl bg-amber-100 flex items-center justify-center"><i class="fas fa-chess text-amber-600"></i></div>
+                        <span class="text-xs uppercase tracking-wider text-amber-700 font-semibold">05 · Game Theory</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2">Mechanism Design</h3>
+                    <p class="text-slate-600 mb-4">The headline output. A two-agency payoff matrix, a four-agency convergence chart, and a live VCG auction that flips Defect–Defect into the unique cooperate Nash with subsidy σ ≈ $8.4M.</p>
+                    <ul class="text-sm text-slate-700 space-y-1.5 mb-5">
+                        <li class="flex gap-2"><i class="fas fa-check text-indigo-500 mt-1 text-xs"></i>Payoff matrix · 3 equilibria</li>
+                        <li class="flex gap-2"><i class="fas fa-check text-indigo-500 mt-1 text-xs"></i>Strategy fingerprint radar</li>
+                        <li class="flex gap-2"><i class="fas fa-check text-indigo-500 mt-1 text-xs"></i>Live debris-lot auction</li>
+                    </ul>
+                    <a href="gametheory.html" target="_blank" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium">Open in new tab <i class="fas fa-arrow-up-right-from-square text-xs"></i></a>
+                </div>
+                <div class="col-span-8">
+                    <div class="page-card preview-wrap">
+                        <iframe class="preview-frame" src="gametheory.html"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 6 -->
+            <div class="grid grid-cols-12 gap-8 items-center">
+                <div class="col-span-8 order-2">
+                    <div class="page-card preview-wrap">
+                        <iframe class="preview-frame" src="analysis.html"></iframe>
+                    </div>
+                </div>
+                <div class="col-span-4 order-1">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-11 h-11 rounded-xl bg-emerald-100 flex items-center justify-center"><i class="fas fa-chart-line text-emerald-600"></i></div>
+                        <span class="text-xs uppercase tracking-wider text-emerald-700 font-semibold">06 · Analytics</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2">Research Analytics</h3>
+                    <p class="text-slate-600 mb-4">50-year cascade projections, Pareto frontier across mechanisms, sensitivity sweeps, and a paired-trial bootstrap proving every headline result holds at p &lt; 0.001.</p>
+                    <ul class="text-sm text-slate-700 space-y-1.5 mb-5">
+                        <li class="flex gap-2"><i class="fas fa-check text-indigo-500 mt-1 text-xs"></i>50-year debris projection</li>
+                        <li class="flex gap-2"><i class="fas fa-check text-indigo-500 mt-1 text-xs"></i>Cost × cascade Pareto frontier</li>
+                        <li class="flex gap-2"><i class="fas fa-check text-indigo-500 mt-1 text-xs"></i>Bootstrap hypothesis tests</li>
+                    </ul>
+                    <a href="analysis.html" target="_blank" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium">Open in new tab <i class="fas fa-arrow-up-right-from-square text-xs"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 text-slate-400 py-10 text-center text-sm border-t border-white/5">
+        <div class="flex items-center justify-center gap-2 mb-2">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-600 to-cyan-500 flex items-center justify-center">
+                <i class="fas fa-satellite text-white text-xs"></i>
+            </div>
+            <span class="font-semibold text-white">OrbitGuard Sim</span>
+        </div>
+        <p>A computer-simulated game-theoretic debris mitigation research workspace · 2026</p>
+        <p class="text-xs text-slate-500 mt-2">Predict the conjunctions. Coordinate the cleanup. Save the orbital commons.</p>
+    </footer>
+</body>
+</html>

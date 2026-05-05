@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrbitGuard Sim — Mission Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        body { background: #f1f5f9; }
+        .grad-cyan { background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); }
+        .grad-violet { background: linear-gradient(135deg, #6d28d9 0%, #4f46e5 100%); }
+        .grad-rose { background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); }
+        .grad-amber { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .pulse-dot::before {
+            content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:6px;animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    </style>
+</head>
+<body class="text-slate-800">
+
+<div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col">
+        <div class="p-5 border-b border-slate-100">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-500 flex items-center justify-center">
+                    <i class="fas fa-satellite text-white text-sm"></i>
+                </div>
+                <div>
+                    <div class="font-bold text-slate-900 leading-tight">OrbitGuard</div>
+                    <div class="text-[11px] text-slate-500 leading-tight">Debris Mitigation Sim</div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 px-3 py-4 space-y-1 text-sm">
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">Mission Control</div>
+            <a href="home.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-indigo-50 text-indigo-700 font-medium">
+                <i class="fas fa-gauge w-4"></i>Dashboard
+            </a>
+            <a href="simulator.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                <i class="fas fa-globe w-4"></i>Orbital Simulator
+            </a>
+            <a href="prediction.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                <i class="fas fa-brain w-4"></i>Collision AI
+            </a>
+
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mt-5 mb-2">Multi-Agent</div>
+            <a href="agents.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                <i class="fas fa-rocket w-4"></i>Cleanup Fleet
+            </a>
+            <a href="gametheory.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                <i class="fas fa-chess w-4"></i>Game Theory
+            </a>
+
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mt-5 mb-2">Research</div>
+            <a href="analysis.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                <i class="fas fa-chart-line w-4"></i>Analytics
+            </a>
+        </nav>
+
+        <div class="p-3 border-t border-slate-100">
+            <div class="bg-gradient-to-br from-indigo-50 to-cyan-50 rounded-xl p-3">
+                <div class="flex items-center gap-2 mb-1.5">
+                    <i class="fas fa-flask text-indigo-600 text-xs"></i>
+                    <div class="text-xs font-semibold text-slate-800">Research Mode</div>
+                </div>
+                <p class="text-[11px] text-slate-600 leading-snug">CPU-simulated. No physical satellites. ISEF 2026 study.</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 flex flex-col min-w-0">
+        <header class="h-14 bg-white border-b border-slate-200 flex items-center px-6 justify-between">
+            <div class="flex items-center gap-3">
+                <h1 class="text-base font-semibold text-slate-900">Mission Control</h1>
+                <span class="text-xs px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-700 font-medium mono">v0.7 · LEO sandbox</span>
+                <span class="text-xs text-emerald-600 font-medium pulse-dot">Sim 04 running</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="text-slate-500 hover:text-slate-700"><i class="fas fa-bell"></i></button>
+                <button class="text-slate-500 hover:text-slate-700"><i class="fas fa-cog"></i></button>
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-indigo-500 flex items-center justify-center text-white text-xs font-semibold">YS</div>
+            </div>
+        </header>
+
+        <div class="flex-1 p-6 overflow-y-auto">
+            <!-- Greeting -->
+            <div class="mb-6 flex items-end justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">Good evening, Yu Sun</h2>
+                    <p class="text-sm text-slate-500 mt-0.5">3 simulations active · 12 agents on patrol · Last benchmark 4h ago</p>
+                </div>
+                <div class="flex gap-2">
+                    <button class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-2">
+                        <i class="fas fa-download"></i>Export
+                    </button>
+                    <button class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-2">
+                        <i class="fas fa-play"></i>New Simulation
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPIs -->
+            <div class="grid grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-9 h-9 rounded-lg bg-rose-50 flex items-center justify-center">
+                            <i class="fas fa-meteor text-rose-600"></i>
+                        </div>
+                        <span class="text-[11px] text-rose-600 font-medium bg-rose-50 px-2 py-0.5 rounded-full">+1.2%</span>
+                    </div>
+                    <div class="text-2xl font-bold text-slate-900">34,217</div>
+                    <div class="text-xs text-slate-500 mt-1">Tracked debris (≥10cm)</div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center">
+                            <i class="fas fa-triangle-exclamation text-amber-600"></i>
+                        </div>
+                        <span class="text-[11px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full">-8.4%</span>
+                    </div>
+                    <div class="text-2xl font-bold text-slate-900">147</div>
+                    <div class="text-xs text-slate-500 mt-1">Predicted conjunctions / 24h</div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center">
+                            <i class="fas fa-rocket text-indigo-600"></i>
+                        </div>
+                        <span class="text-[11px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full">Active</span>
+                    </div>
+                    <div class="text-2xl font-bold text-slate-900">12 / 16</div>
+                    <div class="text-xs text-slate-500 mt-1">Cleanup agents on station</div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-9 h-9 rounded-lg bg-cyan-50 flex items-center justify-center">
+                            <i class="fas fa-broom text-cyan-600"></i>
+                        </div>
+                        <span class="text-[11px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full">+24.1%</span>
+                    </div>
+                    <div class="text-2xl font-bold text-slate-900">3,841</div>
+                    <div class="text-xs text-slate-500 mt-1">Debris removed (sim cycle)</div>
+                </div>
+            </div>
+
+            <!-- Charts row -->
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="col-span-2 bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-semibold text-slate-900">Strategy benchmark · debris removed per orbit</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">7-day rolling window · LEO altitude band 500–1,200 km</p>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs">
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>Cooperative</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>Selfish</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span>Nash-mix</span>
+                        </div>
+                    </div>
+                    <div style="height:240px"><canvas id="strategyChart"></canvas></div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-slate-900">Kessler Risk Index</h3>
+                        <span class="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full font-medium">Elevated</span>
+                    </div>
+                    <div class="text-center py-2">
+                        <div class="relative inline-flex">
+                            <svg class="w-32 h-32" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="#f1f5f9" stroke-width="10"/>
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="url(#g1)" stroke-width="10" stroke-linecap="round" stroke-dasharray="220 314" transform="rotate(-90 60 60)"/>
+                                <defs>
+                                    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+                                        <stop offset="0" stop-color="#f59e0b"/>
+                                        <stop offset="1" stop-color="#dc2626"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center flex-col">
+                                <div class="text-3xl font-bold text-slate-900">0.71</div>
+                                <div class="text-[10px] text-slate-500 uppercase tracking-wider">/ 1.00</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-slate-600 text-center mt-2">Cascade probability over 50-year horizon if no intervention.</div>
+                    <div class="mt-3 grid grid-cols-3 gap-2 text-center">
+                        <div class="bg-slate-50 rounded-lg p-2"><div class="text-[10px] text-slate-500">LEO-A</div><div class="text-sm font-bold text-rose-600">0.84</div></div>
+                        <div class="bg-slate-50 rounded-lg p-2"><div class="text-[10px] text-slate-500">LEO-B</div><div class="text-sm font-bold text-amber-600">0.62</div></div>
+                        <div class="bg-slate-50 rounded-lg p-2"><div class="text-[10px] text-slate-500">SSO</div><div class="text-sm font-bold text-emerald-600">0.31</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom row -->
+            <div class="grid grid-cols-3 gap-4">
+                <div class="col-span-2 bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-semibold text-slate-900">Live conjunction watchlist</h3>
+                        <a href="prediction.html" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">View all →</a>
+                    </div>
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="text-left text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                                <th class="py-2 font-medium">Object pair</th>
+                                <th class="py-2 font-medium">TCA</th>
+                                <th class="py-2 font-medium">Miss</th>
+                                <th class="py-2 font-medium">Pc</th>
+                                <th class="py-2 font-medium text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700">
+                            <tr class="border-b border-slate-50">
+                                <td class="py-2.5">
+                                    <div class="font-medium text-slate-900">Cosmos-2251 frag · Iridium-33 frag</div>
+                                    <div class="text-[11px] text-slate-400 mono">38271 ↔ 33759</div>
+                                </td>
+                                <td class="py-2.5 mono">02:14:08</td>
+                                <td class="py-2.5">42 m</td>
+                                <td class="py-2.5"><span class="text-rose-600 font-semibold">3.2e-3</span></td>
+                                <td class="py-2.5 text-right"><button class="text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-2 py-1 rounded font-medium">Dispatch</button></td>
+                            </tr>
+                            <tr class="border-b border-slate-50">
+                                <td class="py-2.5">
+                                    <div class="font-medium text-slate-900">Starlink-3729 · Fengyun-1C frag</div>
+                                    <div class="text-[11px] text-slate-400 mono">52410 ↔ 30142</div>
+                                </td>
+                                <td class="py-2.5 mono">04:31:22</td>
+                                <td class="py-2.5">118 m</td>
+                                <td class="py-2.5"><span class="text-amber-600 font-semibold">8.4e-4</span></td>
+                                <td class="py-2.5 text-right"><button class="text-xs bg-amber-50 text-amber-600 hover:bg-amber-100 px-2 py-1 rounded font-medium">Track</button></td>
+                            </tr>
+                            <tr class="border-b border-slate-50">
+                                <td class="py-2.5">
+                                    <div class="font-medium text-slate-900">CZ-3B R/B frag · OneWeb-0408</div>
+                                    <div class="text-[11px] text-slate-400 mono">42816 ↔ 47188</div>
+                                </td>
+                                <td class="py-2.5 mono">07:58:11</td>
+                                <td class="py-2.5">217 m</td>
+                                <td class="py-2.5"><span class="text-amber-600 font-semibold">2.7e-4</span></td>
+                                <td class="py-2.5 text-right"><button class="text-xs bg-amber-50 text-amber-600 hover:bg-amber-100 px-2 py-1 rounded font-medium">Track</button></td>
+                            </tr>
+                            <tr>
+                                <td class="py-2.5">
+                                    <div class="font-medium text-slate-900">SL-16 R/B · Cosmos-1408 frag</div>
+                                    <div class="text-[11px] text-slate-400 mono">19120 ↔ 49260</div>
+                                </td>
+                                <td class="py-2.5 mono">11:42:30</td>
+                                <td class="py-2.5">386 m</td>
+                                <td class="py-2.5"><span class="text-emerald-600 font-semibold">5.1e-5</span></td>
+                                <td class="py-2.5 text-right"><button class="text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 px-2 py-1 rounded font-medium">Monitor</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-semibold text-slate-900">Agent activity</h3>
+                        <a href="agents.html" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Fleet →</a>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg grad-cyan flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-rocket text-white text-xs"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-medium text-slate-900">Sweeper-A07 captured frag #38271</div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">Δv 0.21 m/s · cooperative bid won</div>
+                            </div>
+                            <span class="text-[10px] text-slate-400 mono">12:04</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg grad-violet flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-handshake text-white text-xs"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-medium text-slate-900">Auction round 218 closed</div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">14 lots → 11 awarded · 3 deferred</div>
+                            </div>
+                            <span class="text-[10px] text-slate-400 mono">11:48</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg grad-rose flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-bolt text-white text-xs"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-medium text-slate-900">Predicted Pc spike at 540 km</div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">XGBoost flagged · agent C03 rerouted</div>
+                            </div>
+                            <span class="text-[10px] text-slate-400 mono">11:31</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg grad-amber flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-fuel-pump text-white text-xs"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-medium text-slate-900">Sweeper-B02 fuel below 18%</div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">Auto-deferred 4 lots to A09</div>
+                            </div>
+                            <span class="text-[10px] text-slate-400 mono">11:12</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-check text-white text-xs"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-medium text-slate-900">Sim 04 epoch 2,400 complete</div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">Cooperative beats Selfish by 38.4%</div>
+                            </div>
+                            <span class="text-[10px] text-slate-400 mono">10:58</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+const ctx = document.getElementById('strategyChart');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: ['Day 1','Day 2','Day 3','Day 4','Day 5','Day 6','Day 7'],
+        datasets: [
+            { label:'Cooperative', data:[42,58,71,82,94,108,121], borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,0.08)', tension:0.4, fill:true, borderWidth:2.5, pointRadius:3 },
+            { label:'Selfish',     data:[38,46,52,58,63,69,73], borderColor:'#e11d48', backgroundColor:'rgba(225,29,72,0.06)', tension:0.4, fill:true, borderWidth:2.5, pointRadius:3 },
+            { label:'Nash-mix',    data:[40,52,63,73,84,93,104], borderColor:'#06b6d4', backgroundColor:'rgba(6,182,212,0.06)', tension:0.4, fill:true, borderWidth:2.5, pointRadius:3 }
+        ]
+    },
+    options: {
+        plugins: { legend: { display:false } },
+        scales: {
+            y: { grid: { color:'#f1f5f9' }, ticks: { color:'#94a3b8', font:{size:11} } },
+            x: { grid: { display:false }, ticks: { color:'#94a3b8', font:{size:11} } }
+        },
+        responsive:true, maintainAspectRatio:false
+    }
+});
+</script>
+</body>
+</html>
