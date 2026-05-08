@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Lumi · StoryPet</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{-webkit-tap-highlight-color:transparent}
+*::-webkit-scrollbar{display:none}
+*{scrollbar-width:none}
+html,body{height:100%}body{font-family:-apple-system,'SF Pro Display',system-ui,sans-serif;background:#FAF7FF;width:100%;height:100%;margin:0;overflow:hidden}
+.screen{width:100%;height:100%;position:relative;overflow:hidden}
+.status-bar{height:59px;padding:0 28px;display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:6px;font-size:15px;font-weight:600;color:white;position:relative;z-index:5}
+.dynamic-island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:120px;height:34px;background:#000;border-radius:20px;z-index:10}
+.content{height:calc(100% - 88px);overflow-y:auto;padding-bottom:24px}
+.tab-bar{position:absolute;bottom:0;left:0;right:0;height:88px;background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);border-top:1px solid #ECE6FF;display:flex;justify-content:space-around;align-items:flex-start;padding-top:12px}
+.tab{display:flex;flex-direction:column;align-items:center;gap:4px;color:#B8AECC;font-size:10px;font-weight:500}
+.tab.active{color:#7C6FE5}
+.tab i{font-size:22px}
+.hero{background:radial-gradient(circle at 30% 20%,#FFE0B6 0%,#FFCB57 35%,#FF8B66 70%,#9C8DFF 100%);position:relative;overflow:hidden;padding-bottom:18px}
+.cloud{position:absolute;background:rgba(255,255,255,0.45);border-radius:50%}
+.pet-stage{width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0.15) 70%);position:relative;display:flex;align-items:center;justify-content:center;margin:0 auto}
+.pet-stage::before{content:'';position:absolute;inset:-12px;border-radius:50%;border:2px dashed rgba(255,255,255,0.55)}
+.pet-img{width:200px;height:200px;border-radius:50%;object-fit:cover;border:5px solid white;box-shadow:0 16px 40px rgba(91,79,216,0.30)}
+.crown{position:absolute;top:-12px;right:30px;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#FFCB57,#FF8B66);display:flex;align-items:center;justify-content:center;font-size:18px;border:3px solid white;box-shadow:0 6px 18px rgba(255,139,102,0.40)}
+.heart-burst{position:absolute;font-size:22px;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-10px) rotate(8deg)}}
+.bubble{background:white;border-radius:22px;padding:12px 16px;position:relative;box-shadow:0 8px 22px rgba(91,79,216,0.18);max-width:88%}
+.bubble::after{content:'';position:absolute;left:36px;top:-8px;width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:9px solid white}
+.stat-pill{background:rgba(255,255,255,0.85);backdrop-filter:blur(8px);border-radius:14px;padding:8px 10px;display:flex;align-items:center;gap:6px}
+.bar-track{flex:1;height:6px;background:rgba(255,255,255,0.45);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px}
+.care-tile{aspect-ratio:1;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;text-align:center;position:relative;overflow:hidden;box-shadow:0 8px 22px rgba(124,111,229,0.18)}
+.care-tile::before{content:'';position:absolute;top:-20px;right:-20px;width:60px;height:60px;background:rgba(255,255,255,0.20);border-radius:50%}
+.care-tile i{font-size:26px;margin-bottom:4px;position:relative;z-index:1}
+.care-tile span{font-size:11px;font-weight:800;position:relative;z-index:1}
+.care-tile small{font-size:9px;opacity:0.85;font-weight:600;position:relative;z-index:1}
+.outfit-card{min-width:90px;background:white;border-radius:18px;padding:10px;text-align:center;box-shadow:0 4px 16px rgba(124,111,229,0.10);position:relative}
+.outfit-card.equipped{box-shadow:0 0 0 2px #7C6FE5,0 6px 18px rgba(124,111,229,0.20)}
+.outfit-thumb{width:60px;height:60px;border-radius:14px;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:28px}
+.memory-card{background:white;border-radius:18px;padding:12px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 18px rgba(124,111,229,0.08)}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="content">
+    <!-- Hero -->
+    <div class="hero">
+      <div class="cloud" style="width:120px;height:55px;top:80px;left:-20px"></div>
+      <div class="cloud" style="width:80px;height:40px;top:140px;right:30px"></div>
+      <div class="cloud" style="width:100px;height:48px;top:220px;left:40px"></div>
+
+      <div class="status-bar">
+        <span>9:41</span>
+        <span class="flex items-center gap-1"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><i class="fas fa-battery-full text-sm"></i></span>
+      </div>
+
+      <!-- Top bar -->
+      <div class="px-7 flex items-center justify-between relative">
+        <div class="w-9 h-9 rounded-full bg-white/30 backdrop-blur flex items-center justify-center"><i class="fas fa-chevron-left text-white text-sm"></i></div>
+        <div class="text-center text-white">
+          <p class="text-[10px] font-bold opacity-80 tracking-wider">MY PET</p>
+          <p class="text-base font-bold">Lumi the Fox 🦊</p>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-white/30 backdrop-blur flex items-center justify-center"><i class="fas fa-camera text-white text-sm"></i></div>
+      </div>
+
+      <!-- Pet stage -->
+      <div class="mt-5 relative">
+        <span class="heart-burst" style="top:30px;left:30%;animation-delay:0s">💜</span>
+        <span class="heart-burst" style="top:80px;right:18%;animation-delay:0.6s">⭐</span>
+        <span class="heart-burst" style="bottom:40px;left:18%;animation-delay:1.2s">✨</span>
+
+        <div class="pet-stage">
+          <img src="https://images.unsplash.com/photo-1605369572399-05d8d64a0f1e?w=400&h=400&fit=crop" class="pet-img">
+          <div class="crown">👑</div>
+        </div>
+      </div>
+
+      <!-- Speech bubble -->
+      <div class="px-7 mt-5 flex justify-center">
+        <div class="bubble">
+          <p class="text-[13px] font-semibold text-gray-800 leading-snug">"You read with me 12 days in a row!<br>Want to play together?" 🦊✨</p>
+        </div>
+      </div>
+
+      <!-- Quick stats -->
+      <div class="px-7 mt-4 grid grid-cols-2 gap-2">
+        <div class="stat-pill">
+          <i class="fas fa-heart text-[#FF6B5B]"></i>
+          <div class="flex-1">
+            <div class="flex items-center justify-between mb-0.5">
+              <span class="text-[10px] font-bold text-gray-700">BOND</span>
+              <span class="text-[10px] font-black text-[#FF6B5B]">Lv. 8</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:78%;background:linear-gradient(90deg,#FF8B66,#FF6B5B)"></div></div>
+          </div>
+        </div>
+        <div class="stat-pill">
+          <i class="fas fa-face-smile-beam text-[#FFCB57]"></i>
+          <div class="flex-1">
+            <div class="flex items-center justify-between mb-0.5">
+              <span class="text-[10px] font-bold text-gray-700">MOOD</span>
+              <span class="text-[10px] font-black text-[#E89A1F]">Joyful</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:92%;background:linear-gradient(90deg,#FFE0B6,#FFCB57)"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Care actions -->
+    <div class="px-7 mt-6">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-base font-bold text-gray-900">Take Care of Lumi</h3>
+        <span class="text-[11px] text-gray-400 font-semibold"><i class="fas fa-circle text-[6px] text-[#7DFFB4]"></i> 4 actions ready</span>
+      </div>
+      <div class="grid grid-cols-4 gap-2.5">
+        <div class="care-tile" style="background:linear-gradient(135deg,#FFCB85,#FF8B66)">
+          <i class="fas fa-cookie-bite"></i>
+          <span>Feed</span>
+          <small>3 berries</small>
+        </div>
+        <div class="care-tile" style="background:linear-gradient(135deg,#9C8DFF,#7C6FE5)">
+          <i class="fas fa-baseball"></i>
+          <span>Play</span>
+          <small>+10 mood</small>
+        </div>
+        <div class="care-tile" style="background:linear-gradient(135deg,#FCC8C8,#FF8B9E)">
+          <i class="fas fa-heart"></i>
+          <span>Hug</span>
+          <small>+bond</small>
+        </div>
+        <div class="care-tile" style="background:linear-gradient(135deg,#A8E6CF,#56C596)">
+          <i class="fas fa-wand-sparkles"></i>
+          <span>Brush</span>
+          <small>shiny!</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pet meters -->
+    <div class="px-7 mt-5">
+      <div class="bg-white rounded-2xl p-4 shadow-sm">
+        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Lumi's Needs</p>
+        <div class="space-y-3">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[12px] font-bold text-gray-700"><i class="fas fa-utensils text-[#FF8B66] mr-1"></i> Hunger</span>
+              <span class="text-[11px] font-black text-gray-900">82%</span>
+            </div>
+            <div class="bar-track" style="background:#FFE5DC"><div class="bar-fill" style="width:82%;background:linear-gradient(90deg,#FFCB85,#FF8B66)"></div></div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[12px] font-bold text-gray-700"><i class="fas fa-bolt text-[#FFCB57] mr-1"></i> Energy</span>
+              <span class="text-[11px] font-black text-gray-900">65%</span>
+            </div>
+            <div class="bar-track" style="background:#FFF0CC"><div class="bar-fill" style="width:65%;background:linear-gradient(90deg,#FFE0B6,#FFCB57)"></div></div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[12px] font-bold text-gray-700"><i class="fas fa-shower text-[#7C6FE5] mr-1"></i> Cleanliness</span>
+              <span class="text-[11px] font-black text-gray-900">94%</span>
+            </div>
+            <div class="bar-track" style="background:#E8E1FF"><div class="bar-fill" style="width:94%;background:linear-gradient(90deg,#B5A8FF,#7C6FE5)"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Outfits / Accessories -->
+    <div class="px-7 mt-6">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-base font-bold text-gray-900">Dress Lumi Up</h3>
+        <span class="text-xs text-[#7C6FE5] font-semibold">All 24</span>
+      </div>
+      <div class="flex gap-2.5 overflow-x-auto -mx-7 px-7 pb-3">
+        <div class="outfit-card equipped">
+          <div class="outfit-thumb" style="background:linear-gradient(135deg,#FFCB57,#FF8B66)">👑</div>
+          <p class="text-[10px] font-bold text-gray-800 mt-1.5">Crown</p>
+          <p class="text-[9px] text-[#7C6FE5] font-bold">EQUIPPED</p>
+        </div>
+        <div class="outfit-card">
+          <div class="outfit-thumb" style="background:linear-gradient(135deg,#9C8DFF,#7C6FE5)">🎩</div>
+          <p class="text-[10px] font-bold text-gray-800 mt-1.5">Top Hat</p>
+          <p class="text-[9px] text-gray-400 font-semibold">Lv. 5</p>
+        </div>
+        <div class="outfit-card">
+          <div class="outfit-thumb" style="background:linear-gradient(135deg,#A8E6CF,#56C596)">🧣</div>
+          <p class="text-[10px] font-bold text-gray-800 mt-1.5">Scarf</p>
+          <p class="text-[9px] text-gray-400 font-semibold">Lv. 3</p>
+        </div>
+        <div class="outfit-card">
+          <div class="outfit-thumb" style="background:linear-gradient(135deg,#FCC8C8,#FF8B9E)">🎀</div>
+          <p class="text-[10px] font-bold text-gray-800 mt-1.5">Bow</p>
+          <p class="text-[9px] text-gray-400 font-semibold">Lv. 2</p>
+        </div>
+        <div class="outfit-card">
+          <div class="outfit-thumb" style="background:#ECE6FF;color:#9C8DFF"><i class="fas fa-lock"></i></div>
+          <p class="text-[10px] font-bold text-gray-400 mt-1.5">Glasses</p>
+          <p class="text-[9px] text-gray-300 font-semibold">Locked</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Memory wall -->
+    <div class="px-7 mt-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-base font-bold text-gray-900">Our Moments</h3>
+        <span class="text-xs text-[#7C6FE5] font-semibold">42</span>
+      </div>
+      <div class="space-y-2.5">
+        <div class="memory-card">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white" style="background:linear-gradient(135deg,#FFCB57,#FF8B66)">📖</div>
+          <div class="flex-1">
+            <p class="text-[12px] font-bold text-gray-900">Read 3 stories together</p>
+            <p class="text-[10px] text-gray-500">Today · +30 bond</p>
+          </div>
+          <span class="dot bg-[#7DFFB4]"></span>
+        </div>
+        <div class="memory-card">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white" style="background:linear-gradient(135deg,#9C8DFF,#7C6FE5)">🦊</div>
+          <div class="flex-1">
+            <p class="text-[12px] font-bold text-gray-900">Lumi reached Level 8 ✨</p>
+            <p class="text-[10px] text-gray-500">Yesterday · New outfit unlocked</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <div class="tab"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab"><i class="fas fa-book-open"></i><span>Library</span></div>
+    <div class="tab active"><i class="fas fa-paw"></i><span>Lumi</span></div>
+    <div class="tab"><i class="fas fa-chart-line"></i><span>Growth</span></div>
+    <div class="tab"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>
