@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>SetPoint AI · Live Practice</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+*::-webkit-scrollbar{display:none;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Inter',system-ui,sans-serif;
+  background:#0A0E1A;color:#fff;
+  width:100%;height:100%;overflow:hidden;scrollbar-width:none;
+  position:relative;
+}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+@keyframes glow{0%,100%{filter:drop-shadow(0 0 4px rgba(255,91,46,0.6));}50%{filter:drop-shadow(0 0 12px rgba(255,91,46,1));}}
+@keyframes scanLine{0%{transform:translateY(-100%);opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{transform:translateY(100%);opacity:0;}}
+@keyframes joint{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.7;transform:scale(0.92);}}
+@keyframes barFlow{0%{transform:scaleY(0.3);}50%{transform:scaleY(1);}100%{transform:scaleY(0.3);}}
+.dot{animation:pulse 1.4s ease-in-out infinite;}
+.skeleton{animation:glow 2.4s ease-in-out infinite;}
+.joint-dot{animation:joint 2s ease-in-out infinite;}
+.scan{animation:scanLine 3.5s ease-in-out infinite;}
+.bar{display:inline-block;width:3px;background:#FF5B2E;border-radius:2px;transform-origin:center;animation:barFlow 1.2s ease-in-out infinite;}
+</style>
+</head>
+<body>
+
+<!-- Full screen camera view with pose -->
+<div style="position:relative;width:100%;height:100%;overflow:hidden;">
+
+  <!-- Background image (athlete in spike pose) -->
+  <img src="https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=1200&h=2200&fit=crop" style="width:100%;height:100%;object-fit:cover;object-position:center;">
+
+  <!-- Subtle dark overlay -->
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,14,26,0.55) 0%,rgba(10,14,26,0.10) 18%,rgba(10,14,26,0.05) 50%,rgba(10,14,26,0.92) 95%);"></div>
+
+  <!-- Scanning beam -->
+  <div class="scan" style="position:absolute;left:0;right:0;height:80px;background:linear-gradient(180deg,transparent,rgba(255,91,46,0.22),transparent);pointer-events:none;"></div>
+
+  <!-- Status Bar -->
+  <div style="position:absolute;top:0;left:0;right:0;height:59px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;color:#fff;z-index:30;">
+    <span style="font-size:15px;font-weight:600;letter-spacing:.4px;">9:41</span>
+    <div style="width:126px;height:37px;background:#000;border-radius:20px;position:absolute;left:50%;transform:translateX(-50%);top:10px;"></div>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <i class="fas fa-signal" style="font-size:13px;"></i>
+      <i class="fas fa-wifi" style="font-size:14px;"></i>
+      <i class="fas fa-battery-full" style="font-size:15px;"></i>
+    </div>
+  </div>
+
+  <!-- Top controls -->
+  <div style="position:absolute;top:65px;left:20px;right:20px;display:flex;justify-content:space-between;align-items:center;z-index:10;">
+    <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.5);backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.1);">
+      <i class="fas fa-arrow-left" style="font-size:14px;color:#fff;"></i>
+    </div>
+
+    <!-- AI tracking badge -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+      <div style="padding:6px 12px;background:rgba(0,0,0,0.55);backdrop-filter:blur(14px);border-radius:18px;display:flex;align-items:center;gap:7px;border:1px solid rgba(255,91,46,0.4);">
+        <div class="dot" style="width:6px;height:6px;background:#FF5B2E;border-radius:50%;box-shadow:0 0 8px #FF5B2E;"></div>
+        <span style="font-size:11px;font-weight:800;letter-spacing:.8px;color:#FF5B2E;">AI TRACKING</span>
+        <span style="opacity:0.5;font-size:10px;">·</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.7);font-weight:600;">30 FPS</span>
+      </div>
+    </div>
+
+    <div style="padding:6px 12px;background:rgba(255,71,87,0.95);border-radius:16px;display:flex;align-items:center;gap:6px;">
+      <div class="dot" style="width:7px;height:7px;background:#fff;border-radius:50%;"></div>
+      <span style="font-size:11px;font-weight:800;letter-spacing:.6px;color:#fff;">REC 0:18</span>
+    </div>
+  </div>
+
+  <!-- Top-left chips -->
+  <div style="position:absolute;top:118px;left:20px;z-index:10;display:flex;gap:8px;flex-wrap:wrap;">
+    <div style="padding:5px 10px;background:rgba(0,0,0,0.55);backdrop-filter:blur(12px);border-radius:11px;display:flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,0.08);">
+      <i class="fas fa-circle-check" style="font-size:10px;color:#00D4AA;"></i>
+      <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.85);">17 KEYPOINTS</span>
+    </div>
+    <div style="padding:5px 10px;background:rgba(0,0,0,0.55);backdrop-filter:blur(12px);border-radius:11px;display:flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,0.08);">
+      <i class="fas fa-volleyball" style="font-size:10px;color:#FFC83D;"></i>
+      <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.85);">SPIKE · STEP 3</span>
+    </div>
+  </div>
+
+  <!-- Top-right reference ghost preview -->
+  <div style="position:absolute;top:118px;right:20px;z-index:10;width:78px;height:104px;border-radius:14px;overflow:hidden;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);border:1px solid rgba(255,200,61,0.4);">
+    <img src="https://images.unsplash.com/photo-1551958219-acbc608c6377?w=300&h=400&fit=crop" style="width:100%;height:100%;object-fit:cover;opacity:0.8;">
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.1),rgba(0,0,0,0.65));"></div>
+    <div style="position:absolute;top:5px;left:5px;background:#FFC83D;color:#1A1F2E;font-size:8px;font-weight:800;padding:2px 6px;border-radius:6px;letter-spacing:.4px;">REFERENCE</div>
+    <div style="position:absolute;bottom:6px;left:6px;right:6px;color:#fff;font-size:9px;font-weight:700;text-align:center;">Coach Vela</div>
+  </div>
+
+  <!-- Pose skeleton SVG -->
+  <svg viewBox="0 0 460 980" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;" class="skeleton" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <radialGradient id="jg" cx="50%" cy="50%">
+        <stop offset="0%" stop-color="#FF8550"/>
+        <stop offset="100%" stop-color="#FF5B2E"/>
+      </radialGradient>
+      <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#FF8550" stop-opacity="0.95"/>
+        <stop offset="100%" stop-color="#FF5B2E" stop-opacity="0.85"/>
+      </linearGradient>
+      <linearGradient id="wg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#FFD060"/>
+        <stop offset="100%" stop-color="#FFC83D"/>
+      </linearGradient>
+    </defs>
+
+    <!-- Athlete in spike approach pose: arms up, knees bent -->
+    <!-- Head -->
+    <circle cx="230" cy="220" r="28" fill="none" stroke="#FF5B2E" stroke-width="2.2" opacity="0.9"/>
+    <circle cx="230" cy="220" r="34" fill="none" stroke="#FF5B2E" stroke-width="0.8" opacity="0.3" stroke-dasharray="3 3"/>
+
+    <!-- Neck to shoulders -->
+    <line x1="230" y1="248" x2="230" y2="290" stroke="url(#bg)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="230" y1="290" x2="190" y2="312" stroke="url(#bg)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="230" y1="290" x2="272" y2="312" stroke="url(#bg)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="190" y1="312" x2="272" y2="312" stroke="#FF5B2E" stroke-width="2.2" stroke-linecap="round" opacity="0.5"/>
+
+    <!-- Right arm — raised high (hitting arm) -->
+    <line x1="272" y1="312" x2="298" y2="248" stroke="url(#bg)" stroke-width="3.6" stroke-linecap="round"/>
+    <line x1="298" y1="248" x2="320" y2="180" stroke="url(#bg)" stroke-width="3.6" stroke-linecap="round"/>
+
+    <!-- Left arm — guide arm extended forward/up -->
+    <line x1="190" y1="312" x2="160" y2="262" stroke="url(#bg)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="160" y1="262" x2="138" y2="208" stroke="url(#bg)" stroke-width="3.5" stroke-linecap="round"/>
+
+    <!-- Spine -->
+    <line x1="230" y1="290" x2="234" y2="468" stroke="#FF5B2E" stroke-width="2.6" stroke-linecap="round" opacity="0.65"/>
+
+    <!-- Hips -->
+    <line x1="234" y1="468" x2="200" y2="486" stroke="url(#bg)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="234" y1="468" x2="270" y2="482" stroke="url(#bg)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="200" y1="486" x2="270" y2="482" stroke="#FF5B2E" stroke-width="2.2" stroke-linecap="round" opacity="0.5"/>
+
+    <!-- Right leg (bent for jump) -->
+    <line x1="270" y1="482" x2="288" y2="600" stroke="url(#bg)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="288" y1="600" x2="276" y2="720" stroke="url(#bg)" stroke-width="3.5" stroke-linecap="round"/>
+
+    <!-- Left leg — slight warning on knee tracking -->
+    <line x1="200" y1="486" x2="178" y2="608" stroke="url(#wg)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="178" y1="608" x2="184" y2="722" stroke="url(#wg)" stroke-width="3.5" stroke-linecap="round"/>
+
+    <!-- Joint dots -->
+    <g class="joint-dot">
+      <!-- shoulders -->
+      <circle cx="190" cy="312" r="6" fill="url(#jg)" stroke="#fff" stroke-width="1.4"/>
+      <circle cx="272" cy="312" r="6" fill="url(#jg)" stroke="#fff" stroke-width="1.4"/>
+      <!-- elbows -->
+      <circle cx="160" cy="262" r="6" fill="url(#jg)" stroke="#fff" stroke-width="1.4"/>
+      <circle cx="298" cy="248" r="7" fill="url(#jg)" stroke="#fff" stroke-width="1.6"/>
+      <!-- wrists -->
+      <circle cx="138" cy="208" r="6" fill="url(#jg)" stroke="#fff" stroke-width="1.4"/>
+      <circle cx="320" cy="180" r="8" fill="url(#jg)" stroke="#fff" stroke-width="1.8"/>
+      <!-- hips -->
+      <circle cx="200" cy="486" r="6" fill="url(#jg)" stroke="#fff" stroke-width="1.4"/>
+      <circle cx="270" cy="482" r="6" fill="url(#jg)" stroke="#fff" stroke-width="1.4"/>
+      <!-- knees -->
+      <circle cx="178" cy="608" r="7" fill="#FFC83D" stroke="#fff" stroke-width="1.6"/>
+      <circle cx="288" cy="600" r="6" fill="url(#jg)" stroke="#fff" stroke-width="1.4"/>
+      <!-- ankles -->
+      <circle cx="184" cy="722" r="6" fill="#FFC83D" stroke="#fff" stroke-width="1.4"/>
+      <circle cx="276" cy="720" r="6" fill="url(#jg)" stroke="#fff" stroke-width="1.4"/>
+    </g>
+
+    <!-- Angle indicators -->
+    <!-- Hitting elbow angle (good) -->
+    <rect x="306" y="232" width="56" height="22" rx="6" fill="rgba(0,0,0,0.7)" stroke="#FF5B2E" stroke-width="1.2"/>
+    <text x="334" y="247" fill="#FF5B2E" font-size="12" font-weight="700" text-anchor="middle" font-family="SF Pro Display, system-ui">ELB 165°</text>
+
+    <!-- Left knee — warning -->
+    <rect x="106" y="598" width="62" height="22" rx="6" fill="rgba(0,0,0,0.7)" stroke="#FFC83D" stroke-width="1.4"/>
+    <text x="137" y="613" fill="#FFC83D" font-size="12" font-weight="700" text-anchor="middle" font-family="SF Pro Display, system-ui">KNEE 78° ⚠</text>
+
+    <!-- Hip rotation -->
+    <rect x="248" y="458" width="64" height="22" rx="6" fill="rgba(0,0,0,0.7)" stroke="#FF5B2E" stroke-width="1.2"/>
+    <text x="280" y="473" fill="#FF5B2E" font-size="11" font-weight="700" text-anchor="middle" font-family="SF Pro Display, system-ui">HIP ROT 38°</text>
+  </svg>
+
+  <!-- Coach voice cue -->
+  <div style="position:absolute;bottom:340px;left:50%;transform:translateX(-50%);z-index:7;">
+    <div style="background:linear-gradient(135deg,rgba(255,200,61,0.95),rgba(255,160,0,0.95));padding:11px 18px;border-radius:22px;display:flex;align-items:center;gap:11px;box-shadow:0 14px 32px rgba(255,160,0,0.4);">
+      <div style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;">
+        <i class="fas fa-volume-high" style="font-size:13px;color:#4A2D00;"></i>
+      </div>
+      <div>
+        <div style="font-size:9px;font-weight:800;letter-spacing:.8px;color:#4A2D00;">AI COACH</div>
+        <div style="font-size:13px;font-weight:700;color:#1a1f2e;letter-spacing:-.1px;">Drive your left knee outward 4°</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- audio waveform -->
+  <div style="position:absolute;bottom:308px;left:50%;transform:translateX(-50%);z-index:7;display:flex;gap:3px;align-items:end;height:14px;">
+    <span class="bar" style="height:30%;animation-delay:0s;"></span>
+    <span class="bar" style="height:70%;animation-delay:0.1s;"></span>
+    <span class="bar" style="height:100%;animation-delay:0.2s;"></span>
+    <span class="bar" style="height:60%;animation-delay:0.3s;"></span>
+    <span class="bar" style="height:90%;animation-delay:0.4s;"></span>
+    <span class="bar" style="height:50%;animation-delay:0.5s;"></span>
+    <span class="bar" style="height:80%;animation-delay:0.6s;"></span>
+  </div>
+
+  <!-- Bottom info panel -->
+  <div style="position:absolute;bottom:130px;left:20px;right:20px;z-index:10;">
+    <div style="background:rgba(15,22,38,0.85);backdrop-filter:blur(20px);border-radius:22px;padding:16px;border:1px solid rgba(255,255,255,0.06);">
+      <!-- Top row: form score + reps -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="position:relative;width:54px;height:54px;">
+            <svg width="54" height="54" viewBox="0 0 54 54">
+              <circle cx="27" cy="27" r="22" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="5"/>
+              <circle cx="27" cy="27" r="22" fill="none" stroke="#FF5B2E" stroke-width="5" stroke-linecap="round" stroke-dasharray="138" stroke-dashoffset="20" transform="rotate(-90 27 27)"/>
+            </svg>
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
+              <div style="font-size:18px;font-weight:800;line-height:1;letter-spacing:-.5px;">86</div>
+              <div style="font-size:7px;color:#7A8194;letter-spacing:.5px;font-weight:700;margin-top:1px;">FORM</div>
+            </div>
+          </div>
+          <div>
+            <div style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(255,91,46,0.18);border-radius:10px;margin-bottom:4px;">
+              <i class="fas fa-bolt" style="font-size:9px;color:#FF5B2E;"></i>
+              <span style="font-size:10px;font-weight:800;color:#FF5B2E;letter-spacing:.4px;">GREAT</span>
+            </div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.6);">Spike Approach · Set 2</div>
+          </div>
+        </div>
+        <div style="text-align:center;background:rgba(255,255,255,0.06);border-radius:14px;padding:8px 14px;border:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:24px;font-weight:800;line-height:1;letter-spacing:-1px;">
+            <span style="color:#FF5B2E;">5</span><span style="color:#4a5578;font-size:14px;font-weight:600;"> / 10</span>
+          </div>
+          <div style="font-size:9px;color:#7A8194;margin-top:3px;font-weight:700;letter-spacing:.8px;">REPS</div>
+        </div>
+      </div>
+
+      <!-- Quick metrics -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:9px 10px;text-align:center;border-left:2px solid #FF5B2E;">
+          <div style="font-size:9px;color:rgba(255,255,255,0.5);font-weight:600;letter-spacing:.5px;">JUMP HEIGHT</div>
+          <div style="font-size:14px;font-weight:800;color:#fff;margin-top:2px;">28<span style="font-size:10px;color:#7A8194;font-weight:600;">"</span></div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:9px 10px;text-align:center;border-left:2px solid #00D4AA;">
+          <div style="font-size:9px;color:rgba(255,255,255,0.5);font-weight:600;letter-spacing:.5px;">TIMING</div>
+          <div style="font-size:14px;font-weight:800;color:#00D4AA;margin-top:2px;">✓ ON</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:9px 10px;text-align:center;border-left:2px solid #FFC83D;">
+          <div style="font-size:9px;color:rgba(255,255,255,0.5);font-weight:600;letter-spacing:.5px;">SYMMETRY</div>
+          <div style="font-size:14px;font-weight:800;color:#FFC83D;margin-top:2px;">76%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom controls -->
+  <div style="position:absolute;bottom:34px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:18px;z-index:10;">
+    <div style="width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,0.6);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;">
+      <i class="fas fa-rotate" style="font-size:16px;color:#fff;"></i>
+    </div>
+    <div style="width:72px;height:72px;border-radius:50%;background:#FF5B2E;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 32px rgba(255,91,46,0.5);border:4px solid rgba(255,255,255,0.15);">
+      <div style="width:24px;height:24px;background:#fff;border-radius:6px;"></div>
+    </div>
+    <div style="width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,0.6);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;">
+      <i class="fas fa-sliders" style="font-size:16px;color:#fff;"></i>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
