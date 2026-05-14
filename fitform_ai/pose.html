@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitForm AI - AI Pose Coach</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif; background: #000; color: #fff; }
+
+  .status-bar { height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: 600; position: absolute; top: 0; left: 0; right: 0; z-index: 100; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; position: absolute; left: 50%; transform: translateX(-50%); top: 12px; }
+
+  .camera-view {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, #1a1a2e 0%, #0d0d1a 50%, #1a1a2e 100%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .camera-view img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+
+  /* Skeleton overlay */
+  .skeleton-overlay {
+    position: absolute; inset: 0; z-index: 10;
+  }
+  .skeleton-overlay svg { width: 100%; height: 100%; }
+
+  /* Top controls */
+  .top-controls {
+    position: absolute; top: 65px; left: 28px; right: 28px; z-index: 20;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .exercise-tag {
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); border-radius: 14px; padding: 10px 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .exercise-tag .live-dot { width: 10px; height: 10px; border-radius: 50%; background: #FF4444; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .exercise-tag span { font-size: 14px; font-weight: 600; }
+  .cam-controls { display: flex; gap: 8px; }
+  .cam-btn {
+    width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; border: none; cursor: pointer;
+  }
+
+  /* Form Score Panel */
+  .score-panel {
+    position: absolute; top: 130px; right: 28px; z-index: 20;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(16px); border-radius: 20px; padding: 18px;
+    width: 110px; text-align: center; border: 1px solid rgba(255,255,255,0.1);
+  }
+  .score-ring {
+    width: 72px; height: 72px; border-radius: 50%; margin: 0 auto;
+    background: conic-gradient(#00E5A0 0deg 324deg, #1e2235 324deg 360deg);
+    display: flex; align-items: center; justify-content: center; position: relative;
+  }
+  .score-ring-inner {
+    width: 58px; height: 58px; border-radius: 50%; background: rgba(0,0,0,0.8);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 800; color: #00E5A0;
+  }
+  .score-label { font-size: 11px; color: #9ca3af; margin-top: 8px; font-weight: 600; }
+
+  /* AI Feedback */
+  .feedback-panel {
+    position: absolute; bottom: 200px; left: 28px; right: 28px; z-index: 20;
+  }
+  .feedback-card {
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(16px); border-radius: 18px; padding: 16px 18px;
+    border: 1px solid rgba(0,229,160,0.2); margin-bottom: 8px;
+  }
+  .feedback-card.warning { border-color: rgba(251,146,60,0.3); }
+  .feedback-header { display: flex; align-items: center; gap: 8px; }
+  .feedback-icon { width: 30px; height: 30px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+  .feedback-text h4 { font-size: 13px; font-weight: 700; }
+  .feedback-text p { font-size: 11px; color: #9ca3af; margin-top: 1px; }
+
+  /* Rep Counter */
+  .rep-counter {
+    position: absolute; bottom: 110px; left: 28px; right: 28px; z-index: 20;
+    display: flex; gap: 12px;
+  }
+  .rep-box {
+    flex: 1; background: rgba(0,0,0,0.7); backdrop-filter: blur(16px); border-radius: 16px;
+    padding: 14px; text-align: center; border: 1px solid rgba(255,255,255,0.08);
+  }
+  .rep-box .num { font-size: 30px; font-weight: 800; }
+  .rep-box .label { font-size: 10px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+  /* Bottom controls */
+  .bottom-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 100px; z-index: 20;
+    background: rgba(0,0,0,0.8); backdrop-filter: blur(20px);
+    display: flex; align-items: center; justify-content: center; gap: 30px; padding-bottom: 20px;
+  }
+  .control-btn {
+    width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; border: none; cursor: pointer; color: #fff;
+  }
+  .pause-btn { background: rgba(255,255,255,0.15); }
+  .stop-btn { width: 64px; height: 64px; background: linear-gradient(135deg, #FF4444, #FF6B6B); font-size: 22px; }
+  .next-btn { background: linear-gradient(135deg, #00E5A0, #00B4D8); color: #000; }
+
+  /* Pose skeleton lines */
+  .pose-line { stroke: #00E5A0; stroke-width: 3; opacity: 0.8; }
+  .pose-joint { fill: #00E5A0; }
+  .pose-joint-warn { fill: #FB923C; }
+</style>
+</head>
+<body>
+  <div class="camera-view">
+    <img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80" alt="exercise">
+  </div>
+
+  <!-- Skeleton Overlay -->
+  <div class="skeleton-overlay">
+    <svg viewBox="0 0 436 956" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Spine -->
+      <line x1="218" y1="280" x2="218" y2="380" class="pose-line"/>
+      <line x1="218" y1="380" x2="218" y2="500" class="pose-line"/>
+      <!-- Arms -->
+      <line x1="218" y1="310" x2="160" y2="360" class="pose-line"/>
+      <line x1="160" y1="360" x2="120" y2="430" class="pose-line"/>
+      <line x1="218" y1="310" x2="276" y2="360" class="pose-line"/>
+      <line x1="276" y1="360" x2="316" y2="430" class="pose-line"/>
+      <!-- Legs -->
+      <line x1="218" y1="500" x2="178" y2="620" class="pose-line"/>
+      <line x1="178" y1="620" x2="170" y2="750" class="pose-line"/>
+      <line x1="218" y1="500" x2="258" y2="620" class="pose-line"/>
+      <line x1="258" y1="620" x2="266" y2="750" class="pose-line"/>
+      <!-- Joints -->
+      <circle cx="218" cy="260" r="22" fill="none" stroke="#00E5A0" stroke-width="2" opacity="0.6"/>
+      <circle cx="218" cy="280" r="6" class="pose-joint"/>
+      <circle cx="218" cy="310" r="5" class="pose-joint"/>
+      <circle cx="160" cy="360" r="5" class="pose-joint"/>
+      <circle cx="120" cy="430" r="5" class="pose-joint"/>
+      <circle cx="276" cy="360" r="5" class="pose-joint-warn"/>
+      <circle cx="316" cy="430" r="5" class="pose-joint"/>
+      <circle cx="218" cy="380" r="5" class="pose-joint"/>
+      <circle cx="218" cy="500" r="5" class="pose-joint"/>
+      <circle cx="178" cy="620" r="5" class="pose-joint"/>
+      <circle cx="170" cy="750" r="5" class="pose-joint"/>
+      <circle cx="258" cy="620" r="5" class="pose-joint"/>
+      <circle cx="266" cy="750" r="5" class="pose-joint"/>
+      <!-- Warning angle indicator -->
+      <path d="M 260 345 A 20 20 0 0 1 292 360" stroke="#FB923C" stroke-width="2" fill="none"/>
+      <text x="298" y="350" font-size="12" fill="#FB923C" font-weight="700" font-family="Inter">87°</text>
+    </svg>
+  </div>
+
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:14px"></i>
+      <i class="fas fa-wifi" style="font-size:14px"></i>
+      <i class="fas fa-battery-full" style="font-size:14px"></i>
+    </div>
+  </div>
+
+  <div class="top-controls">
+    <div class="exercise-tag">
+      <div class="live-dot"></div>
+      <span>Barbell Squat</span>
+    </div>
+    <div class="cam-controls">
+      <button class="cam-btn"><i class="fas fa-rotate"></i></button>
+      <button class="cam-btn"><i class="fas fa-expand"></i></button>
+    </div>
+  </div>
+
+  <div class="score-panel">
+    <div class="score-ring">
+      <div class="score-ring-inner">90</div>
+    </div>
+    <div class="score-label">Form Score</div>
+  </div>
+
+  <div class="feedback-panel">
+    <div class="feedback-card">
+      <div class="feedback-header">
+        <div class="feedback-icon" style="background: rgba(0,229,160,0.15); color: #00E5A0;"><i class="fas fa-check"></i></div>
+        <div class="feedback-text">
+          <h4>Great depth!</h4>
+          <p>Hip below knee line achieved</p>
+        </div>
+      </div>
+    </div>
+    <div class="feedback-card warning">
+      <div class="feedback-header">
+        <div class="feedback-icon" style="background: rgba(251,146,60,0.15); color: #FB923C;"><i class="fas fa-exclamation"></i></div>
+        <div class="feedback-text">
+          <h4>Right elbow too wide</h4>
+          <p>Tuck elbow in 10° for better form</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rep-counter">
+    <div class="rep-box">
+      <div class="num" style="color: #00E5A0;">6</div>
+      <div class="label">Reps</div>
+    </div>
+    <div class="rep-box">
+      <div class="num" style="color: #00B4D8;">3</div>
+      <div class="label">Set</div>
+    </div>
+    <div class="rep-box">
+      <div class="num" style="color: #8B5CF6;">02:34</div>
+      <div class="label">Time</div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="control-btn pause-btn"><i class="fas fa-pause"></i></button>
+    <button class="control-btn stop-btn"><i class="fas fa-stop"></i></button>
+    <button class="control-btn next-btn"><i class="fas fa-forward-step"></i></button>
+  </div>
+</body>
+</html>

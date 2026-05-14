@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitForm AI - Plans</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow-y: auto; scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif; background: #0A0E1A; color: #fff; }
+
+  .status-bar { height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: 600; position: sticky; top: 0; z-index: 100; background: #0A0E1A; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; position: absolute; left: 50%; transform: translateX(-50%); top: 12px; }
+
+  .content { padding: 0 28px 120px; }
+
+  .page-header { margin-top: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .page-header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  .filter-btn { width: 40px; height: 40px; border-radius: 12px; background: #141829; border: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 16px; }
+
+  .goal-selector { display: flex; gap: 8px; margin-top: 18px; overflow-x: auto; padding-bottom: 4px; }
+  .goal-chip { padding: 8px 18px; border-radius: 12px; font-size: 13px; font-weight: 600; white-space: nowrap; background: #141829; color: #6b7280; border: 1px solid rgba(255,255,255,0.06); cursor: pointer; }
+  .goal-chip.active { background: linear-gradient(135deg, #00E5A0, #00B4D8); color: #000; border-color: transparent; }
+
+  .active-plan { margin-top: 22px; background: linear-gradient(135deg, #0d2818, #0a1628); border-radius: 22px; padding: 22px; border: 1px solid rgba(0,229,160,0.2); }
+  .plan-badge { font-size: 11px; font-weight: 700; color: #00E5A0; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; }
+  .plan-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #00E5A0; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .active-plan h3 { font-size: 20px; font-weight: 700; margin-top: 10px; }
+  .active-plan .meta { font-size: 13px; color: #9ca3af; margin-top: 4px; }
+  .plan-progress { margin-top: 14px; }
+  .plan-progress .bar { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+  .plan-progress .fill { height: 100%; background: linear-gradient(90deg, #00E5A0, #00B4D8); border-radius: 3px; width: 45%; }
+  .plan-progress .info { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; color: #6b7280; }
+
+  .week-schedule { margin-top: 20px; }
+  .week-day { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .week-day:last-child { border: none; }
+  .day-label { width: 40px; font-size: 13px; font-weight: 600; color: #6b7280; }
+  .day-label.today { color: #00E5A0; }
+  .day-content { flex: 1; background: #141829; border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,0.04); }
+  .day-content.rest { background: rgba(255,255,255,0.02); border-style: dashed; }
+  .day-icon { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .day-info h4 { font-size: 14px; font-weight: 600; }
+  .day-info p { font-size: 11px; color: #6b7280; margin-top: 1px; }
+  .day-check { margin-left: auto; font-size: 16px; }
+
+  .section-title { font-size: 18px; font-weight: 700; margin-top: 28px; margin-bottom: 14px; }
+
+  .plan-cards { display: flex; flex-direction: column; gap: 12px; }
+  .plan-card {
+    border-radius: 20px; overflow: hidden; position: relative; height: 140px; cursor: pointer;
+  }
+  .plan-card img { width: 100%; height: 100%; object-fit: cover; }
+  .plan-card-overlay {
+    position: absolute; inset: 0; padding: 18px;
+    background: linear-gradient(135deg, rgba(0,0,0,0.7), rgba(0,0,0,0.3));
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  .plan-card-overlay .difficulty { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 4px 10px; border-radius: 8px; display: inline-block; width: fit-content; margin-bottom: auto; }
+  .plan-card-overlay h4 { font-size: 17px; font-weight: 700; }
+  .plan-card-overlay p { font-size: 12px; color: #d1d5db; margin-top: 2px; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 90px; background: rgba(10,14,26,0.92); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-around; align-items: center; padding-bottom: 16px; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+  .tab-item i { font-size: 22px; color: #4b5563; }
+  .tab-item span { font-size: 10px; color: #4b5563; font-weight: 500; }
+  .tab-item.active i { color: #00E5A0; }
+  .tab-item.active span { color: #00E5A0; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:14px"></i>
+      <i class="fas fa-wifi" style="font-size:14px"></i>
+      <i class="fas fa-battery-full" style="font-size:14px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-header">
+      <h1>My Plans</h1>
+      <div class="filter-btn"><i class="fas fa-sliders"></i></div>
+    </div>
+
+    <div class="goal-selector">
+      <div class="goal-chip active">Muscle Build</div>
+      <div class="goal-chip">Fat Loss</div>
+      <div class="goal-chip">Endurance</div>
+      <div class="goal-chip">Flexibility</div>
+    </div>
+
+    <div class="active-plan">
+      <div class="plan-badge"><div class="dot"></div>Active Plan</div>
+      <h3>12-Week Muscle Builder</h3>
+      <div class="meta">Week 5 of 12 &bull; Intermediate</div>
+      <div class="plan-progress">
+        <div class="bar"><div class="fill"></div></div>
+        <div class="info"><span>Week 5 / 12</span><span>45%</span></div>
+      </div>
+    </div>
+
+    <div class="week-schedule">
+      <div class="week-day">
+        <div class="day-label">Mon</div>
+        <div class="day-content">
+          <div class="day-icon" style="background: rgba(0,229,160,0.15); color: #00E5A0;"><i class="fas fa-dumbbell"></i></div>
+          <div class="day-info"><h4>Chest & Triceps</h4><p>50 min &bull; 10 exercises</p></div>
+          <div class="day-check" style="color: #00E5A0;"><i class="fas fa-check-circle"></i></div>
+        </div>
+      </div>
+      <div class="week-day">
+        <div class="day-label">Tue</div>
+        <div class="day-content">
+          <div class="day-icon" style="background: rgba(0,180,216,0.15); color: #00B4D8;"><i class="fas fa-running"></i></div>
+          <div class="day-info"><h4>Back & Biceps</h4><p>45 min &bull; 8 exercises</p></div>
+          <div class="day-check" style="color: #00E5A0;"><i class="fas fa-check-circle"></i></div>
+        </div>
+      </div>
+      <div class="week-day">
+        <div class="day-label">Wed</div>
+        <div class="day-content rest">
+          <div class="day-icon" style="background: rgba(139,92,246,0.1); color: #8B5CF6;"><i class="fas fa-spa"></i></div>
+          <div class="day-info"><h4>Active Recovery</h4><p>20 min stretching</p></div>
+          <div class="day-check" style="color: #00E5A0;"><i class="fas fa-check-circle"></i></div>
+        </div>
+      </div>
+      <div class="week-day">
+        <div class="day-label today">Thu</div>
+        <div class="day-content" style="border-color: rgba(0,229,160,0.3);">
+          <div class="day-icon" style="background: rgba(251,146,60,0.15); color: #FB923C;"><i class="fas fa-fire"></i></div>
+          <div class="day-info"><h4>Legs & Core</h4><p>55 min &bull; 12 exercises</p></div>
+          <div class="day-check" style="color: #374151;"><i class="far fa-circle"></i></div>
+        </div>
+      </div>
+      <div class="week-day">
+        <div class="day-label">Fri</div>
+        <div class="day-content">
+          <div class="day-icon" style="background: rgba(236,72,153,0.15); color: #EC4899;"><i class="fas fa-hand-fist"></i></div>
+          <div class="day-info"><h4>Shoulders & Arms</h4><p>40 min &bull; 9 exercises</p></div>
+          <div class="day-check" style="color: #374151;"><i class="far fa-circle"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Explore Plans</div>
+    <div class="plan-cards">
+      <div class="plan-card">
+        <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80" alt="strength">
+        <div class="plan-card-overlay">
+          <div class="difficulty" style="background: rgba(251,146,60,0.3); color: #FB923C;">Advanced</div>
+          <h4>Power Strength Pro</h4>
+          <p>8 weeks &bull; 5x/week &bull; Barbell focused</p>
+        </div>
+      </div>
+      <div class="plan-card">
+        <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80" alt="hiit">
+        <div class="plan-card-overlay">
+          <div class="difficulty" style="background: rgba(0,229,160,0.3); color: #00E5A0;">Beginner</div>
+          <h4>HIIT Fat Burner</h4>
+          <p>6 weeks &bull; 4x/week &bull; No equipment</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item active"><i class="fas fa-dumbbell"></i><span>Plans</span></div>
+    <div class="tab-item"><i class="fas fa-camera"></i><span>AI Coach</span></div>
+    <div class="tab-item"><i class="fas fa-chart-simple"></i><span>Progress</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</body>
+</html>

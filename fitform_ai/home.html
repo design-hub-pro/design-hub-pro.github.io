@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitForm AI - Home</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow-y: auto; scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif; background: #0A0E1A; color: #fff; }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center;
+    font-size: 15px; font-weight: 600; position: sticky; top: 0; z-index: 100; background: #0A0E1A;
+  }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; margin: 0 auto; position: absolute; left: 50%; transform: translateX(-50%); top: 12px; }
+
+  .content { padding: 0 28px 120px; }
+
+  .greeting { margin-top: 8px; }
+  .greeting h2 { font-size: 14px; color: #9ca3af; font-weight: 500; }
+  .greeting h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-top: 2px; }
+
+  .today-card {
+    margin-top: 20px; border-radius: 24px; overflow: hidden; position: relative; height: 200px;
+  }
+  .today-card img { width: 100%; height: 100%; object-fit: cover; }
+  .today-overlay {
+    position: absolute; bottom: 0; left: 0; right: 0; padding: 24px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.85));
+  }
+  .today-overlay .tag { font-size: 11px; font-weight: 700; color: #00E5A0; text-transform: uppercase; letter-spacing: 1px; }
+  .today-overlay h3 { font-size: 20px; font-weight: 700; margin-top: 4px; }
+  .today-overlay p { font-size: 13px; color: #d1d5db; margin-top: 2px; }
+  .start-btn {
+    margin-top: 10px; background: linear-gradient(135deg, #00E5A0, #00B4D8); border: none; color: #000;
+    font-size: 14px; font-weight: 700; padding: 10px 24px; border-radius: 14px; cursor: pointer;
+  }
+
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px; }
+  .stat-card {
+    background: #141829; border-radius: 18px; padding: 16px; text-align: center;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .stat-card .num { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #00E5A0, #00B4D8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .stat-card .label { font-size: 11px; color: #6b7280; margin-top: 2px; font-weight: 500; }
+
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-top: 28px; margin-bottom: 14px; }
+  .section-header h3 { font-size: 18px; font-weight: 700; }
+  .section-header a { font-size: 13px; color: #00E5A0; text-decoration: none; font-weight: 600; }
+
+  .progress-card {
+    background: #141829; border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.06);
+  }
+  .progress-header { display: flex; justify-content: space-between; align-items: center; }
+  .progress-header span { font-size: 14px; font-weight: 600; }
+  .progress-header .pct { font-size: 14px; font-weight: 700; color: #00E5A0; }
+  .progress-bar { width: 100%; height: 8px; background: #1e2235; border-radius: 4px; margin-top: 10px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #00E5A0, #00B4D8); border-radius: 4px; width: 68%; }
+  .progress-days { display: flex; justify-content: space-between; margin-top: 10px; }
+  .day-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+  .day-dot.done { background: #00E5A0; color: #000; }
+  .day-dot.today { background: linear-gradient(135deg, #00E5A0, #00B4D8); color: #000; }
+  .day-dot.future { background: #1e2235; color: #6b7280; }
+
+  .quick-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 14px; }
+  .action-card {
+    background: #141829; border-radius: 18px; padding: 18px; border: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; gap: 14px; cursor: pointer; transition: background 0.2s;
+  }
+  .action-card:hover { background: #1a1f35; }
+  .action-icon {
+    width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .action-card h4 { font-size: 14px; font-weight: 600; }
+  .action-card p { font-size: 11px; color: #6b7280; margin-top: 1px; }
+
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 90px;
+    background: rgba(10,14,26,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-around; align-items: center;
+    padding-bottom: 16px;
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+  .tab-item i { font-size: 22px; color: #4b5563; }
+  .tab-item span { font-size: 10px; color: #4b5563; font-weight: 500; }
+  .tab-item.active i { color: #00E5A0; }
+  .tab-item.active span { color: #00E5A0; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:14px"></i>
+      <i class="fas fa-wifi" style="font-size:14px"></i>
+      <i class="fas fa-battery-full" style="font-size:14px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="greeting">
+      <h2>Good Morning</h2>
+      <h1>Alex Johnson</h1>
+    </div>
+
+    <div class="today-card">
+      <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80" alt="workout">
+      <div class="today-overlay">
+        <div class="tag">Today's Workout</div>
+        <h3>Upper Body Power</h3>
+        <p>45 min &bull; 8 exercises &bull; 320 cal</p>
+        <button class="start-btn"><i class="fas fa-play" style="margin-right:6px"></i>Start Now</button>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="num">847</div>
+        <div class="label">Calories</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">4</div>
+        <div class="label">Workouts</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">92</div>
+        <div class="label">Form Score</div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <h3>Weekly Progress</h3>
+      <a href="#">View All</a>
+    </div>
+    <div class="progress-card">
+      <div class="progress-header">
+        <span>Muscle Building Plan</span>
+        <span class="pct">68%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill"></div></div>
+      <div class="progress-days">
+        <div class="day-dot done">M</div>
+        <div class="day-dot done">T</div>
+        <div class="day-dot done">W</div>
+        <div class="day-dot today">T</div>
+        <div class="day-dot future">F</div>
+        <div class="day-dot future">S</div>
+        <div class="day-dot future">S</div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <h3>Quick Actions</h3>
+    </div>
+    <div class="quick-actions">
+      <div class="action-card">
+        <div class="action-icon" style="background: rgba(0,229,160,0.15); color: #00E5A0;">
+          <i class="fas fa-camera"></i>
+        </div>
+        <div>
+          <h4>AI Form Check</h4>
+          <p>Real-time feedback</p>
+        </div>
+      </div>
+      <div class="action-card">
+        <div class="action-icon" style="background: rgba(0,180,216,0.15); color: #00B4D8;">
+          <i class="fas fa-dumbbell"></i>
+        </div>
+        <div>
+          <h4>Custom Plan</h4>
+          <p>Build your own</p>
+        </div>
+      </div>
+      <div class="action-card">
+        <div class="action-icon" style="background: rgba(139,92,246,0.15); color: #8B5CF6;">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div>
+          <h4>Analytics</h4>
+          <p>Track progress</p>
+        </div>
+      </div>
+      <div class="action-card">
+        <div class="action-icon" style="background: rgba(251,146,60,0.15); color: #FB923C;">
+          <i class="fas fa-trophy"></i>
+        </div>
+        <div>
+          <h4>Challenges</h4>
+          <p>Compete & earn</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item active"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-dumbbell"></i><span>Plans</span></div>
+    <div class="tab-item"><i class="fas fa-camera"></i><span>AI Coach</span></div>
+    <div class="tab-item"><i class="fas fa-chart-simple"></i><span>Progress</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</body>
+</html>
