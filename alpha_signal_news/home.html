@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>信号流 · AlphaSignal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ink: { 950: '#070912', 900: '#0A0E1A', 850: '#0F1422', 800: '#131A2C', 700: '#1A2235', 600: '#252E45', 500: '#374259' },
+                        signal: { green: '#10B981', red: '#EF4444', amber: '#F59E0B', blue: '#3B82F6', purple: '#A855F7' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans SC', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', 'Noto Sans SC', sans-serif; background: #0A0E1A; }
+        .scroll-hide::-webkit-scrollbar { display: none; }
+        .scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .glass { background: rgba(19, 26, 44, 0.6); backdrop-filter: blur(12px); }
+        .grid-bg {
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+        .glow-green { box-shadow: 0 0 24px rgba(16, 185, 129, 0.15); }
+        .glow-amber { box-shadow: 0 0 24px rgba(245, 158, 11, 0.15); }
+        .signal-card { transition: all 0.2s ease; }
+        .signal-card:hover { transform: translateY(-1px); border-color: rgba(16, 185, 129, 0.3); }
+        .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .ticker-tape { animation: tape 30s linear infinite; }
+        @keyframes tape { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .gradient-text { background: linear-gradient(135deg, #10B981 0%, #3B82F6 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .conf-ring { background: conic-gradient(#10B981 var(--conf), #1A2235 0); }
+        .spark { display: inline-block; height: 16px; vertical-align: middle; }
+    </style>
+</head>
+<body class="text-slate-200">
+
+    <!-- Top Navigation -->
+    <nav class="glass border-b border-ink-700 sticky top-0 z-40">
+        <div class="max-w-[1600px] mx-auto px-6 h-14 flex items-center justify-between">
+            <div class="flex items-center gap-8">
+                <a href="home.html" class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-signal-green to-signal-blue flex items-center justify-center">
+                        <i class="fas fa-wave-square text-white text-sm"></i>
+                    </div>
+                    <div class="leading-tight">
+                        <div class="text-white font-bold text-[15px] tracking-tight">前瞻 <span class="gradient-text">AlphaSignal</span></div>
+                        <div class="text-[10px] text-slate-500 -mt-0.5">AI-Native Investment Intelligence</div>
+                    </div>
+                </a>
+                <div class="hidden md:flex items-center gap-1 text-[13px]">
+                    <a href="home.html" class="px-3 py-1.5 rounded-md bg-ink-700 text-white font-medium">信号流</a>
+                    <a href="signals.html" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white">信号库</a>
+                    <a href="discover.html" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white">赛道发现</a>
+                    <a href="watchlist.html" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white">自选</a>
+                    <a href="agents.html" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white">Agent工坊</a>
+                    <a href="sources.html" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white">信源</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="hidden lg:flex items-center gap-2 bg-ink-800 border border-ink-700 rounded-lg px-3 py-1.5 w-80">
+                    <i class="fas fa-magnifying-glass text-slate-500 text-xs"></i>
+                    <input class="bg-transparent text-[13px] text-slate-300 placeholder-slate-500 outline-none flex-1" placeholder="问问AI: 这周端侧AI的边际变化…">
+                    <kbd class="text-[10px] text-slate-500 border border-ink-600 rounded px-1.5 py-0.5">⌘K</kbd>
+                </div>
+                <div class="flex items-center gap-2 bg-ink-800 border border-ink-700 rounded-lg px-3 py-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-signal-green pulse-dot"></span>
+                    <span class="text-[12px] text-slate-300 font-medium">7 agents 运行中</span>
+                </div>
+                <button class="w-8 h-8 rounded-lg bg-ink-800 border border-ink-700 flex items-center justify-center text-slate-400 hover:text-white relative">
+                    <i class="fas fa-bell text-xs"></i>
+                    <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-signal-amber text-[10px] text-ink-900 font-bold flex items-center justify-center">3</span>
+                </button>
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-signal-purple to-signal-blue flex items-center justify-center text-white text-xs font-semibold">YS</div>
+            </div>
+        </div>
+
+        <!-- Ticker tape -->
+        <div class="border-t border-ink-700 bg-ink-900 overflow-hidden h-8">
+            <div class="ticker-tape flex items-center gap-6 h-full px-6 whitespace-nowrap text-[12px] font-mono">
+                <span class="text-slate-500">实时</span>
+                <span><span class="text-slate-400">沪深300</span> <span class="text-signal-green">3,876.42 +0.83%</span></span>
+                <span><span class="text-slate-400">上证指数</span> <span class="text-signal-green">3,254.18 +0.41%</span></span>
+                <span><span class="text-slate-400">恒生科技</span> <span class="text-signal-red">4,213.55 -1.24%</span></span>
+                <span><span class="text-slate-400">S&P 500</span> <span class="text-signal-green">5,892.34 +0.67%</span></span>
+                <span><span class="text-slate-400">NDX</span> <span class="text-signal-green">21,043.21 +1.12%</span></span>
+                <span><span class="text-slate-400">INTC</span> <span class="text-signal-green">28.74 +6.34%</span></span>
+                <span><span class="text-slate-400">NVDA</span> <span class="text-signal-red">142.81 -2.18%</span></span>
+                <span><span class="text-slate-400">$/¥</span> <span class="text-slate-300">7.234</span></span>
+                <span><span class="text-slate-400">US 10Y</span> <span class="text-slate-300">4.387%</span></span>
+                <span><span class="text-slate-400">WTI 原油</span> <span class="text-signal-amber">72.34 +0.21%</span></span>
+                <span><span class="text-slate-400">沪深300</span> <span class="text-signal-green">3,876.42 +0.83%</span></span>
+                <span><span class="text-slate-400">上证指数</span> <span class="text-signal-green">3,254.18 +0.41%</span></span>
+                <span><span class="text-slate-400">恒生科技</span> <span class="text-signal-red">4,213.55 -1.24%</span></span>
+                <span><span class="text-slate-400">S&P 500</span> <span class="text-signal-green">5,892.34 +0.67%</span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-[1600px] mx-auto px-6 py-6 grid grid-cols-12 gap-6">
+
+        <!-- Left Sidebar -->
+        <aside class="col-span-2 space-y-6">
+            <div>
+                <div class="text-[11px] uppercase tracking-wider text-slate-500 mb-2 px-2">信号分类</div>
+                <nav class="space-y-0.5 text-[13px]">
+                    <a href="#" class="flex items-center justify-between px-3 py-2 rounded-lg bg-ink-800 text-white font-medium">
+                        <span class="flex items-center gap-2.5"><i class="fas fa-fire text-signal-amber text-xs w-4"></i>全部信号</span>
+                        <span class="text-[11px] text-slate-500 font-mono">87</span>
+                    </a>
+                    <a href="#" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-ink-800 text-slate-400 hover:text-white">
+                        <span class="flex items-center gap-2.5"><i class="fas fa-building text-xs w-4"></i>公司公告</span>
+                        <span class="text-[11px] text-slate-500 font-mono">31</span>
+                    </a>
+                    <a href="#" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-ink-800 text-slate-400 hover:text-white">
+                        <span class="flex items-center gap-2.5"><i class="fas fa-headset text-xs w-4"></i>电话会议</span>
+                        <span class="text-[11px] text-slate-500 font-mono">14</span>
+                    </a>
+                    <a href="#" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-ink-800 text-slate-400 hover:text-white">
+                        <span class="flex items-center gap-2.5"><i class="fas fa-coins text-xs w-4"></i>基金动向</span>
+                        <span class="text-[11px] text-slate-500 font-mono">12</span>
+                    </a>
+                    <a href="#" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-ink-800 text-slate-400 hover:text-white">
+                        <span class="flex items-center gap-2.5"><i class="fas fa-chart-line text-xs w-4"></i>宏观数据</span>
+                        <span class="text-[11px] text-slate-500 font-mono">9</span>
+                    </a>
+                    <a href="#" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-ink-800 text-slate-400 hover:text-white">
+                        <span class="flex items-center gap-2.5"><i class="fas fa-file-lines text-xs w-4"></i>券商研报</span>
+                        <span class="text-[11px] text-slate-500 font-mono">15</span>
+                    </a>
+                    <a href="#" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-ink-800 text-slate-400 hover:text-white">
+                        <span class="flex items-center gap-2.5"><i class="fas fa-scale-balanced text-xs w-4"></i>监管动态</span>
+                        <span class="text-[11px] text-slate-500 font-mono">6</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div>
+                <div class="text-[11px] uppercase tracking-wider text-slate-500 mb-2 px-2">活跃赛道</div>
+                <div class="space-y-1 text-[12px] px-2">
+                    <a href="#" class="flex items-center justify-between py-1.5 text-slate-300 hover:text-white group">
+                        <span># 端侧AI</span><span class="text-signal-green font-mono">+24</span>
+                    </a>
+                    <a href="#" class="flex items-center justify-between py-1.5 text-slate-300 hover:text-white">
+                        <span># CPU复苏</span><span class="text-signal-green font-mono">+18</span>
+                    </a>
+                    <a href="#" class="flex items-center justify-between py-1.5 text-slate-300 hover:text-white">
+                        <span># 机电出口</span><span class="text-signal-green font-mono">+15</span>
+                    </a>
+                    <a href="#" class="flex items-center justify-between py-1.5 text-slate-300 hover:text-white">
+                        <span># 创新药出海</span><span class="text-signal-green font-mono">+12</span>
+                    </a>
+                    <a href="#" class="flex items-center justify-between py-1.5 text-slate-300 hover:text-white">
+                        <span># HBM产能</span><span class="text-signal-amber font-mono">+8</span>
+                    </a>
+                    <a href="#" class="flex items-center justify-between py-1.5 text-slate-500 hover:text-white">
+                        <span># 国内消费</span><span class="text-signal-red font-mono">-6</span>
+                    </a>
+                    <a href="#" class="flex items-center justify-between py-1.5 text-slate-500 hover:text-white">
+                        <span># 房地产链</span><span class="text-signal-red font-mono">-11</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-ink-800 border border-ink-700 rounded-xl p-3">
+                <div class="flex items-center gap-2 mb-2">
+                    <i class="fas fa-bolt text-signal-amber text-xs"></i>
+                    <span class="text-[12px] font-semibold text-white">今日处理</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-center">
+                    <div>
+                        <div class="text-lg font-bold text-white font-mono">214</div>
+                        <div class="text-[10px] text-slate-500">公告 / 研报</div>
+                    </div>
+                    <div>
+                        <div class="text-lg font-bold text-signal-green font-mono">87</div>
+                        <div class="text-[10px] text-slate-500">生成信号</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Feed -->
+        <main class="col-span-7 space-y-4">
+
+            <!-- Header bar -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-white">今日信号流</h1>
+                    <p class="text-[13px] text-slate-500 mt-0.5">5月18日 · AI已扫描214份文档，提炼87个可投资信号</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button class="px-3 py-1.5 bg-ink-800 border border-ink-700 rounded-lg text-[12px] text-slate-300 hover:text-white flex items-center gap-1.5">
+                        <i class="fas fa-arrows-up-down text-[10px]"></i>影响度排序
+                    </button>
+                    <button class="px-3 py-1.5 bg-ink-800 border border-ink-700 rounded-lg text-[12px] text-slate-300 hover:text-white flex items-center gap-1.5">
+                        <i class="fas fa-sliders text-[10px]"></i>筛选
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter chips -->
+            <div class="flex items-center gap-2 overflow-x-auto scroll-hide pb-1">
+                <button class="px-3 py-1 rounded-full bg-signal-green text-ink-900 text-[12px] font-medium whitespace-nowrap">全部时段</button>
+                <button class="px-3 py-1 rounded-full bg-ink-800 border border-ink-700 text-slate-400 text-[12px] whitespace-nowrap hover:text-white">今日</button>
+                <button class="px-3 py-1 rounded-full bg-ink-800 border border-ink-700 text-slate-400 text-[12px] whitespace-nowrap hover:text-white">本周</button>
+                <div class="w-px h-4 bg-ink-700 mx-1"></div>
+                <button class="px-3 py-1 rounded-full bg-ink-800 border border-ink-700 text-slate-400 text-[12px] whitespace-nowrap hover:text-white">A股</button>
+                <button class="px-3 py-1 rounded-full bg-ink-800 border border-ink-700 text-slate-400 text-[12px] whitespace-nowrap hover:text-white">美股</button>
+                <button class="px-3 py-1 rounded-full bg-ink-800 border border-ink-700 text-slate-400 text-[12px] whitespace-nowrap hover:text-white">港股</button>
+                <div class="w-px h-4 bg-ink-700 mx-1"></div>
+                <button class="px-3 py-1 rounded-full bg-ink-800 border border-ink-700 text-slate-400 text-[12px] whitespace-nowrap hover:text-white"><i class="fas fa-arrow-up text-[10px] text-signal-green mr-1"></i>看多</button>
+                <button class="px-3 py-1 rounded-full bg-ink-800 border border-ink-700 text-slate-400 text-[12px] whitespace-nowrap hover:text-white"><i class="fas fa-arrow-down text-[10px] text-signal-red mr-1"></i>看空</button>
+                <button class="px-3 py-1 rounded-full bg-ink-800 border border-ink-700 text-slate-400 text-[12px] whitespace-nowrap hover:text-white">前瞻判断</button>
+                <button class="px-3 py-1 rounded-full bg-ink-800 border border-ink-700 text-slate-400 text-[12px] whitespace-nowrap hover:text-white">高置信度</button>
+            </div>
+
+            <!-- Featured Signal Card (Intel) -->
+            <article class="signal-card bg-gradient-to-br from-ink-800 to-ink-850 border border-signal-green/40 rounded-2xl p-6 glow-green">
+                <div class="flex items-start justify-between gap-4 mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 bg-signal-green/20 text-signal-green text-[10px] font-bold rounded uppercase tracking-wider">头条信号</span>
+                        <span class="px-2 py-0.5 bg-signal-amber/15 text-signal-amber text-[10px] font-bold rounded uppercase tracking-wider">前瞻判断</span>
+                        <span class="text-[11px] text-slate-500">· 16分钟前</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="text-right">
+                            <div class="text-[10px] text-slate-500 uppercase">置信度</div>
+                            <div class="text-signal-green font-mono font-bold text-sm">94%</div>
+                        </div>
+                        <div class="w-10 h-10 rounded-full conf-ring flex items-center justify-center" style="--conf: 338deg">
+                            <div class="w-8 h-8 rounded-full bg-ink-900 flex items-center justify-center">
+                                <i class="fas fa-arrow-trend-up text-signal-green text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="article.html"><h2 class="text-xl font-bold text-white leading-snug mb-2 hover:text-signal-green transition">陈立武首谈"端侧AI"：Intel不仅是CPU复苏，更可能是未来18个月的隐形alpha赛道</h2></a>
+                <p class="text-[14px] text-slate-400 leading-relaxed mb-4">
+                    AI解读 Q1电话会议全文 + 11份券商研报后认为：陈立武在回答分析师提问时罕见提及"端侧推理将重塑PC换机周期"，是Intel新CEO上任以来首次主动设定叙事。结合戴尔/惠普同步上调商用PC指引，<span class="text-white font-medium">端侧AI赛道已从概念阶段进入业绩验证阶段</span>。建议关注：Intel、ARM、联想集团、宏碁，以及上游的存储(HBM3e)与PCB高速板。
+                </p>
+
+                <!-- Source breakdown -->
+                <div class="bg-ink-900/60 border border-ink-700 rounded-xl p-3 mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">信源构成</span>
+                        <a href="#" class="text-[11px] text-signal-blue hover:underline">查看 24 条原始引用 →</a>
+                    </div>
+                    <div class="flex items-center gap-3 text-[12px]">
+                        <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-signal-blue"></span><span class="text-slate-300">电话会议</span><span class="text-slate-500 font-mono">42%</span></div>
+                        <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-signal-purple"></span><span class="text-slate-300">券商研报</span><span class="text-slate-500 font-mono">31%</span></div>
+                        <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-signal-green"></span><span class="text-slate-300">10-K/Q</span><span class="text-slate-500 font-mono">18%</span></div>
+                        <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-signal-amber"></span><span class="text-slate-300">行业数据</span><span class="text-slate-500 font-mono">9%</span></div>
+                    </div>
+                    <div class="mt-2 h-1.5 rounded-full overflow-hidden flex">
+                        <div class="bg-signal-blue" style="width:42%"></div>
+                        <div class="bg-signal-purple" style="width:31%"></div>
+                        <div class="bg-signal-green" style="width:18%"></div>
+                        <div class="bg-signal-amber" style="width:9%"></div>
+                    </div>
+                </div>
+
+                <!-- Related instruments -->
+                <div class="flex items-center gap-2 mb-4 flex-wrap">
+                    <span class="text-[11px] text-slate-500 uppercase tracking-wider mr-1">相关标的</span>
+                    <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-ink-900 border border-ink-700">
+                        <span class="text-[12px] font-semibold text-white">INTC</span>
+                        <span class="text-[11px] text-signal-green font-mono">+6.34%</span>
+                        <svg class="spark" width="40" height="14" viewBox="0 0 40 14"><polyline points="0,10 6,8 12,9 18,5 24,6 30,3 36,2 40,1" fill="none" stroke="#10B981" stroke-width="1.5"/></svg>
+                    </span>
+                    <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-ink-900 border border-ink-700">
+                        <span class="text-[12px] font-semibold text-white">ARM</span>
+                        <span class="text-[11px] text-signal-green font-mono">+3.12%</span>
+                        <svg class="spark" width="40" height="14" viewBox="0 0 40 14"><polyline points="0,10 6,8 12,7 18,5 24,7 30,4 36,3 40,2" fill="none" stroke="#10B981" stroke-width="1.5"/></svg>
+                    </span>
+                    <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-ink-900 border border-ink-700">
+                        <span class="text-[12px] font-semibold text-white">联想集团</span>
+                        <span class="text-[11px] text-signal-green font-mono">+2.18%</span>
+                    </span>
+                    <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-ink-900 border border-ink-700">
+                        <span class="text-[12px] font-semibold text-white">SMH</span>
+                        <span class="text-[11px] text-slate-500 font-mono">ETF</span>
+                    </span>
+                </div>
+
+                <div class="flex items-center justify-between pt-3 border-t border-ink-700">
+                    <div class="flex items-center gap-2 text-[11px] text-slate-500">
+                        <div class="flex items-center gap-1"><i class="fas fa-robot text-[10px]"></i>由 <span class="text-slate-300">宏观分析师·Aurora</span> 生成</div>
+                        <span>·</span>
+                        <div>影响范围 <span class="text-slate-300 font-mono">3 行业 · 12 标的</span></div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button class="px-3 py-1.5 text-[12px] text-slate-300 hover:text-white"><i class="fas fa-bookmark mr-1"></i>加入信号库</button>
+                        <a href="article.html" class="px-3 py-1.5 bg-signal-green text-ink-900 rounded-lg text-[12px] font-semibold hover:bg-emerald-400">阅读全文 →</a>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Regular Signal Cards -->
+            <!-- Card 2: GDP analysis -->
+            <article class="signal-card bg-ink-800 border border-ink-700 rounded-2xl p-5">
+                <div class="flex items-start justify-between gap-4 mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 bg-signal-blue/15 text-signal-blue text-[10px] font-bold rounded uppercase tracking-wider">宏观数据</span>
+                        <span class="px-2 py-0.5 bg-ink-700 text-slate-400 text-[10px] rounded">深度拆解</span>
+                        <span class="text-[11px] text-slate-500">· 2小时前</span>
+                    </div>
+                    <span class="text-signal-green font-mono font-bold text-sm">89%</span>
+                </div>
+                <h3 class="text-[17px] font-bold text-white leading-snug mb-2 hover:text-signal-green cursor-pointer">Q1 GDP背后真相：机电出口已成中国"新引擎"，但消费端裂痕扩大</h3>
+                <p class="text-[13px] text-slate-400 leading-relaxed mb-3">
+                    AI从国家统计局数据 + 海关总署细分数据中拆解发现：一季度机电出口同比+11.2%，对GDP拉动0.83pct，<span class="text-signal-green font-medium">实际是当季最大边际贡献项</span>。而社零增速仅+3.1%，可选消费首次出现负增长。结构层面，"出口拉动+消费疲软"组合对应 <span class="text-white">出口链ETF&gt;消费ETF</span>。
+                </p>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="px-2 py-0.5 rounded bg-ink-900 border border-ink-700 text-[11px] text-white font-mono">512170 机器人ETF</span>
+                        <span class="px-2 py-0.5 rounded bg-ink-900 border border-ink-700 text-[11px] text-white font-mono">516160 新能源车ETF</span>
+                        <span class="px-2 py-0.5 rounded bg-ink-900 border border-ink-700 text-[11px] text-slate-500 font-mono">← 159928 消费ETF</span>
+                    </div>
+                    <div class="text-[11px] text-slate-500"><i class="fas fa-robot text-[10px] mr-1"></i>宏观分析师·Aurora</div>
+                </div>
+            </article>
+
+            <!-- Card 3: 13F filing -->
+            <article class="signal-card bg-ink-800 border border-ink-700 rounded-2xl p-5">
+                <div class="flex items-start justify-between gap-4 mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 bg-signal-purple/15 text-signal-purple text-[10px] font-bold rounded uppercase tracking-wider">13F 基金披露</span>
+                        <span class="text-[11px] text-slate-500">· 3小时前</span>
+                    </div>
+                    <span class="text-signal-amber font-mono font-bold text-sm">76%</span>
+                </div>
+                <h3 class="text-[17px] font-bold text-white leading-snug mb-2 hover:text-signal-green cursor-pointer">Tiger Global Q1 13F解读：罕见加仓"小盘工业股"，与传统多头形成分歧</h3>
+                <p class="text-[13px] text-slate-400 leading-relaxed mb-3">
+                    AI对比4季度数据后发现：Tiger Global新进 <span class="text-white font-mono">7只罗素2000工业股</span>，加仓幅度均超3%；同期削减META、AMZN持仓。结合Citadel/Coatue一季度方向，<span class="text-signal-amber font-medium">机构正在静默轮动到中小盘工业</span>，可能是<span class="text-signal-green">IWM跑赢QQQ</span>的前瞻信号。
+                </p>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="px-2 py-0.5 rounded bg-ink-900 border border-ink-700 text-[11px] text-white font-mono">IWM</span>
+                        <span class="px-2 py-0.5 rounded bg-ink-900 border border-ink-700 text-[11px] text-white font-mono">XLI</span>
+                        <span class="px-2 py-0.5 rounded bg-ink-900 border border-ink-700 text-[11px] text-white font-mono">CAT</span>
+                        <span class="px-2 py-0.5 rounded bg-ink-900 border border-ink-700 text-[11px] text-white font-mono">DE</span>
+                    </div>
+                    <div class="text-[11px] text-slate-500"><i class="fas fa-robot text-[10px] mr-1"></i>基金跟踪员·Hawk</div>
+                </div>
+            </article>
+
+            <!-- Card 4: 公告 (Chinese announcement) -->
+            <article class="signal-card bg-ink-800 border border-ink-700 rounded-2xl p-5">
+                <div class="flex items-start justify-between gap-4 mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 bg-signal-green/15 text-signal-green text-[10px] font-bold rounded uppercase tracking-wider">公司公告</span>
+                        <span class="px-2 py-0.5 bg-ink-700 text-slate-400 text-[10px] rounded">A股 · 巨潮资讯</span>
+                        <span class="text-[11px] text-slate-500">· 4小时前</span>
+                    </div>
+                    <span class="text-signal-green font-mono font-bold text-sm">91%</span>
+                </div>
+                <h3 class="text-[17px] font-bold text-white leading-snug mb-2 hover:text-signal-green cursor-pointer">中际旭创回购公告暗藏玄机：800G光模块H2交付节奏可能再次超预期</h3>
+                <p class="text-[13px] text-slate-400 leading-relaxed mb-3">
+                    AI在公告附件"董事会决议细则"中识别出关键描述："基于对未来18个月 <span class="text-white">订单可见度</span> 的判断"——这是上市以来第一次公司管理层在回购理由中使用<span class="text-signal-green font-medium">"订单可见度"措辞</span>，对比新易盛、天孚通信公告，AI判断<span class="text-white">800G/1.6T光模块拐点已在Q2/Q3之间</span>。
+                </p>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="px-2 py-0.5 rounded bg-ink-900 border border-ink-700 text-[11px] text-white font-mono">300308 中际旭创</span>
+                        <span class="px-2 py-0.5 rounded bg-ink-900 border border-ink-700 text-[11px] text-white font-mono">300502 新易盛</span>
+                        <span class="px-2 py-0.5 rounded bg-ink-900 border border-ink-700 text-[11px] text-white font-mono">300394 天孚通信</span>
+                    </div>
+                    <div class="text-[11px] text-slate-500"><i class="fas fa-robot text-[10px] mr-1"></i>公告解读员·Argus</div>
+                </div>
+            </article>
+
+            <!-- Card 5: 研报 broker report -->
+            <article class="signal-card bg-ink-800 border border-ink-700 rounded-2xl p-5">
+                <div class="flex items-start justify-between gap-4 mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 bg-signal-amber/15 text-signal-amber text-[10px] font-bold rounded uppercase tracking-wider">券商研报</span>
+                        <span class="px-2 py-0.5 bg-ink-700 text-slate-400 text-[10px] rounded">5份独立研报交叉验证</span>
+                        <span class="text-[11px] text-slate-500">· 6小时前</span>
+                    </div>
+                    <span class="text-signal-green font-mono font-bold text-sm">87%</span>
+                </div>
+                <h3 class="text-[17px] font-bold text-white leading-snug mb-2 hover:text-signal-green cursor-pointer">中信/广发/招商一致下调消费电子代工估值——AI识别"叙事共识转折点"</h3>
+                <p class="text-[13px] text-slate-400 leading-relaxed mb-3">
+                    AI比对近30天12家券商对立讯/歌尔/工业富联的研报后发现：<span class="text-white">3家头部券商在一周内同步将PE中枢从22x下调至16-18x</span>，理由集中在"果链业务弹性消退"。这是2023年以来罕见的共识反转节奏，<span class="text-signal-red font-medium">板块短期承压概率显著上升</span>。
+                </p>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="px-2 py-0.5 rounded bg-ink-900 border border-ink-700 text-[11px] text-slate-400 font-mono">⤓ 002475 立讯精密</span>
+                        <span class="px-2 py-0.5 rounded bg-ink-900 border border-ink-700 text-[11px] text-slate-400 font-mono">⤓ 002241 歌尔股份</span>
+                        <span class="px-2 py-0.5 rounded bg-ink-900 border border-ink-700 text-[11px] text-slate-400 font-mono">⤓ 601138 工业富联</span>
+                    </div>
+                    <div class="text-[11px] text-slate-500"><i class="fas fa-robot text-[10px] mr-1"></i>研报扫描员·Sage</div>
+                </div>
+            </article>
+
+            <!-- Card 6: 公告 Pharma -->
+            <article class="signal-card bg-ink-800 border border-ink-700 rounded-2xl p-5">
+                <div class="flex items-start justify-between gap-4 mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 bg-signal-green/15 text-signal-green text-[10px] font-bold rounded uppercase tracking-wider">公司公告</span>
+                        <span class="px-2 py-0.5 bg-signal-amber/15 text-signal-amber text-[10px] font-bold rounded uppercase tracking-wider">前瞻判断</span>
+                        <span class="text-[11px] text-slate-500">· 8小时前</span>
+                    </div>
+                    <span class="text-signal-green font-mono font-bold text-sm">83%</span>
+                </div>
+                <h3 class="text-[17px] font-bold text-white leading-snug mb-2 hover:text-signal-green cursor-pointer">百济神州BLA递交频率创新高：AI捕捉国内Biotech"出海第二波"信号</h3>
+                <p class="text-[13px] text-slate-400 leading-relaxed mb-3">
+                    AI跟踪SEC + 港交所公告披露发现：<span class="text-white">百济/信达/和黄</span>近45天累计 <span class="text-signal-green font-mono">9个BLA/NDA</span> 递交，是2023年同期2.3倍。结合FDA最新优先审评队列，AI判断<span class="text-white">国内创新药"出海第二波"</span>已实质启动，对应板块叙事强度将明显高于2024年。
+                </p>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="px-2 py-0.5 rounded bg-ink-900 border border-ink-700 text-[11px] text-white font-mono">BGNE</span>
+                        <span class="px-2 py-0.5 rounded bg-ink-900 border border-ink-700 text-[11px] text-white font-mono">688235 百济神州</span>
+                        <span class="px-2 py-0.5 rounded bg-ink-900 border border-ink-700 text-[11px] text-white font-mono">1801.HK 信达生物</span>
+                        <span class="px-2 py-0.5 rounded bg-ink-900 border border-ink-700 text-[11px] text-white font-mono">XBI</span>
+                    </div>
+                    <div class="text-[11px] text-slate-500"><i class="fas fa-robot text-[10px] mr-1"></i>公告解读员·Argus</div>
+                </div>
+            </article>
+
+            <!-- Show more -->
+            <div class="flex items-center justify-center py-4">
+                <button class="px-6 py-2 bg-ink-800 border border-ink-700 rounded-lg text-[13px] text-slate-300 hover:text-white">
+                    加载更多信号 <span class="text-slate-500 font-mono ml-1">(81)</span>
+                </button>
+            </div>
+
+        </main>
+
+        <!-- Right sidebar -->
+        <aside class="col-span-3 space-y-4">
+
+            <!-- Top signals (heat) -->
+            <div class="bg-ink-800 border border-ink-700 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-fire text-signal-amber text-xs"></i>
+                        <span class="text-[13px] font-semibold text-white">最强信号 TOP 5</span>
+                    </div>
+                    <span class="text-[11px] text-slate-500">影响度排序</span>
+                </div>
+                <div class="space-y-2.5">
+                    <div class="flex items-start gap-3 py-1.5 border-b border-ink-700/50 cursor-pointer hover:bg-ink-700/30 -mx-2 px-2 rounded">
+                        <div class="text-signal-amber font-bold font-mono text-sm w-5">1</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-[12px] text-white font-medium leading-snug truncate">端侧AI · CPU换机周期重启</div>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span class="text-[10px] text-signal-green font-mono">94%</span>
+                                <span class="text-[10px] text-slate-500">12标的</span>
+                            </div>
+                        </div>
+                        <div class="text-signal-green text-[11px] font-mono">+8.2σ</div>
+                    </div>
+                    <div class="flex items-start gap-3 py-1.5 border-b border-ink-700/50 cursor-pointer hover:bg-ink-700/30 -mx-2 px-2 rounded">
+                        <div class="text-signal-amber font-bold font-mono text-sm w-5">2</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-[12px] text-white font-medium leading-snug truncate">机电出口 · GDP新引擎</div>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span class="text-[10px] text-signal-green font-mono">89%</span>
+                                <span class="text-[10px] text-slate-500">8标的</span>
+                            </div>
+                        </div>
+                        <div class="text-signal-green text-[11px] font-mono">+6.5σ</div>
+                    </div>
+                    <div class="flex items-start gap-3 py-1.5 border-b border-ink-700/50 cursor-pointer hover:bg-ink-700/30 -mx-2 px-2 rounded">
+                        <div class="text-slate-500 font-bold font-mono text-sm w-5">3</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-[12px] text-white font-medium leading-snug truncate">800G光模块 · 拐点提前</div>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span class="text-[10px] text-signal-green font-mono">91%</span>
+                                <span class="text-[10px] text-slate-500">6标的</span>
+                            </div>
+                        </div>
+                        <div class="text-signal-green text-[11px] font-mono">+5.1σ</div>
+                    </div>
+                    <div class="flex items-start gap-3 py-1.5 border-b border-ink-700/50 cursor-pointer hover:bg-ink-700/30 -mx-2 px-2 rounded">
+                        <div class="text-slate-500 font-bold font-mono text-sm w-5">4</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-[12px] text-white font-medium leading-snug truncate">创新药出海 · BLA密集递交</div>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span class="text-[10px] text-signal-green font-mono">83%</span>
+                                <span class="text-[10px] text-slate-500">9标的</span>
+                            </div>
+                        </div>
+                        <div class="text-signal-green text-[11px] font-mono">+4.2σ</div>
+                    </div>
+                    <div class="flex items-start gap-3 py-1.5 cursor-pointer hover:bg-ink-700/30 -mx-2 px-2 rounded">
+                        <div class="text-slate-500 font-bold font-mono text-sm w-5">5</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-[12px] text-white font-medium leading-snug truncate">果链估值共识下移</div>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span class="text-[10px] text-signal-red font-mono">87%</span>
+                                <span class="text-[10px] text-slate-500">5标的</span>
+                            </div>
+                        </div>
+                        <div class="text-signal-red text-[11px] font-mono">-3.8σ</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Agents status -->
+            <div class="bg-ink-800 border border-ink-700 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-signal-green pulse-dot"></span>
+                        <span class="text-[13px] font-semibold text-white">Agent 工作状态</span>
+                    </div>
+                    <a href="agents.html" class="text-[11px] text-signal-blue hover:underline">全部 →</a>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 rounded-md bg-gradient-to-br from-signal-blue to-signal-purple flex items-center justify-center text-[10px] font-bold text-white">A</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-[12px] text-white truncate">Aurora · 宏观分析师</div>
+                            <div class="text-[10px] text-slate-500 truncate">正在解读：5月美联储会议纪要</div>
+                        </div>
+                        <span class="text-[10px] text-signal-green px-1.5 py-0.5 bg-signal-green/10 rounded">运行中</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 rounded-md bg-gradient-to-br from-signal-green to-signal-blue flex items-center justify-center text-[10px] font-bold text-white">G</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-[12px] text-white truncate">Argus · 公告解读员</div>
+                            <div class="text-[10px] text-slate-500 truncate">扫描中：126份A股公告</div>
+                        </div>
+                        <span class="text-[10px] text-signal-green px-1.5 py-0.5 bg-signal-green/10 rounded">运行中</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 rounded-md bg-gradient-to-br from-signal-amber to-signal-red flex items-center justify-center text-[10px] font-bold text-white">H</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-[12px] text-white truncate">Hawk · 基金跟踪员</div>
+                            <div class="text-[10px] text-slate-500 truncate">下次扫描：13F递交窗口</div>
+                        </div>
+                        <span class="text-[10px] text-slate-500 px-1.5 py-0.5 bg-ink-700 rounded">待命</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 rounded-md bg-gradient-to-br from-signal-purple to-pink-500 flex items-center justify-center text-[10px] font-bold text-white">S</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-[12px] text-white truncate">Sage · 研报扫描员</div>
+                            <div class="text-[10px] text-slate-500 truncate">交叉验证：消费电子估值</div>
+                        </div>
+                        <span class="text-[10px] text-signal-green px-1.5 py-0.5 bg-signal-green/10 rounded">运行中</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Watchlist quick view -->
+            <div class="bg-ink-800 border border-ink-700 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-star text-signal-amber text-xs"></i>
+                        <span class="text-[13px] font-semibold text-white">我的自选</span>
+                    </div>
+                    <a href="watchlist.html" class="text-[11px] text-signal-blue hover:underline">查看 →</a>
+                </div>
+                <div class="space-y-2 text-[12px]">
+                    <div class="flex items-center justify-between py-1">
+                        <div class="flex items-center gap-2">
+                            <span class="w-1 h-4 bg-signal-green rounded-full"></span>
+                            <span class="text-white font-medium">INTC</span>
+                            <span class="text-[10px] text-slate-500">Intel</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-white font-mono">28.74</div>
+                            <div class="text-[10px] text-signal-green font-mono">+6.34% · 2 新信号</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between py-1">
+                        <div class="flex items-center gap-2">
+                            <span class="w-1 h-4 bg-signal-green rounded-full"></span>
+                            <span class="text-white font-medium">300308</span>
+                            <span class="text-[10px] text-slate-500">中际旭创</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-white font-mono">152.30</div>
+                            <div class="text-[10px] text-signal-green font-mono">+3.21% · 1 新信号</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between py-1">
+                        <div class="flex items-center gap-2">
+                            <span class="w-1 h-4 bg-signal-red rounded-full"></span>
+                            <span class="text-white font-medium">002475</span>
+                            <span class="text-[10px] text-slate-500">立讯精密</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-white font-mono">31.84</div>
+                            <div class="text-[10px] text-signal-red font-mono">-2.42% · 1 警示</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between py-1">
+                        <div class="flex items-center gap-2">
+                            <span class="w-1 h-4 bg-slate-600 rounded-full"></span>
+                            <span class="text-white font-medium">BGNE</span>
+                            <span class="text-[10px] text-slate-500">百济神州</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-white font-mono">213.45</div>
+                            <div class="text-[10px] text-slate-400 font-mono">+0.34%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Source health -->
+            <div class="bg-ink-800 border border-ink-700 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-satellite-dish text-signal-blue text-xs"></i>
+                        <span class="text-[13px] font-semibold text-white">信源健康</span>
+                    </div>
+                    <a href="sources.html" class="text-[11px] text-signal-blue hover:underline">管理 →</a>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-[11px]">
+                    <div class="bg-ink-900/60 rounded-lg p-2">
+                        <div class="flex items-center gap-1 text-slate-500"><span class="w-1.5 h-1.5 bg-signal-green rounded-full"></span>巨潮资讯</div>
+                        <div class="text-white font-mono mt-0.5">126 docs</div>
+                    </div>
+                    <div class="bg-ink-900/60 rounded-lg p-2">
+                        <div class="flex items-center gap-1 text-slate-500"><span class="w-1.5 h-1.5 bg-signal-green rounded-full"></span>SEC EDGAR</div>
+                        <div class="text-white font-mono mt-0.5">42 docs</div>
+                    </div>
+                    <div class="bg-ink-900/60 rounded-lg p-2">
+                        <div class="flex items-center gap-1 text-slate-500"><span class="w-1.5 h-1.5 bg-signal-green rounded-full"></span>Wind 研报</div>
+                        <div class="text-white font-mono mt-0.5">38 docs</div>
+                    </div>
+                    <div class="bg-ink-900/60 rounded-lg p-2">
+                        <div class="flex items-center gap-1 text-slate-500"><span class="w-1.5 h-1.5 bg-signal-amber rounded-full"></span>Counterpoint</div>
+                        <div class="text-white font-mono mt-0.5">8 docs</div>
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+
+    </div>
+
+</body>
+</html>

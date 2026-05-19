@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>信源管理 · AlphaSignal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = { theme: { extend: { colors: {
+            ink: { 950: '#070912', 900: '#0A0E1A', 850: '#0F1422', 800: '#131A2C', 700: '#1A2235', 600: '#252E45', 500: '#374259' },
+            signal: { green: '#10B981', red: '#EF4444', amber: '#F59E0B', blue: '#3B82F6', purple: '#A855F7' }
+        }}}}
+    </script>
+    <style>
+        body { font-family: 'Inter', 'Noto Sans SC', sans-serif; background: #0A0E1A; }
+        .glass { background: rgba(19, 26, 44, 0.6); backdrop-filter: blur(12px); }
+        .gradient-text { background: linear-gradient(135deg, #10B981 0%, #3B82F6 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .grid-bg {
+            background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .heat-cell { transition: all 0.15s; }
+        .heat-cell:hover { transform: scale(1.15); }
+    </style>
+</head>
+<body class="text-slate-200">
+
+    <!-- Top Nav -->
+    <nav class="glass border-b border-ink-700 sticky top-0 z-40">
+        <div class="max-w-[1600px] mx-auto px-6 h-14 flex items-center justify-between">
+            <div class="flex items-center gap-8">
+                <a href="home.html" class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-signal-green to-signal-blue flex items-center justify-center">
+                        <i class="fas fa-wave-square text-white text-sm"></i>
+                    </div>
+                    <div class="leading-tight">
+                        <div class="text-white font-bold text-[15px] tracking-tight">前瞻 <span class="gradient-text">AlphaSignal</span></div>
+                        <div class="text-[10px] text-slate-500 -mt-0.5">AI-Native Investment Intelligence</div>
+                    </div>
+                </a>
+                <div class="hidden md:flex items-center gap-1 text-[13px]">
+                    <a href="home.html" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white">信号流</a>
+                    <a href="signals.html" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white">信号库</a>
+                    <a href="discover.html" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white">赛道发现</a>
+                    <a href="watchlist.html" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white">自选</a>
+                    <a href="agents.html" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white">Agent工坊</a>
+                    <a href="sources.html" class="px-3 py-1.5 rounded-md bg-ink-700 text-white font-medium">信源</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="px-3 py-1.5 bg-signal-green text-ink-900 rounded-lg text-[12px] font-semibold"><i class="fas fa-plus mr-1"></i>添加信源</button>
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-signal-purple to-signal-blue flex items-center justify-center text-white text-xs font-semibold">YS</div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-[1600px] mx-auto px-6 py-8">
+
+        <!-- Header -->
+        <div class="flex items-end justify-between mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-white">信源管理</h1>
+                <p class="text-[13px] text-slate-500 mt-1">所有被 AI Agent 持续监控的原始数据源 · 文档→特征→信号</p>
+            </div>
+            <div class="flex items-center gap-2 text-[12px]">
+                <div class="flex items-center gap-1.5 px-3 py-1.5 bg-ink-800 border border-ink-700 rounded-lg">
+                    <span class="w-1.5 h-1.5 bg-signal-green rounded-full pulse-dot"></span>
+                    <span class="text-slate-300">所有 Agent 在线</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="grid grid-cols-6 gap-4 mb-6">
+            <div class="bg-ink-800 border border-ink-700 rounded-2xl p-5">
+                <div class="text-[12px] text-slate-500 mb-1">总信源</div>
+                <div class="text-2xl font-bold text-white font-mono">38</div>
+                <div class="text-[11px] text-signal-green mt-1">36 健康 · 2 警告</div>
+            </div>
+            <div class="bg-ink-800 border border-ink-700 rounded-2xl p-5">
+                <div class="text-[12px] text-slate-500 mb-1">今日文档</div>
+                <div class="text-2xl font-bold text-white font-mono">487</div>
+                <div class="text-[11px] text-slate-500 mt-1">processed</div>
+            </div>
+            <div class="bg-ink-800 border border-ink-700 rounded-2xl p-5">
+                <div class="text-[12px] text-slate-500 mb-1">总监控公司</div>
+                <div class="text-2xl font-bold text-white font-mono">1,246</div>
+                <div class="text-[11px] text-slate-500 mt-1">CN 824 · US 422</div>
+            </div>
+            <div class="bg-ink-800 border border-ink-700 rounded-2xl p-5">
+                <div class="text-[12px] text-slate-500 mb-1">平均延迟</div>
+                <div class="text-2xl font-bold text-white font-mono">3.2<span class="text-base">分</span></div>
+                <div class="text-[11px] text-slate-500 mt-1">公告→信号</div>
+            </div>
+            <div class="bg-ink-800 border border-ink-700 rounded-2xl p-5">
+                <div class="text-[12px] text-slate-500 mb-1">本月信源成本</div>
+                <div class="text-2xl font-bold text-white font-mono">$1,847</div>
+                <div class="text-[11px] text-slate-500 mt-1">12 个付费源</div>
+            </div>
+            <div class="bg-ink-800 border border-ink-700 rounded-2xl p-5">
+                <div class="text-[12px] text-slate-500 mb-1">Token 消耗</div>
+                <div class="text-2xl font-bold text-white font-mono">42.6M</div>
+                <div class="text-[11px] text-signal-green mt-1">本月 · $312</div>
+            </div>
+        </div>
+
+        <!-- Activity heatmap -->
+        <div class="bg-ink-800 border border-ink-700 rounded-2xl p-5 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-white font-semibold text-[14px]">近 30 天信源活跃度热力图</h3>
+                <div class="flex items-center gap-2 text-[11px] text-slate-500">
+                    <span>少</span>
+                    <span class="w-3 h-3 rounded bg-ink-700"></span>
+                    <span class="w-3 h-3 rounded bg-signal-green/30"></span>
+                    <span class="w-3 h-3 rounded bg-signal-green/60"></span>
+                    <span class="w-3 h-3 rounded bg-signal-green"></span>
+                    <span>多</span>
+                </div>
+            </div>
+            <div class="space-y-1">
+                <div class="flex items-center gap-1.5">
+                    <div class="text-[10px] text-slate-500 w-20 text-right">巨潮资讯</div>
+                    <div class="flex gap-1 flex-1">
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <div class="text-[10px] text-slate-500 w-20 text-right">SEC EDGAR</div>
+                    <div class="flex gap-1 flex-1">
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <div class="text-[10px] text-slate-500 w-20 text-right">Wind 研报</div>
+                    <div class="flex gap-1 flex-1">
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <div class="text-[10px] text-slate-500 w-20 text-right">慧博研报</div>
+                    <div class="flex gap-1 flex-1">
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/60"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <div class="text-[10px] text-slate-500 w-20 text-right">Counterpoint</div>
+                    <div class="flex gap-1 flex-1">
+                        <div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div>
+                        <div class="heat-cell w-4 h-4 rounded bg-signal-green/30"></div><div class="heat-cell w-4 h-4 rounded bg-ink-700"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end mt-2 text-[10px] text-slate-500">30 天前 ←—————————————————————————→ 今天</div>
+        </div>
+
+        <!-- Source categories -->
+        <div class="grid grid-cols-12 gap-6">
+
+            <!-- Left: Category nav -->
+            <div class="col-span-3">
+                <div class="text-[11px] uppercase tracking-wider text-slate-500 mb-2 px-2">信源分类</div>
+                <nav class="space-y-0.5 text-[13px]">
+                    <a href="#cn-announcements" class="flex items-center justify-between px-3 py-2 rounded-lg bg-ink-800 text-white font-medium">
+                        <span class="flex items-center gap-2.5"><i class="fas fa-building text-signal-green text-xs w-4"></i>A股公司公告</span>
+                        <span class="text-[11px] text-slate-500 font-mono">3</span>
+                    </a>
+                    <a href="#us-filings" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-ink-800 text-slate-400 hover:text-white">
+                        <span class="flex items-center gap-2.5"><i class="fas fa-flag-usa text-signal-blue text-xs w-4"></i>美股 SEC 文件</span>
+                        <span class="text-[11px] text-slate-500 font-mono">5</span>
+                    </a>
+                    <a href="#hk-filings" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-ink-800 text-slate-400 hover:text-white">
+                        <span class="flex items-center gap-2.5"><i class="fas fa-flag text-signal-amber text-xs w-4"></i>港股披露</span>
+                        <span class="text-[11px] text-slate-500 font-mono">2</span>
+                    </a>
+                    <a href="#fund" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-ink-800 text-slate-400 hover:text-white">
+                        <span class="flex items-center gap-2.5"><i class="fas fa-coins text-signal-purple text-xs w-4"></i>基金披露</span>
+                        <span class="text-[11px] text-slate-500 font-mono">4</span>
+                    </a>
+                    <a href="#broker" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-ink-800 text-slate-400 hover:text-white">
+                        <span class="flex items-center gap-2.5"><i class="fas fa-file-lines text-signal-amber text-xs w-4"></i>券商研报</span>
+                        <span class="text-[11px] text-slate-500 font-mono">6</span>
+                    </a>
+                    <a href="#macro" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-ink-800 text-slate-400 hover:text-white">
+                        <span class="flex items-center gap-2.5"><i class="fas fa-globe text-signal-blue text-xs w-4"></i>宏观数据</span>
+                        <span class="text-[11px] text-slate-500 font-mono">7</span>
+                    </a>
+                    <a href="#paid" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-ink-800 text-slate-400 hover:text-white">
+                        <span class="flex items-center gap-2.5"><i class="fas fa-lock text-signal-red text-xs w-4"></i>付费行业数据</span>
+                        <span class="text-[11px] text-slate-500 font-mono">8</span>
+                    </a>
+                    <a href="#calls" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-ink-800 text-slate-400 hover:text-white">
+                        <span class="flex items-center gap-2.5"><i class="fas fa-headset text-signal-green text-xs w-4"></i>电话会议</span>
+                        <span class="text-[11px] text-slate-500 font-mono">3</span>
+                    </a>
+                </nav>
+
+                <div class="mt-6 bg-gradient-to-br from-signal-blue/10 to-signal-purple/10 border border-signal-blue/30 rounded-2xl p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i class="fas fa-lightbulb text-signal-amber text-xs"></i>
+                        <span class="text-[12px] font-semibold text-white">建议添加</span>
+                    </div>
+                    <div class="text-[12px] text-slate-400 leading-relaxed mb-3">
+                        基于你最近关注端侧 AI，<span class="text-white">IDC 全球 AI PC 季度追踪</span> 可能补强当前赛道信号链。
+                    </div>
+                    <button class="text-[11px] text-signal-blue hover:underline">查看推荐 →</button>
+                </div>
+            </div>
+
+            <!-- Right: Source list -->
+            <div class="col-span-9 space-y-6">
+
+                <!-- CN Announcements -->
+                <section id="cn-announcements">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-[15px] font-semibold text-white flex items-center gap-2">
+                            <i class="fas fa-building text-signal-green text-xs"></i>A股公司公告
+                            <span class="text-[12px] text-slate-500 font-normal">· 3 个源 · 监控 824 家公司</span>
+                        </h3>
+                    </div>
+                    <div class="space-y-2">
+                        <!-- 巨潮 -->
+                        <div class="bg-ink-800 border border-ink-700 rounded-2xl p-4 flex items-center gap-4">
+                            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-signal-green/20 to-signal-blue/20 border border-ink-700 flex items-center justify-center text-signal-green font-bold">巨</div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-white font-semibold">巨潮资讯</span>
+                                    <span class="px-1.5 py-0.5 bg-signal-green/15 text-signal-green text-[10px] rounded font-medium">免费</span>
+                                    <span class="px-1.5 py-0.5 bg-ink-700 text-slate-400 text-[10px] rounded">官方</span>
+                                </div>
+                                <div class="text-[12px] text-slate-500 mt-0.5">cninfo.com.cn · 监控全部 A 股公司</div>
+                            </div>
+                            <div class="grid grid-cols-4 gap-5 text-center">
+                                <div><div class="text-[10px] text-slate-500">今日</div><div class="text-white font-mono font-semibold mt-0.5">126</div></div>
+                                <div><div class="text-[10px] text-slate-500">7天</div><div class="text-white font-mono font-semibold mt-0.5">847</div></div>
+                                <div><div class="text-[10px] text-slate-500">延迟</div><div class="text-signal-green font-mono font-semibold mt-0.5">2.1m</div></div>
+                                <div><div class="text-[10px] text-slate-500">状态</div><div class="text-signal-green text-[12px] mt-0.5 flex items-center gap-1 justify-center"><span class="w-1.5 h-1.5 bg-signal-green rounded-full pulse-dot"></span>健康</div></div>
+                            </div>
+                            <button class="text-slate-500 hover:text-white"><i class="fas fa-cog text-xs"></i></button>
+                        </div>
+                        <!-- 上交所 -->
+                        <div class="bg-ink-800 border border-ink-700 rounded-2xl p-4 flex items-center gap-4">
+                            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-signal-amber/20 to-signal-red/20 border border-ink-700 flex items-center justify-center text-signal-amber font-bold">上</div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-white font-semibold">上交所 e 互动</span>
+                                    <span class="px-1.5 py-0.5 bg-signal-green/15 text-signal-green text-[10px] rounded font-medium">免费</span>
+                                </div>
+                                <div class="text-[12px] text-slate-500 mt-0.5">sse.com.cn · 公告 + 投资者问答</div>
+                            </div>
+                            <div class="grid grid-cols-4 gap-5 text-center">
+                                <div><div class="text-[10px] text-slate-500">今日</div><div class="text-white font-mono font-semibold mt-0.5">38</div></div>
+                                <div><div class="text-[10px] text-slate-500">7天</div><div class="text-white font-mono font-semibold mt-0.5">298</div></div>
+                                <div><div class="text-[10px] text-slate-500">延迟</div><div class="text-signal-green font-mono font-semibold mt-0.5">3.5m</div></div>
+                                <div><div class="text-[10px] text-slate-500">状态</div><div class="text-signal-green text-[12px] mt-0.5 flex items-center gap-1 justify-center"><span class="w-1.5 h-1.5 bg-signal-green rounded-full pulse-dot"></span>健康</div></div>
+                            </div>
+                            <button class="text-slate-500 hover:text-white"><i class="fas fa-cog text-xs"></i></button>
+                        </div>
+                        <!-- 深交所 -->
+                        <div class="bg-ink-800 border border-ink-700 rounded-2xl p-4 flex items-center gap-4">
+                            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-signal-blue/20 to-signal-purple/20 border border-ink-700 flex items-center justify-center text-signal-blue font-bold">深</div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-white font-semibold">深交所 互动易</span>
+                                    <span class="px-1.5 py-0.5 bg-signal-green/15 text-signal-green text-[10px] rounded font-medium">免费</span>
+                                </div>
+                                <div class="text-[12px] text-slate-500 mt-0.5">szse.cn · 中小板 + 创业板</div>
+                            </div>
+                            <div class="grid grid-cols-4 gap-5 text-center">
+                                <div><div class="text-[10px] text-slate-500">今日</div><div class="text-white font-mono font-semibold mt-0.5">52</div></div>
+                                <div><div class="text-[10px] text-slate-500">7天</div><div class="text-white font-mono font-semibold mt-0.5">412</div></div>
+                                <div><div class="text-[10px] text-slate-500">延迟</div><div class="text-signal-green font-mono font-semibold mt-0.5">2.8m</div></div>
+                                <div><div class="text-[10px] text-slate-500">状态</div><div class="text-signal-green text-[12px] mt-0.5 flex items-center gap-1 justify-center"><span class="w-1.5 h-1.5 bg-signal-green rounded-full pulse-dot"></span>健康</div></div>
+                            </div>
+                            <button class="text-slate-500 hover:text-white"><i class="fas fa-cog text-xs"></i></button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- US Filings -->
+                <section id="us-filings">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-[15px] font-semibold text-white flex items-center gap-2">
+                            <i class="fas fa-flag-usa text-signal-blue text-xs"></i>美股 SEC 文件
+                            <span class="text-[12px] text-slate-500 font-normal">· 5 个源 · 监控 422 家公司</span>
+                        </h3>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-ink-800 border border-ink-700 rounded-2xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-md bg-signal-blue/15 flex items-center justify-center"><i class="fas fa-flag-usa text-signal-blue text-xs"></i></div>
+                                    <div>
+                                        <div class="text-white font-medium text-[13px]">SEC EDGAR</div>
+                                        <div class="text-[11px] text-slate-500">10-K/10-Q/8-K/13F</div>
+                                    </div>
+                                </div>
+                                <span class="px-1.5 py-0.5 bg-signal-green/15 text-signal-green text-[10px] rounded">健康</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 text-center text-[11px] mt-3">
+                                <div class="bg-ink-900 rounded p-1.5"><div class="text-slate-500 text-[10px]">今日</div><div class="text-white font-mono">42</div></div>
+                                <div class="bg-ink-900 rounded p-1.5"><div class="text-slate-500 text-[10px]">延迟</div><div class="text-signal-green font-mono">4.2m</div></div>
+                                <div class="bg-ink-900 rounded p-1.5"><div class="text-slate-500 text-[10px]">类型</div><div class="text-white font-mono">7</div></div>
+                            </div>
+                        </div>
+                        <div class="bg-ink-800 border border-ink-700 rounded-2xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-md bg-signal-purple/15 flex items-center justify-center"><i class="fas fa-table text-signal-purple text-xs"></i></div>
+                                    <div>
+                                        <div class="text-white font-medium text-[13px]">WhaleWisdom 13F</div>
+                                        <div class="text-[11px] text-slate-500">头部对冲基金持仓变化</div>
+                                    </div>
+                                </div>
+                                <span class="px-1.5 py-0.5 bg-signal-green/15 text-signal-green text-[10px] rounded">健康</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 text-center text-[11px] mt-3">
+                                <div class="bg-ink-900 rounded p-1.5"><div class="text-slate-500 text-[10px]">机构</div><div class="text-white font-mono">87</div></div>
+                                <div class="bg-ink-900 rounded p-1.5"><div class="text-slate-500 text-[10px]">延迟</div><div class="text-signal-amber font-mono">45天</div></div>
+                                <div class="bg-ink-900 rounded p-1.5"><div class="text-slate-500 text-[10px]">付费</div><div class="text-white font-mono">$49/mo</div></div>
+                            </div>
+                        </div>
+                        <div class="bg-ink-800 border border-ink-700 rounded-2xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-md bg-signal-green/15 flex items-center justify-center"><i class="fas fa-newspaper text-signal-green text-xs"></i></div>
+                                    <div>
+                                        <div class="text-white font-medium text-[13px]">PR Newswire / BusinessWire</div>
+                                        <div class="text-[11px] text-slate-500">企业新闻稿原文</div>
+                                    </div>
+                                </div>
+                                <span class="px-1.5 py-0.5 bg-signal-green/15 text-signal-green text-[10px] rounded">健康</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 text-center text-[11px] mt-3">
+                                <div class="bg-ink-900 rounded p-1.5"><div class="text-slate-500 text-[10px]">今日</div><div class="text-white font-mono">28</div></div>
+                                <div class="bg-ink-900 rounded p-1.5"><div class="text-slate-500 text-[10px]">延迟</div><div class="text-signal-green font-mono">1.8m</div></div>
+                                <div class="bg-ink-900 rounded p-1.5"><div class="text-slate-500 text-[10px]">付费</div><div class="text-white font-mono">$99/mo</div></div>
+                            </div>
+                        </div>
+                        <div class="bg-ink-800 border border-ink-700 rounded-2xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-md bg-signal-red/15 flex items-center justify-center"><i class="fas fa-microphone text-signal-red text-xs"></i></div>
+                                    <div>
+                                        <div class="text-white font-medium text-[13px]">Seeking Alpha 电话会议</div>
+                                        <div class="text-[11px] text-slate-500">Earnings Call Transcripts</div>
+                                    </div>
+                                </div>
+                                <span class="px-1.5 py-0.5 bg-signal-amber/15 text-signal-amber text-[10px] rounded">限流</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 text-center text-[11px] mt-3">
+                                <div class="bg-ink-900 rounded p-1.5"><div class="text-slate-500 text-[10px]">今日</div><div class="text-white font-mono">14</div></div>
+                                <div class="bg-ink-900 rounded p-1.5"><div class="text-slate-500 text-[10px]">延迟</div><div class="text-signal-amber font-mono">12m</div></div>
+                                <div class="bg-ink-900 rounded p-1.5"><div class="text-slate-500 text-[10px]">付费</div><div class="text-white font-mono">$239/y</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Broker reports -->
+                <section id="broker">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-[15px] font-semibold text-white flex items-center gap-2">
+                            <i class="fas fa-file-lines text-signal-amber text-xs"></i>券商研报
+                            <span class="text-[12px] text-slate-500 font-normal">· 6 个源 · 日均 320 篇</span>
+                        </h3>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-ink-800 border border-ink-700 rounded-xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-white font-medium text-[13px]">Wind 研报库</span>
+                                <span class="px-1.5 py-0.5 bg-signal-green/15 text-signal-green text-[10px] rounded">健康</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 mb-3">A股全部研报覆盖</div>
+                            <div class="flex items-center justify-between text-[12px]"><span class="text-slate-400">今日</span><span class="text-white font-mono">112</span></div>
+                            <div class="flex items-center justify-between text-[12px]"><span class="text-slate-400">付费</span><span class="text-signal-amber font-mono">$1000/y</span></div>
+                        </div>
+                        <div class="bg-ink-800 border border-ink-700 rounded-xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-white font-medium text-[13px]">慧博投研</span>
+                                <span class="px-1.5 py-0.5 bg-signal-green/15 text-signal-green text-[10px] rounded">健康</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 mb-3">华泰/中信/招商等</div>
+                            <div class="flex items-center justify-between text-[12px]"><span class="text-slate-400">今日</span><span class="text-white font-mono">87</span></div>
+                            <div class="flex items-center justify-between text-[12px]"><span class="text-slate-400">付费</span><span class="text-signal-green font-mono">免费</span></div>
+                        </div>
+                        <div class="bg-ink-800 border border-ink-700 rounded-xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-white font-medium text-[13px]">同花顺 iFind</span>
+                                <span class="px-1.5 py-0.5 bg-signal-amber/15 text-signal-amber text-[10px] rounded">慢</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 mb-3">研报 + 数据库</div>
+                            <div class="flex items-center justify-between text-[12px]"><span class="text-slate-400">今日</span><span class="text-white font-mono">76</span></div>
+                            <div class="flex items-center justify-between text-[12px]"><span class="text-slate-400">付费</span><span class="text-signal-amber font-mono">¥2400/y</span></div>
+                        </div>
+                        <div class="bg-ink-800 border border-ink-700 rounded-xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-white font-medium text-[13px]">Bloomberg Research</span>
+                                <span class="px-1.5 py-0.5 bg-signal-green/15 text-signal-green text-[10px] rounded">健康</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 mb-3">高盛/摩根/大摩</div>
+                            <div class="flex items-center justify-between text-[12px]"><span class="text-slate-400">今日</span><span class="text-white font-mono">38</span></div>
+                            <div class="flex items-center justify-between text-[12px]"><span class="text-slate-400">付费</span><span class="text-signal-red font-mono">$2K/mo</span></div>
+                        </div>
+                        <div class="bg-ink-800 border border-ink-700 rounded-xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-white font-medium text-[13px]">Refinitiv 研报</span>
+                                <span class="px-1.5 py-0.5 bg-signal-green/15 text-signal-green text-[10px] rounded">健康</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 mb-3">海外卖方覆盖</div>
+                            <div class="flex items-center justify-between text-[12px]"><span class="text-slate-400">今日</span><span class="text-white font-mono">42</span></div>
+                            <div class="flex items-center justify-between text-[12px]"><span class="text-slate-400">付费</span><span class="text-signal-amber font-mono">$199/mo</span></div>
+                        </div>
+                        <div class="bg-ink-800 border border-ink-700 rounded-xl p-4 border-dashed">
+                            <div class="text-center py-3">
+                                <i class="fas fa-plus text-slate-600 text-xl mb-2"></i>
+                                <div class="text-[12px] text-slate-500">添加研报源</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Paid industry data -->
+                <section id="paid">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-[15px] font-semibold text-white flex items-center gap-2">
+                            <i class="fas fa-lock text-signal-red text-xs"></i>付费行业数据
+                            <span class="text-[12px] text-slate-500 font-normal">· 月度成本 $1,847</span>
+                        </h3>
+                    </div>
+                    <div class="grid grid-cols-4 gap-3">
+                        <div class="bg-gradient-to-br from-ink-800 to-ink-850 border border-ink-700 rounded-xl p-3">
+                            <div class="text-[12px] text-white font-semibold">Counterpoint</div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">智能手机/PC/AI 服务器</div>
+                            <div class="text-[13px] text-signal-amber font-mono mt-2">$249/mo</div>
+                            <div class="mt-1 text-[10px] text-signal-green">⬤ 健康 · 8 docs 本周</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-ink-800 to-ink-850 border border-ink-700 rounded-xl p-3">
+                            <div class="text-[12px] text-white font-semibold">IDC Tracker</div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">PC 出货季度追踪</div>
+                            <div class="text-[13px] text-signal-amber font-mono mt-2">$399/mo</div>
+                            <div class="mt-1 text-[10px] text-signal-green">⬤ 健康 · 3 docs 本周</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-ink-800 to-ink-850 border border-ink-700 rounded-xl p-3">
+                            <div class="text-[12px] text-white font-semibold">Canalys</div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">智能终端市场</div>
+                            <div class="text-[13px] text-signal-amber font-mono mt-2">$199/mo</div>
+                            <div class="mt-1 text-[10px] text-signal-green">⬤ 健康 · 5 docs 本周</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-ink-800 to-ink-850 border border-ink-700 rounded-xl p-3">
+                            <div class="text-[12px] text-white font-semibold">TrendForce</div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">存储/面板/半导体</div>
+                            <div class="text-[13px] text-signal-amber font-mono mt-2">$299/mo</div>
+                            <div class="mt-1 text-[10px] text-signal-green">⬤ 健康 · 12 docs 本周</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-ink-800 to-ink-850 border border-ink-700 rounded-xl p-3">
+                            <div class="text-[12px] text-white font-semibold">Cango / Wards</div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">汽车销量/库存</div>
+                            <div class="text-[13px] text-signal-amber font-mono mt-2">$179/mo</div>
+                            <div class="mt-1 text-[10px] text-signal-green">⬤ 健康 · 6 docs 本周</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-ink-800 to-ink-850 border border-ink-700 rounded-xl p-3">
+                            <div class="text-[12px] text-white font-semibold">CB Insights</div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">创投行业流动</div>
+                            <div class="text-[13px] text-signal-amber font-mono mt-2">$249/mo</div>
+                            <div class="mt-1 text-[10px] text-signal-green">⬤ 健康 · 14 docs 本周</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-ink-800 to-ink-850 border border-ink-700 rounded-xl p-3">
+                            <div class="text-[12px] text-white font-semibold">Omdia</div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">显示+电信</div>
+                            <div class="text-[13px] text-signal-amber font-mono mt-2">$159/mo</div>
+                            <div class="mt-1 text-[10px] text-signal-amber">⬤ 限流</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-ink-800 to-ink-850 border border-ink-700 rounded-xl p-3 opacity-50">
+                            <div class="text-[12px] text-white font-semibold">DellOro</div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">数据中心硬件</div>
+                            <div class="text-[13px] text-signal-amber font-mono mt-2">$449/mo</div>
+                            <div class="mt-1 text-[10px] text-slate-500">⬤ 已暂停</div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
