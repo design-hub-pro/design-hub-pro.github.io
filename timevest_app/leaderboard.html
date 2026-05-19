@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Leaderboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+  *::-webkit-scrollbar{display:none;}
+  html,body{width:100%;height:100%;scrollbar-width:none;overflow:hidden;}
+  .screen{position:relative;width:100%;height:100%;background:#F4F6FB;overflow:hidden;color:#0B1426;}
+  .scroll-area{height:100%;overflow-y:auto;padding-bottom:120px;}
+
+  .status-bar{height:59px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 6px;font-size:15px;font-weight:600;color:#0B1426;position:relative;}
+  .dyn-island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:122px;height:36px;background:#000;border-radius:20px;}
+  .status-right{display:flex;align-items:center;gap:5px;}
+
+  /* Hero / header */
+  .hero{margin:0 0 18px;padding:8px 28px 24px;position:relative;overflow:hidden;background:linear-gradient(180deg,#070B17 0%,#0B1426 100%);color:#fff;border-radius:0 0 30px 30px;}
+  .hero::before{content:'';position:absolute;top:-100px;right:-100px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(255,214,10,0.18),transparent 70%);}
+  .hero::after{content:'';position:absolute;bottom:-80px;left:-60px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(0,255,163,0.12),transparent 70%);}
+  .hero-head{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;}
+  .hero-title{font-size:24px;font-weight:900;letter-spacing:-0.6px;}
+  .hero-filter{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.1);padding:6px 12px;border-radius:14px;font-size:11px;font-weight:700;}
+
+  /* Period tabs */
+  .period-tabs{display:flex;gap:6px;margin-top:18px;background:rgba(255,255,255,0.08);border-radius:14px;padding:3px;position:relative;z-index:1;}
+  .pt{flex:1;text-align:center;padding:10px;font-size:12px;font-weight:700;color:rgba(255,255,255,0.6);border-radius:11px;}
+  .pt.active{background:#fff;color:#0B1426;}
+
+  /* Podium */
+  .podium{display:flex;justify-content:center;align-items:flex-end;gap:12px;margin-top:30px;position:relative;z-index:1;height:200px;}
+  .podium-col{display:flex;flex-direction:column;align-items:center;flex:1;}
+  .pc-avatar-wrap{position:relative;}
+  .pc-avatar{width:62px;height:62px;border-radius:50%;background-size:cover;background-position:center;border:3px solid #fff;}
+  .pc-crown{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:24px;}
+  .pc-rank-circle{position:absolute;bottom:-6px;right:-2px;width:22px;height:22px;border-radius:50%;background:#FFD60A;color:#0B1426;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;border:2px solid #0B1426;}
+  .pc-name{font-size:11px;font-weight:800;margin-top:10px;text-align:center;}
+  .pc-school{font-size:9px;color:rgba(255,255,255,0.55);margin-top:1px;}
+  .pc-bar{width:100%;background:rgba(255,255,255,0.08);border-radius:14px 14px 0 0;margin-top:10px;padding:12px 6px 8px;text-align:center;border-top:2px solid;}
+  .pc-bar.b1{border-color:#FFD60A;background:linear-gradient(180deg,rgba(255,214,10,0.15),rgba(255,214,10,0.05));}
+  .pc-bar.b2{border-color:#C0C0C0;background:linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.04));}
+  .pc-bar.b3{border-color:#CD7F32;background:linear-gradient(180deg,rgba(205,127,50,0.18),rgba(205,127,50,0.05));}
+  .pc-return{font-size:15px;font-weight:900;letter-spacing:-0.5px;}
+  .pc-return.gold{color:#FFD60A;}
+  .pc-return.silver{color:#E0E0E0;}
+  .pc-return.bronze{color:#FF8A00;}
+  .pc-return-l{font-size:9px;color:rgba(255,255,255,0.6);font-weight:600;margin-top:1px;}
+
+  .b1{height:130px;}.b2{height:110px;}.b3{height:90px;}
+
+  /* You card */
+  .you-card{margin:0 28px 18px;background:linear-gradient(135deg,#00FFA3,#00C896);border-radius:18px;padding:14px;color:#0B1426;display:flex;align-items:center;gap:12px;box-shadow:0 12px 28px rgba(0,200,150,0.3);}
+  .you-rank{width:42px;height:42px;border-radius:13px;background:rgba(11,20,38,0.15);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;}
+  .you-info{flex:1;}
+  .you-tag{font-size:10px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;opacity:0.7;}
+  .you-name{font-size:14px;font-weight:800;margin-top:1px;}
+  .you-stats{font-size:11px;font-weight:700;margin-top:3px;display:flex;gap:10px;}
+  .you-arrow{display:flex;flex-direction:column;align-items:center;font-size:18px;}
+  .you-arrow .delta{font-size:10px;font-weight:800;margin-top:2px;}
+
+  /* Section head */
+  .sec-head{display:flex;justify-content:space-between;align-items:center;padding:0 28px 12px;}
+  .sec-title{font-size:16px;font-weight:800;letter-spacing:-0.3px;}
+  .sec-link{font-size:12px;color:#5B5FFF;font-weight:700;}
+
+  /* Rank list */
+  .rank-list{padding:0 28px;display:flex;flex-direction:column;gap:8px;}
+  .rank-row{background:#fff;border-radius:16px;padding:12px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 12px rgba(0,0,0,0.04);}
+  .rank-num{width:34px;text-align:center;font-size:14px;font-weight:900;color:#9CA3AF;}
+  .rank-avatar{width:42px;height:42px;border-radius:13px;background-size:cover;background-position:center;flex-shrink:0;}
+  .rank-info{flex:1;min-width:0;}
+  .rank-name{font-size:13px;font-weight:800;}
+  .rank-school{font-size:10px;color:#9CA3AF;font-weight:600;margin-top:1px;display:flex;align-items:center;gap:4px;}
+  .rank-stats{text-align:right;}
+  .rank-return{font-size:13px;font-weight:900;color:#00A87A;}
+  .rank-return.neg{color:#FF4D6D;}
+  .rank-streak{font-size:10px;color:#9CA3AF;font-weight:600;margin-top:1px;display:flex;align-items:center;gap:3px;justify-content:flex-end;}
+  .rank-streak .fire{color:#FF8A00;}
+
+  /* Team / school card horizontal */
+  .team-scroll{padding:0 28px 0;display:flex;gap:10px;overflow-x:auto;}
+  .team-card{flex-shrink:0;width:180px;background:#fff;border-radius:18px;padding:14px;box-shadow:0 4px 12px rgba(0,0,0,0.04);}
+  .team-flag{display:flex;align-items:center;gap:8px;}
+  .team-icon{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
+  .team-name{font-size:12px;font-weight:800;}
+  .team-rank{font-size:10px;color:#9CA3AF;font-weight:700;margin-top:1px;}
+  .team-stats{margin-top:10px;display:flex;justify-content:space-between;}
+  .ts{}
+  .ts .l{font-size:9px;color:#9CA3AF;font-weight:700;text-transform:uppercase;}
+  .ts .v{font-size:14px;font-weight:900;color:#0B1426;margin-top:1px;}
+  .ts .v.pos{color:#00A87A;}
+
+  /* Tab Bar */
+  .tab-bar{position:absolute;bottom:0;left:0;right:0;height:88px;background:rgba(255,255,255,0.92);backdrop-filter:blur(30px);border-top:0.5px solid rgba(0,0,0,0.05);display:flex;align-items:flex-start;padding:14px 18px 0;justify-content:space-around;}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:#9CA3AF;}
+  .tab.active{color:#0B1426;}
+  .tab i{font-size:21px;}
+  .tab.center{width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,#00FFA3,#00C896);box-shadow:0 10px 24px rgba(0,255,163,0.45);color:#0B1426;justify-content:center;margin-top:-6px;}
+  .tab.center i{font-size:22px;}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="status-bar">
+    <span style="color:#fff">9:41</span>
+    <div class="dyn-island"></div>
+    <div class="status-right" style="color:#fff">
+      <i class="fas fa-signal" style="font-size:13px"></i>
+      <i class="fas fa-wifi" style="font-size:13px"></i>
+      <i class="fas fa-battery-full" style="font-size:15px"></i>
+    </div>
+  </div>
+
+  <div class="scroll-area">
+    <div class="hero">
+      <div class="hero-head">
+        <div class="hero-title">Leaderboard</div>
+        <div class="hero-filter"><i class="fas fa-globe"></i> Global <i class="fas fa-chevron-down" style="font-size:9px;margin-left:3px"></i></div>
+      </div>
+      <div class="period-tabs">
+        <div class="pt">Day</div>
+        <div class="pt active">Week</div>
+        <div class="pt">Era</div>
+        <div class="pt">All-time</div>
+      </div>
+
+      <!-- Podium -->
+      <div class="podium">
+        <div class="podium-col">
+          <div class="pc-avatar-wrap">
+            <div class="pc-avatar" style="background-image:url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&q=80')"></div>
+            <div class="pc-rank-circle" style="background:#C0C0C0">2</div>
+          </div>
+          <div class="pc-name">Sofia R.</div>
+          <div class="pc-school">Stanford HS</div>
+          <div class="pc-bar b2 b1" style="height:108px">
+            <div class="pc-return silver">+24.8%</div>
+            <div class="pc-return-l">return</div>
+          </div>
+        </div>
+
+        <div class="podium-col">
+          <div class="pc-avatar-wrap">
+            <div class="pc-crown">👑</div>
+            <div class="pc-avatar" style="background-image:url('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&q=80');border-color:#FFD60A;width:70px;height:70px;"></div>
+            <div class="pc-rank-circle">1</div>
+          </div>
+          <div class="pc-name">Jamal W.</div>
+          <div class="pc-school">MIT Sloan</div>
+          <div class="pc-bar b1" style="height:128px">
+            <div class="pc-return gold">+42.6%</div>
+            <div class="pc-return-l">return</div>
+          </div>
+        </div>
+
+        <div class="podium-col">
+          <div class="pc-avatar-wrap">
+            <div class="pc-avatar" style="background-image:url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&q=80')"></div>
+            <div class="pc-rank-circle" style="background:#CD7F32">3</div>
+          </div>
+          <div class="pc-name">Aria K.</div>
+          <div class="pc-school">Berkeley</div>
+          <div class="pc-bar b3" style="height:88px">
+            <div class="pc-return bronze">+19.4%</div>
+            <div class="pc-return-l">return</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- You -->
+    <div class="you-card">
+      <div class="you-rank">#42</div>
+      <div class="you-info">
+        <div class="you-tag">YOU · 2008 era</div>
+        <div class="you-name">Maya Chen</div>
+        <div class="you-stats">
+          <span>−12.6% return</span>
+          <span>·</span>
+          <span>↑ 8 today</span>
+        </div>
+      </div>
+      <div class="you-arrow"><i class="fas fa-arrow-trend-up"></i><div class="delta">+8</div></div>
+    </div>
+
+    <!-- Schools -->
+    <div class="sec-head"><div class="sec-title">Top Schools</div><div class="sec-link">View all</div></div>
+    <div class="team-scroll">
+      <div class="team-card">
+        <div class="team-flag">
+          <div class="team-icon" style="background:linear-gradient(135deg,#FF4D6D,#C8003E)"><i class="fas fa-school"></i></div>
+          <div><div class="team-name">MIT Sloan</div><div class="team-rank">#1 globally</div></div>
+        </div>
+        <div class="team-stats">
+          <div class="ts"><div class="l">Avg</div><div class="v pos">+31.2%</div></div>
+          <div class="ts"><div class="l">Students</div><div class="v">214</div></div>
+        </div>
+      </div>
+      <div class="team-card">
+        <div class="team-flag">
+          <div class="team-icon" style="background:linear-gradient(135deg,#00FFA3,#00C896)"><i class="fas fa-school"></i></div>
+          <div><div class="team-name">Stanford</div><div class="team-rank">#2 globally</div></div>
+        </div>
+        <div class="team-stats">
+          <div class="ts"><div class="l">Avg</div><div class="v pos">+28.4%</div></div>
+          <div class="ts"><div class="l">Students</div><div class="v">189</div></div>
+        </div>
+      </div>
+      <div class="team-card">
+        <div class="team-flag">
+          <div class="team-icon" style="background:linear-gradient(135deg,#5B5FFF,#8B5CF6)"><i class="fas fa-school"></i></div>
+          <div><div class="team-name">Wharton</div><div class="team-rank">#3 globally</div></div>
+        </div>
+        <div class="team-stats">
+          <div class="ts"><div class="l">Avg</div><div class="v pos">+24.1%</div></div>
+          <div class="ts"><div class="l">Students</div><div class="v">156</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Individual rank list -->
+    <div class="sec-head" style="margin-top:18px"><div class="sec-title">Top Investors</div><div class="sec-link">Filter</div></div>
+    <div class="rank-list">
+      <div class="rank-row">
+        <div class="rank-num">4</div>
+        <div class="rank-avatar" style="background-image:url('https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=200&h=200&fit=crop&q=80')"></div>
+        <div class="rank-info">
+          <div class="rank-name">Lucas Park</div>
+          <div class="rank-school"><i class="fas fa-school" style="font-size:8px"></i>Yale University</div>
+        </div>
+        <div class="rank-stats">
+          <div class="rank-return">+18.2%</div>
+          <div class="rank-streak"><i class="fas fa-fire fire"></i>14 day streak</div>
+        </div>
+      </div>
+      <div class="rank-row">
+        <div class="rank-num">5</div>
+        <div class="rank-avatar" style="background-image:url('https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=200&h=200&fit=crop&q=80')"></div>
+        <div class="rank-info">
+          <div class="rank-name">Zara Mehta</div>
+          <div class="rank-school"><i class="fas fa-school" style="font-size:8px"></i>Columbia</div>
+        </div>
+        <div class="rank-stats">
+          <div class="rank-return">+16.9%</div>
+          <div class="rank-streak"><i class="fas fa-fire fire"></i>9 day streak</div>
+        </div>
+      </div>
+      <div class="rank-row">
+        <div class="rank-num">6</div>
+        <div class="rank-avatar" style="background-image:url('https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=200&h=200&fit=crop&q=80')"></div>
+        <div class="rank-info">
+          <div class="rank-name">Ethan Liu</div>
+          <div class="rank-school"><i class="fas fa-school" style="font-size:8px"></i>NYU Stern</div>
+        </div>
+        <div class="rank-stats">
+          <div class="rank-return">+14.3%</div>
+          <div class="rank-streak"><i class="fas fa-fire fire"></i>22 day streak</div>
+        </div>
+      </div>
+      <div class="rank-row">
+        <div class="rank-num">7</div>
+        <div class="rank-avatar" style="background-image:url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&q=80')"></div>
+        <div class="rank-info">
+          <div class="rank-name">Priya Singh</div>
+          <div class="rank-school"><i class="fas fa-school" style="font-size:8px"></i>Princeton</div>
+        </div>
+        <div class="rank-stats">
+          <div class="rank-return">+11.8%</div>
+          <div class="rank-streak"><i class="fas fa-fire fire"></i>6 day streak</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><i class="fas fa-house"></i>Home</div>
+    <div class="tab"><i class="fas fa-chart-line"></i>Markets</div>
+    <div class="tab center"><i class="fas fa-bolt"></i></div>
+    <div class="tab active"><i class="fas fa-trophy"></i>Compete</div>
+    <div class="tab"><i class="fas fa-user"></i>Profile</div>
+  </div>
+</div>
+</body>
+</html>

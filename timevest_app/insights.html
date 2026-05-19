@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Insights</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+  *::-webkit-scrollbar{display:none;}
+  html,body{width:100%;height:100%;scrollbar-width:none;overflow:hidden;}
+  .screen{position:relative;width:100%;height:100%;background:#F4F6FB;overflow:hidden;color:#0B1426;}
+  .scroll-area{height:100%;overflow-y:auto;padding-bottom:120px;}
+
+  .status-bar{height:59px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 6px;font-size:15px;font-weight:600;color:#0B1426;position:relative;}
+  .dyn-island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:122px;height:36px;background:#000;border-radius:20px;}
+  .status-right{display:flex;align-items:center;gap:5px;}
+
+  .header{padding:8px 28px 16px;display:flex;justify-content:space-between;align-items:center;}
+  .title{font-size:26px;font-weight:900;letter-spacing:-0.8px;}
+  .subtitle{font-size:12px;color:#6B7280;margin-top:2px;}
+  .filter-btn{display:flex;align-items:center;gap:5px;background:#fff;padding:8px 12px;border-radius:12px;font-size:11px;font-weight:700;color:#0B1426;box-shadow:0 4px 12px rgba(0,0,0,0.04);}
+
+  /* Allocation doughnut */
+  .alloc-card{margin:0 28px 18px;background:#fff;border-radius:20px;padding:18px;box-shadow:0 4px 12px rgba(0,0,0,0.04);}
+  .alloc-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+  .alloc-l{font-size:11px;color:#9CA3AF;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;}
+  .alloc-title{font-size:14px;font-weight:800;margin-top:2px;}
+  .alloc-link{font-size:11px;color:#5B5FFF;font-weight:700;}
+
+  .alloc-body{display:flex;align-items:center;gap:18px;}
+  .doughnut{position:relative;width:140px;height:140px;flex-shrink:0;}
+  .doughnut svg{width:100%;height:100%;transform:rotate(-90deg);}
+  .doughnut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .dc-v{font-size:22px;font-weight:900;letter-spacing:-0.5px;}
+  .dc-l{font-size:10px;color:#9CA3AF;font-weight:600;margin-top:1px;}
+
+  .legend{flex:1;display:flex;flex-direction:column;gap:8px;}
+  .leg{display:flex;align-items:center;gap:8px;}
+  .leg-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+  .leg-name{font-size:11px;font-weight:700;flex:1;}
+  .leg-pct{font-size:11px;font-weight:800;color:#9CA3AF;}
+
+  /* Risk gauge */
+  .risk-card{margin:0 28px 18px;background:#fff;border-radius:20px;padding:18px;box-shadow:0 4px 12px rgba(0,0,0,0.04);}
+  .risk-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .risk-h{font-size:14px;font-weight:800;}
+  .risk-pill{background:rgba(255,138,0,0.12);color:#FF8A00;font-size:10px;font-weight:800;padding:4px 9px;border-radius:8px;letter-spacing:0.3px;}
+  .gauge{position:relative;height:84px;}
+  .gauge-arc{position:absolute;inset:0;}
+  .gauge-needle{position:absolute;bottom:0;left:50%;width:3px;height:55px;background:#0B1426;transform-origin:bottom center;transform:translateX(-50%) rotate(35deg);border-radius:2px;}
+  .gauge-needle::after{content:'';position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:#0B1426;border:3px solid #fff;}
+  .gauge-labels{display:flex;justify-content:space-between;font-size:9px;font-weight:700;color:#9CA3AF;margin-top:4px;}
+  .risk-details{display:flex;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1px solid #F4F6FB;}
+  .rd{}
+  .rd .l{font-size:9px;color:#9CA3AF;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;}
+  .rd .v{font-size:13px;font-weight:800;margin-top:2px;}
+
+  /* Long term tip */
+  .tip-card{margin:0 28px 18px;background:linear-gradient(135deg,#00C896,#00A87A);border-radius:20px;padding:18px;color:#fff;display:flex;gap:12px;position:relative;overflow:hidden;}
+  .tip-card::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.1);}
+  .tip-icon{width:42px;height:42px;border-radius:13px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;position:relative;}
+  .tip-body{flex:1;position:relative;}
+  .tip-tag{font-size:9px;font-weight:800;color:rgba(255,255,255,0.85);letter-spacing:0.5px;}
+  .tip-h{font-size:14px;font-weight:800;line-height:1.25;margin-top:3px;}
+  .tip-c{font-size:11px;color:rgba(255,255,255,0.9);line-height:1.4;margin-top:4px;}
+
+  /* Behavior insights */
+  .sec-head{display:flex;justify-content:space-between;align-items:center;padding:0 28px 12px;}
+  .sec-title{font-size:16px;font-weight:800;letter-spacing:-0.3px;}
+
+  .bx-grid{padding:0 28px;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .bx{background:#fff;border-radius:16px;padding:14px;box-shadow:0 4px 12px rgba(0,0,0,0.04);position:relative;overflow:hidden;}
+  .bx-icon{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
+  .bx-v{font-size:22px;font-weight:900;letter-spacing:-0.6px;margin-top:10px;}
+  .bx-v.green{color:#00A87A;}
+  .bx-v.red{color:#FF4D6D;}
+  .bx-l{font-size:11px;color:#6B7280;font-weight:600;margin-top:1px;}
+  .bx-trend{position:absolute;top:14px;right:14px;font-size:10px;font-weight:800;padding:3px 7px;border-radius:6px;}
+  .bx-trend.up{background:rgba(0,200,150,0.12);color:#00A87A;}
+  .bx-trend.dn{background:rgba(255,77,109,0.12);color:#FF4D6D;}
+
+  /* Tab Bar */
+  .tab-bar{position:absolute;bottom:0;left:0;right:0;height:88px;background:rgba(255,255,255,0.92);backdrop-filter:blur(30px);border-top:0.5px solid rgba(0,0,0,0.05);display:flex;align-items:flex-start;padding:14px 18px 0;justify-content:space-around;}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:#9CA3AF;}
+  .tab.active{color:#0B1426;}
+  .tab i{font-size:21px;}
+  .tab.center{width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,#00FFA3,#00C896);box-shadow:0 10px 24px rgba(0,255,163,0.45);color:#0B1426;justify-content:center;margin-top:-6px;}
+  .tab.center i{font-size:22px;}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="dyn-island"></div>
+    <div class="status-right">
+      <i class="fas fa-signal" style="font-size:13px"></i>
+      <i class="fas fa-wifi" style="font-size:13px"></i>
+      <i class="fas fa-battery-full" style="font-size:15px"></i>
+    </div>
+  </div>
+
+  <div class="scroll-area">
+    <div class="header">
+      <div>
+        <div class="title">Insights</div>
+        <div class="subtitle">2008 era · How you're trading</div>
+      </div>
+      <div class="filter-btn">Era <i class="fas fa-chevron-down" style="font-size:9px"></i></div>
+    </div>
+
+    <!-- Allocation -->
+    <div class="alloc-card">
+      <div class="alloc-head">
+        <div>
+          <div class="alloc-l">Portfolio</div>
+          <div class="alloc-title">Asset Allocation</div>
+        </div>
+        <div class="alloc-link">Rebalance →</div>
+      </div>
+      <div class="alloc-body">
+        <div class="doughnut">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#F4F6FB" stroke-width="14"/>
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#00C896" stroke-width="14" stroke-dasharray="115 264" stroke-dashoffset="0"/>
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#5B5FFF" stroke-width="14" stroke-dasharray="80 264" stroke-dashoffset="-115"/>
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#FFD60A" stroke-width="14" stroke-dasharray="42 264" stroke-dashoffset="-195"/>
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#FF4D6D" stroke-width="14" stroke-dasharray="27 264" stroke-dashoffset="-237"/>
+          </svg>
+          <div class="doughnut-center">
+            <div class="dc-v">$87K</div>
+            <div class="dc-l">Total</div>
+          </div>
+        </div>
+        <div class="legend">
+          <div class="leg"><div class="leg-dot" style="background:#00C896"></div><div class="leg-name">Tech</div><div class="leg-pct">44%</div></div>
+          <div class="leg"><div class="leg-dot" style="background:#5B5FFF"></div><div class="leg-name">Cash</div><div class="leg-pct">30%</div></div>
+          <div class="leg"><div class="leg-dot" style="background:#FFD60A"></div><div class="leg-name">Gold</div><div class="leg-pct">16%</div></div>
+          <div class="leg"><div class="leg-dot" style="background:#FF4D6D"></div><div class="leg-name">Banks</div><div class="leg-pct">10%</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risk gauge -->
+    <div class="risk-card">
+      <div class="risk-head">
+        <div class="risk-h">Risk Exposure</div>
+        <div class="risk-pill">⚠ MODERATE</div>
+      </div>
+      <div class="gauge">
+        <svg class="gauge-arc" viewBox="0 0 200 100">
+          <defs>
+            <linearGradient id="gg" x1="0" x2="1">
+              <stop offset="0%" stop-color="#00C896"/>
+              <stop offset="50%" stop-color="#FFD60A"/>
+              <stop offset="100%" stop-color="#FF4D6D"/>
+            </linearGradient>
+          </defs>
+          <path d="M 20 90 A 80 80 0 0 1 180 90" fill="none" stroke="url(#gg)" stroke-width="18" stroke-linecap="round"/>
+        </svg>
+        <div class="gauge-needle"></div>
+      </div>
+      <div class="gauge-labels"><span>Low</span><span>Moderate</span><span>High</span></div>
+      <div class="risk-details">
+        <div class="rd"><div class="l">Volatility</div><div class="v">24.3%</div></div>
+        <div class="rd"><div class="l">Beta</div><div class="v">1.18</div></div>
+        <div class="rd"><div class="l">Max Drawdown</div><div class="v" style="color:#FF4D6D">−18.2%</div></div>
+      </div>
+    </div>
+
+    <!-- Coach tip -->
+    <div class="tip-card">
+      <div class="tip-icon"><i class="fas fa-lightbulb"></i></div>
+      <div class="tip-body">
+        <div class="tip-tag">🎓 LONG-TERM TIP</div>
+        <div class="tip-h">Your panic-sell streak is down 60%</div>
+        <div class="tip-c">You've held through 3 dips this week instead of selling. That's how Warren Buffett built his wealth — patience compounds.</div>
+      </div>
+    </div>
+
+    <!-- Behavior boxes -->
+    <div class="sec-head"><div class="sec-title">Behavior Score</div></div>
+    <div class="bx-grid">
+      <div class="bx">
+        <div class="bx-icon" style="background:linear-gradient(135deg,#00C896,#00A87A)"><i class="fas fa-hourglass-half"></i></div>
+        <div class="bx-trend up">+12%</div>
+        <div class="bx-v green">86</div>
+        <div class="bx-l">Long-term score</div>
+      </div>
+      <div class="bx">
+        <div class="bx-icon" style="background:linear-gradient(135deg,#5B5FFF,#8B5CF6)"><i class="fas fa-shield-halved"></i></div>
+        <div class="bx-trend up">+4%</div>
+        <div class="bx-v">72</div>
+        <div class="bx-l">Risk control</div>
+      </div>
+      <div class="bx">
+        <div class="bx-icon" style="background:linear-gradient(135deg,#FFD60A,#FF8A00)"><i class="fas fa-chart-pie"></i></div>
+        <div class="bx-trend dn">−8%</div>
+        <div class="bx-v red">58</div>
+        <div class="bx-l">Diversification</div>
+      </div>
+      <div class="bx">
+        <div class="bx-icon" style="background:linear-gradient(135deg,#FF4D6D,#C8003E)"><i class="fas fa-ban"></i></div>
+        <div class="bx-trend up">100%</div>
+        <div class="bx-v green">A+</div>
+        <div class="bx-l">No-leverage rule</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><i class="fas fa-house"></i>Home</div>
+    <div class="tab active"><i class="fas fa-chart-line"></i>Markets</div>
+    <div class="tab center"><i class="fas fa-bolt"></i></div>
+    <div class="tab"><i class="fas fa-trophy"></i>Compete</div>
+    <div class="tab"><i class="fas fa-user"></i>Profile</div>
+  </div>
+</div>
+</body>
+</html>

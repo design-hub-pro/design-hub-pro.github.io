@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Simulation</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+  *::-webkit-scrollbar{display:none;}
+  html,body{width:100%;height:100%;scrollbar-width:none;overflow:hidden;}
+  .screen{position:relative;width:100%;height:100%;background:#070B17;overflow:hidden;color:#fff;}
+  .scroll-area{height:100%;overflow-y:auto;padding-bottom:120px;}
+
+  .status-bar{height:59px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 6px;font-size:15px;font-weight:600;color:#fff;position:relative;}
+  .dyn-island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:122px;height:36px;background:#000;border-radius:20px;}
+  .status-right{display:flex;align-items:center;gap:5px;}
+
+  .top-bar{padding:8px 28px 14px;display:flex;align-items:center;justify-content:space-between;}
+  .back-btn{width:40px;height:40px;border-radius:13px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .scen-pill{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.06);padding:7px 13px;border-radius:14px;}
+  .scen-pill .dot{width:7px;height:7px;border-radius:50%;background:#FF4D6D;animation:blink 1.5s infinite;}
+  @keyframes blink{50%{opacity:0.3;}}
+  .scen-pill .l{font-size:12px;font-weight:700;}
+  .menu-btn{width:40px;height:40px;border-radius:13px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:14px;}
+
+  /* Time control bar */
+  .time-bar{margin:0 28px 18px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:14px;display:flex;align-items:center;gap:14px;}
+  .week-display{flex:1;}
+  .week-label{font-size:10px;color:rgba(255,255,255,0.5);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;}
+  .week-val{font-size:18px;font-weight:900;letter-spacing:-0.3px;margin-top:1px;}
+  .week-val .sm{font-size:11px;color:rgba(255,255,255,0.5);font-weight:600;}
+  .time-controls{display:flex;gap:6px;}
+  .tc{width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:12px;}
+  .tc.play{background:#00FFA3;color:#0B1426;font-size:14px;}
+
+  /* Portfolio value big */
+  .pv-card{margin:0 28px 18px;padding:0 4px;}
+  .pv-label{font-size:11px;color:rgba(255,255,255,0.5);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;}
+  .pv-val{font-size:38px;font-weight:900;letter-spacing:-1.5px;margin-top:2px;}
+  .pv-change{display:flex;align-items:center;gap:8px;margin-top:4px;}
+  .pv-change .arrow{color:#FF4D6D;font-size:13px;}
+  .pv-change .amt{font-size:14px;font-weight:700;color:#FF4D6D;}
+  .pv-change .pct{background:rgba(255,77,109,0.18);color:#FF4D6D;font-size:11px;font-weight:800;padding:3px 8px;border-radius:6px;}
+
+  /* Big chart */
+  .chart-wrap{margin:0 28px 14px;height:170px;position:relative;background:rgba(255,255,255,0.03);border-radius:18px;padding:12px;}
+  .chart-event{position:absolute;width:2px;height:80%;top:10%;background:rgba(255,214,10,0.4);}
+  .chart-event-tag{position:absolute;top:6px;background:rgba(255,214,10,0.95);color:#0B1426;font-size:8px;font-weight:800;padding:3px 6px;border-radius:5px;white-space:nowrap;letter-spacing:0.3px;}
+
+  /* Range selector */
+  .range-row{display:flex;justify-content:space-between;padding:0 28px 18px;}
+  .rg{font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);padding:6px 12px;border-radius:8px;}
+  .rg.active{background:rgba(0,255,163,0.15);color:#00FFA3;}
+
+  /* News event banner */
+  .news-banner{margin:0 28px 18px;background:linear-gradient(135deg,rgba(255,77,109,0.15),rgba(255,77,109,0.05));border:1px solid rgba(255,77,109,0.25);border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:12px;}
+  .news-icon{width:36px;height:36px;border-radius:10px;background:rgba(255,77,109,0.2);display:flex;align-items:center;justify-content:center;color:#FF4D6D;flex-shrink:0;}
+  .news-meta{flex:1;}
+  .news-tag{font-size:9px;font-weight:800;color:#FF4D6D;letter-spacing:0.5px;}
+  .news-h{font-size:13px;font-weight:800;line-height:1.3;margin-top:2px;}
+  .news-c{font-size:11px;color:rgba(255,255,255,0.6);margin-top:3px;}
+  .news-arrow{color:rgba(255,255,255,0.4);font-size:13px;}
+
+  /* Holdings */
+  .sec-head{display:flex;justify-content:space-between;align-items:center;padding:0 28px 12px;}
+  .sec-title{font-size:18px;font-weight:800;letter-spacing:-0.3px;}
+  .sec-link{font-size:12px;color:#00FFA3;font-weight:700;}
+
+  .holding-list{padding:0 28px;display:flex;flex-direction:column;gap:10px;}
+  .h-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;}
+  .h-logo{width:40px;height:40px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#0B1426;flex-shrink:0;}
+  .h-logo.aapl{background:#1d1d1f;color:#fff;}
+  .h-logo.bnk{background:linear-gradient(135deg,#FF4D6D,#C8003E);color:#fff;}
+  .h-logo.gld{background:linear-gradient(135deg,#FFD60A,#FF8A00);color:#fff;}
+  .h-info{flex:1;min-width:0;}
+  .h-top{display:flex;align-items:center;gap:6px;}
+  .h-sym{font-size:13px;font-weight:800;}
+  .h-name{font-size:10px;color:rgba(255,255,255,0.5);margin-top:1px;}
+  .h-shares{font-size:10px;color:rgba(255,255,255,0.5);}
+  .h-spark{width:60px;height:24px;}
+  .h-right{text-align:right;}
+  .h-price{font-size:13px;font-weight:800;}
+  .h-chg{font-size:11px;font-weight:700;margin-top:2px;}
+  .pos{color:#00FFA3;}
+  .neg{color:#FF4D6D;}
+
+  /* Tab Bar */
+  .tab-bar{position:absolute;bottom:0;left:0;right:0;height:88px;background:rgba(11,20,38,0.92);backdrop-filter:blur(30px);border-top:0.5px solid rgba(255,255,255,0.07);display:flex;align-items:flex-start;padding:14px 18px 0;justify-content:space-around;}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:rgba(255,255,255,0.4);}
+  .tab.active{color:#fff;}
+  .tab i{font-size:21px;}
+  .tab.center{width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,#00FFA3,#00C896);box-shadow:0 10px 24px rgba(0,255,163,0.45);color:#0B1426;justify-content:center;margin-top:-6px;}
+  .tab.center i{font-size:22px;}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="dyn-island"></div>
+    <div class="status-right">
+      <i class="fas fa-signal" style="font-size:13px"></i>
+      <i class="fas fa-wifi" style="font-size:13px"></i>
+      <i class="fas fa-battery-full" style="font-size:15px"></i>
+    </div>
+  </div>
+
+  <div class="scroll-area">
+    <div class="top-bar">
+      <div class="back-btn"><i class="fas fa-chevron-left"></i></div>
+      <div class="scen-pill"><div class="dot"></div><div class="l">2008 · Live Sim</div></div>
+      <div class="menu-btn"><i class="fas fa-ellipsis-vertical"></i></div>
+    </div>
+
+    <!-- Time control -->
+    <div class="time-bar">
+      <div class="week-display">
+        <div class="week-label">Sept 15, 2008 · Lehman Day</div>
+        <div class="week-val">Week 14 <span class="sm">of 52</span></div>
+      </div>
+      <div class="time-controls">
+        <div class="tc"><i class="fas fa-backward-step"></i></div>
+        <div class="tc play"><i class="fas fa-pause"></i></div>
+        <div class="tc"><i class="fas fa-forward"></i></div>
+      </div>
+    </div>
+
+    <!-- Portfolio value -->
+    <div class="pv-card">
+      <div class="pv-label">Portfolio Value</div>
+      <div class="pv-val">$87,420.50</div>
+      <div class="pv-change">
+        <i class="fas fa-arrow-trend-down arrow"></i>
+        <span class="amt">−$12,580.00</span>
+        <span class="pct">−12.58%</span>
+        <span style="font-size:11px;color:rgba(255,255,255,0.4);margin-left:auto;font-weight:600;">vs. start</span>
+      </div>
+    </div>
+
+    <!-- Big chart -->
+    <div class="chart-wrap">
+      <svg width="100%" height="100%" viewBox="0 0 400 146" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="cg" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="#FF4D6D" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="#FF4D6D" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="cgg" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="#00FFA3" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="#00FFA3" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <!-- gridlines -->
+        <line x1="0" y1="36" x2="400" y2="36" stroke="rgba(255,255,255,0.06)" stroke-dasharray="2 4"/>
+        <line x1="0" y1="73" x2="400" y2="73" stroke="rgba(255,255,255,0.06)" stroke-dasharray="2 4"/>
+        <line x1="0" y1="110" x2="400" y2="110" stroke="rgba(255,255,255,0.06)" stroke-dasharray="2 4"/>
+
+        <!-- Early gain phase -->
+        <path d="M0,40 L40,32 L80,42 L120,28 L160,38 L160,146 L0,146 Z" fill="url(#cgg)"/>
+        <path d="M0,40 L40,32 L80,42 L120,28 L160,38" stroke="#00FFA3" stroke-width="2" fill="none"/>
+
+        <!-- Crash phase -->
+        <path d="M160,38 L200,55 L240,75 L280,95 L320,110 L360,118 L400,124 L400,146 L160,146 Z" fill="url(#cg)"/>
+        <path d="M160,38 L200,55 L240,75 L280,95 L320,110 L360,118 L400,124" stroke="#FF4D6D" stroke-width="2" fill="none"/>
+
+        <!-- Event marker -->
+        <line x1="240" y1="20" x2="240" y2="130" stroke="rgba(255,214,10,0.5)" stroke-width="1.5" stroke-dasharray="3 3"/>
+        <circle cx="400" cy="124" r="4" fill="#FF4D6D"/>
+        <circle cx="400" cy="124" r="8" fill="#FF4D6D" opacity="0.3"/>
+      </svg>
+      <div class="chart-event-tag" style="left:208px;top:10px">⚡ LEHMAN FILED</div>
+    </div>
+
+    <div class="range-row">
+      <div class="rg">1W</div>
+      <div class="rg">1M</div>
+      <div class="rg active">3M</div>
+      <div class="rg">6M</div>
+      <div class="rg">1Y</div>
+      <div class="rg">ALL</div>
+    </div>
+
+    <!-- News event -->
+    <div class="news-banner">
+      <div class="news-icon"><i class="fas fa-newspaper"></i></div>
+      <div class="news-meta">
+        <div class="news-tag">⚡ BREAKING · 9 MIN AGO</div>
+        <div class="news-h">Lehman Brothers files Chapter 11</div>
+        <div class="news-c">Markets in freefall. AIG next?</div>
+      </div>
+      <i class="fas fa-chevron-right news-arrow"></i>
+    </div>
+
+    <!-- Holdings -->
+    <div class="sec-head"><div class="sec-title">Your Holdings</div><div class="sec-link">+ Add</div></div>
+
+    <div class="holding-list">
+      <div class="h-card">
+        <div class="h-logo aapl"><i class="fab fa-apple" style="font-size:16px"></i></div>
+        <div class="h-info">
+          <div class="h-top"><div class="h-sym">AAPL</div></div>
+          <div class="h-name">Apple Inc.</div>
+          <div class="h-shares" style="margin-top:2px">52 shares · avg $128</div>
+        </div>
+        <svg class="h-spark" viewBox="0 0 60 24" preserveAspectRatio="none">
+          <path d="M0,16 L10,18 L20,14 L30,16 L40,12 L50,14 L60,10" stroke="#00FFA3" stroke-width="1.5" fill="none"/>
+        </svg>
+        <div class="h-right">
+          <div class="h-price">$134.20</div>
+          <div class="h-chg pos">+4.84%</div>
+        </div>
+      </div>
+
+      <div class="h-card">
+        <div class="h-logo bnk">BAC</div>
+        <div class="h-info">
+          <div class="h-top"><div class="h-sym">BAC</div></div>
+          <div class="h-name">Bank of America</div>
+          <div class="h-shares" style="margin-top:2px">200 shares · avg $32</div>
+        </div>
+        <svg class="h-spark" viewBox="0 0 60 24" preserveAspectRatio="none">
+          <path d="M0,6 L10,8 L20,12 L30,15 L40,18 L50,20 L60,22" stroke="#FF4D6D" stroke-width="1.5" fill="none"/>
+        </svg>
+        <div class="h-right">
+          <div class="h-price">$14.50</div>
+          <div class="h-chg neg">−54.6%</div>
+        </div>
+      </div>
+
+      <div class="h-card">
+        <div class="h-logo gld"><i class="fas fa-coins" style="font-size:14px"></i></div>
+        <div class="h-info">
+          <div class="h-top"><div class="h-sym">GLD</div></div>
+          <div class="h-name">SPDR Gold</div>
+          <div class="h-shares" style="margin-top:2px">100 shares · avg $78</div>
+        </div>
+        <svg class="h-spark" viewBox="0 0 60 24" preserveAspectRatio="none">
+          <path d="M0,18 L10,16 L20,12 L30,10 L40,8 L50,6 L60,5" stroke="#00FFA3" stroke-width="1.5" fill="none"/>
+        </svg>
+        <div class="h-right">
+          <div class="h-price">$84.92</div>
+          <div class="h-chg pos">+8.87%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><i class="fas fa-house"></i>Home</div>
+    <div class="tab"><i class="fas fa-chart-line"></i>Markets</div>
+    <div class="tab center active"><i class="fas fa-bolt"></i></div>
+    <div class="tab"><i class="fas fa-trophy"></i>Compete</div>
+    <div class="tab"><i class="fas fa-user"></i>Profile</div>
+  </div>
+</div>
+</body>
+</html>
