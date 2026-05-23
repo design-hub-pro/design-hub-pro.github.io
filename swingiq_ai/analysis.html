@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwingIQ — Analysis</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+* { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
+.screen { width: 100%; height: 100%; position: relative; overflow: hidden; background: #0a0f0d; }
+.status-bar { height: 59px; padding: 0 28px; display:flex; align-items: flex-end; justify-content: space-between; padding-bottom: 8px; color: white; position: relative; z-index: 20; }
+.dynamic-island { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 122px; height: 36px; background: #000; border-radius: 20px; z-index: 50; }
+.content { position: absolute; top: 59px; bottom: 0; left: 0; right: 0; overflow-y: auto; }
+.swing-bg { background-image: url('https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=900'); background-size: cover; background-position: center; }
+.swing-overlay { background: linear-gradient(180deg, rgba(10,15,13,0.2) 0%, rgba(10,15,13,0.85) 100%); }
+.card { background: #11181a; border: 1px solid rgba(255,255,255,0.06); border-radius: 24px; }
+.metric-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+.metric-fill { height: 100%; border-radius: 3px; }
+/* Ball trace */
+.trace-svg path { stroke-dasharray: 4 4; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="text-sm font-semibold">9:41</span>
+    <div class="flex items-center gap-1.5">
+      <i class="fas fa-signal text-xs"></i>
+      <i class="fas fa-wifi text-xs"></i>
+      <i class="fas fa-battery-full text-xs"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Hero swing playback area -->
+    <div class="relative h-72 overflow-hidden">
+      <div class="absolute inset-0 swing-bg"></div>
+      <div class="absolute inset-0 swing-overlay"></div>
+
+      <!-- top toolbar -->
+      <div class="absolute top-0 left-0 right-0 flex items-center justify-between px-7 pt-2 z-10">
+        <button class="w-9 h-9 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center">
+          <i class="fas fa-arrow-left text-white text-sm"></i>
+        </button>
+        <div class="text-white font-bold text-sm">Swing Replay</div>
+        <button class="w-9 h-9 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center">
+          <i class="fas fa-share-nodes text-white text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Ball trace SVG overlay -->
+      <svg class="trace-svg absolute inset-0 w-full h-full" viewBox="0 0 460 280" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="traceGrad" x1="0" x2="1">
+            <stop offset="0%" stop-color="#fbbf24"/>
+            <stop offset="100%" stop-color="#10b981"/>
+          </linearGradient>
+        </defs>
+        <path d="M 80 220 Q 200 40 420 130" stroke="url(#traceGrad)" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <circle cx="80" cy="220" r="5" fill="#fbbf24"/>
+        <circle cx="420" cy="130" r="6" fill="#10b981"/>
+      </svg>
+
+      <!-- distance pill on trace endpoint -->
+      <div class="absolute z-10" style="top: 110px; right: 60px;">
+        <div class="bg-emerald-500 px-2.5 py-1 rounded-md text-[10px] font-bold text-white shadow-lg">248 yd</div>
+      </div>
+
+      <!-- play controls overlay -->
+      <div class="absolute bottom-4 left-0 right-0 px-7 z-10">
+        <div class="flex items-center gap-3 mb-2">
+          <button class="w-12 h-12 rounded-full bg-white flex items-center justify-center">
+            <i class="fas fa-play text-emerald-700 text-base ml-0.5"></i>
+          </button>
+          <div class="flex-1">
+            <div class="h-1.5 bg-white/20 rounded-full overflow-hidden">
+              <div class="h-full bg-emerald-400 rounded-full" style="width: 45%;"></div>
+            </div>
+            <div class="flex justify-between mt-1 text-[10px] text-white/70 font-medium">
+              <span>0:03</span>
+              <span>0:08</span>
+            </div>
+          </div>
+          <button class="w-9 h-9 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center">
+            <i class="fas fa-gauge text-white text-xs"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body content -->
+    <div class="px-7 pb-10 -mt-4 relative">
+      <!-- Score banner card -->
+      <div class="card p-5 mb-4 flex items-center gap-4">
+        <div class="relative w-20 h-20">
+          <svg viewBox="0 0 80 80" class="w-20 h-20 -rotate-90">
+            <circle cx="40" cy="40" r="34" stroke="rgba(255,255,255,0.08)" stroke-width="6" fill="none"/>
+            <circle cx="40" cy="40" r="34" stroke="#10b981" stroke-width="6" fill="none" stroke-dasharray="213.6" stroke-dashoffset="38.4" stroke-linecap="round"/>
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <div class="text-white font-black text-2xl leading-none">92</div>
+            <div class="text-emerald-400 text-[9px] font-bold uppercase tracking-wider">/100</div>
+          </div>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center gap-1.5 mb-0.5">
+            <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded">Driver</span>
+            <span class="text-white/40 text-[10px]">Today • 9:32 AM</span>
+          </div>
+          <div class="text-white font-bold text-lg leading-tight">Excellent swing</div>
+          <div class="text-white/50 text-xs">Personal best on carry distance</div>
+        </div>
+      </div>
+
+      <!-- Key stats grid -->
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <div class="card p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fas fa-bolt text-amber-400 text-xs"></i>
+            <span class="text-white/50 text-[10px] font-bold uppercase tracking-wider">Club Speed</span>
+          </div>
+          <div class="text-white font-black text-2xl">112<span class="text-sm text-white/40 font-bold ml-1">mph</span></div>
+          <div class="text-emerald-400 text-[10px] font-bold mt-0.5"><i class="fas fa-arrow-up text-[8px]"></i> +4 vs avg</div>
+        </div>
+        <div class="card p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fas fa-route text-emerald-400 text-xs"></i>
+            <span class="text-white/50 text-[10px] font-bold uppercase tracking-wider">Carry</span>
+          </div>
+          <div class="text-white font-black text-2xl">248<span class="text-sm text-white/40 font-bold ml-1">yd</span></div>
+          <div class="text-emerald-400 text-[10px] font-bold mt-0.5"><i class="fas fa-arrow-up text-[8px]"></i> PB +14</div>
+        </div>
+        <div class="card p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fas fa-arrow-trend-up text-violet-400 text-xs"></i>
+            <span class="text-white/50 text-[10px] font-bold uppercase tracking-wider">Launch</span>
+          </div>
+          <div class="text-white font-black text-2xl">14.2<span class="text-sm text-white/40 font-bold ml-1">°</span></div>
+          <div class="text-white/40 text-[10px] font-bold mt-0.5">In optimal range</div>
+        </div>
+        <div class="card p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fas fa-tornado text-cyan-400 text-xs"></i>
+            <span class="text-white/50 text-[10px] font-bold uppercase tracking-wider">Spin</span>
+          </div>
+          <div class="text-white font-black text-2xl">2,610<span class="text-sm text-white/40 font-bold ml-1">rpm</span></div>
+          <div class="text-white/40 text-[10px] font-bold mt-0.5">Slight backspin</div>
+        </div>
+      </div>
+
+      <!-- Swing phases -->
+      <h3 class="text-white font-bold text-sm mb-3 px-1">Swing Phases</h3>
+      <div class="card p-4 mb-4">
+        <!-- timeline -->
+        <div class="flex items-center gap-1 mb-4">
+          <div class="flex-1 h-2 bg-emerald-500 rounded-l-full"></div>
+          <div class="flex-1 h-2 bg-emerald-400"></div>
+          <div class="flex-1 h-2 bg-amber-400"></div>
+          <div class="flex-1 h-2 bg-emerald-500"></div>
+          <div class="flex-1 h-2 bg-emerald-500 rounded-r-full"></div>
+        </div>
+        <div class="flex justify-between mb-4 text-[9px] text-white/50 font-bold uppercase tracking-wider">
+          <span>Setup</span>
+          <span>Backsw</span>
+          <span>Trans</span>
+          <span>Impact</span>
+          <span>Follow</span>
+        </div>
+
+        <!-- phase items -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-3">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <div class="flex-1">
+              <div class="flex justify-between mb-1">
+                <span class="text-white text-xs font-semibold">Shoulder Turn</span>
+                <span class="text-emerald-400 text-xs font-bold">98°</span>
+              </div>
+              <div class="metric-bar"><div class="metric-fill bg-emerald-500" style="width: 92%;"></div></div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <div class="flex-1">
+              <div class="flex justify-between mb-1">
+                <span class="text-white text-xs font-semibold">Weight Shift</span>
+                <span class="text-emerald-400 text-xs font-bold">76%</span>
+              </div>
+              <div class="metric-bar"><div class="metric-fill bg-emerald-500" style="width: 88%;"></div></div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+            <div class="flex-1">
+              <div class="flex justify-between mb-1">
+                <span class="text-white text-xs font-semibold">Hip Rotation Timing</span>
+                <span class="text-amber-400 text-xs font-bold">−12°</span>
+              </div>
+              <div class="metric-bar"><div class="metric-fill bg-amber-400" style="width: 62%;"></div></div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <div class="flex-1">
+              <div class="flex justify-between mb-1">
+                <span class="text-white text-xs font-semibold">Tempo Ratio</span>
+                <span class="text-emerald-400 text-xs font-bold">3 : 1</span>
+              </div>
+              <div class="metric-bar"><div class="metric-fill bg-emerald-500" style="width: 95%;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI verdict -->
+      <div class="card p-4 mb-5" style="background: linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(16,185,129,0.04) 100%); border-color: rgba(16,185,129,0.25);">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-wand-magic-sparkles text-white text-sm"></i>
+          </div>
+          <div class="flex-1">
+            <div class="text-emerald-400 text-[10px] font-bold uppercase tracking-widest mb-1">AI Coach Tip</div>
+            <p class="text-white text-sm font-medium leading-relaxed">Hips firing slightly early. Hold the lower body 0.15s longer at the top — try the "step drill" to add 6–8 more yards.</p>
+            <button class="mt-3 bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-lg inline-flex items-center gap-1.5">
+              Watch drill <i class="fas fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compare side-by-side -->
+      <button class="w-full bg-white/5 border border-white/10 text-white text-sm font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 mb-4">
+        <i class="fas fa-clone text-emerald-400"></i> Compare to Pro: Rory McIlroy
+      </button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

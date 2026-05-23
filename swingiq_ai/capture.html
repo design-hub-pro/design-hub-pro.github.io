@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwingIQ — Capture</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+* { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
+.screen { width: 100%; height: 100%; position: relative; overflow: hidden; background: #06080a; }
+.status-bar { height: 59px; padding: 0 28px; display:flex; align-items: flex-end; justify-content: space-between; padding-bottom: 8px; color: white; position: relative; z-index: 20; }
+.dynamic-island { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 122px; height: 36px; background: #000; border-radius: 20px; z-index: 50; }
+.camera-bg { background-image: url('https://images.unsplash.com/photo-1592919505780-303950717480?w=900'); background-size: cover; background-position: center; filter: brightness(0.85) contrast(1.05); }
+.viewfinder-grid { background-image:
+  linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
+  linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-size: 33.33% 33.33%;
+}
+.glow-rec { box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.3), 0 0 30px rgba(239, 68, 68, 0.5); }
+.club-chip { transition: all 0.2s; }
+.club-chip.active { background: white; color: #0a0f0d; }
+/* pose skeleton lines */
+.line { position: absolute; background: #10b981; height: 2.5px; transform-origin: 0 50%; box-shadow: 0 0 8px rgba(16,185,129,0.7); }
+.joint { position: absolute; width: 9px; height: 9px; background: white; border: 2px solid #10b981; border-radius: 50%; box-shadow: 0 0 8px rgba(16,185,129,0.7); transform: translate(-50%, -50%); }
+.target-ring { position: absolute; border: 2px solid rgba(16,185,129,0.6); border-radius: 50%; }
+@keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.8;} 100% { transform: scale(1.5); opacity: 0; } }
+.pulse-ring::after { content:''; position: absolute; inset:0; border: 2px solid #10b981; border-radius: 50%; animation: pulse-ring 1.6s infinite ease-out; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+
+  <!-- Camera view -->
+  <div class="absolute inset-0 camera-bg"></div>
+  <div class="absolute inset-0 viewfinder-grid"></div>
+  <!-- Top vignette -->
+  <div class="absolute top-0 left-0 right-0 h-40" style="background: linear-gradient(180deg, rgba(0,0,0,0.65) 0%, transparent 100%);"></div>
+  <!-- Bottom vignette -->
+  <div class="absolute bottom-0 left-0 right-0 h-72" style="background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, transparent 100%);"></div>
+
+  <!-- Pose skeleton overlay (positioned around center silhouette) -->
+  <div class="absolute" style="left: 47%; top: 28%; transform: translateX(-50%);">
+    <!-- Head -->
+    <div class="joint" style="left: 30px; top: 0px; width: 24px; height: 24px;"></div>
+    <!-- Neck/Shoulders -->
+    <div class="joint" style="left: 30px; top: 50px;"></div>
+    <div class="joint" style="left: 0px; top: 60px;"></div>
+    <div class="joint" style="left: 60px; top: 55px;"></div>
+    <!-- Arms -->
+    <div class="joint" style="left: -20px; top: 110px;"></div>
+    <div class="joint" style="left: 90px; top: 95px;"></div>
+    <!-- Hands (gripping club) -->
+    <div class="joint" style="left: -5px; top: 165px;"></div>
+    <div class="joint" style="left: 75px; top: 150px;"></div>
+    <!-- Hips -->
+    <div class="joint" style="left: 18px; top: 175px;"></div>
+    <div class="joint" style="left: 50px; top: 175px;"></div>
+    <!-- Knees -->
+    <div class="joint" style="left: 14px; top: 235px;"></div>
+    <div class="joint" style="left: 54px; top: 235px;"></div>
+    <!-- Ankles -->
+    <div class="joint" style="left: 12px; top: 295px;"></div>
+    <div class="joint" style="left: 60px; top: 295px;"></div>
+
+    <!-- Lines (rough connections) -->
+    <div class="line" style="left: 32px; top: 24px; width: 28px; transform: rotate(90deg);"></div>
+    <div class="line" style="left: 2px; top: 60px; width: 28px;"></div>
+    <div class="line" style="left: 32px; top: 55px; width: 28px;"></div>
+    <div class="line" style="left: 0px; top: 60px; width: 52px; transform: rotate(70deg);"></div>
+    <div class="line" style="left: 60px; top: 55px; width: 45px; transform: rotate(60deg);"></div>
+    <div class="line" style="left: -20px; top: 110px; width: 58px; transform: rotate(70deg);"></div>
+    <div class="line" style="left: 90px; top: 95px; width: 60px; transform: rotate(60deg);"></div>
+    <div class="line" style="left: 0px; top: 60px; width: 118px; transform: rotate(57deg);"></div>
+    <div class="line" style="left: 60px; top: 55px; width: 122px; transform: rotate(60deg);"></div>
+    <div class="line" style="left: 20px; top: 175px; width: 30px;"></div>
+    <div class="line" style="left: 18px; top: 175px; width: 60px; transform: rotate(90deg);"></div>
+    <div class="line" style="left: 52px; top: 175px; width: 60px; transform: rotate(90deg);"></div>
+    <div class="line" style="left: 14px; top: 235px; width: 62px; transform: rotate(90deg);"></div>
+    <div class="line" style="left: 54px; top: 235px; width: 62px; transform: rotate(90deg);"></div>
+  </div>
+
+  <!-- Angle label callout -->
+  <div class="absolute z-10" style="top: 36%; left: 28px;">
+    <div class="bg-emerald-500 px-2.5 py-1 rounded-md text-[10px] font-bold text-white">SHOULDER 42°</div>
+  </div>
+  <div class="absolute z-10" style="top: 54%; right: 28px;">
+    <div class="bg-amber-500 px-2.5 py-1 rounded-md text-[10px] font-bold text-white">HIP 18° EARLY</div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span class="text-sm font-semibold">9:41</span>
+    <div class="flex items-center gap-1.5">
+      <i class="fas fa-signal text-xs"></i>
+      <i class="fas fa-wifi text-xs"></i>
+      <i class="fas fa-battery-full text-xs"></i>
+    </div>
+  </div>
+
+  <!-- Top toolbar -->
+  <div class="absolute top-16 left-0 right-0 px-7 z-10 flex items-center justify-between mt-3">
+    <button class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center">
+      <i class="fas fa-xmark text-white text-base"></i>
+    </button>
+    <div class="flex items-center gap-2">
+      <div class="bg-red-500 px-3 py-1.5 rounded-full flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+        <span class="text-white text-xs font-bold tracking-wide">REC 0:04</span>
+      </div>
+    </div>
+    <button class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center">
+      <i class="fas fa-bolt text-white text-base"></i>
+    </button>
+  </div>
+
+  <!-- AI status banner -->
+  <div class="absolute top-32 left-7 right-7 z-10">
+    <div class="bg-emerald-500/15 backdrop-blur-md border border-emerald-400/30 rounded-2xl px-4 py-3 flex items-center gap-3">
+      <div class="relative w-8 h-8 rounded-lg bg-emerald-500/30 flex items-center justify-center">
+        <i class="fas fa-eye text-emerald-300 text-sm"></i>
+        <span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full"></span>
+      </div>
+      <div class="flex-1">
+        <div class="text-emerald-300 text-[10px] font-bold uppercase tracking-widest">AI Tracking</div>
+        <div class="text-white text-sm font-semibold">Pose locked • Ball ready</div>
+      </div>
+      <div class="text-right">
+        <div class="text-white text-base font-black">98<span class="text-xs text-white/60 font-medium">%</span></div>
+        <div class="text-emerald-300 text-[9px] font-semibold uppercase">accuracy</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom controls -->
+  <div class="absolute bottom-0 left-0 right-0 z-10 px-7 pb-10">
+    <!-- Club selector -->
+    <div class="flex gap-2 overflow-x-auto pb-4 -mx-7 px-7" style="scrollbar-width:none;">
+      <div class="club-chip flex-shrink-0 bg-white/10 backdrop-blur-md text-white text-xs font-semibold px-4 py-2 rounded-full">Putter</div>
+      <div class="club-chip flex-shrink-0 bg-white/10 backdrop-blur-md text-white text-xs font-semibold px-4 py-2 rounded-full">Wedge</div>
+      <div class="club-chip flex-shrink-0 bg-white/10 backdrop-blur-md text-white text-xs font-semibold px-4 py-2 rounded-full">9 Iron</div>
+      <div class="club-chip flex-shrink-0 bg-white/10 backdrop-blur-md text-white text-xs font-semibold px-4 py-2 rounded-full">7 Iron</div>
+      <div class="club-chip active flex-shrink-0 text-xs font-bold px-4 py-2 rounded-full">Driver</div>
+      <div class="club-chip flex-shrink-0 bg-white/10 backdrop-blur-md text-white text-xs font-semibold px-4 py-2 rounded-full">3 Wood</div>
+    </div>
+
+    <!-- Camera modes -->
+    <div class="flex items-center justify-center gap-6 mb-5 text-white/60 text-xs font-bold uppercase tracking-widest">
+      <span>Slo-mo</span>
+      <span>Photo</span>
+      <span class="text-white">Swing</span>
+      <span>Replay</span>
+    </div>
+
+    <!-- Control row -->
+    <div class="flex items-center justify-between">
+      <button class="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md flex flex-col items-center justify-center text-white">
+        <i class="fas fa-images text-base"></i>
+        <span class="text-[9px] font-semibold mt-0.5">Library</span>
+      </button>
+
+      <!-- Record button -->
+      <div class="relative">
+        <button class="w-20 h-20 rounded-full bg-white flex items-center justify-center glow-rec">
+          <div class="w-10 h-10 bg-red-500 rounded-lg"></div>
+        </button>
+      </div>
+
+      <button class="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md flex flex-col items-center justify-center text-white">
+        <i class="fas fa-rotate text-base"></i>
+        <span class="text-[9px] font-semibold mt-0.5">Flip</span>
+      </button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
