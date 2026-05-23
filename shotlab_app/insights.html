@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShotLab — Insights</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
+* { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+.screen {
+  width: 100%; height: 100%;
+  background: linear-gradient(180deg, #0a0a18 0%, #050610 100%);
+  position: relative; overflow-y: auto; color: white; padding-bottom: 110px;
+}
+.status-bar { height: 59px; padding: 0 28px; display:flex; align-items:flex-end; justify-content:space-between; padding-bottom: 8px; position:relative; z-index:30; }
+.dynamic-island { position:absolute; top:11px; left:50%; transform:translateX(-50%); width:124px; height:36px; background:#000; border-radius:20px; z-index:40; }
+.card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; }
+
+.tab-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(8,8,18,0.85);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  height: 88px; padding: 10px 28px 24px; display: flex; justify-content: space-between; align-items: flex-start; z-index: 50;
+}
+.tab { display:flex; flex-direction:column; align-items:center; gap:3px; flex:1; }
+.tab i { font-size: 18px; color: rgba(255,255,255,0.4); }
+.tab span { font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 500; }
+.tab.active i, .tab.active span { color: #818cf8; }
+
+.range-pill { padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.range-pill-active { background: white; color: #0a0a18; }
+.range-pill-idle { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.5); }
+
+.heat-cell { width: 100%; aspect-ratio: 1 / 1; border-radius: 6px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="text-white text-[15px] font-semibold">9:41</span>
+    <div class="flex items-center gap-1.5 text-white text-[13px]">
+      <i class="fas fa-signal text-[12px]"></i>
+      <i class="fas fa-wifi text-[12px]"></i>
+      <i class="fas fa-battery-full text-[14px]"></i>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="px-7 mt-2 flex items-center justify-between">
+    <div>
+      <div class="text-white/45 text-[12px] font-medium">Performance</div>
+      <div class="text-white text-[24px] font-bold tracking-tight">Insights</div>
+    </div>
+    <div class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+      <i class="fas fa-download text-white/70 text-[12px]"></i>
+    </div>
+  </div>
+
+  <!-- Range Pills -->
+  <div class="px-7 mt-4 flex gap-2">
+    <button class="range-pill range-pill-idle">7D</button>
+    <button class="range-pill range-pill-active">30D</button>
+    <button class="range-pill range-pill-idle">90D</button>
+    <button class="range-pill range-pill-idle">YR</button>
+  </div>
+
+  <!-- Big trend card -->
+  <div class="px-7 mt-4">
+    <div class="card p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-white/45 text-[10px] font-bold tracking-widest uppercase">Avg score / shot</div>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span class="text-white text-[34px] font-bold mono leading-none">10.42</span>
+            <span class="text-emerald-400 text-[12px] font-bold mono">↑ +0.32</span>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="text-white/40 text-[10px] mono">PB</div>
+          <div class="text-amber-300 text-[14px] mono font-bold">10.71</div>
+        </div>
+      </div>
+      <svg width="100%" height="90" viewBox="0 0 320 90" class="mt-3" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#818cf8" stop-opacity="0.4"/>
+            <stop offset="100%" stop-color="#818cf8" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path d="M0,70 L20,65 L40,62 L60,55 L80,58 L100,50 L120,48 L140,45 L160,42 L180,40 L200,38 L220,32 L240,30 L260,25 L280,20 L300,15 L320,18 L320,90 L0,90 Z" fill="url(#trendGrad)"/>
+        <path d="M0,70 L20,65 L40,62 L60,55 L80,58 L100,50 L120,48 L140,45 L160,42 L180,40 L200,38 L220,32 L240,30 L260,25 L280,20 L300,15 L320,18" fill="none" stroke="#818cf8" stroke-width="2" stroke-linejoin="round"/>
+        <circle cx="280" cy="20" r="4" fill="#a855f7"/>
+        <circle cx="280" cy="20" r="9" fill="none" stroke="#a855f7" stroke-width="1.5" opacity="0.4"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- KPI Cards (2x2) -->
+  <div class="px-7 mt-3 grid grid-cols-2 gap-2.5">
+    <div class="card p-3.5">
+      <div class="flex items-center justify-between">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#ef4444,#f97316);">
+          <i class="fas fa-heart-pulse text-white text-[11px]"></i>
+        </div>
+        <span class="text-emerald-400 text-[10px] mono">−4</span>
+      </div>
+      <div class="mt-2.5">
+        <div class="text-white/40 text-[9px] mono uppercase tracking-wider">Avg Match HR</div>
+        <div class="flex items-baseline gap-1">
+          <span class="text-white text-[22px] font-bold mono">66</span>
+          <span class="text-white/40 text-[9px] mono">bpm</span>
+        </div>
+      </div>
+    </div>
+    <div class="card p-3.5">
+      <div class="flex items-center justify-between">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#8b5cf6,#6366f1);">
+          <i class="fas fa-wave-square text-white text-[11px]"></i>
+        </div>
+        <span class="text-emerald-400 text-[10px] mono">+6</span>
+      </div>
+      <div class="mt-2.5">
+        <div class="text-white/40 text-[9px] mono uppercase tracking-wider">HRV (rmssd)</div>
+        <div class="flex items-baseline gap-1">
+          <span class="text-white text-[22px] font-bold mono">78</span>
+          <span class="text-white/40 text-[9px] mono">ms</span>
+        </div>
+      </div>
+    </div>
+    <div class="card p-3.5">
+      <div class="flex items-center justify-between">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
+          <i class="fas fa-crosshairs text-white text-[11px]"></i>
+        </div>
+        <span class="text-emerald-400 text-[10px] mono">A+</span>
+      </div>
+      <div class="mt-2.5">
+        <div class="text-white/40 text-[9px] mono uppercase tracking-wider">Hold Stability</div>
+        <div class="flex items-baseline gap-1">
+          <span class="text-white text-[22px] font-bold mono">96</span>
+          <span class="text-white/40 text-[9px] mono">%</span>
+        </div>
+      </div>
+    </div>
+    <div class="card p-3.5">
+      <div class="flex items-center justify-between">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#06b6d4,#10b981);">
+          <i class="fas fa-wind text-white text-[11px]"></i>
+        </div>
+        <span class="text-emerald-400 text-[10px] mono">+8%</span>
+      </div>
+      <div class="mt-2.5">
+        <div class="text-white/40 text-[9px] mono uppercase tracking-wider">Breath Hold</div>
+        <div class="flex items-baseline gap-1">
+          <span class="text-white text-[22px] font-bold mono">5.2</span>
+          <span class="text-white/40 text-[9px] mono">sec</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Group heatmap -->
+  <div class="px-7 mt-4">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-white/55 text-[10px] font-bold tracking-widest uppercase">Shot Group · Last Match</span>
+      <span class="text-indigo-400 text-[10px] mono">60 shots</span>
+    </div>
+    <div class="card p-4 flex items-center gap-4">
+      <!-- target -->
+      <div class="relative w-[130px] h-[130px] flex-shrink-0">
+        <svg width="130" height="130" viewBox="0 0 130 130">
+          <circle cx="65" cy="65" r="62" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.1)"/>
+          <circle cx="65" cy="65" r="50" fill="none" stroke="rgba(255,255,255,0.1)"/>
+          <circle cx="65" cy="65" r="38" fill="none" stroke="rgba(255,255,255,0.1)"/>
+          <circle cx="65" cy="65" r="26" fill="none" stroke="rgba(255,255,255,0.12)"/>
+          <circle cx="65" cy="65" r="14" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.5)"/>
+          <circle cx="65" cy="65" r="5" fill="rgba(245,158,11,0.25)" stroke="rgba(245,158,11,0.8)"/>
+          <!-- shots -->
+          <circle cx="62" cy="60" r="2.5" fill="#34d399"/>
+          <circle cx="68" cy="62" r="2.5" fill="#34d399"/>
+          <circle cx="65" cy="58" r="2.5" fill="#34d399"/>
+          <circle cx="70" cy="68" r="2.5" fill="#34d399"/>
+          <circle cx="60" cy="66" r="2.5" fill="#34d399"/>
+          <circle cx="64" cy="64" r="2.5" fill="#34d399"/>
+          <circle cx="67" cy="60" r="2.5" fill="#34d399"/>
+          <circle cx="58" cy="62" r="2.5" fill="#fbbf24"/>
+          <circle cx="74" cy="70" r="2.5" fill="#fbbf24"/>
+          <circle cx="55" cy="58" r="2.5" fill="#fbbf24"/>
+          <circle cx="76" cy="60" r="2.5" fill="#fb7185"/>
+          <circle cx="63" cy="61" r="2.5" fill="#34d399"/>
+          <circle cx="66" cy="63" r="2.5" fill="#34d399"/>
+          <circle cx="69" cy="65" r="2.5" fill="#34d399"/>
+          <circle cx="61" cy="63" r="2.5" fill="#34d399"/>
+        </svg>
+      </div>
+      <!-- legend -->
+      <div class="flex-1">
+        <div class="text-white/45 text-[10px] mono uppercase tracking-wider mb-2">Distribution</div>
+        <div class="flex items-center gap-2 mb-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="text-white text-[11px]">10s</span>
+          <span class="ml-auto text-white mono text-[11px] font-bold">38</span>
+        </div>
+        <div class="flex items-center gap-2 mb-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+          <span class="text-white text-[11px]">9s</span>
+          <span class="ml-auto text-white mono text-[11px] font-bold">17</span>
+        </div>
+        <div class="flex items-center gap-2 mb-1.5">
+          <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+          <span class="text-white text-[11px]">8s</span>
+          <span class="ml-auto text-white mono text-[11px] font-bold">5</span>
+        </div>
+        <div class="h-px bg-white/8 my-2"></div>
+        <div class="flex items-center gap-2">
+          <span class="text-white/45 text-[10px] mono uppercase">Group size</span>
+          <span class="ml-auto text-emerald-400 mono text-[11px] font-bold">12 mm</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI breakthrough -->
+  <div class="px-7 mt-3">
+    <div class="rounded-2xl p-3.5 flex items-start gap-3" style="background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(99,102,241,0.08)); border: 1px solid rgba(16,185,129,0.25);">
+      <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#10b981,#06b6d4);">
+        <i class="fas fa-arrow-trend-up text-white text-[11px]"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="text-emerald-300 text-[10px] font-bold tracking-widest uppercase mb-0.5">Breakthrough</div>
+        <div class="text-white text-[12px] leading-snug">You score <span class="font-bold text-emerald-400">+0.4</span> higher when you trigger between HR beats 4–6.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Tab -->
+  <nav class="tab-bar">
+    <div class="tab"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab"><i class="fas fa-folder-open"></i><span>Sessions</span></div>
+    <div class="tab"><i class="fas fa-clapperboard"></i><span>Replay</span></div>
+    <div class="tab active"><i class="fas fa-chart-line"></i><span>Insights</span></div>
+    <div class="tab"><i class="fas fa-user"></i><span>Profile</span></div>
+  </nav>
+</div>
+</body>
+</html>
