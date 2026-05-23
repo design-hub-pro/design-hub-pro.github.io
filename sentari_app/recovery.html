@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentari — Recovery Plan</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { scrollbar-width: none; font-family: 'Inter', sans-serif; width: 100%; height: 100%; overflow-x: hidden; background: #0a0820; color: #fff; }
+
+    .status-bar { height: 59px; padding: 0 28px 12px; display: flex; align-items: flex-end; justify-content: space-between; position: sticky; top: 0; z-index: 100; background: #0a0820; }
+    .status-time { font-size: 16px; font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+    .dynamic-island { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 130px; height: 36px; background: #000; border-radius: 20px; }
+
+    .content { padding: 0 28px 110px; }
+
+    .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .top-action { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; }
+    .top-title { font-size: 14px; font-weight: 700; }
+    .top-title small { display: block; font-size: 11px; color: #a39ec0; font-weight: 500; margin-top: 1px; }
+
+    .hero-card {
+        height: 220px; border-radius: 26px; overflow: hidden; position: relative; margin-bottom: 16px;
+    }
+    .hero-card img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-card .overlay {
+        position: absolute; inset: 0;
+        background: linear-gradient(180deg, transparent 30%, rgba(10,8,32,0.95) 100%);
+    }
+    .hero-card .badge {
+        position: absolute; top: 14px; left: 14px;
+        background: rgba(0,0,0,0.55); backdrop-filter: blur(8px);
+        padding: 6px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 6px;
+    }
+    .hero-card .badge i { color: #ff5e9c; }
+    .hero-card .info {
+        position: absolute; bottom: 16px; left: 16px; right: 16px;
+    }
+    .hero-card h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 4px; }
+    .hero-card p { font-size: 12px; opacity: 0.85; }
+
+    .plan-intro {
+        background: linear-gradient(135deg, rgba(107,76,245,0.18), rgba(255,94,156,0.1));
+        border: 1px solid rgba(107,76,245,0.3); border-radius: 18px;
+        padding: 14px 16px; margin-bottom: 20px; display: flex; gap: 12px;
+    }
+    .intro-icon {
+        width: 36px; height: 36px; border-radius: 12px; flex-shrink: 0;
+        background: linear-gradient(135deg, #6b4cf5, #ff5e9c);
+        display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px;
+    }
+    .intro-text { font-size: 12.5px; color: #d4d0e6; line-height: 1.5; flex: 1; }
+    .intro-text b { color: #fff; }
+
+    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+    .section-title span:last-child { font-size: 12px; color: #ff5e9c; font-weight: 600; }
+
+    .step-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; }
+    .step-card {
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 18px; padding: 14px; display: flex; gap: 12px; align-items: center;
+    }
+    .step-thumb {
+        width: 56px; height: 56px; border-radius: 14px; overflow: hidden; flex-shrink: 0; position: relative;
+    }
+    .step-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .step-thumb .play-mini {
+        position: absolute; inset: 0; background: rgba(0,0,0,0.35);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .step-thumb .play-mini i { color: #fff; font-size: 12px; }
+    .step-body { flex: 1; min-width: 0; }
+    .step-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+    .step-meta { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #a39ec0; }
+    .step-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: #a39ec0; }
+    .step-status { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; border: 1.5px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; }
+    .step-status.done { background: linear-gradient(135deg, #5eecc7, #6bd9ff); border-color: transparent; }
+    .step-status.done i { color: #0a0820; font-size: 11px; }
+    .step-status.active { background: linear-gradient(135deg, #ff5e9c, #6b4cf5); border-color: transparent; }
+    .step-status.active i { color: #fff; font-size: 10px; }
+
+    .progress-card {
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 18px; padding: 16px; margin-bottom: 16px;
+    }
+    .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .progress-label { font-size: 12px; color: #a39ec0; }
+    .progress-pct { font-size: 18px; font-weight: 800; color: #5eecc7; }
+    .progress-bar { height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 40%; background: linear-gradient(90deg, #5eecc7, #6b9cff); border-radius: 4px; }
+
+    .start-cta {
+        background: linear-gradient(135deg, #ff5e9c, #6b4cf5); color: #fff;
+        padding: 16px; border-radius: 18px; text-align: center; font-size: 15px; font-weight: 700;
+        box-shadow: 0 12px 30px rgba(255,94,156,0.35);
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+
+    .tab-bar {
+        position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+        background: rgba(10,8,32,0.95); backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex; justify-content: space-around; align-items: flex-start; padding-top: 14px;
+    }
+    .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: #555; font-weight: 500; }
+    .tab-item.active { color: #ff5e9c; }
+    .tab-item i { font-size: 20px; }
+    .tab-center {
+        width: 52px; height: 52px; border-radius: 50%;
+        background: linear-gradient(135deg, #ff5e9c, #6b4cf5);
+        display: flex; align-items: center; justify-content: center;
+        margin-top: -10px; box-shadow: 0 8px 20px rgba(255,94,156,0.5);
+    }
+    .tab-center i { color: #fff; font-size: 18px; }
+</style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+    </div>
+
+    <div class="content">
+        <div class="top-row">
+            <div class="top-action"><i class="fas fa-arrow-left" style="font-size:14px;color:#a39ec0"></i></div>
+            <div class="top-title">Recovery Plan<small>For anxious · ~11 min</small></div>
+            <div class="top-action"><i class="fas fa-bookmark" style="font-size:14px;color:#a39ec0"></i></div>
+        </div>
+
+        <div class="hero-card">
+            <img src="https://images.unsplash.com/photo-1545389336-cf090694435e?w=600&h=400&fit=crop" alt="">
+            <div class="overlay"></div>
+            <div class="badge"><i class="fas fa-sparkles"></i> Personalized by Sentari</div>
+            <div class="info">
+                <h2>Pre-meeting Reset</h2>
+                <p>Designed to drop pulse 15 bpm in 11 minutes</p>
+            </div>
+        </div>
+
+        <div class="plan-intro">
+            <div class="intro-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+            <div class="intro-text">Based on your past anxiety check-ins, <b>4–4–8 breathing + nature sounds</b> reduced your pulse fastest. Built for you.</div>
+        </div>
+
+        <div class="section-title"><span>3 Quick Steps</span><span>11:42 AM</span></div>
+
+        <div class="step-list">
+            <div class="step-card">
+                <div class="step-thumb">
+                    <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=160&h=160&fit=crop" alt="">
+                    <div class="play-mini"><i class="fas fa-wind"></i></div>
+                </div>
+                <div class="step-body">
+                    <div class="step-name">4–4–8 Breathing</div>
+                    <div class="step-meta"><span>4 min</span><span class="dot"></span><span>Vagal reset</span></div>
+                </div>
+                <div class="step-status done"><i class="fas fa-check"></i></div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-thumb">
+                    <img src="https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=160&h=160&fit=crop" alt="">
+                    <div class="play-mini"><i class="fas fa-play"></i></div>
+                </div>
+                <div class="step-body">
+                    <div class="step-name">Forest Soundscape</div>
+                    <div class="step-meta"><span>5 min</span><span class="dot"></span><span>Lower cortisol</span></div>
+                </div>
+                <div class="step-status active"><i class="fas fa-play"></i></div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-thumb">
+                    <img src="https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=160&h=160&fit=crop" alt="">
+                    <div class="play-mini"><i class="fas fa-message"></i></div>
+                </div>
+                <div class="step-body">
+                    <div class="step-name">Confidence Affirmation</div>
+                    <div class="step-meta"><span>2 min</span><span class="dot"></span><span>Reframe</span></div>
+                </div>
+                <div class="step-status"></div>
+            </div>
+        </div>
+
+        <div class="progress-card">
+            <div class="progress-header">
+                <div class="progress-label">Session progress</div>
+                <div class="progress-pct">40%</div>
+            </div>
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+        </div>
+
+        <div class="start-cta">Continue Session <i class="fas fa-play"></i></div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+        <div class="tab-item"><i class="fas fa-chart-line"></i><span>Insights</span></div>
+        <div class="tab-center active"><i class="fas fa-plus"></i></div>
+        <div class="tab-item"><i class="fas fa-book"></i><span>Journal</span></div>
+        <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+    </div>
+</body>
+</html>

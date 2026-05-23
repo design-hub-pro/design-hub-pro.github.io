@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentari — AI Prediction</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { scrollbar-width: none; font-family: 'Inter', sans-serif; width: 100%; height: 100%; overflow-x: hidden; background: #0a0820; color: #fff; }
+
+    .status-bar { height: 59px; padding: 0 28px 12px; display: flex; align-items: flex-end; justify-content: space-between; position: sticky; top: 0; z-index: 100; background: #0a0820; }
+    .status-time { font-size: 16px; font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+    .dynamic-island { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 130px; height: 36px; background: #000; border-radius: 20px; }
+
+    .content { padding: 0 28px 40px; }
+
+    .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+    .top-action { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; }
+    .ai-badge { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(107,76,245,0.15); border: 1px solid rgba(107,76,245,0.35); border-radius: 20px; font-size: 11px; font-weight: 600; color: #b8a5ff; }
+
+    .prediction-hero {
+        background: linear-gradient(135deg, #6b4cf5 0%, #ff5e9c 100%);
+        border-radius: 28px; padding: 24px; text-align: center; margin-bottom: 18px;
+        position: relative; overflow: hidden;
+        box-shadow: 0 20px 60px rgba(255,94,156,0.4);
+    }
+    .prediction-hero::before {
+        content: ''; position: absolute; inset: 0;
+        background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), transparent 50%);
+    }
+    .pred-emoji { font-size: 64px; line-height: 1; margin-bottom: 12px; position: relative; }
+    .pred-label { font-size: 12px; font-weight: 600; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; position: relative; }
+    .pred-state { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 8px; position: relative; }
+    .pred-confidence { font-size: 13px; opacity: 0.9; position: relative; }
+    .pred-confidence b { font-weight: 800; }
+
+    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; margin-top: 22px; }
+    .section-title:first-of-type { margin-top: 4px; }
+
+    .signal-list { display: flex; flex-direction: column; gap: 10px; }
+    .signal-row {
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+    }
+    .signal-icon {
+        width: 38px; height: 38px; border-radius: 12px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+    .signal-icon.pulse { background: rgba(255,94,156,0.18); color: #ff5e9c; }
+    .signal-icon.temp { background: rgba(255,140,94,0.18); color: #ff8c5e; }
+    .signal-icon.hrv { background: rgba(94,236,199,0.18); color: #5eecc7; }
+    .signal-icon.text { background: rgba(107,156,255,0.18); color: #6b9cff; }
+
+    .signal-body { flex: 1; }
+    .signal-name { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+    .signal-detail { font-size: 11px; color: #a39ec0; }
+    .signal-weight { font-size: 13px; font-weight: 800; color: #ff5e9c; }
+
+    .alt-row { display: flex; gap: 8px; }
+    .alt-chip {
+        flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 12px; padding: 10px 12px; text-align: center;
+    }
+    .alt-emoji { font-size: 22px; line-height: 1; margin-bottom: 4px; }
+    .alt-label { font-size: 11px; font-weight: 600; color: #d4d0e6; margin-bottom: 2px; }
+    .alt-pct { font-size: 10px; color: #a39ec0; }
+
+    .accuracy-card {
+        background: linear-gradient(135deg, rgba(94,236,199,0.12), rgba(107,156,255,0.08));
+        border: 1px solid rgba(94,236,199,0.25); border-radius: 18px;
+        padding: 14px 16px; margin-top: 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 12px;
+    }
+    .accuracy-card i { color: #5eecc7; font-size: 16px; }
+    .accuracy-text { flex: 1; }
+    .accuracy-title { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .accuracy-sub { font-size: 11px; color: #a39ec0; }
+
+    .actions { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-feedback {
+        flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+        padding: 14px; border-radius: 14px; text-align: center; font-size: 13px; font-weight: 600; color: #d4d0e6;
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-primary {
+        flex: 1.4; background: linear-gradient(135deg, #ff5e9c, #6b4cf5); color: #fff;
+        padding: 14px; border-radius: 14px; text-align: center; font-size: 13px; font-weight: 700;
+        box-shadow: 0 10px 24px rgba(255,94,156,0.3);
+    }
+</style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+    </div>
+
+    <div class="content">
+        <div class="top-row">
+            <div class="top-action"><i class="fas fa-arrow-left" style="font-size:14px;color:#a39ec0"></i></div>
+            <div class="ai-badge"><i class="fas fa-sparkles"></i> Sentari AI</div>
+            <div class="top-action"><i class="fas fa-share-nodes" style="font-size:14px;color:#a39ec0"></i></div>
+        </div>
+
+        <div class="prediction-hero">
+            <div class="pred-emoji">😰</div>
+            <div class="pred-label">Prediction · 11:38 AM</div>
+            <div class="pred-state">Performance Anxiety</div>
+            <div class="pred-confidence"><b>91%</b> confidence · pre-meeting pattern</div>
+        </div>
+
+        <div class="section-title">Why the model thinks this</div>
+        <div class="signal-list">
+            <div class="signal-row">
+                <div class="signal-icon pulse"><i class="fas fa-heart-pulse"></i></div>
+                <div class="signal-body">
+                    <div class="signal-name">Pulse +22 bpm vs resting</div>
+                    <div class="signal-detail">94 bpm now · baseline 72</div>
+                </div>
+                <div class="signal-weight">38%</div>
+            </div>
+            <div class="signal-row">
+                <div class="signal-icon temp"><i class="fas fa-temperature-half"></i></div>
+                <div class="signal-body">
+                    <div class="signal-name">Skin warming +0.7°C</div>
+                    <div class="signal-detail">Sympathetic activation</div>
+                </div>
+                <div class="signal-weight">24%</div>
+            </div>
+            <div class="signal-row">
+                <div class="signal-icon hrv"><i class="fas fa-wave-square"></i></div>
+                <div class="signal-body">
+                    <div class="signal-name">HRV dropped to 42 ms</div>
+                    <div class="signal-detail">Low vagal tone</div>
+                </div>
+                <div class="signal-weight">21%</div>
+            </div>
+            <div class="signal-row">
+                <div class="signal-icon text"><i class="fas fa-comment-dots"></i></div>
+                <div class="signal-body">
+                    <div class="signal-name">Your words: "chest tight"</div>
+                    <div class="signal-detail">+ deadline trigger</div>
+                </div>
+                <div class="signal-weight">17%</div>
+            </div>
+        </div>
+
+        <div class="section-title">Other possibilities</div>
+        <div class="alt-row">
+            <div class="alt-chip"><div class="alt-emoji">😤</div><div class="alt-label">Stressed</div><div class="alt-pct">6%</div></div>
+            <div class="alt-chip"><div class="alt-emoji">🤯</div><div class="alt-label">Overwhelmed</div><div class="alt-pct">2%</div></div>
+            <div class="alt-chip"><div class="alt-emoji">😴</div><div class="alt-label">Fatigued</div><div class="alt-pct">1%</div></div>
+        </div>
+
+        <div class="accuracy-card">
+            <i class="fas fa-shield-halved"></i>
+            <div class="accuracy-text">
+                <div class="accuracy-title">Model accuracy: 89% on you</div>
+                <div class="accuracy-sub">Trained on 312 of your check-ins · personalized</div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <div class="btn-feedback"><i class="fas fa-thumbs-up"></i> Spot on</div>
+            <div class="btn-primary">Start Recovery</div>
+        </div>
+    </div>
+</body>
+</html>

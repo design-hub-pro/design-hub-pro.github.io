@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentari — Check In</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { scrollbar-width: none; font-family: 'Inter', sans-serif; width: 100%; height: 100%; overflow-x: hidden; background: #0a0820; color: #fff; }
+
+    .status-bar { height: 59px; padding: 0 28px 12px; display: flex; align-items: flex-end; justify-content: space-between; position: sticky; top: 0; z-index: 100; background: #0a0820; }
+    .status-time { font-size: 16px; font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+    .dynamic-island { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 130px; height: 36px; background: #000; border-radius: 20px; }
+
+    .content { padding: 0 28px 40px; }
+
+    .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+    .close-btn { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; }
+    .step-indicator { font-size: 12px; color: #a39ec0; font-weight: 600; }
+
+    .question { font-size: 26px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 8px; }
+    .question-sub { font-size: 13px; color: #a39ec0; margin-bottom: 24px; }
+
+    .mood-grid {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px;
+    }
+    .mood-tile {
+        aspect-ratio: 1; border-radius: 22px; background: rgba(255,255,255,0.04);
+        border: 1.5px solid rgba(255,255,255,0.06); padding: 12px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+        transition: all 0.2s;
+    }
+    .mood-tile.active {
+        background: linear-gradient(135deg, rgba(255,94,156,0.25), rgba(107,76,245,0.2));
+        border-color: #ff5e9c;
+        box-shadow: 0 8px 24px rgba(255,94,156,0.25);
+    }
+    .mood-tile span:first-child { font-size: 30px; line-height: 1; }
+    .mood-tile span:last-child { font-size: 11px; font-weight: 600; color: #d4d0e6; }
+    .mood-tile.active span:last-child { color: #fff; }
+
+    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+
+    .chip-cloud { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+    .chip {
+        padding: 9px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 14px; font-size: 12px; font-weight: 500; color: #d4d0e6;
+    }
+    .chip.active { background: rgba(255,94,156,0.18); border-color: #ff5e9c; color: #fff; }
+
+    .note-box {
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 18px; padding: 16px; margin-bottom: 24px; min-height: 100px;
+    }
+    .note-label { font-size: 12px; color: #a39ec0; margin-bottom: 8px; }
+    .note-text { font-size: 14px; color: #d4d0e6; line-height: 1.5; }
+    .note-text .placeholder { color: #6c6585; }
+
+    .ai-hint {
+        background: linear-gradient(135deg, rgba(107,76,245,0.15), rgba(94,236,199,0.08));
+        border: 1px solid rgba(107,76,245,0.3); border-radius: 18px;
+        padding: 14px 16px; margin-bottom: 28px; display: flex; gap: 12px; align-items: flex-start;
+    }
+    .ai-icon {
+        width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, #6b4cf5, #ff5e9c);
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .ai-icon i { color: #fff; font-size: 14px; }
+    .ai-text { font-size: 12px; color: #d4d0e6; line-height: 1.5; }
+    .ai-text b { color: #ff5e9c; }
+
+    .submit-btn {
+        background: linear-gradient(135deg, #ff5e9c, #6b4cf5); color: #fff;
+        padding: 16px; border-radius: 16px; text-align: center; font-size: 15px; font-weight: 700;
+        box-shadow: 0 10px 30px rgba(255,94,156,0.4); display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+</style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+    </div>
+
+    <div class="content">
+        <div class="top-row">
+            <div class="close-btn"><i class="fas fa-xmark" style="font-size:14px;color:#a39ec0"></i></div>
+            <div class="step-indicator">2 of 3</div>
+        </div>
+
+        <div class="question">How are you<br>feeling right now?</div>
+        <div class="question-sub">Your band sensed something — help us learn your patterns.</div>
+
+        <div class="mood-grid">
+            <div class="mood-tile"><span>😌</span><span>Calm</span></div>
+            <div class="mood-tile"><span>🙂</span><span>Okay</span></div>
+            <div class="mood-tile"><span>😊</span><span>Happy</span></div>
+            <div class="mood-tile"><span>😐</span><span>Numb</span></div>
+            <div class="mood-tile active"><span>😰</span><span>Anxious</span></div>
+            <div class="mood-tile"><span>😠</span><span>Angry</span></div>
+            <div class="mood-tile"><span>😢</span><span>Sad</span></div>
+            <div class="mood-tile"><span>😴</span><span>Tired</span></div>
+            <div class="mood-tile"><span>🤯</span><span>Overwhelmed</span></div>
+        </div>
+
+        <div class="section-title">What might be driving it?</div>
+        <div class="chip-cloud">
+            <div class="chip active">Work meeting</div>
+            <div class="chip">Family</div>
+            <div class="chip active">Deadline</div>
+            <div class="chip">Sleep</div>
+            <div class="chip">Social</div>
+            <div class="chip">Health</div>
+            <div class="chip">Money</div>
+            <div class="chip">Caffeine</div>
+            <div class="chip">Other</div>
+        </div>
+
+        <div class="section-title">Your words</div>
+        <div class="note-box">
+            <div class="note-text">Quarterly review starts in 20 mins. My chest feels tight and I keep replaying what I want to say.</div>
+        </div>
+
+        <div class="ai-hint">
+            <div class="ai-icon"><i class="fas fa-sparkles"></i></div>
+            <div class="ai-text">Pulse is <b>+22 bpm</b> over baseline and skin temp is rising. Sentari predicts <b>performance anxiety</b> — confidence 91%.</div>
+        </div>
+
+        <div class="submit-btn">Get Recovery Plan <i class="fas fa-arrow-right"></i></div>
+    </div>
+</body>
+</html>

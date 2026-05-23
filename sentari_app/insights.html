@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentari — Insights</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { scrollbar-width: none; font-family: 'Inter', sans-serif; width: 100%; height: 100%; overflow-x: hidden; background: #0a0820; color: #fff; }
+
+    .status-bar { height: 59px; padding: 0 28px 12px; display: flex; align-items: flex-end; justify-content: space-between; position: sticky; top: 0; z-index: 100; background: #0a0820; }
+    .status-time { font-size: 16px; font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+    .dynamic-island { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 130px; height: 36px; background: #000; border-radius: 20px; }
+
+    .content { padding: 0 28px 110px; }
+
+    .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .top-title { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+    .top-action { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; }
+
+    .range-tabs { display: flex; background: rgba(255,255,255,0.04); border-radius: 14px; padding: 4px; margin-bottom: 20px; }
+    .range-tab { flex: 1; text-align: center; padding: 9px; font-size: 12px; font-weight: 600; color: #a39ec0; border-radius: 10px; }
+    .range-tab.active { background: linear-gradient(135deg, #ff5e9c, #6b4cf5); color: #fff; box-shadow: 0 4px 14px rgba(255,94,156,0.3); }
+
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .stat-card {
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 18px; padding: 14px;
+    }
+    .stat-label { font-size: 11px; color: #a39ec0; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+    .stat-val { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+    .stat-val .u { font-size: 11px; color: #a39ec0; font-weight: 500; }
+    .stat-trend { font-size: 11px; margin-top: 4px; }
+    .stat-trend.up { color: #5eecc7; }
+    .stat-trend.down { color: #ff5e9c; }
+
+    .chart-card {
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 22px; padding: 18px; margin-bottom: 16px;
+    }
+    .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .chart-title { font-size: 14px; font-weight: 700; }
+    .chart-sub { font-size: 11px; color: #a39ec0; }
+    .chart-legend { display: flex; gap: 12px; }
+    .legend { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #a39ec0; }
+    .legend .sw { width: 8px; height: 8px; border-radius: 2px; }
+
+    .mood-chart { height: 130px; position: relative; margin: 8px 0 8px; }
+    .mood-chart svg { width: 100%; height: 100%; }
+
+    .axis-row { display: flex; justify-content: space-between; font-size: 9px; color: #6c6585; margin-top: 6px; }
+
+    .emotion-mix { display: flex; flex-direction: column; gap: 10px; }
+    .em-row { display: flex; align-items: center; gap: 10px; }
+    .em-emoji { font-size: 20px; width: 24px; }
+    .em-name { font-size: 12px; font-weight: 600; min-width: 70px; }
+    .em-bar { flex: 1; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+    .em-fill { height: 100%; border-radius: 4px; }
+    .em-pct { font-size: 11px; color: #a39ec0; font-weight: 600; min-width: 30px; text-align: right; }
+
+    .insight-card {
+        background: linear-gradient(135deg, rgba(107,76,245,0.15), rgba(255,94,156,0.08));
+        border: 1px solid rgba(107,76,245,0.3); border-radius: 20px;
+        padding: 18px; margin-bottom: 14px;
+    }
+    .insight-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .insight-icon {
+        width: 36px; height: 36px; border-radius: 12px;
+        background: linear-gradient(135deg, #6b4cf5, #ff5e9c);
+        display: flex; align-items: center; justify-content: center; color: #fff;
+    }
+    .insight-label { font-size: 10px; font-weight: 700; color: #ff5e9c; text-transform: uppercase; letter-spacing: 0.05em; }
+    .insight-title { font-size: 14px; font-weight: 700; }
+    .insight-text { font-size: 13px; color: #d4d0e6; line-height: 1.5; }
+    .insight-text b { color: #fff; }
+
+    .section-title { font-size: 16px; font-weight: 700; margin: 22px 0 12px; }
+
+    .tab-bar {
+        position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+        background: rgba(10,8,32,0.95); backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex; justify-content: space-around; align-items: flex-start; padding-top: 14px;
+    }
+    .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: #555; font-weight: 500; }
+    .tab-item.active { color: #ff5e9c; }
+    .tab-item i { font-size: 20px; }
+    .tab-center {
+        width: 52px; height: 52px; border-radius: 50%;
+        background: linear-gradient(135deg, #ff5e9c, #6b4cf5);
+        display: flex; align-items: center; justify-content: center;
+        margin-top: -10px; box-shadow: 0 8px 20px rgba(255,94,156,0.5);
+    }
+    .tab-center i { color: #fff; font-size: 18px; }
+</style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+    </div>
+
+    <div class="content">
+        <div class="top-row">
+            <div class="top-title">Insights</div>
+            <div class="top-action"><i class="fas fa-share-nodes" style="font-size:14px;color:#a39ec0"></i></div>
+        </div>
+
+        <div class="range-tabs">
+            <div class="range-tab">Day</div>
+            <div class="range-tab active">Week</div>
+            <div class="range-tab">Month</div>
+            <div class="range-tab">Year</div>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-label">Avg Pulse</div>
+                <div class="stat-val">76<span class="u"> bpm</span></div>
+                <div class="stat-trend up">↓ 4 bpm vs last week</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Recovery</div>
+                <div class="stat-val">82<span class="u">%</span></div>
+                <div class="stat-trend up">↑ 8% improved</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Calm Hours</div>
+                <div class="stat-val">14.2<span class="u"> hrs/day</span></div>
+                <div class="stat-trend up">↑ 1.4 hrs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Stress Events</div>
+                <div class="stat-val">9</div>
+                <div class="stat-trend down">↑ 2 from last week</div>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-header">
+                <div>
+                    <div class="chart-title">Emotion × Vitals</div>
+                    <div class="chart-sub">Mood score vs pulse · 7 days</div>
+                </div>
+                <div class="chart-legend">
+                    <div class="legend"><div class="sw" style="background:#ff5e9c"></div>Mood</div>
+                    <div class="legend"><div class="sw" style="background:#5eecc7"></div>Pulse</div>
+                </div>
+            </div>
+            <div class="mood-chart">
+                <svg viewBox="0 0 320 130" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#ff5e9c" stop-opacity="0.5"/>
+                            <stop offset="1" stop-color="#ff5e9c" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,80 L46,50 L92,65 L138,30 L184,55 L230,40 L276,25 L320,45 L320,130 L0,130 Z" fill="url(#g1)"/>
+                    <path d="M0,80 L46,50 L92,65 L138,30 L184,55 L230,40 L276,25 L320,45" stroke="#ff5e9c" stroke-width="2.5" fill="none"/>
+                    <path d="M0,40 L46,70 L92,55 L138,85 L184,60 L230,75 L276,90 L320,70" stroke="#5eecc7" stroke-width="2" fill="none" stroke-dasharray="4 3"/>
+                    <circle cx="276" cy="25" r="4" fill="#ff5e9c"/>
+                    <circle cx="276" cy="90" r="4" fill="#5eecc7"/>
+                </svg>
+            </div>
+            <div class="axis-row">
+                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-header">
+                <div>
+                    <div class="chart-title">Emotion Mix</div>
+                    <div class="chart-sub">How you felt this week</div>
+                </div>
+            </div>
+            <div class="emotion-mix">
+                <div class="em-row">
+                    <div class="em-emoji">😌</div>
+                    <div class="em-name">Calm</div>
+                    <div class="em-bar"><div class="em-fill" style="width:42%;background:linear-gradient(90deg,#5eecc7,#6bd9ff)"></div></div>
+                    <div class="em-pct">42%</div>
+                </div>
+                <div class="em-row">
+                    <div class="em-emoji">😊</div>
+                    <div class="em-name">Happy</div>
+                    <div class="em-bar"><div class="em-fill" style="width:28%;background:linear-gradient(90deg,#ffd75e,#ff8c5e)"></div></div>
+                    <div class="em-pct">28%</div>
+                </div>
+                <div class="em-row">
+                    <div class="em-emoji">😰</div>
+                    <div class="em-name">Anxious</div>
+                    <div class="em-bar"><div class="em-fill" style="width:18%;background:linear-gradient(90deg,#ff5e9c,#6b4cf5)"></div></div>
+                    <div class="em-pct">18%</div>
+                </div>
+                <div class="em-row">
+                    <div class="em-emoji">😴</div>
+                    <div class="em-name">Tired</div>
+                    <div class="em-bar"><div class="em-fill" style="width:8%;background:linear-gradient(90deg,#6b9cff,#6b4cf5)"></div></div>
+                    <div class="em-pct">8%</div>
+                </div>
+                <div class="em-row">
+                    <div class="em-emoji">😠</div>
+                    <div class="em-name">Angry</div>
+                    <div class="em-bar"><div class="em-fill" style="width:4%;background:linear-gradient(90deg,#ff5e5e,#ff5e9c)"></div></div>
+                    <div class="em-pct">4%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">AI Patterns</div>
+
+        <div class="insight-card">
+            <div class="insight-header">
+                <div class="insight-icon"><i class="fas fa-sparkles"></i></div>
+                <div>
+                    <div class="insight-label">Pattern detected</div>
+                    <div class="insight-title">Tuesdays are your anxious day</div>
+                </div>
+            </div>
+            <div class="insight-text">Your pulse rises <b>+18 bpm</b> on Tuesday mornings, 73% of weeks. Pre-meeting routine recommended at <b>11:15 AM</b>.</div>
+        </div>
+
+        <div class="insight-card">
+            <div class="insight-header">
+                <div class="insight-icon" style="background:linear-gradient(135deg,#5eecc7,#6b9cff)"><i class="fas fa-trophy"></i></div>
+                <div>
+                    <div class="insight-label">Win of the week</div>
+                    <div class="insight-title">Box breathing cut pulse 15 bpm</div>
+                </div>
+            </div>
+            <div class="insight-text">Across <b>4 sessions</b>, this technique outperformed walking by 2.1×. Sentari promoted it to your top recovery.</div>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+        <div class="tab-item active"><i class="fas fa-chart-line"></i><span>Insights</span></div>
+        <div class="tab-center"><i class="fas fa-plus"></i></div>
+        <div class="tab-item"><i class="fas fa-book"></i><span>Journal</span></div>
+        <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+    </div>
+</body>
+</html>

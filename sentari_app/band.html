@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentari — Band</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { scrollbar-width: none; font-family: 'Inter', sans-serif; width: 100%; height: 100%; overflow-x: hidden; background: #0a0820; color: #fff; }
+
+    .status-bar { height: 59px; padding: 0 28px 12px; display: flex; align-items: flex-end; justify-content: space-between; position: sticky; top: 0; z-index: 100; background: #0a0820; }
+    .status-time { font-size: 16px; font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+    .dynamic-island { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 130px; height: 36px; background: #000; border-radius: 20px; }
+
+    .content { padding: 0 28px 110px; }
+
+    .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .top-title { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+    .top-action { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; }
+    .top-sub { font-size: 13px; color: #a39ec0; margin-bottom: 22px; }
+
+    .band-card {
+        background: linear-gradient(135deg, #15102e, #2d1d4a);
+        border: 1px solid rgba(255,255,255,0.08); border-radius: 26px;
+        padding: 22px; margin-bottom: 18px; position: relative; overflow: hidden;
+    }
+    .band-card::before {
+        content: ''; position: absolute; top: -80px; right: -80px;
+        width: 240px; height: 240px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,94,156,0.35), transparent 70%);
+    }
+    .band-status { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; position: relative; }
+    .band-status .dot { width: 8px; height: 8px; border-radius: 50%; background: #5eecc7; box-shadow: 0 0 8px #5eecc7; }
+    .band-status span { font-size: 11px; font-weight: 600; color: #5eecc7; text-transform: uppercase; letter-spacing: 0.05em; }
+    .band-row { display: flex; align-items: center; gap: 18px; position: relative; }
+    .band-pic { width: 110px; height: 110px; border-radius: 24px; overflow: hidden; flex-shrink: 0; }
+    .band-pic img { width: 100%; height: 100%; object-fit: cover; }
+    .band-info { flex: 1; }
+    .band-name { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 4px; }
+    .band-meta { font-size: 11px; color: #a39ec0; margin-bottom: 10px; }
+    .battery-bar { height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
+    .battery-fill { height: 100%; width: 82%; background: linear-gradient(90deg, #5eecc7, #6bd9ff); }
+    .battery-text { font-size: 11px; color: #5eecc7; font-weight: 600; }
+
+    .live-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+    .live-card {
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 20px; padding: 16px; position: relative; overflow: hidden;
+    }
+    .live-icon {
+        width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+        margin-bottom: 10px; font-size: 14px;
+    }
+    .live-icon.heart { background: rgba(255,94,156,0.18); color: #ff5e9c; }
+    .live-icon.temp { background: rgba(255,140,94,0.18); color: #ff8c5e; }
+    .live-icon.hrv { background: rgba(94,236,199,0.18); color: #5eecc7; }
+    .live-icon.steps { background: rgba(107,156,255,0.18); color: #6b9cff; }
+    .live-label { font-size: 11px; color: #a39ec0; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+    .live-val { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+    .live-val .u { font-size: 12px; color: #a39ec0; font-weight: 500; margin-left: 2px; }
+    .live-trend { font-size: 11px; color: #5eecc7; margin-top: 4px; }
+    .live-trend.down { color: #ff5e9c; }
+
+    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+
+    .signal-card {
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 20px; padding: 18px; margin-bottom: 14px;
+    }
+    .signal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .signal-title { font-size: 14px; font-weight: 700; }
+    .signal-pill { font-size: 10px; color: #ff5e9c; background: rgba(255,94,156,0.15); padding: 4px 8px; border-radius: 8px; font-weight: 600; }
+
+    .wave { display: flex; align-items: flex-end; gap: 3px; height: 60px; margin-bottom: 10px; }
+    .wave-bar { flex: 1; background: linear-gradient(180deg, #ff5e9c, #6b4cf5); border-radius: 3px; opacity: 0.85; }
+
+    .wave-meta { display: flex; justify-content: space-between; font-size: 11px; color: #a39ec0; }
+
+    .sync-card {
+        background: linear-gradient(135deg, rgba(94,236,199,0.12), rgba(107,156,255,0.08));
+        border: 1px solid rgba(94,236,199,0.25); border-radius: 18px;
+        padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+    }
+    .sync-card i { color: #5eecc7; font-size: 18px; }
+    .sync-text { flex: 1; }
+    .sync-title { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .sync-sub { font-size: 11px; color: #a39ec0; }
+
+    .tab-bar {
+        position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+        background: rgba(10,8,32,0.95); backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex; justify-content: space-around; align-items: flex-start; padding-top: 14px;
+    }
+    .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: #555; font-weight: 500; }
+    .tab-item.active { color: #ff5e9c; }
+    .tab-item i { font-size: 20px; }
+    .tab-center {
+        width: 52px; height: 52px; border-radius: 50%;
+        background: linear-gradient(135deg, #ff5e9c, #6b4cf5);
+        display: flex; align-items: center; justify-content: center;
+        margin-top: -10px; box-shadow: 0 8px 20px rgba(255,94,156,0.5);
+    }
+    .tab-center i { color: #fff; font-size: 18px; }
+</style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+    </div>
+
+    <div class="content">
+        <div class="top-row">
+            <div class="top-title">My Band</div>
+            <div class="top-action"><i class="fas fa-gear" style="font-size:14px;color:#a39ec0"></i></div>
+        </div>
+        <div class="top-sub">Live sensor feed · streaming now</div>
+
+        <div class="band-card">
+            <div class="band-status"><span class="dot"></span><span>Live · Connected</span></div>
+            <div class="band-row">
+                <div class="band-pic"><img src="https://images.unsplash.com/photo-1617043786394-f977fa12eddf?w=300&h=300&fit=crop" alt=""></div>
+                <div class="band-info">
+                    <div class="band-name">Sentari S1</div>
+                    <div class="band-meta">Worn on left wrist · v2.4</div>
+                    <div class="battery-bar"><div class="battery-fill"></div></div>
+                    <div class="battery-text">82% · 3 days left</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="live-grid">
+            <div class="live-card">
+                <div class="live-icon heart"><i class="fas fa-heart-pulse"></i></div>
+                <div class="live-label">Pulse</div>
+                <div class="live-val">94<span class="u">bpm</span></div>
+                <div class="live-trend down">↑ 22 above resting</div>
+            </div>
+            <div class="live-card">
+                <div class="live-icon temp"><i class="fas fa-temperature-half"></i></div>
+                <div class="live-label">Skin Temp</div>
+                <div class="live-val">37.1<span class="u">°C</span></div>
+                <div class="live-trend down">↑ 0.7° above baseline</div>
+            </div>
+            <div class="live-card">
+                <div class="live-icon hrv"><i class="fas fa-wave-square"></i></div>
+                <div class="live-label">HRV</div>
+                <div class="live-val">42<span class="u">ms</span></div>
+                <div class="live-trend">Recovering</div>
+            </div>
+            <div class="live-card">
+                <div class="live-icon steps"><i class="fas fa-shoe-prints"></i></div>
+                <div class="live-label">Activity</div>
+                <div class="live-val">4.2<span class="u">k</span></div>
+                <div class="live-trend">68% of goal</div>
+            </div>
+        </div>
+
+        <div class="section-title">Pulse Waveform</div>
+        <div class="signal-card">
+            <div class="signal-header">
+                <div class="signal-title">Real-time PPG signal</div>
+                <div class="signal-pill">Live</div>
+            </div>
+            <div class="wave">
+                <div class="wave-bar" style="height:30%"></div>
+                <div class="wave-bar" style="height:55%"></div>
+                <div class="wave-bar" style="height:42%"></div>
+                <div class="wave-bar" style="height:72%"></div>
+                <div class="wave-bar" style="height:60%"></div>
+                <div class="wave-bar" style="height:85%"></div>
+                <div class="wave-bar" style="height:50%"></div>
+                <div class="wave-bar" style="height:78%"></div>
+                <div class="wave-bar" style="height:65%"></div>
+                <div class="wave-bar" style="height:92%"></div>
+                <div class="wave-bar" style="height:48%"></div>
+                <div class="wave-bar" style="height:80%"></div>
+                <div class="wave-bar" style="height:62%"></div>
+                <div class="wave-bar" style="height:88%"></div>
+                <div class="wave-bar" style="height:55%"></div>
+                <div class="wave-bar" style="height:70%"></div>
+                <div class="wave-bar" style="height:45%"></div>
+                <div class="wave-bar" style="height:82%"></div>
+            </div>
+            <div class="wave-meta">
+                <span>30 sec window</span>
+                <span>94 bpm avg</span>
+            </div>
+        </div>
+
+        <div class="sync-card">
+            <i class="fas fa-cloud-arrow-up"></i>
+            <div class="sync-text">
+                <div class="sync-title">Synced 12 sec ago</div>
+                <div class="sync-sub">14,210 data points uploaded today</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+        <div class="tab-item active"><i class="fas fa-chart-line"></i><span>Insights</span></div>
+        <div class="tab-center"><i class="fas fa-plus"></i></div>
+        <div class="tab-item"><i class="fas fa-book"></i><span>Journal</span></div>
+        <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+    </div>
+</body>
+</html>

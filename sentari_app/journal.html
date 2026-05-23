@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentari — Journal</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { scrollbar-width: none; font-family: 'Inter', sans-serif; width: 100%; height: 100%; overflow-x: hidden; background: #0a0820; color: #fff; }
+
+    .status-bar { height: 59px; padding: 0 28px 12px; display: flex; align-items: flex-end; justify-content: space-between; position: sticky; top: 0; z-index: 100; background: #0a0820; }
+    .status-time { font-size: 16px; font-weight: 600; }
+    .status-icons { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+    .dynamic-island { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 130px; height: 36px; background: #000; border-radius: 20px; }
+
+    .content { padding: 0 28px 110px; }
+
+    .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .top-title { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+    .search-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; }
+
+    .week-strip { display: flex; gap: 6px; margin-bottom: 22px; }
+    .day-cell {
+        flex: 1; aspect-ratio: 0.65; border-radius: 14px;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 8px 0;
+    }
+    .day-name { font-size: 10px; color: #a39ec0; font-weight: 600; }
+    .day-num { font-size: 14px; font-weight: 700; }
+    .day-emoji { font-size: 18px; }
+    .day-cell.today { background: linear-gradient(135deg, #ff5e9c, #6b4cf5); border-color: transparent; }
+    .day-cell.today .day-name, .day-cell.today .day-num { color: #fff; }
+
+    .summary-card {
+        background: linear-gradient(135deg, #15102e, #2d1d4a);
+        border: 1px solid rgba(255,255,255,0.06); border-radius: 22px;
+        padding: 18px; margin-bottom: 22px; position: relative; overflow: hidden;
+    }
+    .summary-card::before {
+        content: ''; position: absolute; top: -40px; right: -40px;
+        width: 140px; height: 140px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,94,156,0.3), transparent 70%);
+    }
+    .summary-label { font-size: 11px; font-weight: 600; color: #ff5e9c; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; position: relative; }
+    .summary-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; position: relative; }
+    .summary-text { font-size: 13px; color: #d4d0e6; line-height: 1.6; position: relative; }
+    .summary-text b { color: #ff5e9c; }
+
+    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+
+    .entry { margin-bottom: 12px; display: flex; gap: 12px; }
+    .entry-time-col { display: flex; flex-direction: column; align-items: center; padding-top: 2px; }
+    .entry-time { font-size: 11px; color: #a39ec0; font-weight: 600; }
+    .entry-dot {
+        width: 10px; height: 10px; border-radius: 50%;
+        background: linear-gradient(135deg, #ff5e9c, #6b4cf5);
+        margin-top: 8px; box-shadow: 0 0 10px rgba(255,94,156,0.5);
+    }
+    .entry-line { width: 2px; flex: 1; background: rgba(255,255,255,0.08); margin-top: 4px; }
+
+    .entry-card {
+        flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 18px; padding: 14px;
+    }
+    .entry-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .entry-mood { display: flex; align-items: center; gap: 6px; }
+    .entry-emoji { font-size: 18px; }
+    .entry-state { font-size: 13px; font-weight: 700; }
+    .entry-vitals { display: flex; gap: 8px; font-size: 10px; color: #a39ec0; }
+    .entry-vitals .v { display: flex; align-items: center; gap: 3px; }
+    .entry-vitals .v.heart { color: #ff5e9c; }
+    .entry-vitals .v.temp { color: #ff8c5e; }
+    .entry-text { font-size: 12px; color: #d4d0e6; line-height: 1.5; }
+
+    .entry-tag {
+        display: inline-block; padding: 3px 8px; background: rgba(255,255,255,0.06);
+        border-radius: 8px; font-size: 10px; color: #a39ec0; margin-right: 5px; margin-top: 6px;
+    }
+    .entry-tag.recovery { background: rgba(94,236,199,0.15); color: #5eecc7; }
+
+    .photo-thumb {
+        margin-top: 10px; border-radius: 12px; overflow: hidden;
+        width: 100%; height: 110px;
+    }
+    .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    .tab-bar {
+        position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+        background: rgba(10,8,32,0.95); backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex; justify-content: space-around; align-items: flex-start; padding-top: 14px;
+    }
+    .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: #555; font-weight: 500; }
+    .tab-item.active { color: #ff5e9c; }
+    .tab-item i { font-size: 20px; }
+    .tab-center {
+        width: 52px; height: 52px; border-radius: 50%;
+        background: linear-gradient(135deg, #ff5e9c, #6b4cf5);
+        display: flex; align-items: center; justify-content: center;
+        margin-top: -10px; box-shadow: 0 8px 20px rgba(255,94,156,0.5);
+    }
+    .tab-center i { color: #fff; font-size: 18px; }
+</style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+    </div>
+
+    <div class="content">
+        <div class="top-row">
+            <div class="top-title">Journal</div>
+            <div class="search-btn"><i class="fas fa-magnifying-glass" style="font-size:14px;color:#a39ec0"></i></div>
+        </div>
+
+        <div class="week-strip">
+            <div class="day-cell"><div class="day-name">M</div><div class="day-num">19</div><div class="day-emoji">😌</div></div>
+            <div class="day-cell"><div class="day-name">T</div><div class="day-num">20</div><div class="day-emoji">😊</div></div>
+            <div class="day-cell"><div class="day-name">W</div><div class="day-num">21</div><div class="day-emoji">🙂</div></div>
+            <div class="day-cell"><div class="day-name">T</div><div class="day-num">22</div><div class="day-emoji">😴</div></div>
+            <div class="day-cell today"><div class="day-name">F</div><div class="day-num">23</div><div class="day-emoji">😰</div></div>
+            <div class="day-cell"><div class="day-name">S</div><div class="day-num">24</div><div class="day-emoji">·</div></div>
+            <div class="day-cell"><div class="day-name">S</div><div class="day-num">25</div><div class="day-emoji">·</div></div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-label">Daily Summary · AI</div>
+            <div class="summary-title">A high-energy, mostly stressful morning</div>
+            <div class="summary-text">You had <b>2 anxiety peaks</b> tied to work meetings, but recovered both within 6 min using box breathing. Pulse trending down since 2 PM — afternoon is calmer.</div>
+        </div>
+
+        <div class="section-title">Today's Entries</div>
+
+        <div class="entry">
+            <div class="entry-time-col">
+                <div class="entry-time">11:38</div>
+                <div class="entry-dot"></div>
+                <div class="entry-line"></div>
+            </div>
+            <div class="entry-card">
+                <div class="entry-head">
+                    <div class="entry-mood">
+                        <div class="entry-emoji">😰</div>
+                        <div class="entry-state">Anxious</div>
+                    </div>
+                    <div class="entry-vitals">
+                        <div class="v heart"><i class="fas fa-heart-pulse"></i> 94</div>
+                        <div class="v temp"><i class="fas fa-temperature-half"></i> 37.1°</div>
+                    </div>
+                </div>
+                <div class="entry-text">Quarterly review starts in 20 mins. My chest feels tight and I keep replaying what I want to say.</div>
+                <span class="entry-tag">#deadline</span>
+                <span class="entry-tag">#work</span>
+                <span class="entry-tag recovery">✓ recovered in 6 min</span>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-time-col">
+                <div class="entry-time">09:10</div>
+                <div class="entry-dot" style="background:linear-gradient(135deg,#5eecc7,#6b9cff)"></div>
+                <div class="entry-line"></div>
+            </div>
+            <div class="entry-card">
+                <div class="entry-head">
+                    <div class="entry-mood">
+                        <div class="entry-emoji">🙂</div>
+                        <div class="entry-state">Focused</div>
+                    </div>
+                    <div class="entry-vitals">
+                        <div class="v heart"><i class="fas fa-heart-pulse"></i> 71</div>
+                        <div class="v temp"><i class="fas fa-temperature-half"></i> 36.4°</div>
+                    </div>
+                </div>
+                <div class="entry-text">Coffee with Sarah on the rooftop. Mood lift after sunlight.</div>
+                <div class="photo-thumb">
+                    <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=200&fit=crop" alt="">
+                </div>
+                <span class="entry-tag">#social</span>
+                <span class="entry-tag">#sunlight</span>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-time-col">
+                <div class="entry-time">07:30</div>
+                <div class="entry-dot" style="background:linear-gradient(135deg,#5eecc7,#6b9cff)"></div>
+            </div>
+            <div class="entry-card">
+                <div class="entry-head">
+                    <div class="entry-mood">
+                        <div class="entry-emoji">😌</div>
+                        <div class="entry-state">Calm</div>
+                    </div>
+                    <div class="entry-vitals">
+                        <div class="v heart"><i class="fas fa-heart-pulse"></i> 64</div>
+                        <div class="v temp"><i class="fas fa-temperature-half"></i> 36.2°</div>
+                    </div>
+                </div>
+                <div class="entry-text">Slept well — 7h 42m. Morning stretch + meditation.</div>
+                <span class="entry-tag">#morning</span>
+                <span class="entry-tag">#sleep</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+        <div class="tab-item"><i class="fas fa-chart-line"></i><span>Insights</span></div>
+        <div class="tab-center"><i class="fas fa-plus"></i></div>
+        <div class="tab-item active"><i class="fas fa-book"></i><span>Journal</span></div>
+        <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+    </div>
+</body>
+</html>
