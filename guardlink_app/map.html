@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GuardLink — Map</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<style>
+  * { -webkit-font-smoothing: antialiased; scrollbar-width: none; }
+  *::-webkit-scrollbar { display: none; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; margin: 0; }
+  .screen { width: 100%; height: 100%; background: #F5F7FB; position: relative; overflow: hidden; }
+  .status-bar { height: 59px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 17px; color: #0F172A; position: absolute; top: 0; left: 0; right: 0; z-index: 20; }
+  .dynamic-island { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 122px; height: 36px; background: #000; border-radius: 20px; z-index: 30; }
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(255,255,255,0.92); backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.05); padding: 0 28px; display: flex; justify-content: space-between; align-items: flex-start; padding-top: 12px; z-index: 20; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: #94A3B8; flex: 1; }
+  .tab-item.active { color: #1E40AF; }
+  .gradient-red { background: linear-gradient(135deg, #DC2626 0%, #F97316 100%); }
+  .gradient-blue { background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%); }
+  .map-bg { background: linear-gradient(135deg, #DBEAFE 0%, #EDE9FE 50%, #FCE7F3 100%); position: relative; }
+  .heat-blob { position: absolute; border-radius: 50%; filter: blur(20px); }
+  .pin { position: absolute; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+  .road { position: absolute; background: rgba(255,255,255,0.6); }
+  .bottom-sheet { position: absolute; bottom: 88px; left: 0; right: 0; background: white; border-radius: 28px 28px 0 0; padding: 12px 20px 20px; box-shadow: 0 -8px 32px rgba(0,0,0,0.08); }
+  .pulse-ring { animation: pulseRing 2s ease-out infinite; }
+  @keyframes pulseRing { 0% { transform: scale(1); opacity: 0.6;} 100% { transform: scale(2.5); opacity: 0;} }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5">
+      <i class="fas fa-signal text-xs"></i>
+      <i class="fas fa-wifi text-xs"></i>
+      <i class="fas fa-battery-full text-sm"></i>
+    </div>
+  </div>
+
+  <!-- Map Background -->
+  <div class="map-bg" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
+    <!-- Streets (faux) -->
+    <div class="road" style="top: 25%; left: 0; right: 0; height: 28px;"></div>
+    <div class="road" style="top: 55%; left: 0; right: 0; height: 22px;"></div>
+    <div class="road" style="top: 78%; left: 0; right: 0; height: 24px;"></div>
+    <div class="road" style="top: 0; bottom: 0; left: 22%; width: 22px;"></div>
+    <div class="road" style="top: 0; bottom: 0; left: 58%; width: 26px;"></div>
+    <div class="road" style="top: 0; bottom: 0; left: 82%; width: 20px;"></div>
+
+    <!-- Heat zones -->
+    <div class="heat-blob" style="top: 18%; left: 18%; width: 160px; height: 160px; background: rgba(239,68,68,0.45);"></div>
+    <div class="heat-blob" style="top: 45%; left: 55%; width: 200px; height: 200px; background: rgba(249,115,22,0.4);"></div>
+    <div class="heat-blob" style="top: 12%; left: 60%; width: 100px; height: 100px; background: rgba(245,158,11,0.4);"></div>
+    <div class="heat-blob" style="top: 60%; left: 10%; width: 120px; height: 120px; background: rgba(16,185,129,0.3);"></div>
+
+    <!-- Park/buildings -->
+    <div style="position:absolute; top: 30%; left: 30%; width: 60px; height: 80px; background: rgba(167,243,208,0.7); border-radius: 8px;"></div>
+    <div style="position:absolute; top: 60%; left: 35%; width: 50px; height: 40px; background: rgba(203,213,225,0.6); border-radius: 4px;"></div>
+    <div style="position:absolute; top: 18%; left: 75%; width: 45px; height: 60px; background: rgba(203,213,225,0.6); border-radius: 4px;"></div>
+  </div>
+
+  <!-- Top Search Bar -->
+  <div style="position: absolute; top: 70px; left: 20px; right: 20px; z-index: 15;">
+    <div class="bg-white rounded-2xl shadow-lg p-3 flex items-center gap-3">
+      <i class="fas fa-magnifying-glass text-slate-400"></i>
+      <input type="text" placeholder="Search location or zone..." class="flex-1 text-sm outline-none placeholder-slate-400 bg-transparent"/>
+      <div class="w-9 h-9 gradient-blue rounded-xl flex items-center justify-center">
+        <i class="fas fa-sliders text-white text-xs"></i>
+      </div>
+    </div>
+
+    <!-- Filter chips -->
+    <div class="flex gap-2 mt-3 overflow-x-auto">
+      <span class="bg-white text-slate-900 text-xs font-semibold px-3 py-1.5 rounded-full shadow whitespace-nowrap flex items-center gap-1.5"><i class="fas fa-fire text-red-500 text-[10px]"></i> Hot Zones</span>
+      <span class="bg-white text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full shadow whitespace-nowrap">Today</span>
+      <span class="bg-white text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full shadow whitespace-nowrap">All Types</span>
+      <span class="bg-white text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full shadow whitespace-nowrap">2mi</span>
+    </div>
+  </div>
+
+  <!-- Map Pins -->
+  <div class="pin gradient-red" style="top: 24%; left: 22%;">
+    <i class="fas fa-triangle-exclamation text-white text-xs"></i>
+    <div class="absolute inset-0 rounded-full bg-red-500 pulse-ring"></div>
+  </div>
+  <div class="pin gradient-red" style="top: 28%; left: 38%;">
+    <i class="fas fa-car-burst text-white text-xs"></i>
+  </div>
+  <div class="pin" style="top: 50%; left: 58%; background: linear-gradient(135deg,#F59E0B,#FBBF24);">
+    <i class="fas fa-volume-high text-white text-xs"></i>
+  </div>
+  <div class="pin" style="top: 36%; left: 70%; background: linear-gradient(135deg,#F59E0B,#FBBF24);">
+    <i class="fas fa-user-shield text-white text-xs"></i>
+  </div>
+  <div class="pin" style="top: 64%; left: 18%; background: linear-gradient(135deg,#10B981,#34D399);">
+    <i class="fas fa-circle-check text-white text-xs"></i>
+  </div>
+
+  <!-- Current Location -->
+  <div style="position: absolute; top: 48%; left: 42%; z-index: 5;">
+    <div class="w-5 h-5 bg-blue-600 rounded-full border-[3px] border-white shadow-lg"></div>
+    <div class="absolute inset-0 rounded-full bg-blue-500 pulse-ring"></div>
+  </div>
+
+  <!-- Floating controls -->
+  <div style="position: absolute; right: 20px; top: 220px; z-index: 15;">
+    <div class="bg-white rounded-2xl shadow-lg p-1.5 flex flex-col gap-1">
+      <button class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-600"><i class="fas fa-layer-group"></i></button>
+      <div class="h-px bg-slate-100 mx-2"></div>
+      <button class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-600"><i class="fas fa-location-arrow"></i></button>
+      <div class="h-px bg-slate-100 mx-2"></div>
+      <button class="w-10 h-10 rounded-xl flex items-center justify-center text-blue-600"><i class="fas fa-fire"></i></button>
+    </div>
+  </div>
+
+  <!-- Bottom Sheet -->
+  <div class="bottom-sheet">
+    <div class="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-3"></div>
+
+    <div class="flex items-center justify-between mb-3 px-2">
+      <div>
+        <h2 class="text-base font-bold text-slate-900">Risk Analysis</h2>
+        <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Last 24 hours · Downtown Precinct</p>
+      </div>
+      <span class="bg-red-50 text-red-600 text-[10px] font-bold px-2.5 py-1 rounded-full">↑ 12%</span>
+    </div>
+
+    <!-- Stats row -->
+    <div class="grid grid-cols-3 gap-2 mb-3">
+      <div class="bg-red-50 rounded-2xl p-3 border border-red-100">
+        <p class="text-[9px] font-bold text-red-600 uppercase">Critical</p>
+        <p class="text-2xl font-bold text-slate-900 mt-0.5">14</p>
+      </div>
+      <div class="bg-amber-50 rounded-2xl p-3 border border-amber-100">
+        <p class="text-[9px] font-bold text-amber-600 uppercase">Watch</p>
+        <p class="text-2xl font-bold text-slate-900 mt-0.5">32</p>
+      </div>
+      <div class="bg-emerald-50 rounded-2xl p-3 border border-emerald-100">
+        <p class="text-[9px] font-bold text-emerald-600 uppercase">Resolved</p>
+        <p class="text-2xl font-bold text-slate-900 mt-0.5">87</p>
+      </div>
+    </div>
+
+    <!-- Hotspot list -->
+    <div class="flex items-center justify-between px-2">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 gradient-red rounded-xl flex items-center justify-center">
+          <i class="fas fa-fire text-white"></i>
+        </div>
+        <div>
+          <p class="text-sm font-bold text-slate-900">Maple District</p>
+          <p class="text-[10px] text-slate-400">Highest activity · 8 incidents</p>
+        </div>
+      </div>
+      <i class="fas fa-chevron-right text-slate-300 text-xs"></i>
+    </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house text-lg"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-map-location-dot text-lg"></i>
+      <span>Map</span>
+    </div>
+    <div class="tab-item" style="position: relative;">
+      <div class="w-12 h-12 gradient-red rounded-2xl flex items-center justify-center -mt-3 shadow-lg shadow-red-200">
+        <i class="fas fa-plus text-white text-xl"></i>
+      </div>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-book-open text-lg"></i>
+      <span>Safety</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user text-lg"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>
