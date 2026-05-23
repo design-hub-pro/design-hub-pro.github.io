@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AimPulse — Live Session</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
+* { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+.screen {
+  width: 100%; height: 100%;
+  background:
+    radial-gradient(ellipse at top, rgba(6,182,212,0.18) 0%, transparent 50%),
+    linear-gradient(180deg, #06080f 0%, #050810 100%);
+  position: relative; overflow-y: auto; color: white; padding-bottom: 110px;
+}
+.status-bar { height: 59px; padding: 0 28px; display:flex; align-items:flex-end; justify-content:space-between; padding-bottom: 8px; position:relative; z-index:30; }
+.dynamic-island { position:absolute; top:11px; left:50%; transform:translateX(-50%); width:124px; height:36px; background:#000; border-radius:20px; z-index:40; }
+.dynamic-island::after {
+  content: '● REC';
+  position: absolute; right: -68px; top: 50%; transform: translateY(-50%);
+  font-size: 10px; color: #ef4444; font-weight: 700; letter-spacing: 1px;
+  font-family: 'JetBrains Mono';
+}
+.card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 22px; }
+@keyframes beat { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+.beating { animation: beat 0.85s ease-in-out infinite; }
+@keyframes pulseRing {
+  0% { transform: scale(0.6); opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+.ring-pulse {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 2px solid #ef4444;
+  animation: pulseRing 1.6s ease-out infinite;
+}
+.ring-pulse:nth-child(2) { animation-delay: 0.8s; }
+.tab-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(10,14,26,0.85);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  height: 88px; padding: 10px 28px 24px; display: flex; justify-content: space-between; align-items: flex-start; z-index: 50;
+}
+.tab { display:flex; flex-direction:column; align-items:center; gap:3px; flex:1; }
+.tab i { font-size: 18px; color: rgba(255,255,255,0.4); }
+.tab span { font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 500; }
+.tab.active i, .tab.active span { color: #06b6d4; }
+.ecg-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+.window-bar {
+  background: linear-gradient(90deg,
+    rgba(239,68,68,0.0) 0%, rgba(239,68,68,0.4) 10%,
+    rgba(245,158,11,0.5) 25%,
+    rgba(16,185,129,0.7) 45%, rgba(16,185,129,0.95) 55%,
+    rgba(245,158,11,0.5) 75%,
+    rgba(239,68,68,0.4) 90%, rgba(239,68,68,0.0) 100%);
+}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="text-white text-[15px] font-semibold">9:41</span>
+    <div class="flex items-center gap-1.5 text-white text-[13px]">
+      <i class="fas fa-signal text-[12px]"></i>
+      <i class="fas fa-wifi text-[12px]"></i>
+      <i class="fas fa-battery-full text-[14px]"></i>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="px-7 mt-2 flex items-center justify-between">
+    <button class="w-9 h-9 rounded-full flex items-center justify-center" style="background:rgba(255,255,255,0.06);">
+      <i class="fas fa-chevron-left text-white text-[13px]"></i>
+    </button>
+    <div class="text-center">
+      <div class="text-white/45 text-[10px] mono uppercase tracking-widest">Air Rifle · Live</div>
+      <div class="text-white text-[15px] font-bold mono">12:34</div>
+    </div>
+    <button class="w-9 h-9 rounded-full flex items-center justify-center bg-red-500/15 border border-red-500/30">
+      <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+    </button>
+  </div>
+
+  <!-- Primary HR Display -->
+  <div class="px-7 mt-5">
+    <div class="card p-5 relative overflow-hidden">
+      <div class="absolute -right-10 -top-10 w-40 h-40 rounded-full" style="background:radial-gradient(circle, rgba(239,68,68,0.18), transparent 70%);"></div>
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-white/45 text-[10px] mono uppercase tracking-widest">Heart Rate</div>
+          <div class="flex items-baseline gap-1.5 mt-1">
+            <span class="text-white text-[64px] font-black mono leading-none tracking-tight">68</span>
+            <span class="text-white/50 text-[14px] mono">bpm</span>
+          </div>
+          <div class="flex items-center gap-2 mt-1.5">
+            <div class="px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30">
+              <span class="text-emerald-400 text-[10px] font-bold mono">● IN ZONE</span>
+            </div>
+            <span class="text-white/50 text-[10px] mono">Target 60–72</span>
+          </div>
+        </div>
+        <div class="relative w-20 h-20 flex items-center justify-center">
+          <div class="ring-pulse"></div>
+          <div class="ring-pulse"></div>
+          <div class="w-16 h-16 rounded-full flex items-center justify-center" style="background:radial-gradient(circle,#ef4444,#991b1b);box-shadow:0 0 40px rgba(239,68,68,0.6);">
+            <i class="fas fa-heart text-white text-[24px] beating"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- ECG Waveform -->
+      <div class="mt-3 ecg-grid rounded-xl p-2" style="background-color: rgba(0,0,0,0.3);">
+        <svg viewBox="0 0 360 60" class="w-full" style="height:60px;">
+          <defs>
+            <linearGradient id="ecgGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#10b981" stop-opacity="0"/>
+              <stop offset="20%" stop-color="#10b981" stop-opacity="1"/>
+              <stop offset="100%" stop-color="#10b981" stop-opacity="1"/>
+            </linearGradient>
+          </defs>
+          <polyline fill="none" stroke="url(#ecgGrad)" stroke-width="1.8" stroke-linecap="round"
+            points="0,30 20,30 30,30 35,30 38,18 41,42 44,8 47,50 50,30 80,30 100,30 110,30 115,30 118,18 121,42 124,8 127,50 130,30 160,30 180,30 190,30 195,30 198,18 201,42 204,8 207,50 210,30 240,30 260,30 270,30 275,30 278,18 281,42 284,8 287,50 290,30 320,30 340,30 350,30"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Optimal Window Indicator -->
+  <div class="px-7 mt-4">
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-2.5">
+        <div class="flex items-center gap-2">
+          <i class="fas fa-crosshairs text-emerald-400 text-[14px]"></i>
+          <span class="text-white text-[12px] font-bold tracking-wide">SHOT WINDOW</span>
+        </div>
+        <span class="text-emerald-400 text-[11px] font-bold mono">OPEN · 1.2s</span>
+      </div>
+      <div class="relative h-8 rounded-lg overflow-hidden" style="background:rgba(0,0,0,0.4);">
+        <div class="window-bar absolute inset-0"></div>
+        <!-- Marker -->
+        <div class="absolute top-0 bottom-0 w-0.5" style="left:52%;background:white;box-shadow:0 0 8px white;"></div>
+        <div class="absolute -top-1 w-2 h-2 rotate-45 bg-white" style="left:calc(52% - 4px);"></div>
+      </div>
+      <div class="flex justify-between mt-2 text-[10px] mono">
+        <span class="text-red-400">Systolic</span>
+        <span class="text-amber-400">Transition</span>
+        <span class="text-emerald-400 font-bold">DIASTOLIC · FIRE</span>
+        <span class="text-amber-400">Transition</span>
+        <span class="text-red-400">Systolic</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Stats Row -->
+  <div class="px-7 mt-3 grid grid-cols-3 gap-2">
+    <div class="card p-2.5">
+      <div class="flex items-center gap-1.5">
+        <i class="fas fa-wave-square text-purple-400 text-[10px]"></i>
+        <span class="text-white/45 text-[9px] mono uppercase">HRV</span>
+      </div>
+      <div class="text-white text-[20px] font-bold mono leading-tight mt-1">82</div>
+      <div class="text-emerald-400 text-[9px] mono">↑ stable</div>
+    </div>
+    <div class="card p-2.5">
+      <div class="flex items-center gap-1.5">
+        <i class="fas fa-wind text-cyan-400 text-[10px]"></i>
+        <span class="text-white/45 text-[9px] mono uppercase">Breath</span>
+      </div>
+      <div class="text-white text-[20px] font-bold mono leading-tight mt-1">5.4<span class="text-[10px] text-white/40">s</span></div>
+      <div class="text-emerald-400 text-[9px] mono">● even</div>
+    </div>
+    <div class="card p-2.5">
+      <div class="flex items-center gap-1.5">
+        <i class="fas fa-shield-halved text-emerald-400 text-[10px]"></i>
+        <span class="text-white/45 text-[9px] mono uppercase">Stab</span>
+      </div>
+      <div class="text-white text-[20px] font-bold mono leading-tight mt-1">96<span class="text-[10px] text-white/40">%</span></div>
+      <div class="text-emerald-400 text-[9px] mono">A+ grade</div>
+    </div>
+  </div>
+
+  <!-- Shot Timeline -->
+  <div class="px-7 mt-4">
+    <div class="flex items-center justify-between mb-2.5">
+      <span class="text-white/55 text-[11px] font-bold tracking-widest uppercase">Shot Log</span>
+      <span class="text-white/45 text-[11px] mono">24 / 60</span>
+    </div>
+    <div class="card p-3.5">
+      <!-- Shot dots -->
+      <div class="grid grid-cols-12 gap-1.5">
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-500">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-500">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-400">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-amber-500">9</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-500">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-500">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-400">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-500">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-amber-500">9</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-500">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-500">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-400">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-500">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-500">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-red-500">8</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-500">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-500">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-400">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-500">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-amber-500">9</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-500">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-500">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-emerald-400">10</div>
+        <div class="aspect-square rounded-md flex items-center justify-center text-[9px] font-bold mono text-white bg-cyan-500 ring-2 ring-cyan-300">·</div>
+      </div>
+      <div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+        <div>
+          <span class="text-white/45 text-[10px] mono uppercase">Series Avg</span>
+          <span class="text-white text-[18px] font-bold mono ml-2">10.4</span>
+        </div>
+        <div class="text-emerald-400 text-[11px] font-bold mono">+0.3 best</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Tab -->
+  <nav class="tab-bar">
+    <div class="tab"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab active"><i class="fas fa-circle-dot"></i><span>Train</span></div>
+    <div class="tab"><i class="fas fa-wave-square"></i><span>Rhythm</span></div>
+    <div class="tab"><i class="fas fa-chart-line"></i><span>Insights</span></div>
+    <div class="tab"><i class="fas fa-user"></i><span>Profile</span></div>
+  </nav>
+</div>
+</body>
+</html>

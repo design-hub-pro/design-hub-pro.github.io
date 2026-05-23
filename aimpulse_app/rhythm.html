@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AimPulse — Rhythm</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
+* { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+.screen {
+  width: 100%; height: 100%;
+  background:
+    radial-gradient(ellipse at center top, rgba(168,85,247,0.15) 0%, transparent 50%),
+    linear-gradient(180deg, #06080f 0%, #050810 100%);
+  position: relative; overflow-y: auto; color: white; padding-bottom: 110px;
+}
+.status-bar { height: 59px; padding: 0 28px; display:flex; align-items:flex-end; justify-content:space-between; padding-bottom: 8px; position:relative; z-index:30; }
+.dynamic-island { position:absolute; top:11px; left:50%; transform:translateX(-50%); width:124px; height:36px; background:#000; border-radius:20px; z-index:40; }
+.card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 22px; }
+.tab-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(10,14,26,0.85);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  height: 88px; padding: 10px 28px 24px; display: flex; justify-content: space-between; align-items: flex-start; z-index: 50;
+}
+.tab { display:flex; flex-direction:column; align-items:center; gap:3px; flex:1; }
+.tab i { font-size: 18px; color: rgba(255,255,255,0.4); }
+.tab span { font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 500; }
+.tab.active i, .tab.active span { color: #06b6d4; }
+.chip { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
+.chip.active { background: linear-gradient(135deg,#06b6d4,#0891b2); border-color: transparent; }
+@keyframes breathe {
+  0%, 100% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+.breathe { animation: breathe 5.4s ease-in-out infinite; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="text-white text-[15px] font-semibold">9:41</span>
+    <div class="flex items-center gap-1.5 text-white text-[13px]">
+      <i class="fas fa-signal text-[12px]"></i>
+      <i class="fas fa-wifi text-[12px]"></i>
+      <i class="fas fa-battery-full text-[14px]"></i>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="px-7 mt-2 flex items-center justify-between">
+    <div>
+      <div class="text-white/45 text-[11px] mono uppercase tracking-widest">My Pattern</div>
+      <div class="text-white text-[22px] font-bold tracking-tight">Optimal Rhythm</div>
+    </div>
+    <button class="w-10 h-10 rounded-full flex items-center justify-center" style="background:rgba(255,255,255,0.06);">
+      <i class="fas fa-arrows-rotate text-white text-[14px]"></i>
+    </button>
+  </div>
+
+  <!-- Period Selector -->
+  <div class="px-7 mt-4 flex gap-2">
+    <div class="chip active px-3.5 py-1.5 rounded-full text-[11px] font-semibold text-white">Last 30 days</div>
+    <div class="chip px-3.5 py-1.5 rounded-full text-[11px] font-medium text-white/70">7 days</div>
+    <div class="chip px-3.5 py-1.5 rounded-full text-[11px] font-medium text-white/70">Today</div>
+  </div>
+
+  <!-- Cardiac Cycle Hero -->
+  <div class="px-7 mt-4">
+    <div class="card p-5 relative overflow-hidden">
+      <div class="absolute -right-12 -top-12 w-44 h-44 rounded-full" style="background:radial-gradient(circle, rgba(16,185,129,0.18), transparent 70%);"></div>
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <div class="text-white/50 text-[10px] font-bold tracking-widest uppercase">Best Shot Window</div>
+          <div class="flex items-baseline gap-1 mt-0.5">
+            <span class="text-white text-[40px] font-black mono leading-none">340</span>
+            <span class="text-white/50 text-[14px] mono">ms</span>
+          </div>
+          <div class="text-emerald-400 text-[11px] mt-1 font-medium">After R-peak · Diastolic phase</div>
+        </div>
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background:linear-gradient(135deg,#10b981,#06b6d4);box-shadow:0 10px 30px -10px rgba(16,185,129,0.5);">
+          <i class="fas fa-crosshairs text-white text-[22px]"></i>
+        </div>
+      </div>
+
+      <!-- Cardiac waveform with shot zones -->
+      <div class="relative mt-2 rounded-xl p-3" style="background:rgba(0,0,0,0.35);">
+        <svg viewBox="0 0 360 100" class="w-full" style="height:120px;">
+          <!-- Background grid -->
+          <defs>
+            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+            </pattern>
+            <linearGradient id="optGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#10b981" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <rect width="360" height="100" fill="url(#grid)"/>
+
+          <!-- Optimal zone highlight -->
+          <rect x="60" y="0" width="50" height="100" fill="url(#optGrad)"/>
+          <rect x="180" y="0" width="50" height="100" fill="url(#optGrad)"/>
+          <rect x="300" y="0" width="50" height="100" fill="url(#optGrad)"/>
+
+          <!-- ECG trace -->
+          <polyline fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round"
+            points="0,55 30,55 40,55 45,40 50,75 55,15 60,90 65,55 100,55 130,55 140,55 145,40 150,75 155,15 160,90 165,55 200,55 230,55 240,55 245,40 250,75 255,15 260,90 265,55 300,55 330,55 340,55 345,40 350,75 355,15 360,90"/>
+
+          <!-- R-peak markers -->
+          <circle cx="55" cy="15" r="3" fill="#ef4444"/>
+          <circle cx="155" cy="15" r="3" fill="#ef4444"/>
+          <circle cx="255" cy="15" r="3" fill="#ef4444"/>
+
+          <!-- Optimal zone markers -->
+          <circle cx="85" cy="55" r="4" fill="#10b981" stroke="white" stroke-width="1.5"/>
+          <circle cx="205" cy="55" r="4" fill="#10b981" stroke="white" stroke-width="1.5"/>
+          <circle cx="325" cy="55" r="4" fill="#10b981" stroke="white" stroke-width="1.5"/>
+        </svg>
+        <div class="flex justify-between mt-1 text-[9px] mono text-white/40">
+          <span>0ms</span><span>500ms</span><span>1s</span><span>1.5s</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/5">
+        <div>
+          <div class="text-red-400 text-[9px] mono uppercase tracking-wider">● R-Peak</div>
+          <div class="text-white text-[13px] font-bold mono mt-0.5">Skip</div>
+        </div>
+        <div>
+          <div class="text-amber-400 text-[9px] mono uppercase tracking-wider">● Transit</div>
+          <div class="text-white text-[13px] font-bold mono mt-0.5">Wait</div>
+        </div>
+        <div>
+          <div class="text-emerald-400 text-[9px] mono uppercase tracking-wider">● Diastolic</div>
+          <div class="text-white text-[13px] font-bold mono mt-0.5">FIRE</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Breath + Pulse Two-Up -->
+  <div class="px-7 mt-3 grid grid-cols-2 gap-2.5">
+    <div class="card p-4 flex flex-col items-center">
+      <div class="text-white/50 text-[9px] mono uppercase tracking-widest">Best Cadence</div>
+      <div class="relative w-24 h-24 flex items-center justify-center mt-2">
+        <div class="absolute inset-0 rounded-full breathe" style="background:radial-gradient(circle,rgba(6,182,212,0.4),rgba(6,182,212,0.05));"></div>
+        <div class="absolute inset-2 rounded-full breathe" style="background:radial-gradient(circle,rgba(6,182,212,0.6),rgba(6,182,212,0.1));"></div>
+        <div class="relative text-center">
+          <div class="text-white text-[20px] font-bold mono leading-none">5.4<span class="text-[10px] text-white/50">s</span></div>
+          <div class="text-cyan-300 text-[9px] mono mt-0.5">EXHALE HOLD</div>
+        </div>
+      </div>
+      <div class="mt-2 text-white/55 text-[10px] text-center">Breathing rhythm</div>
+    </div>
+    <div class="card p-4 flex flex-col items-center">
+      <div class="text-white/50 text-[9px] mono uppercase tracking-widest">Pulse Stability</div>
+      <div class="relative w-24 h-24 flex items-center justify-center mt-2">
+        <svg width="96" height="96" viewBox="0 0 96 96">
+          <circle cx="48" cy="48" r="40" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="6"/>
+          <circle cx="48" cy="48" r="40" fill="none" stroke="#10b981" stroke-width="6"
+            stroke-dasharray="251.3" stroke-dashoffset="25" transform="rotate(-90 48 48)" stroke-linecap="round"/>
+        </svg>
+        <div class="absolute text-center">
+          <div class="text-white text-[20px] font-bold mono leading-none">94<span class="text-[10px] text-white/50">%</span></div>
+          <div class="text-emerald-400 text-[9px] mono mt-0.5">EXCELLENT</div>
+        </div>
+      </div>
+      <div class="mt-2 text-white/55 text-[10px] text-center">Stability index</div>
+    </div>
+  </div>
+
+  <!-- AI Insight -->
+  <div class="px-7 mt-3">
+    <div class="card p-4 relative overflow-hidden" style="background: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(6,182,212,0.08));border:1px solid rgba(139,92,246,0.25);">
+      <div class="flex items-start gap-3">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#a855f7,#6366f1);box-shadow:0 8px 24px -8px rgba(168,85,247,0.6);">
+          <i class="fas fa-wand-magic-sparkles text-white text-[13px]"></i>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center gap-2">
+            <span class="text-white text-[12px] font-bold">AI Coach Insight</span>
+            <span class="text-purple-300 text-[9px] mono">UPDATED 2H AGO</span>
+          </div>
+          <p class="text-white/75 text-[12px] leading-relaxed mt-1.5">Your accuracy peaks <span class="text-emerald-400 font-bold">340ms</span> after each R-peak. Hold trigger pressure 0.2s longer and fire on the third diastolic window after exhale.</p>
+          <div class="flex items-center gap-2 mt-3">
+            <button class="px-3 py-1.5 rounded-lg text-[11px] font-semibold text-white" style="background:linear-gradient(135deg,#a855f7,#6366f1);">
+              Try Drill →
+            </button>
+            <button class="px-3 py-1.5 rounded-lg text-[11px] font-medium text-white/70" style="background:rgba(255,255,255,0.06);">
+              See data
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pattern History Heatmap -->
+  <div class="px-7 mt-3">
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-white text-[12px] font-bold tracking-wide">Window Consistency</span>
+        <span class="text-emerald-400 text-[11px] mono">94% stable</span>
+      </div>
+      <div class="grid grid-cols-14 gap-1" style="grid-template-columns: repeat(14, 1fr);">
+        <!-- heatmap cells -->
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#0d9d6e;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#0d9d6e;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#f59e0b;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#0d9d6e;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#0d9d6e;"></div>
+        <div class="aspect-square rounded-sm" style="background:#ef4444;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#0d9d6e;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+        <div class="aspect-square rounded-sm" style="background:#10b981;"></div>
+      </div>
+      <div class="flex justify-between mt-3 text-[10px] mono text-white/40">
+        <span>2 wks ago</span>
+        <div class="flex items-center gap-1.5">
+          <span>Low</span>
+          <div class="w-2 h-2 rounded-sm bg-red-500"></div>
+          <div class="w-2 h-2 rounded-sm bg-amber-500"></div>
+          <div class="w-2 h-2 rounded-sm bg-emerald-700"></div>
+          <div class="w-2 h-2 rounded-sm bg-emerald-500"></div>
+          <span>High</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Tab -->
+  <nav class="tab-bar">
+    <div class="tab"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab"><i class="fas fa-circle-dot"></i><span>Train</span></div>
+    <div class="tab active"><i class="fas fa-wave-square"></i><span>Rhythm</span></div>
+    <div class="tab"><i class="fas fa-chart-line"></i><span>Insights</span></div>
+    <div class="tab"><i class="fas fa-user"></i><span>Profile</span></div>
+  </nav>
+</div>
+</body>
+</html>
