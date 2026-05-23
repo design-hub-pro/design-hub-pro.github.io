@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShinePulse - Stats</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        html, body { width: 100%; height: 100%; overflow-x: hidden; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #06120D;
+            color: #F0FDF4;
+            -webkit-font-smoothing: antialiased;
+        }
+        .status-bar {
+            height: 59px; padding: 14px 28px 0;
+            display: flex; justify-content: space-between; align-items: center; position: relative;
+        }
+        .status-time { font-size: 15px; font-weight: 600; }
+        .status-icons { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+        .dynamic-island {
+            position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+            width: 120px; height: 34px; background: #000; border-radius: 20px;
+        }
+        .content { padding: 8px 28px 100px; overflow-y: auto; height: calc(100% - 59px); }
+
+        .page-title { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+        .page-sub { font-size: 12px; color: #94A3B8; margin-top: 2px; }
+
+        /* Range pills */
+        .range-pills { display: flex; gap: 6px; margin-top: 18px; background: #0F2419; padding: 4px; border-radius: 14px; }
+        .range-pill { flex: 1; text-align: center; padding: 8px 0; font-size: 11px; font-weight: 600; color: #64748B; border-radius: 10px; }
+        .range-pill.active { background: #4ADE80; color: #06120D; }
+
+        /* Hero stat */
+        .hero-stat {
+            margin-top: 18px;
+            background: linear-gradient(135deg, #0F2419 0%, #143524 100%);
+            border: 1px solid rgba(74,222,128,0.15);
+            border-radius: 22px;
+            padding: 20px;
+        }
+        .hero-stat-top { display: flex; justify-content: space-between; align-items: center; }
+        .hero-stat-label { font-size: 11px; color: #94A3B8; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+        .hero-stat-value { font-size: 44px; font-weight: 900; line-height: 1; margin-top: 6px; letter-spacing: -1.5px; }
+        .hero-stat-unit { font-size: 16px; color: #64748B; font-weight: 600; }
+        .delta-pill {
+            background: rgba(74,222,128,0.18); color: #4ADE80;
+            padding: 5px 10px; border-radius: 14px;
+            font-size: 11px; font-weight: 700;
+        }
+        /* Sparkline */
+        .spark { margin-top: 14px; }
+
+        /* Distribution chart */
+        .section-title { font-size: 15px; font-weight: 700; margin-top: 26px; margin-bottom: 12px; }
+        .donut-card {
+            background: #0F2419;
+            border: 1px solid rgba(74,222,128,0.06);
+            border-radius: 18px; padding: 18px;
+            display: flex; align-items: center; gap: 16px;
+        }
+        .donut-wrap { position: relative; width: 110px; height: 110px; flex-shrink: 0; }
+        .donut-wrap svg { transform: rotate(-90deg); }
+        .donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+        .donut-center .n { font-size: 22px; font-weight: 800; line-height: 1; }
+        .donut-center .l { font-size: 9px; color: #64748B; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+        .donut-legend { flex: 1; }
+        .legend-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
+        .legend-left { display: flex; align-items: center; gap: 8px; }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .legend-label { font-size: 12px; color: #CBD5E1; font-weight: 500; }
+        .legend-val { font-size: 13px; font-weight: 700; }
+
+        /* Position heatmap */
+        .pitch-card {
+            background: #0F2419;
+            border: 1px solid rgba(74,222,128,0.06);
+            border-radius: 18px; padding: 16px;
+        }
+        .pitch {
+            position: relative;
+            background: linear-gradient(135deg, #14532D, #166534);
+            border-radius: 14px;
+            height: 200px;
+            overflow: hidden;
+        }
+        .pitch-line { position: absolute; background: rgba(255,255,255,0.2); }
+        .pitch-mid { top: 50%; left: 0; right: 0; height: 1px; transform: translateY(-0.5px); }
+        .pitch-circle {
+            position: absolute; top: 50%; left: 50%;
+            width: 60px; height: 60px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .pitch-box {
+            position: absolute; left: 50%; transform: translateX(-50%);
+            width: 130px; height: 36px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .pitch-box.top { top: 0; border-top: none; }
+        .pitch-box.bot { bottom: 0; border-bottom: none; }
+        .heat {
+            position: absolute;
+            border-radius: 50%;
+        }
+        .h1 { top: 30%; left: 60%; width: 80px; height: 80px; background: radial-gradient(circle, rgba(239,68,68,0.7), transparent 70%); }
+        .h2 { top: 50%; left: 70%; width: 60px; height: 60px; background: radial-gradient(circle, rgba(251,191,36,0.6), transparent 70%); }
+        .h3 { top: 70%; left: 65%; width: 50px; height: 50px; background: radial-gradient(circle, rgba(74,222,128,0.5), transparent 70%); }
+        .h4 { top: 20%; left: 75%; width: 40px; height: 40px; background: radial-gradient(circle, rgba(74,222,128,0.4), transparent 70%); }
+        .heat-legend { display: flex; justify-content: space-between; margin-top: 10px; align-items: center; }
+        .heat-scale {
+            flex: 1; height: 6px; border-radius: 3px;
+            background: linear-gradient(90deg, #4ADE80, #FBBF24, #EF4444);
+            margin: 0 10px;
+        }
+        .heat-text { font-size: 10px; color: #64748B; font-weight: 600; }
+
+        .tab-bar {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 84px;
+            background: rgba(6, 18, 13, 0.95);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(74,222,128,0.08);
+            display: flex; justify-content: space-around; align-items: flex-start; padding-top: 12px;
+        }
+        .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #475569; font-size: 10px; font-weight: 500; }
+        .tab-item.active { color: #4ADE80; }
+        .tab-item i { font-size: 18px; }
+    </style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="page-title">Performance</div>
+        <div class="page-sub">Last 30 days · 12 matches</div>
+
+        <div class="range-pills">
+            <div class="range-pill">Week</div>
+            <div class="range-pill active">Month</div>
+            <div class="range-pill">Season</div>
+        </div>
+
+        <!-- Hero stat -->
+        <div class="hero-stat">
+            <div class="hero-stat-top">
+                <div>
+                    <div class="hero-stat-label">Distance Run</div>
+                    <div class="hero-stat-value">112.4<span class="hero-stat-unit"> km</span></div>
+                </div>
+                <span class="delta-pill"><i class="fas fa-arrow-up"></i> 18%</span>
+            </div>
+            <div class="spark">
+                <svg viewBox="0 0 320 80" width="100%" height="60">
+                    <defs>
+                        <linearGradient id="sparkFill" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#4ADE80" stop-opacity="0.4"/>
+                            <stop offset="100%" stop-color="#4ADE80" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,60 C30,55 50,40 80,42 C110,44 130,20 160,25 C190,30 210,15 240,18 C270,21 290,10 320,8 L320,80 L0,80 Z" fill="url(#sparkFill)"/>
+                    <path d="M0,60 C30,55 50,40 80,42 C110,44 130,20 160,25 C190,30 210,15 240,18 C270,21 290,10 320,8" fill="none" stroke="#4ADE80" stroke-width="2.5"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Distribution donut -->
+        <div class="section-title">Sprint Zones</div>
+        <div class="donut-card">
+            <div class="donut-wrap">
+                <svg width="110" height="110" viewBox="0 0 110 110">
+                    <circle cx="55" cy="55" r="44" fill="none" stroke="#1E293B" stroke-width="14"/>
+                    <circle cx="55" cy="55" r="44" fill="none" stroke="#4ADE80" stroke-width="14" stroke-dasharray="120 276" stroke-dashoffset="0"/>
+                    <circle cx="55" cy="55" r="44" fill="none" stroke="#FBBF24" stroke-width="14" stroke-dasharray="80 276" stroke-dashoffset="-120"/>
+                    <circle cx="55" cy="55" r="44" fill="none" stroke="#EF4444" stroke-width="14" stroke-dasharray="40 276" stroke-dashoffset="-200"/>
+                </svg>
+                <div class="donut-center"><div class="n">240</div><div class="l">Sprints</div></div>
+            </div>
+            <div class="donut-legend">
+                <div class="legend-row">
+                    <div class="legend-left"><span class="legend-dot" style="background: #4ADE80"></span><span class="legend-label">Low</span></div>
+                    <span class="legend-val">128</span>
+                </div>
+                <div class="legend-row">
+                    <div class="legend-left"><span class="legend-dot" style="background: #FBBF24"></span><span class="legend-label">Medium</span></div>
+                    <span class="legend-val">82</span>
+                </div>
+                <div class="legend-row">
+                    <div class="legend-left"><span class="legend-dot" style="background: #EF4444"></span><span class="legend-label">High</span></div>
+                    <span class="legend-val">30</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Position heatmap -->
+        <div class="section-title">Position Heatmap</div>
+        <div class="pitch-card">
+            <div class="pitch">
+                <div class="pitch-line pitch-mid"></div>
+                <div class="pitch-circle"></div>
+                <div class="pitch-box top"></div>
+                <div class="pitch-box bot"></div>
+                <div class="heat h1"></div>
+                <div class="heat h2"></div>
+                <div class="heat h3"></div>
+                <div class="heat h4"></div>
+            </div>
+            <div class="heat-legend">
+                <span class="heat-text">Low</span>
+                <div class="heat-scale"></div>
+                <span class="heat-text">High</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item"><i class="fas fa-home"></i><span>Home</span></div>
+        <div class="tab-item"><i class="fas fa-bolt"></i><span>Live</span></div>
+        <div class="tab-item active"><i class="fas fa-chart-line"></i><span>Stats</span></div>
+        <div class="tab-item"><i class="fas fa-shield-heart"></i><span>Care</span></div>
+        <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+    </div>
+</body>
+</html>

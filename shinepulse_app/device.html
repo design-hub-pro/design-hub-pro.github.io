@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShinePulse - Device</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        html, body { width: 100%; height: 100%; overflow-x: hidden; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #06120D;
+            color: #F0FDF4;
+            -webkit-font-smoothing: antialiased;
+        }
+        .status-bar {
+            height: 59px; padding: 14px 28px 0;
+            display: flex; justify-content: space-between; align-items: center; position: relative;
+        }
+        .status-time { font-size: 15px; font-weight: 600; }
+        .status-icons { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+        .dynamic-island {
+            position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+            width: 120px; height: 34px; background: #000; border-radius: 20px;
+        }
+        .content { padding: 8px 28px 100px; overflow-y: auto; height: calc(100% - 59px); }
+
+        .page-title { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+        .page-sub { font-size: 12px; color: #94A3B8; margin-top: 2px; }
+
+        /* Device hero */
+        .device-hero {
+            margin-top: 20px;
+            border-radius: 26px;
+            background: radial-gradient(circle at 50% 30%, #0E3D27 0%, #06120D 80%);
+            border: 1px solid rgba(74,222,128,0.15);
+            padding: 24px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .device-status {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(74,222,128,0.18); color: #4ADE80;
+            padding: 5px 11px; border-radius: 14px;
+            font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+        }
+        .device-status .dot { width: 6px; height: 6px; background: #4ADE80; border-radius: 50%; box-shadow: 0 0 8px #4ADE80; }
+        .device-img-wrap {
+            display: flex; justify-content: center; align-items: center;
+            height: 200px; margin: 12px 0;
+            position: relative;
+        }
+        .device-img {
+            width: 130px; height: 180px;
+            border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+            background: linear-gradient(135deg, #14532D 0%, #052E1A 100%);
+            box-shadow: 0 20px 60px rgba(74,222,128,0.2);
+            position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .device-img::after {
+            content: '';
+            position: absolute; inset: 8px;
+            border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+            border: 1px solid rgba(74,222,128,0.3);
+        }
+        .device-logo {
+            color: #4ADE80;
+            font-size: 36px;
+        }
+        .device-ring-pulse {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 220px; height: 220px;
+            border-radius: 50%;
+            border: 1px solid rgba(74,222,128,0.2);
+            animation: ringp 2s infinite;
+        }
+        @keyframes ringp { 0% { transform: translate(-50%,-50%) scale(0.8); opacity: 1; } 100% { transform: translate(-50%,-50%) scale(1.2); opacity: 0; } }
+        .device-name { text-align: center; font-size: 18px; font-weight: 700; margin-top: 4px; }
+        .device-id { text-align: center; font-size: 11px; color: #64748B; margin-top: 2px; }
+
+        /* Metrics row */
+        .metrics-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 18px; }
+        .metric-mini {
+            background: #0F2419;
+            border: 1px solid rgba(74,222,128,0.06);
+            border-radius: 14px;
+            padding: 12px;
+            text-align: center;
+        }
+        .metric-mini .ico { width: 30px; height: 30px; border-radius: 9px; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .metric-mini .v { font-size: 18px; font-weight: 800; }
+        .metric-mini .l { font-size: 10px; color: #64748B; margin-top: 2px; }
+
+        /* Battery card */
+        .section-title { font-size: 14px; font-weight: 700; margin-top: 22px; margin-bottom: 10px; }
+        .battery-card {
+            background: #0F2419;
+            border: 1px solid rgba(74,222,128,0.06);
+            border-radius: 16px;
+            padding: 16px;
+        }
+        .batt-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .batt-pct { font-size: 28px; font-weight: 800; }
+        .batt-pct .small { font-size: 14px; color: #94A3B8; font-weight: 600; }
+        .batt-time { font-size: 11px; color: #94A3B8; }
+        .batt-bar { height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; }
+        .batt-fill { height: 100%; background: linear-gradient(90deg, #4ADE80, #22D3EE); border-radius: 4px; width: 84%; }
+
+        /* Sensor list */
+        .sensor-list { display: flex; flex-direction: column; gap: 8px; }
+        .sensor-row {
+            background: #0F2419;
+            border: 1px solid rgba(74,222,128,0.06);
+            border-radius: 14px;
+            padding: 12px 14px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .sensor-ico {
+            width: 36px; height: 36px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+        }
+        .sensor-info { flex: 1; }
+        .sensor-name { font-size: 13px; font-weight: 600; }
+        .sensor-status { font-size: 11px; color: #4ADE80; margin-top: 2px; }
+        .sensor-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ADE80; box-shadow: 0 0 6px #4ADE80; }
+
+        .tab-bar {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 84px;
+            background: rgba(6, 18, 13, 0.95);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(74,222,128,0.08);
+            display: flex; justify-content: space-around; align-items: flex-start; padding-top: 12px;
+        }
+        .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #475569; font-size: 10px; font-weight: 500; }
+        .tab-item.active { color: #4ADE80; }
+        .tab-item i { font-size: 18px; }
+    </style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="page-title">My ShineGuard</div>
+        <div class="page-sub">Smart sensor connected · Firmware v2.3</div>
+
+        <!-- Device hero -->
+        <div class="device-hero">
+            <span class="device-status"><span class="dot"></span>Connected</span>
+            <div class="device-img-wrap">
+                <div class="device-ring-pulse"></div>
+                <div class="device-img">
+                    <i class="fas fa-shield-halved device-logo"></i>
+                </div>
+            </div>
+            <div class="device-name">ShineGuard Pro</div>
+            <div class="device-id">Serial · SG-2026-04812</div>
+        </div>
+
+        <!-- Live metrics from sensor -->
+        <div class="metrics-row">
+            <div class="metric-mini">
+                <div class="ico" style="background: rgba(34,211,238,0.15); color: #22D3EE;"><i class="fas fa-wave-square"></i></div>
+                <div class="v">200<span style="font-size:11px;color:#94A3B8"> Hz</span></div>
+                <div class="l">Sample Rate</div>
+            </div>
+            <div class="metric-mini">
+                <div class="ico" style="background: rgba(74,222,128,0.15); color: #4ADE80;"><i class="fas fa-signal"></i></div>
+                <div class="v">-42<span style="font-size:11px;color:#94A3B8"> dB</span></div>
+                <div class="l">Signal</div>
+            </div>
+            <div class="metric-mini">
+                <div class="ico" style="background: rgba(251,191,36,0.15); color: #FBBF24;"><i class="fas fa-thermometer-half"></i></div>
+                <div class="v">28°<span style="font-size:11px;color:#94A3B8">C</span></div>
+                <div class="l">Temp</div>
+            </div>
+        </div>
+
+        <!-- Battery -->
+        <div class="section-title">Battery</div>
+        <div class="battery-card">
+            <div class="batt-top">
+                <div class="batt-pct">84<span class="small">%</span></div>
+                <div class="batt-time">~ 18 hrs left</div>
+            </div>
+            <div class="batt-bar"><div class="batt-fill"></div></div>
+        </div>
+
+        <!-- Sensors -->
+        <div class="section-title">Active Sensors</div>
+        <div class="sensor-list">
+            <div class="sensor-row">
+                <div class="sensor-ico" style="background: rgba(74,222,128,0.15); color: #4ADE80;"><i class="fas fa-rotate-right"></i></div>
+                <div class="sensor-info">
+                    <div class="sensor-name">9-Axis IMU</div>
+                    <div class="sensor-status">Streaming</div>
+                </div>
+                <span class="sensor-dot"></span>
+            </div>
+            <div class="sensor-row">
+                <div class="sensor-ico" style="background: rgba(239,68,68,0.15); color: #FB7185;"><i class="fas fa-heart-pulse"></i></div>
+                <div class="sensor-info">
+                    <div class="sensor-name">Impact Force</div>
+                    <div class="sensor-status">Streaming</div>
+                </div>
+                <span class="sensor-dot"></span>
+            </div>
+            <div class="sensor-row">
+                <div class="sensor-ico" style="background: rgba(168,85,247,0.15); color: #C084FC;"><i class="fas fa-bolt"></i></div>
+                <div class="sensor-info">
+                    <div class="sensor-name">EMG Pressure</div>
+                    <div class="sensor-status">Streaming</div>
+                </div>
+                <span class="sensor-dot"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item"><i class="fas fa-home"></i><span>Home</span></div>
+        <div class="tab-item"><i class="fas fa-bolt"></i><span>Live</span></div>
+        <div class="tab-item"><i class="fas fa-chart-line"></i><span>Stats</span></div>
+        <div class="tab-item active"><i class="fas fa-shield-heart"></i><span>Care</span></div>
+        <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+    </div>
+</body>
+</html>

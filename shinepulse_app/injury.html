@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShinePulse - Injury Prevention</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        html, body { width: 100%; height: 100%; overflow-x: hidden; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #06120D;
+            color: #F0FDF4;
+            -webkit-font-smoothing: antialiased;
+        }
+        .status-bar {
+            height: 59px; padding: 14px 28px 0;
+            display: flex; justify-content: space-between; align-items: center; position: relative;
+        }
+        .status-time { font-size: 15px; font-weight: 600; }
+        .status-icons { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+        .dynamic-island {
+            position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+            width: 120px; height: 34px; background: #000; border-radius: 20px;
+        }
+        .content { padding: 8px 28px 100px; overflow-y: auto; height: calc(100% - 59px); }
+
+        .page-title { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+        .page-sub { font-size: 12px; color: #94A3B8; margin-top: 2px; }
+
+        /* Risk score card */
+        .risk-card {
+            margin-top: 18px;
+            background: linear-gradient(135deg, #422006 0%, #78350F 100%);
+            border-radius: 22px;
+            padding: 18px;
+            display: flex; align-items: center; gap: 16px;
+            border: 1px solid rgba(251,191,36,0.2);
+        }
+        .risk-ring { position: relative; width: 86px; height: 86px; flex-shrink: 0; }
+        .risk-ring svg { transform: rotate(-90deg); }
+        .risk-ring .n { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 22px; font-weight: 800; }
+        .risk-info { flex: 1; }
+        .risk-label { font-size: 10px; color: #FCD34D; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+        .risk-title { font-size: 17px; font-weight: 700; margin-top: 4px; }
+        .risk-desc { font-size: 11px; color: #FED7AA; margin-top: 4px; line-height: 1.4; }
+
+        /* Body load map */
+        .section-title { font-size: 15px; font-weight: 700; margin-top: 24px; margin-bottom: 12px; }
+        .body-card {
+            background: #0F2419;
+            border: 1px solid rgba(74,222,128,0.06);
+            border-radius: 18px; padding: 16px;
+            display: flex; gap: 14px;
+        }
+        .body-figure {
+            position: relative;
+            width: 110px; height: 230px;
+            flex-shrink: 0;
+        }
+        .body-svg { width: 100%; height: 100%; }
+        .body-callouts { flex: 1; display: flex; flex-direction: column; gap: 8px; justify-content: center; }
+        .callout {
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 10px;
+        }
+        .callout .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .callout .lbl { font-size: 12px; font-weight: 600; flex: 1; }
+        .callout .pct { font-size: 13px; font-weight: 800; }
+
+        /* Recovery actions */
+        .action-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+        .action-row {
+            display: flex; align-items: center; gap: 12px;
+            background: #0F2419;
+            border: 1px solid rgba(74,222,128,0.06);
+            border-radius: 14px; padding: 12px;
+        }
+        .action-ico {
+            width: 40px; height: 40px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; flex-shrink: 0;
+        }
+        .action-info { flex: 1; }
+        .action-title { font-size: 13px; font-weight: 600; }
+        .action-meta { font-size: 11px; color: #64748B; margin-top: 2px; }
+        .action-go { color: #4ADE80; font-size: 14px; }
+
+        .tab-bar {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 84px;
+            background: rgba(6, 18, 13, 0.95);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(74,222,128,0.08);
+            display: flex; justify-content: space-around; align-items: flex-start; padding-top: 12px;
+        }
+        .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #475569; font-size: 10px; font-weight: 500; }
+        .tab-item.active { color: #4ADE80; }
+        .tab-item i { font-size: 18px; }
+    </style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="page-title">Injury Care</div>
+        <div class="page-sub">AI-powered prevention insights</div>
+
+        <!-- Risk score -->
+        <div class="risk-card">
+            <div class="risk-ring">
+                <svg width="86" height="86" viewBox="0 0 86 86">
+                    <circle cx="43" cy="43" r="36" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8"/>
+                    <circle cx="43" cy="43" r="36" fill="none" stroke="#FBBF24" stroke-width="8" stroke-linecap="round"
+                        stroke-dasharray="226" stroke-dashoffset="100"/>
+                </svg>
+                <div class="n">56</div>
+            </div>
+            <div class="risk-info">
+                <div class="risk-label">Risk Score</div>
+                <div class="risk-title">Moderate</div>
+                <div class="risk-desc">Right shin loading is above baseline. Active recovery recommended for 24h.</div>
+            </div>
+        </div>
+
+        <!-- Body load map -->
+        <div class="section-title">Body Load Map</div>
+        <div class="body-card">
+            <div class="body-figure">
+                <svg class="body-svg" viewBox="0 0 110 230">
+                    <!-- Head -->
+                    <circle cx="55" cy="18" r="13" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+                    <!-- Torso -->
+                    <path d="M40,34 Q35,42 36,58 L36,98 Q36,108 42,110 L68,110 Q74,108 74,98 L74,58 Q75,42 70,34 Z" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+                    <!-- Arms -->
+                    <path d="M36,40 L28,80 L26,110 L31,112 L34,82 L40,52 Z" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+                    <path d="M74,40 L82,80 L84,110 L79,112 L76,82 L70,52 Z" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+                    <!-- Thighs -->
+                    <path d="M42,110 L40,160 L48,164 L52,114 Z" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+                    <path d="M68,110 L70,160 L62,164 L58,114 Z" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+                    <!-- Knees -->
+                    <circle cx="44" cy="164" r="5" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+                    <circle cx="66" cy="164" r="5" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+                    <!-- Shins (left low, right high) -->
+                    <path d="M40,168 L40,210 L48,212 L48,168 Z" fill="#22D3EE" opacity="0.5"/>
+                    <path d="M62,168 L62,210 L70,212 L70,168 Z" fill="#EF4444" opacity="0.8"/>
+                    <!-- Shin overlay outlines -->
+                    <path d="M40,168 L40,210 L48,212 L48,168 Z" fill="none" stroke="#334155" stroke-width="1.5"/>
+                    <path d="M62,168 L62,210 L70,212 L70,168 Z" fill="none" stroke="#334155" stroke-width="1.5"/>
+                    <!-- Feet -->
+                    <ellipse cx="42" cy="220" rx="8" ry="5" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+                    <ellipse cx="68" cy="220" rx="8" ry="5" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+                    <!-- Calves shaded -->
+                    <ellipse cx="44" cy="148" rx="6" ry="10" fill="#4ADE80" opacity="0.4"/>
+                    <ellipse cx="66" cy="148" rx="6" ry="10" fill="#FBBF24" opacity="0.6"/>
+                </svg>
+            </div>
+            <div class="body-callouts">
+                <div class="callout">
+                    <span class="dot" style="background: #EF4444"></span>
+                    <span class="lbl">R Shin</span>
+                    <span class="pct" style="color: #FCA5A5">82%</span>
+                </div>
+                <div class="callout">
+                    <span class="dot" style="background: #FBBF24"></span>
+                    <span class="lbl">R Calf</span>
+                    <span class="pct" style="color: #FCD34D">68%</span>
+                </div>
+                <div class="callout">
+                    <span class="dot" style="background: #22D3EE"></span>
+                    <span class="lbl">L Shin</span>
+                    <span class="pct" style="color: #67E8F9">42%</span>
+                </div>
+                <div class="callout">
+                    <span class="dot" style="background: #4ADE80"></span>
+                    <span class="lbl">L Calf</span>
+                    <span class="pct" style="color: #86EFAC">38%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recovery actions -->
+        <div class="section-title">Recommended Care</div>
+        <div class="action-list">
+            <div class="action-row">
+                <div class="action-ico" style="background: rgba(34,211,238,0.15); color: #22D3EE;"><i class="fas fa-snowflake"></i></div>
+                <div class="action-info">
+                    <div class="action-title">Ice right shin 15 min</div>
+                    <div class="action-meta">Within next hour</div>
+                </div>
+                <i class="fas fa-chevron-right action-go"></i>
+            </div>
+            <div class="action-row">
+                <div class="action-ico" style="background: rgba(168,85,247,0.15); color: #C084FC;"><i class="fas fa-spa"></i></div>
+                <div class="action-info">
+                    <div class="action-title">Calf stretch routine</div>
+                    <div class="action-meta">5 min · 4 exercises</div>
+                </div>
+                <i class="fas fa-chevron-right action-go"></i>
+            </div>
+            <div class="action-row">
+                <div class="action-ico" style="background: rgba(74,222,128,0.15); color: #4ADE80;"><i class="fas fa-bed"></i></div>
+                <div class="action-info">
+                    <div class="action-title">Reduce training tomorrow</div>
+                    <div class="action-meta">Light technical work only</div>
+                </div>
+                <i class="fas fa-chevron-right action-go"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item"><i class="fas fa-home"></i><span>Home</span></div>
+        <div class="tab-item"><i class="fas fa-bolt"></i><span>Live</span></div>
+        <div class="tab-item"><i class="fas fa-chart-line"></i><span>Stats</span></div>
+        <div class="tab-item active"><i class="fas fa-shield-heart"></i><span>Care</span></div>
+        <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+    </div>
+</body>
+</html>

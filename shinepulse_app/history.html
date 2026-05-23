@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShinePulse - History</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+        html, body { width: 100%; height: 100%; overflow-x: hidden; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #06120D;
+            color: #F0FDF4;
+            -webkit-font-smoothing: antialiased;
+        }
+        .status-bar {
+            height: 59px; padding: 14px 28px 0;
+            display: flex; justify-content: space-between; align-items: center; position: relative;
+        }
+        .status-time { font-size: 15px; font-weight: 600; }
+        .status-icons { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+        .dynamic-island {
+            position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+            width: 120px; height: 34px; background: #000; border-radius: 20px;
+        }
+        .content { padding: 8px 28px 100px; overflow-y: auto; height: calc(100% - 59px); }
+
+        .page-title { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+        .page-sub { font-size: 12px; color: #94A3B8; margin-top: 2px; }
+
+        /* Filter row */
+        .filter-row { display: flex; gap: 8px; margin-top: 16px; overflow-x: auto; padding-bottom: 4px; }
+        .filter-pill {
+            background: #0F2419;
+            border: 1px solid rgba(74,222,128,0.06);
+            padding: 7px 12px; border-radius: 14px;
+            font-size: 11px; font-weight: 600; color: #94A3B8;
+            white-space: nowrap;
+        }
+        .filter-pill.active { background: #4ADE80; color: #06120D; border-color: #4ADE80; }
+
+        /* Month group */
+        .month-label { font-size: 11px; font-weight: 700; color: #64748B; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 18px; margin-bottom: 10px; }
+
+        /* Match card */
+        .hist-card {
+            background: #0F2419;
+            border: 1px solid rgba(74,222,128,0.06);
+            border-radius: 18px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .hist-hero { position: relative; height: 110px; }
+        .hist-hero img { width: 100%; height: 100%; object-fit: cover; }
+        .hist-grad {
+            position: absolute; inset: 0;
+            background: linear-gradient(180deg, transparent 40%, rgba(15,36,25,0.95) 100%);
+        }
+        .hist-tag {
+            position: absolute; top: 10px; left: 10px;
+            padding: 4px 9px; border-radius: 8px;
+            font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+        }
+        .tag-win { background: rgba(74,222,128,0.9); color: #06120D; }
+        .tag-loss { background: rgba(239,68,68,0.9); color: #fff; }
+        .tag-draw { background: rgba(251,191,36,0.9); color: #06120D; }
+        .hist-score {
+            position: absolute; top: 10px; right: 10px;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);
+            padding: 4px 10px; border-radius: 8px;
+            font-size: 12px; font-weight: 800;
+        }
+        .hist-title-row {
+            position: absolute; bottom: 8px; left: 14px; right: 14px;
+            font-size: 13px; font-weight: 700;
+        }
+        .hist-body { padding: 12px 14px; }
+        .hist-meta { font-size: 11px; color: #64748B; display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+        .hist-meta .sep { width: 2px; height: 2px; background: #475569; border-radius: 50%; }
+        .hist-stats { display: flex; justify-content: space-between; }
+        .hist-stat-box { text-align: center; flex: 1; }
+        .hist-stat-box .v { font-size: 16px; font-weight: 800; }
+        .hist-stat-box .l { font-size: 10px; color: #64748B; margin-top: 2px; }
+        .hist-stat-box .v .unit { font-size: 10px; color: #94A3B8; font-weight: 600; }
+
+        .tab-bar {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 84px;
+            background: rgba(6, 18, 13, 0.95);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(74,222,128,0.08);
+            display: flex; justify-content: space-around; align-items: flex-start; padding-top: 12px;
+        }
+        .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #475569; font-size: 10px; font-weight: 500; }
+        .tab-item.active { color: #4ADE80; }
+        .tab-item i { font-size: 18px; }
+    </style>
+</head>
+<body>
+    <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-full"></i>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="page-title">Match History</div>
+        <div class="page-sub">38 sessions · 12 matches this month</div>
+
+        <div class="filter-row">
+            <div class="filter-pill active">All</div>
+            <div class="filter-pill">Matches</div>
+            <div class="filter-pill">Practice</div>
+            <div class="filter-pill">Drills</div>
+        </div>
+
+        <div class="month-label">May 2026</div>
+
+        <div class="hist-card">
+            <div class="hist-hero">
+                <img src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=500&h=240&fit=crop" alt="">
+                <div class="hist-grad"></div>
+                <span class="hist-tag tag-win">WIN</span>
+                <span class="hist-score">3 - 1</span>
+                <div class="hist-title-row">Eagles FC vs. Tigers U14</div>
+            </div>
+            <div class="hist-body">
+                <div class="hist-meta">
+                    <span>May 19, 2026</span><span class="sep"></span>
+                    <span>72 min</span><span class="sep"></span>
+                    <span>Right Mid</span>
+                </div>
+                <div class="hist-stats">
+                    <div class="hist-stat-box"><div class="v">9.4<span class="unit"> km</span></div><div class="l">Distance</div></div>
+                    <div class="hist-stat-box"><div class="v">27.4<span class="unit"> kmh</span></div><div class="l">Top Speed</div></div>
+                    <div class="hist-stat-box"><div class="v">18</div><div class="l">Sprints</div></div>
+                    <div class="hist-stat-box"><div class="v">85</div><div class="l">Score</div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hist-card">
+            <div class="hist-hero">
+                <img src="https://images.unsplash.com/photo-1551958219-acbc608c6377?w=500&h=240&fit=crop" alt="">
+                <div class="hist-grad"></div>
+                <span class="hist-tag tag-draw">DRAW</span>
+                <span class="hist-score">2 - 2</span>
+                <div class="hist-title-row">Eagles FC vs. Wolves U14</div>
+            </div>
+            <div class="hist-body">
+                <div class="hist-meta">
+                    <span>May 12, 2026</span><span class="sep"></span>
+                    <span>68 min</span><span class="sep"></span>
+                    <span>Right Mid</span>
+                </div>
+                <div class="hist-stats">
+                    <div class="hist-stat-box"><div class="v">8.7<span class="unit"> km</span></div><div class="l">Distance</div></div>
+                    <div class="hist-stat-box"><div class="v">25.8<span class="unit"> kmh</span></div><div class="l">Top Speed</div></div>
+                    <div class="hist-stat-box"><div class="v">15</div><div class="l">Sprints</div></div>
+                    <div class="hist-stat-box"><div class="v">78</div><div class="l">Score</div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="month-label">April 2026</div>
+
+        <div class="hist-card">
+            <div class="hist-hero">
+                <img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=500&h=240&fit=crop" alt="">
+                <div class="hist-grad"></div>
+                <span class="hist-tag tag-loss">LOSS</span>
+                <span class="hist-score">1 - 2</span>
+                <div class="hist-title-row">Eagles FC vs. Hawks U14</div>
+            </div>
+            <div class="hist-body">
+                <div class="hist-meta">
+                    <span>Apr 28, 2026</span><span class="sep"></span>
+                    <span>75 min</span><span class="sep"></span>
+                    <span>Right Mid</span>
+                </div>
+                <div class="hist-stats">
+                    <div class="hist-stat-box"><div class="v">10.1<span class="unit"> km</span></div><div class="l">Distance</div></div>
+                    <div class="hist-stat-box"><div class="v">28.2<span class="unit"> kmh</span></div><div class="l">Top Speed</div></div>
+                    <div class="hist-stat-box"><div class="v">22</div><div class="l">Sprints</div></div>
+                    <div class="hist-stat-box"><div class="v">82</div><div class="l">Score</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item"><i class="fas fa-home"></i><span>Home</span></div>
+        <div class="tab-item"><i class="fas fa-bolt"></i><span>Live</span></div>
+        <div class="tab-item active"><i class="fas fa-chart-line"></i><span>Stats</span></div>
+        <div class="tab-item"><i class="fas fa-shield-heart"></i><span>Care</span></div>
+        <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+    </div>
+</body>
+</html>
