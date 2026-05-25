@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FormGuard AI — Breath</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;font-family:'Inter',sans-serif}
+*::-webkit-scrollbar{display:none}*{scrollbar-width:none}
+html,body{width:100%;height:100%;background:#070512;color:#fff;overflow:hidden}
+
+/* atmospheric background */
+.bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 35%,#2A1D55 0%,#150B30 35%,#070512 75%);overflow:hidden}
+.bg::before{content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(180,120,255,.15),transparent 60%);filter:blur(40px)}
+.stars{position:absolute;inset:0;background-image:radial-gradient(circle at 15% 25%,rgba(255,255,255,.4) 0.6px,transparent 1px),radial-gradient(circle at 85% 60%,rgba(255,255,255,.3) 0.6px,transparent 1px),radial-gradient(circle at 35% 75%,rgba(255,255,255,.35) 0.5px,transparent 1px),radial-gradient(circle at 65% 12%,rgba(255,255,255,.3) 0.7px,transparent 1px),radial-gradient(circle at 25% 50%,rgba(255,255,255,.2) 0.5px,transparent 1px),radial-gradient(circle at 75% 85%,rgba(255,255,255,.25) 0.6px,transparent 1px),radial-gradient(circle at 50% 30%,rgba(180,120,255,.5) 0.8px,transparent 1.5px);background-size:200px 200px,250px 250px,180px 180px,220px 220px,260px 260px,190px 190px,300px 300px}
+
+.status-bar{position:relative;height:59px;padding:18px 28px 0;display:flex;align-items:center;justify-content:space-between;z-index:30}
+.dynamic-island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:120px;height:37px;background:#000;border-radius:20px}
+.status-bar .time{font-size:15px;font-weight:600}
+.status-bar .indicators{display:flex;gap:6px;font-size:14px}
+
+.top{position:relative;padding:18px 28px 0;display:flex;align-items:center;justify-content:space-between;z-index:20}
+.iconbtn{width:38px;height:38px;border-radius:13px;background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center}
+.iconbtn i{color:#fff;font-size:13px}
+.session-pill{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);padding:7px 14px;border-radius:12px;font-size:11px;font-weight:600;color:rgba(255,255,255,.8);letter-spacing:.04em;text-transform:uppercase}
+.session-pill i{color:#B478FF;margin-right:6px;font-size:10px}
+
+.center-stage{position:absolute;top:0;left:0;right:0;height:calc(100% - 240px);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:15}
+.cycle-info{font-size:11px;font-weight:600;color:rgba(180,120,255,.7);letter-spacing:.14em;text-transform:uppercase;margin-bottom:32px}
+.cycle-info span{color:#fff;margin:0 4px}
+
+/* the orb */
+.orb-wrap{position:relative;width:280px;height:280px;display:flex;align-items:center;justify-content:center;margin-bottom:36px}
+.orb-glow{position:absolute;inset:-40px;border-radius:50%;background:radial-gradient(circle,rgba(180,120,255,.32),transparent 65%);filter:blur(28px)}
+.orb-ring{position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(180,120,255,.25)}
+.orb-ring.r2{inset:18px;border-color:rgba(180,120,255,.18)}
+.orb-ring.r3{inset:38px;border-color:rgba(180,120,255,.12)}
+.orb{width:200px;height:200px;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.85) 0%,rgba(214,180,255,.7) 18%,rgba(150,90,235,.6) 50%,rgba(70,30,140,.7) 100%);box-shadow:0 0 60px rgba(180,120,255,.45),inset 0 0 60px rgba(255,255,255,.18);position:relative}
+.orb::after{content:'';position:absolute;top:18%;left:22%;width:36%;height:24%;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.55),transparent 70%);filter:blur(8px)}
+
+.phase{font-size:42px;font-weight:300;letter-spacing:-.01em;color:#fff;line-height:1;margin-bottom:10px;font-family:'Inter',sans-serif}
+.phase-sub{font-size:13px;color:rgba(255,255,255,.55);font-weight:500;letter-spacing:.04em}
+.phase-sub .n{color:#B478FF;font-weight:700;font-size:14px}
+
+/* bottom stats */
+.bottom{position:absolute;left:0;right:0;bottom:0;height:240px;padding:0 24px 36px;display:flex;flex-direction:column;justify-content:flex-end;z-index:20}
+.stats{display:flex;gap:8px;margin-bottom:18px}
+.s{flex:1;background:rgba(255,255,255,.04);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.06);padding:12px;border-radius:16px}
+.s .l{font-size:9px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.s .v{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1;margin-top:4px;display:flex;align-items:baseline;gap:3px}
+.s .v .u{font-size:11px;color:rgba(255,255,255,.4);font-weight:600}
+.s .v .ic{font-size:12px;margin-right:4px}
+
+.tip{background:rgba(180,120,255,.08);border:1px solid rgba(180,120,255,.18);padding:11px 14px;border-radius:14px;display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.tip i{color:#B478FF;font-size:13px;flex-shrink:0}
+.tip .t{font-size:11px;color:rgba(255,255,255,.75);font-weight:500;line-height:1.4}
+.tip .t b{color:#B478FF;font-weight:700}
+
+.ctrls{display:flex;align-items:center;justify-content:center;gap:36px}
+.csmall{width:50px;height:50px;border-radius:16px;background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center}
+.csmall i{color:#fff;font-size:16px}
+.cmain{width:72px;height:72px;border-radius:36px;background:#B478FF;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 30px rgba(180,120,255,.4);position:relative}
+.cmain::before{content:'';position:absolute;inset:-5px;border-radius:42px;border:2px solid rgba(180,120,255,.25)}
+.cmain i{color:#fff;font-size:20px}
+</style>
+</head>
+<body>
+<div class="bg"><div class="stars"></div></div>
+
+<div class="status-bar">
+  <div class="time">9:41</div>
+  <div class="dynamic-island"></div>
+  <div class="indicators">
+    <i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="top">
+  <div class="iconbtn"><i class="fas fa-xmark"></i></div>
+  <div class="session-pill"><i class="fas fa-wind"></i>Box Breath · 02:14</div>
+  <div class="iconbtn"><i class="fas fa-music"></i></div>
+</div>
+
+<div class="center-stage">
+  <div class="cycle-info">Cycle <span>4</span>of<span>10</span></div>
+  <div class="orb-wrap">
+    <div class="orb-glow"></div>
+    <div class="orb-ring"></div>
+    <div class="orb-ring r2"></div>
+    <div class="orb-ring r3"></div>
+    <div class="orb"></div>
+  </div>
+  <div class="phase">Inhale</div>
+  <div class="phase-sub"><span class="n">4s</span> · hold <span class="n">4s</span> · exhale <span class="n">6s</span></div>
+</div>
+
+<div class="bottom">
+  <div class="stats">
+    <div class="s">
+      <div class="l">Heart Rate</div>
+      <div class="v"><span class="ic" style="color:#FF3B5C">♥</span>62 <span class="u">bpm</span></div>
+    </div>
+    <div class="s">
+      <div class="l">HRV</div>
+      <div class="v" style="color:#C5FF3C">+18 <span class="u">ms</span></div>
+    </div>
+    <div class="s">
+      <div class="l">Calm Score</div>
+      <div class="v" style="color:#B478FF">84 <span class="u">/100</span></div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <i class="fas fa-circle-info"></i>
+    <div class="t"><b>4-4-6 breathing</b> activates your parasympathetic nervous system — your body's natural anti-anxiety switch.</div>
+  </div>
+
+  <div class="ctrls">
+    <div class="csmall"><i class="fas fa-backward-step"></i></div>
+    <div class="cmain"><i class="fas fa-pause"></i></div>
+    <div class="csmall"><i class="fas fa-forward-step"></i></div>
+  </div>
+</div>
+</body>
+</html>
