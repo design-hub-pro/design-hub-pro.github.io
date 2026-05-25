@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TaiFlow AI - Live Session</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+  background: #0A1816; color: #F5EFE3;
+  width: 100%; height: 100%;
+  overflow-y: auto; overflow-x: hidden; scrollbar-width: none;
+}
+@keyframes jointPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+@keyframes skeletonGlow {
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(20,184,154,0.55)); }
+  50% { filter: drop-shadow(0 0 10px rgba(20,184,154,0.95)); }
+}
+@keyframes breatheRing {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+@keyframes liveDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+@keyframes flowSlide {
+  0% { transform: translateY(-6px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes scanLine {
+  0% { transform: translateY(-100%); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+@keyframes barFlow {
+  0% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+  100% { transform: scaleY(0.4); }
+}
+.spark-bar { display: inline-block; width: 3px; background: #E8C76A; border-radius: 2px; transform-origin: center; animation: barFlow 1.4s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<!-- Status Bar -->
+<div style="height: 59px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 30;">
+  <span style="font-size: 15px; font-weight: 600;">9:41</span>
+  <div style="width: 126px; height: 37px; background: #000; border-radius: 20px; position: absolute; left: 50%; transform: translateX(-50%); top: 10px;"></div>
+  <div style="display: flex; gap: 6px; align-items: center;">
+    <i class="fas fa-signal" style="font-size: 13px;"></i>
+    <i class="fas fa-wifi" style="font-size: 14px;"></i>
+    <i class="fas fa-battery-full" style="font-size: 15px;"></i>
+  </div>
+</div>
+
+<!-- Camera View with Pose Estimation -->
+<div style="position: relative; width: 100%; height: 640px; overflow: hidden;">
+  <!-- Background: Tai Chi practitioner -->
+  <img src="https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=900&q=80"
+       style="width: 100%; height: 100%; object-fit: cover; object-position: center; display: block;">
+  <!-- Gradient overlay -->
+  <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,24,22,0.55) 0%, rgba(10,24,22,0.15) 30%, rgba(10,24,22,0.25) 65%, rgba(10,24,22,0.95) 100%);"></div>
+
+  <!-- Scanning beam -->
+  <div style="position: absolute; left: 0; right: 0; height: 60px; background: linear-gradient(180deg, transparent, rgba(232,199,106,0.15), transparent); animation: scanLine 4s ease-in-out infinite;"></div>
+
+  <!-- Top Navigation -->
+  <div style="position: absolute; top: 0; left: 0; right: 0; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 6;">
+    <a href="home.html" style="width: 40px; height: 40px; background: rgba(0,0,0,0.55); backdrop-filter: blur(14px); border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; color: #fff; border: 1px solid rgba(255,255,255,0.08);">
+      <i class="fas fa-arrow-left" style="font-size: 16px;"></i>
+    </a>
+
+    <!-- Tracking Status -->
+    <div style="padding: 6px 12px; background: rgba(0,0,0,0.55); backdrop-filter: blur(14px); border-radius: 20px; display: flex; align-items: center; gap: 7px; border: 1px solid rgba(20,184,154,0.4);">
+      <div style="width: 6px; height: 6px; background: #14B89A; border-radius: 50%; box-shadow: 0 0 8px #14B89A; animation: liveDot 1.2s infinite;"></div>
+      <span style="font-size: 11px; font-weight: 700; letter-spacing: 1px; color: #14B89A;">FLOW SYNC</span>
+      <span style="font-size: 11px; color: rgba(255,255,255,0.45); font-weight: 500;">·</span>
+      <span style="font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600;">30 FPS</span>
+    </div>
+
+    <div style="padding: 6px 12px; background: rgba(184,88,66,0.92); border-radius: 20px; display: flex; align-items: center; gap: 6px;">
+      <div style="width: 7px; height: 7px; background: #fff; border-radius: 50%; animation: liveDot 1s infinite;"></div>
+      <span style="font-size: 11px; font-weight: 700; letter-spacing: 1px;">REC 3:14</span>
+    </div>
+  </div>
+
+  <!-- Move name + counter (top-left, second row) -->
+  <div style="position: absolute; top: 64px; left: 20px; z-index: 6; display: flex; flex-direction: column; gap: 6px;">
+    <div style="padding: 6px 12px; background: rgba(0,0,0,0.6); backdrop-filter: blur(12px); border-radius: 12px; border: 1px solid rgba(232,199,106,0.3);">
+      <div style="font-size: 9px; color: #E8C76A; font-weight: 700; letter-spacing: 1px;">MOVE 6 / 24</div>
+      <div style="font-size: 13px; font-weight: 700; color: #fff; margin-top: 2px;">Single Whip · 单鞭</div>
+    </div>
+    <div style="display: flex; gap: 6px;">
+      <div style="padding: 4px 9px; background: rgba(0,0,0,0.6); backdrop-filter: blur(12px); border-radius: 10px; display: flex; align-items: center; gap: 5px; border: 1px solid rgba(255,255,255,0.08);">
+        <i class="fas fa-circle-check" style="font-size: 9px; color: #14B89A;"></i>
+        <span style="font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.85);">33 KEYPOINTS</span>
+      </div>
+      <div style="padding: 4px 9px; background: rgba(0,0,0,0.6); backdrop-filter: blur(12px); border-radius: 10px; display: flex; align-items: center; gap: 5px; border: 1px solid rgba(255,255,255,0.08);">
+        <i class="fas fa-bullseye" style="font-size: 9px; color: #E8C76A;"></i>
+        <span style="font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.85);">98%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SVG Pose Skeleton: Tai Chi Single Whip stance -->
+  <svg viewBox="0 0 500 720" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; animation: skeletonGlow 2.6s ease-in-out infinite;" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <radialGradient id="jointGrad" cx="50%" cy="50%">
+        <stop offset="0%" stop-color="#5BE5C2"/>
+        <stop offset="100%" stop-color="#14B89A"/>
+      </radialGradient>
+      <linearGradient id="boneGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#5BE5C2" stop-opacity="0.95"/>
+        <stop offset="100%" stop-color="#14B89A" stop-opacity="0.9"/>
+      </linearGradient>
+      <linearGradient id="goldGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#F5D98A"/>
+        <stop offset="100%" stop-color="#E8C76A"/>
+      </linearGradient>
+    </defs>
+
+    <!-- Centerline reference (Tai Chi vertical axis) -->
+    <line x1="250" y1="100" x2="250" y2="640" stroke="#E8C76A" stroke-width="1" stroke-dasharray="4 6" opacity="0.45"/>
+    <text x="256" y="100" fill="#E8C76A" font-size="9" font-weight="700" font-family="SF Pro Display, system-ui" opacity="0.8">CENTERLINE</text>
+
+    <!-- Ground line / stance width indicator -->
+    <line x1="140" y1="618" x2="360" y2="618" stroke="#E8C76A" stroke-width="1" opacity="0.4" stroke-dasharray="3 3"/>
+    <line x1="140" y1="613" x2="140" y2="623" stroke="#E8C76A" stroke-width="1.5" opacity="0.6"/>
+    <line x1="360" y1="613" x2="360" y2="623" stroke="#E8C76A" stroke-width="1.5" opacity="0.6"/>
+    <text x="250" y="612" fill="#E8C76A" font-size="9" font-weight="700" text-anchor="middle" font-family="SF Pro Display, system-ui" opacity="0.8">STANCE 1.8× SHOULDER</text>
+
+    <!-- Bones -->
+    <!-- Head to neck -->
+    <line x1="250" y1="155" x2="250" y2="205" stroke="url(#boneGrad)" stroke-width="3.5" stroke-linecap="round"/>
+    <!-- Neck to shoulders -->
+    <line x1="250" y1="205" x2="200" y2="230" stroke="url(#boneGrad)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="250" y1="205" x2="302" y2="225" stroke="url(#boneGrad)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="200" y1="230" x2="302" y2="225" stroke="#14B89A" stroke-width="2.5" stroke-linecap="round" opacity="0.55"/>
+
+    <!-- Left arm extended (Single Whip hook hand) -->
+    <line x1="200" y1="230" x2="118" y2="270" stroke="url(#boneGrad)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="118" y1="270" x2="55" y2="298" stroke="url(#boneGrad)" stroke-width="3.5" stroke-linecap="round"/>
+    <!-- Right arm extended forward / palm out -->
+    <line x1="302" y1="225" x2="388" y2="248" stroke="url(#boneGrad)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="388" y1="248" x2="448" y2="262" stroke="url(#boneGrad)" stroke-width="3.5" stroke-linecap="round"/>
+
+    <!-- Spine -->
+    <line x1="250" y1="205" x2="251" y2="392" stroke="#14B89A" stroke-width="2.8" stroke-linecap="round" opacity="0.7"/>
+
+    <!-- Hips -->
+    <line x1="251" y1="392" x2="218" y2="408" stroke="url(#boneGrad)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="251" y1="392" x2="286" y2="406" stroke="url(#boneGrad)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="218" y1="408" x2="286" y2="406" stroke="#14B89A" stroke-width="2.5" stroke-linecap="round" opacity="0.55"/>
+
+    <!-- Left leg (bent, weighted ~70%) -->
+    <line x1="218" y1="408" x2="172" y2="510" stroke="url(#boneGrad)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="172" y1="510" x2="155" y2="612" stroke="url(#boneGrad)" stroke-width="3.5" stroke-linecap="round"/>
+
+    <!-- Right leg (extended, light) -->
+    <line x1="286" y1="406" x2="324" y2="508" stroke="url(#boneGrad)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="324" y1="508" x2="355" y2="610" stroke="url(#boneGrad)" stroke-width="3.5" stroke-linecap="round"/>
+
+    <!-- Head circle -->
+    <circle cx="250" cy="125" r="32" fill="none" stroke="#14B89A" stroke-width="2.5" opacity="0.85"/>
+    <circle cx="250" cy="125" r="38" fill="none" stroke="#14B89A" stroke-width="1" opacity="0.3" stroke-dasharray="3 3"/>
+
+    <!-- Joint dots -->
+    <g style="animation: jointPulse 2s ease-in-out infinite;">
+      <circle cx="250" cy="205" r="6" fill="url(#jointGrad)" stroke="#fff" stroke-width="1.5"/>
+      <circle cx="200" cy="230" r="6" fill="url(#jointGrad)" stroke="#fff" stroke-width="1.5"/>
+      <circle cx="302" cy="225" r="6" fill="url(#jointGrad)" stroke="#fff" stroke-width="1.5"/>
+      <circle cx="118" cy="270" r="6" fill="url(#jointGrad)" stroke="#fff" stroke-width="1.5"/>
+      <circle cx="55" cy="298" r="7" fill="url(#jointGrad)" stroke="#fff" stroke-width="1.8"/>
+      <circle cx="388" cy="248" r="6" fill="url(#jointGrad)" stroke="#fff" stroke-width="1.5"/>
+      <circle cx="448" cy="262" r="7" fill="url(#jointGrad)" stroke="#fff" stroke-width="1.8"/>
+      <circle cx="218" cy="408" r="6" fill="url(#jointGrad)" stroke="#fff" stroke-width="1.5"/>
+      <circle cx="286" cy="406" r="6" fill="url(#jointGrad)" stroke="#fff" stroke-width="1.5"/>
+      <circle cx="172" cy="510" r="7" fill="url(#jointGrad)" stroke="#fff" stroke-width="1.5"/>
+      <circle cx="155" cy="612" r="6" fill="url(#jointGrad)" stroke="#fff" stroke-width="1.5"/>
+      <circle cx="324" cy="508" r="7" fill="url(#jointGrad)" stroke="#fff" stroke-width="1.5"/>
+      <circle cx="355" cy="610" r="6" fill="url(#jointGrad)" stroke="#fff" stroke-width="1.5"/>
+    </g>
+
+    <!-- Angle indicators -->
+    <!-- Left knee 118° (bent, weighted) -->
+    <path d="M 172,490 Q 167,510 188,512" fill="none" stroke="#14B89A" stroke-width="2" opacity="0.85"/>
+    <rect x="100" y="498" width="64" height="22" rx="6" fill="rgba(0,0,0,0.7)" stroke="#14B89A" stroke-width="1.2"/>
+    <text x="132" y="514" fill="#14B89A" font-size="12" font-weight="700" text-anchor="middle" font-family="SF Pro Display, system-ui">L 118°</text>
+
+    <!-- Right knee 158° (extended) -->
+    <path d="M 324,490 Q 332,510 348,508" fill="none" stroke="#14B89A" stroke-width="2" opacity="0.85"/>
+    <rect x="336" y="498" width="64" height="22" rx="6" fill="rgba(0,0,0,0.7)" stroke="#14B89A" stroke-width="1.2"/>
+    <text x="368" y="514" fill="#14B89A" font-size="12" font-weight="700" text-anchor="middle" font-family="SF Pro Display, system-ui">R 158°</text>
+
+    <!-- Spine alignment -->
+    <rect x="262" y="290" width="80" height="20" rx="6" fill="rgba(0,0,0,0.6)" stroke="#14B89A" stroke-width="1"/>
+    <text x="302" y="304" fill="#14B89A" font-size="11" font-weight="700" text-anchor="middle" font-family="SF Pro Display, system-ui">SPINE 2° ✓</text>
+
+    <!-- Weight distribution -->
+    <rect x="80" y="638" width="74" height="22" rx="6" fill="rgba(20,184,154,0.85)" stroke="#5BE5C2" stroke-width="1"/>
+    <text x="117" y="654" fill="#fff" font-size="11" font-weight="700" text-anchor="middle" font-family="SF Pro Display, system-ui">70%</text>
+    <rect x="346" y="638" width="74" height="22" rx="6" fill="rgba(20,184,154,0.45)" stroke="#14B89A" stroke-width="1"/>
+    <text x="383" y="654" fill="#fff" font-size="11" font-weight="700" text-anchor="middle" font-family="SF Pro Display, system-ui">30%</text>
+
+    <!-- Hook hand indicator -->
+    <circle cx="55" cy="298" r="14" fill="none" stroke="url(#goldGrad)" stroke-width="1.5" opacity="0.85"/>
+    <text x="34" y="332" fill="#E8C76A" font-size="9" font-weight="700" font-family="SF Pro Display, system-ui">HOOK ✓</text>
+  </svg>
+
+  <!-- Breathing Ring (centered overlay) -->
+  <div style="position: absolute; top: 50%; right: 18px; transform: translateY(-50%); z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+    <div style="position: relative; width: 64px; height: 64px;">
+      <svg width="64" height="64" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+        <circle cx="32" cy="32" r="28" fill="none" stroke="url(#breathGrad)" stroke-width="3" stroke-linecap="round" stroke-dasharray="175.9" stroke-dashoffset="35" transform="rotate(-90 32 32)"/>
+        <defs>
+          <linearGradient id="breathGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#E8C76A"/>
+            <stop offset="100%" stop-color="#F5D98A"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <i class="fas fa-wind" style="font-size: 13px; color: #E8C76A; animation: breatheRing 5s ease-in-out infinite;"></i>
+        <div style="font-size: 9px; font-weight: 700; color: #E8C76A; margin-top: 1px;">IN</div>
+      </div>
+    </div>
+    <div style="padding: 3px 8px; background: rgba(0,0,0,0.65); backdrop-filter: blur(10px); border-radius: 9px;">
+      <span style="font-size: 9px; color: #E8C76A; font-weight: 700; letter-spacing: 0.8px;">5·5 BREATH</span>
+    </div>
+  </div>
+
+  <!-- AI Coach voice cue -->
+  <div style="position: absolute; bottom: 130px; left: 50%; transform: translateX(-50%); z-index: 7; animation: flowSlide 0.6s ease-out;">
+    <div style="background: linear-gradient(135deg, rgba(232,199,106,0.95), rgba(201,152,56,0.95)); padding: 10px 16px; border-radius: 22px; display: flex; align-items: center; gap: 10px; box-shadow: 0 12px 32px rgba(232,199,106,0.35); max-width: 320px;">
+      <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center;">
+        <i class="fas fa-volume-high" style="font-size: 12px; color: #4A3000;"></i>
+      </div>
+      <div>
+        <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.8px; color: #4A3000; margin-bottom: 1px;">MASTER CHEN · AI</div>
+        <div style="font-size: 13px; font-weight: 600; color: #1A1208;">Sink into the left leg, soften the chest</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio waveform -->
+  <div style="position: absolute; bottom: 96px; left: 50%; transform: translateX(-50%); z-index: 7; display: flex; gap: 3px; align-items: end; height: 16px;">
+    <span class="spark-bar" style="height: 30%; animation-delay: 0s;"></span>
+    <span class="spark-bar" style="height: 70%; animation-delay: 0.1s;"></span>
+    <span class="spark-bar" style="height: 100%; animation-delay: 0.2s;"></span>
+    <span class="spark-bar" style="height: 60%; animation-delay: 0.3s;"></span>
+    <span class="spark-bar" style="height: 90%; animation-delay: 0.4s;"></span>
+    <span class="spark-bar" style="height: 50%; animation-delay: 0.5s;"></span>
+    <span class="spark-bar" style="height: 80%; animation-delay: 0.6s;"></span>
+  </div>
+
+  <!-- Bottom-left: Rooting -->
+  <div style="position: absolute; bottom: 28px; left: 20px; z-index: 6;">
+    <div style="background: rgba(0,0,0,0.6); backdrop-filter: blur(14px); padding: 10px 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);">
+      <div style="font-size: 9px; color: rgba(255,255,255,0.55); font-weight: 700; letter-spacing: 1px; margin-bottom: 4px;">ROOTING</div>
+      <div style="display: flex; align-items: center; gap: 7px;">
+        <i class="fas fa-tree" style="font-size: 11px; color: #14B89A;"></i>
+        <span style="font-size: 14px; font-weight: 700; color: #fff;">94%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom-right: Tempo -->
+  <div style="position: absolute; bottom: 28px; right: 20px; z-index: 6;">
+    <div style="background: rgba(0,0,0,0.6); backdrop-filter: blur(14px); padding: 10px 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);">
+      <div style="font-size: 9px; color: rgba(255,255,255,0.55); font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; text-align: right;">TEMPO</div>
+      <div style="display: flex; align-items: center; gap: 5px;">
+        <span style="font-size: 14px; font-weight: 700; color: #fff;">Slow ✓</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Content Below Camera -->
+<div style="padding: 4px 24px 40px 24px; position: relative; z-index: 5;">
+
+  <!-- Form Score Hero Card -->
+  <div style="background: linear-gradient(135deg, #122620 0%, #16302A 100%); border-radius: 24px; padding: 22px; margin-bottom: 16px; border: 1px solid rgba(20,184,154,0.2); position: relative; overflow: hidden;">
+    <div style="position: absolute; top: -40px; right: -40px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(20,184,154,0.15), transparent 70%);"></div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; position: relative;">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="position: relative; width: 88px; height: 88px;">
+          <svg width="88" height="88" viewBox="0 0 88 88">
+            <circle cx="44" cy="44" r="38" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="7"/>
+            <circle cx="44" cy="44" r="38" fill="none" stroke="url(#scoreGrad)" stroke-width="7" stroke-linecap="round" stroke-dasharray="238.6" stroke-dashoffset="19" transform="rotate(-90 44 44)"/>
+            <defs>
+              <linearGradient id="scoreGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#5BE5C2"/>
+                <stop offset="100%" stop-color="#14B89A"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+            <div style="font-size: 26px; font-weight: 800; line-height: 1; letter-spacing: -1px;">92</div>
+            <div style="font-size: 9px; color: #7E9088; letter-spacing: 0.8px; margin-top: 2px; font-weight: 600;">FLOW</div>
+          </div>
+        </div>
+        <div>
+          <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(20,184,154,0.18); border-radius: 12px; margin-bottom: 6px;">
+            <i class="fas fa-yin-yang" style="font-size: 10px; color: #14B89A;"></i>
+            <span style="font-size: 11px; font-weight: 700; color: #14B89A; letter-spacing: 0.4px;">BALANCED</span>
+          </div>
+          <div style="font-size: 13px; color: #9AAFA5; line-height: 1.5;">
+            <i class="fas fa-arrow-trend-up" style="font-size: 10px; color: #14B89A; margin-right: 4px;"></i>
+            +4 vs last session
+          </div>
+        </div>
+      </div>
+
+      <!-- Move counter -->
+      <div style="text-align: center; background: rgba(232,199,106,0.08); border-radius: 18px; padding: 12px 16px; border: 1px solid rgba(232,199,106,0.2);">
+        <div style="font-size: 30px; font-weight: 800; line-height: 1; letter-spacing: -1px;">
+          <span style="color: #E8C76A;">6</span>
+          <span style="color: #4F5C56; font-size: 16px; font-weight: 600;"> / 24</span>
+        </div>
+        <div style="font-size: 10px; color: #9AAFA5; margin-top: 4px; font-weight: 700; letter-spacing: 1.2px;">MOVES</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tai Chi Principles (4 quality bars) -->
+  <div style="background: #122620; border-radius: 20px; padding: 18px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.06);">
+    <div style="font-size: 11px; color: #9AAFA5; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 14px;">
+      <i class="fas fa-yin-yang" style="font-size: 10px; color: #E8C76A; margin-right: 6px;"></i>
+      Tai Chi Principles
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 11px;">
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+          <span style="font-size: 12px; color: rgba(245,239,227,0.85); font-weight: 500;">Sung (Relaxation) · 松</span>
+          <span style="font-size: 12px; font-weight: 700; color: #14B89A;">94%</span>
+        </div>
+        <div style="height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+          <div style="height: 100%; width: 94%; background: linear-gradient(90deg, #14B89A, #5BE5C2); border-radius: 3px;"></div>
+        </div>
+      </div>
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+          <span style="font-size: 12px; color: rgba(245,239,227,0.85); font-weight: 500;">Rooting (Connection) · 根</span>
+          <span style="font-size: 12px; font-weight: 700; color: #14B89A;">94%</span>
+        </div>
+        <div style="height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+          <div style="height: 100%; width: 94%; background: linear-gradient(90deg, #14B89A, #5BE5C2); border-radius: 3px;"></div>
+        </div>
+      </div>
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+          <span style="font-size: 12px; color: rgba(245,239,227,0.85); font-weight: 500;">Centered Spine · 中正</span>
+          <span style="font-size: 12px; font-weight: 700; color: #14B89A;">96%</span>
+        </div>
+        <div style="height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+          <div style="height: 100%; width: 96%; background: linear-gradient(90deg, #14B89A, #5BE5C2); border-radius: 3px;"></div>
+        </div>
+      </div>
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+          <span style="font-size: 12px; color: rgba(245,239,227,0.85); font-weight: 500;">Continuity (Flow) · 连绵</span>
+          <span style="font-size: 12px; font-weight: 700; color: #E8C76A;">78%</span>
+        </div>
+        <div style="height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+          <div style="height: 100%; width: 78%; background: linear-gradient(90deg, #E8C76A, #F5D98A); border-radius: 3px;"></div>
+        </div>
+      </div>
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+          <span style="font-size: 12px; color: rgba(245,239,227,0.85); font-weight: 500;">Breath–Movement Sync</span>
+          <span style="font-size: 12px; font-weight: 700; color: #14B89A;">88%</span>
+        </div>
+        <div style="height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+          <div style="height: 100%; width: 88%; background: linear-gradient(90deg, #14B89A, #5BE5C2); border-radius: 3px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real-time form feedback -->
+  <div style="background: #122620; border-radius: 20px; padding: 18px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.06);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+      <div style="font-size: 11px; color: #9AAFA5; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;">
+        <i class="fas fa-bolt-lightning" style="font-size: 10px; color: #14B89A; margin-right: 6px;"></i>
+        Live Form Feedback
+      </div>
+      <span style="font-size: 10px; color: #4F5C56; font-weight: 500;">Last 6 sec</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 8px 10px; background: rgba(20,184,154,0.08); border-radius: 12px; border-left: 2.5px solid #14B89A;">
+        <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(20,184,154,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <i class="fas fa-check" style="font-size: 12px; color: #14B89A;"></i>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 13px; color: #fff; font-weight: 600;">Spine vertical, head suspended</div>
+          <div style="font-size: 11px; color: #9AAFA5; margin-top: 1px;">2° lean — within ideal</div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 8px 10px; background: rgba(20,184,154,0.08); border-radius: 12px; border-left: 2.5px solid #14B89A;">
+        <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(20,184,154,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <i class="fas fa-check" style="font-size: 12px; color: #14B89A;"></i>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 13px; color: #fff; font-weight: 600;">Hook hand shape correct</div>
+          <div style="font-size: 11px; color: #9AAFA5; margin-top: 1px;">Wrist angle 87° — beautiful</div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 8px 10px; background: rgba(232,199,106,0.1); border-radius: 12px; border-left: 2.5px solid #E8C76A;">
+        <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(232,199,106,0.22); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <i class="fas fa-arrow-down" style="font-size: 11px; color: #E8C76A;"></i>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 13px; color: #fff; font-weight: 600;">Sink deeper into left leg</div>
+          <div style="font-size: 11px; color: #E8C76A; margin-top: 1px;">Knee 118° → target 105°</div>
+        </div>
+        <i class="fas fa-volume-high" style="font-size: 13px; color: #E8C76A;"></i>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 8px 10px; background: rgba(232,199,106,0.1); border-radius: 12px; border-left: 2.5px solid #E8C76A;">
+        <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(232,199,106,0.22); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <i class="fas fa-wind" style="font-size: 11px; color: #E8C76A;"></i>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 13px; color: #fff; font-weight: 600;">Slow your exhale on the strike</div>
+          <div style="font-size: 11px; color: #E8C76A; margin-top: 1px;">Movement leading breath by 0.4s</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form sequence timeline -->
+  <div style="background: #122620; border-radius: 20px; padding: 18px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.06);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+      <div style="font-size: 11px; color: #9AAFA5; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;">
+        <i class="fas fa-route" style="font-size: 10px; color: #E8C76A; margin-right: 6px;"></i>
+        24 Form Sequence
+      </div>
+      <span style="font-size: 11px; color: #E8C76A; font-weight: 600;">12:30 elapsed</span>
+    </div>
+
+    <div style="display: flex; align-items: end; justify-content: space-between; gap: 3px; height: 56px; margin-bottom: 10px;">
+      <div style="flex: 1; height: 80%; background: linear-gradient(180deg, #5BE5C2, #14B89A); border-radius: 4px;"></div>
+      <div style="flex: 1; height: 90%; background: linear-gradient(180deg, #5BE5C2, #14B89A); border-radius: 4px;"></div>
+      <div style="flex: 1; height: 75%; background: linear-gradient(180deg, #5BE5C2, #14B89A); border-radius: 4px;"></div>
+      <div style="flex: 1; height: 88%; background: linear-gradient(180deg, #5BE5C2, #14B89A); border-radius: 4px;"></div>
+      <div style="flex: 1; height: 70%; background: linear-gradient(180deg, #F5D98A, #E8C76A); border-radius: 4px;"></div>
+      <div style="flex: 1; height: 95%; background: linear-gradient(180deg, #E8C76A, #C99838); border-radius: 4px; box-shadow: 0 0 10px rgba(232,199,106,0.5);"></div>
+      <div style="flex: 1; height: 25%; background: rgba(255,255,255,0.05); border-radius: 4px; border: 1px dashed rgba(255,255,255,0.12);"></div>
+      <div style="flex: 1; height: 25%; background: rgba(255,255,255,0.05); border-radius: 4px; border: 1px dashed rgba(255,255,255,0.12);"></div>
+      <div style="flex: 1; height: 25%; background: rgba(255,255,255,0.05); border-radius: 4px; border: 1px dashed rgba(255,255,255,0.12);"></div>
+      <div style="flex: 1; height: 25%; background: rgba(255,255,255,0.05); border-radius: 4px; border: 1px dashed rgba(255,255,255,0.12);"></div>
+      <div style="flex: 1; height: 25%; background: rgba(255,255,255,0.05); border-radius: 4px; border: 1px dashed rgba(255,255,255,0.12);"></div>
+      <div style="flex: 1; height: 25%; background: rgba(255,255,255,0.05); border-radius: 4px; border: 1px dashed rgba(255,255,255,0.12);"></div>
+    </div>
+
+    <div style="display: flex; gap: 14px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05);">
+      <div style="display: flex; align-items: center; gap: 5px;">
+        <div style="width: 8px; height: 8px; border-radius: 2px; background: #14B89A;"></div>
+        <span style="font-size: 10px; color: #9AAFA5;">Flowing</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 5px;">
+        <div style="width: 8px; height: 8px; border-radius: 2px; background: #E8C76A; box-shadow: 0 0 6px rgba(232,199,106,0.5);"></div>
+        <span style="font-size: 10px; color: #9AAFA5;">Current move</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 5px;">
+        <div style="width: 8px; height: 8px; border-radius: 2px; background: rgba(255,255,255,0.1); border: 1px dashed rgba(255,255,255,0.2);"></div>
+        <span style="font-size: 10px; color: #9AAFA5;">Upcoming</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action bar -->
+  <div style="background: linear-gradient(135deg, #122620, #16302A); border-radius: 22px; padding: 16px 18px; border: 1px solid rgba(20,184,154,0.18); display: flex; align-items: center; justify-content: space-between;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="width: 44px; height: 44px; border-radius: 14px; background: rgba(20,184,154,0.18); display: flex; align-items: center; justify-content: center;">
+        <i class="fas fa-yin-yang" style="font-size: 18px; color: #14B89A;"></i>
+      </div>
+      <div>
+        <div style="font-size: 15px; font-weight: 700; letter-spacing: -0.2px;">24 Form Yang Style</div>
+        <div style="font-size: 11px; color: #9AAFA5; margin-top: 2px;">Master Chen · Live coaching</div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 9px;">
+      <button style="width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #9AAFA5;">
+        <i class="fas fa-rotate-left" style="font-size: 13px;"></i>
+      </button>
+      <button style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #14B89A, #0E8A6F); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; box-shadow: 0 8px 20px rgba(20,184,154,0.4);">
+        <i class="fas fa-pause" style="font-size: 16px;"></i>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
