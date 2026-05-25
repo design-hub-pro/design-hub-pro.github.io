@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FormGuard AI — Library</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;font-family:'Inter',sans-serif}
+*::-webkit-scrollbar{display:none}*{scrollbar-width:none}
+html,body{width:100%;height:100%;background:#0A0A0F;color:#fff;overflow:hidden}
+.status-bar{height:59px;padding:18px 28px 0;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:30}
+.dynamic-island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:120px;height:37px;background:#000;border-radius:20px}
+.status-bar .time{font-size:15px;font-weight:600}
+.status-bar .indicators{display:flex;gap:6px;font-size:14px}
+
+.scroll{height:calc(100% - 59px - 88px);overflow-y:auto;padding:0 28px 24px}
+.h-row{display:flex;align-items:center;justify-content:space-between;margin:8px 0 16px}
+.h-row .t{font-size:26px;font-weight:800;letter-spacing:-.02em}
+.h-row .ic{width:38px;height:38px;border-radius:13px;background:#16161E;border:1px solid #1F1F28;display:flex;align-items:center;justify-content:center}
+
+.search{display:flex;align-items:center;gap:10px;background:#16161E;border:1px solid #1F1F28;border-radius:14px;padding:11px 14px;margin-bottom:18px}
+.search i{color:rgba(255,255,255,.4);font-size:13px}
+.search .p{font-size:13px;color:rgba(255,255,255,.4)}
+.search .filter{margin-left:auto;font-size:11px;background:#C5FF3C;color:#0A0A0F;padding:4px 8px;border-radius:7px;font-weight:700}
+
+/* category chips */
+.cats{display:flex;gap:8px;margin-bottom:18px;overflow-x:auto}
+.cat{flex-shrink:0;padding:8px 14px;background:#16161E;border:1px solid #1F1F28;border-radius:12px;font-size:12px;font-weight:600;color:rgba(255,255,255,.6)}
+.cat.active{background:#C5FF3C;color:#0A0A0F;border-color:#C5FF3C}
+
+/* featured hero */
+.featured{position:relative;height:170px;border-radius:22px;overflow:hidden;margin-bottom:18px;background-image:url('https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=900&q=80');background-size:cover;background-position:center}
+.featured::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,rgba(10,10,15,.85) 0%,rgba(10,10,15,.2) 70%)}
+.featured .inner{position:absolute;inset:0;padding:18px;display:flex;flex-direction:column;justify-content:space-between;z-index:2}
+.featured .tag{display:inline-flex;align-items:center;gap:6px;background:rgba(197,255,60,.15);border:1px solid rgba(197,255,60,.4);color:#C5FF3C;font-size:10px;font-weight:700;padding:5px 8px;border-radius:7px;text-transform:uppercase;letter-spacing:.06em;width:fit-content}
+.featured .name{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.1;max-width:200px}
+.featured .meta{display:flex;align-items:center;justify-content:space-between}
+.featured .meta .s{font-size:11px;color:rgba(255,255,255,.6);display:flex;gap:10px}
+.featured .meta .s i{color:#C5FF3C;margin-right:3px}
+.featured .play{width:40px;height:40px;border-radius:20px;background:#C5FF3C;display:flex;align-items:center;justify-content:center}
+.featured .play i{color:#0A0A0F;font-size:13px;margin-left:2px}
+
+.sect-t{font-size:11px;font-weight:700;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em;margin:6px 0 12px}
+
+/* exercise grid 2-col */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.exc{background:#16161E;border:1px solid #1F1F28;border-radius:18px;overflow:hidden}
+.exc .img{height:104px;background-size:cover;background-position:center;position:relative}
+.exc .img::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(10,10,15,.65) 100%)}
+.exc .tags{position:absolute;top:8px;left:8px;display:flex;gap:4px;z-index:2}
+.exc .tag-ai{background:rgba(197,255,60,.95);color:#0A0A0F;font-size:9px;font-weight:800;padding:3px 6px;border-radius:5px;letter-spacing:.04em}
+.exc .info{padding:11px 12px 13px}
+.exc .info .n{font-size:13px;font-weight:700;line-height:1.2;letter-spacing:-.01em}
+.exc .info .m{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+.exc .info .m .l{font-size:10px;color:rgba(255,255,255,.5);font-weight:500}
+.exc .info .m .b{display:flex;gap:2px}
+.exc .info .m .b .d{width:5px;height:5px;border-radius:3px;background:rgba(255,255,255,.15)}
+.exc .info .m .b .d.f{background:#C5FF3C}
+
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:88px;background:rgba(16,16,22,.96);backdrop-filter:blur(30px);border-top:1px solid rgba(255,255,255,.05);padding:10px 28px 30px;display:flex;align-items:center;justify-content:space-between;z-index:40}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;color:rgba(255,255,255,.4);font-size:10px;font-weight:600}
+.tab i{font-size:18px}
+.tab.active{color:#C5FF3C}
+.scan-tab{width:54px;height:54px;border-radius:18px;background:#C5FF3C;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 26px rgba(197,255,60,.4)}
+.scan-tab i{color:#0A0A0F;font-size:22px}
+</style>
+</head>
+<body>
+<div class="status-bar">
+  <div class="time">9:41</div>
+  <div class="dynamic-island"></div>
+  <div class="indicators">
+    <i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="scroll">
+  <div class="h-row">
+    <div class="t">Library</div>
+    <div class="ic"><i class="fas fa-sliders" style="font-size:13px"></i></div>
+  </div>
+
+  <div class="search">
+    <i class="fas fa-magnifying-glass"></i>
+    <div class="p">Search exercises, joints, drills</div>
+    <div class="filter">AI <i class="fas fa-bolt" style="font-size:9px"></i></div>
+  </div>
+
+  <div class="cats">
+    <div class="cat active">All</div>
+    <div class="cat">Lower</div>
+    <div class="cat">Upper</div>
+    <div class="cat">Hinge</div>
+    <div class="cat">Mobility</div>
+    <div class="cat">Sport</div>
+  </div>
+
+  <div class="featured">
+    <div class="inner">
+      <div class="tag">⚡ Most Scanned</div>
+      <div>
+        <div class="name">The Squat Series</div>
+        <div class="meta" style="margin-top:12px">
+          <div class="s">
+            <span><i class="fas fa-video"></i>12 drills</span>
+            <span><i class="fas fa-bolt"></i>33 joints</span>
+          </div>
+          <div class="play"><i class="fas fa-play"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sect-t">All Movements · 48</div>
+  <div class="grid">
+    <div class="exc">
+      <div class="img" style="background-image:url('https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=400&q=80')">
+        <div class="tags"><span class="tag-ai">AI</span></div>
+      </div>
+      <div class="info">
+        <div class="n">Back Squat</div>
+        <div class="m"><div class="l">Lower · Compound</div><div class="b"><span class="d f"></span><span class="d f"></span><span class="d f"></span><span class="d"></span></div></div>
+      </div>
+    </div>
+    <div class="exc">
+      <div class="img" style="background-image:url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&q=80')">
+        <div class="tags"><span class="tag-ai">AI</span></div>
+      </div>
+      <div class="info">
+        <div class="n">Deadlift</div>
+        <div class="m"><div class="l">Hinge · Compound</div><div class="b"><span class="d f"></span><span class="d f"></span><span class="d f"></span><span class="d f"></span></div></div>
+      </div>
+    </div>
+    <div class="exc">
+      <div class="img" style="background-image:url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&q=80')">
+        <div class="tags"><span class="tag-ai">AI</span></div>
+      </div>
+      <div class="info">
+        <div class="n">Overhead Press</div>
+        <div class="m"><div class="l">Upper · Vertical</div><div class="b"><span class="d f"></span><span class="d f"></span><span class="d f"></span><span class="d"></span></div></div>
+      </div>
+    </div>
+    <div class="exc">
+      <div class="img" style="background-image:url('https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=400&q=80')">
+        <div class="tags"><span class="tag-ai">AI</span></div>
+      </div>
+      <div class="info">
+        <div class="n">Walking Lunge</div>
+        <div class="m"><div class="l">Lower · Unilateral</div><div class="b"><span class="d f"></span><span class="d f"></span><span class="d"></span><span class="d"></span></div></div>
+      </div>
+    </div>
+    <div class="exc">
+      <div class="img" style="background-image:url('https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80')">
+        <div class="tags"><span class="tag-ai">AI</span></div>
+      </div>
+      <div class="info">
+        <div class="n">Bench Press</div>
+        <div class="m"><div class="l">Upper · Horizontal</div><div class="b"><span class="d f"></span><span class="d f"></span><span class="d f"></span><span class="d"></span></div></div>
+      </div>
+    </div>
+    <div class="exc">
+      <div class="img" style="background-image:url('https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=400&q=80')">
+        <div class="tags"><span class="tag-ai">AI</span></div>
+      </div>
+      <div class="info">
+        <div class="n">Romanian DL</div>
+        <div class="m"><div class="l">Hinge · Posterior</div><div class="b"><span class="d f"></span><span class="d f"></span><span class="d"></span><span class="d"></span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tabbar">
+  <div class="tab"><i class="fas fa-house"></i><span>Home</span></div>
+  <div class="tab active"><i class="fas fa-dumbbell"></i><span>Train</span></div>
+  <div class="scan-tab"><i class="fas fa-bolt"></i></div>
+  <div class="tab"><i class="fas fa-chart-simple"></i><span>Progress</span></div>
+  <div class="tab"><i class="fas fa-user"></i><span>Profile</span></div>
+</div>
+</body>
+</html>

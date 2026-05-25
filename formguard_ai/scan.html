@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FormGuard AI — Live Scan</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;font-family:'Inter',sans-serif}
+*::-webkit-scrollbar{display:none}
+*{scrollbar-width:none}
+html,body{width:100%;height:100%;background:#000;color:#fff;overflow:hidden}
+/* camera feed */
+.cam{position:absolute;inset:0;background-image:url('https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=900&q=80');background-size:cover;background-position:center;filter:brightness(.55) contrast(1.05) saturate(.7)}
+.cam::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,.4) 100%)}
+/* corners */
+.corner{position:absolute;width:28px;height:28px;border-color:rgba(255,255,255,.3);border-style:solid;border-width:0}
+.corner.tl{top:140px;left:24px;border-top-width:2px;border-left-width:2px}
+.corner.tr{top:140px;right:24px;border-top-width:2px;border-right-width:2px}
+.corner.bl{bottom:240px;left:24px;border-bottom-width:2px;border-left-width:2px}
+.corner.br{bottom:240px;right:24px;border-bottom-width:2px;border-right-width:2px}
+
+.status-bar{height:59px;padding:18px 28px 0;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:30}
+.dynamic-island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:120px;height:37px;background:#000;border-radius:20px}
+.status-bar .time{font-size:15px;font-weight:600}
+.status-bar .indicators{display:flex;gap:6px;font-size:14px}
+
+/* top controls */
+.top-ctrl{position:absolute;top:75px;left:0;right:0;padding:0 28px;display:flex;align-items:center;justify-content:space-between;z-index:20}
+.iconbtn{width:38px;height:38px;border-radius:13px;background:rgba(0,0,0,.55);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.08)}
+.iconbtn i{color:#fff;font-size:14px}
+.rec-pill{background:rgba(0,0,0,.55);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);padding:8px 14px;border-radius:14px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.rec-pill .red{width:8px;height:8px;border-radius:4px;background:#FF3B5C;animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.3}}
+
+/* exercise tag */
+.ex-tag{position:absolute;top:128px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);padding:6px 14px 6px 10px;border-radius:11px;display:flex;align-items:center;gap:8px;z-index:20}
+.ex-tag .d{width:7px;height:7px;border-radius:4px;background:#C5FF3C}
+.ex-tag .t{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.ex-tag .s{font-size:11px;color:rgba(255,255,255,.5)}
+
+/* pose overlay */
+.pose{position:absolute;top:165px;left:50%;transform:translateX(-50%);z-index:15}
+
+/* live feedback banner */
+.feedback{position:absolute;top:178px;left:28px;right:28px;background:rgba(197,255,60,.95);backdrop-filter:blur(20px);padding:10px 14px;border-radius:14px;display:flex;align-items:center;gap:10px;z-index:18;box-shadow:0 14px 30px rgba(197,255,60,.25)}
+.feedback i{color:#0A0A0F;font-size:14px}
+.feedback .t{color:#0A0A0F;font-size:13px;font-weight:700;flex:1;letter-spacing:-.01em}
+.feedback .badge{font-size:10px;font-weight:800;background:#0A0A0F;color:#C5FF3C;padding:3px 7px;border-radius:6px;letter-spacing:.05em}
+
+/* angle markers */
+.angle{position:absolute;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);border:1px solid #C5FF3C;color:#C5FF3C;font-size:10px;font-weight:700;padding:3px 6px;border-radius:6px;z-index:20;letter-spacing:.02em}
+.angle.warn{border-color:#FF3B5C;color:#FF3B5C}
+
+/* live stats card */
+.live-stats{position:absolute;left:20px;right:20px;bottom:240px;background:rgba(10,10,15,.85);backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,.06);border-radius:24px;padding:16px 18px;z-index:25}
+.live-stats .row1{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px}
+.live-stats .reps{display:flex;align-items:baseline;gap:4px}
+.live-stats .reps .n{font-size:46px;font-weight:800;letter-spacing:-.04em;line-height:.85;color:#C5FF3C}
+.live-stats .reps .d{font-size:18px;color:rgba(255,255,255,.4);font-weight:600}
+.live-stats .lbl{font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-top:4px}
+.live-stats .score-circle{width:62px;height:62px;border-radius:31px;border:3px solid #C5FF3C;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.live-stats .score-circle .n{font-size:20px;font-weight:800;letter-spacing:-.02em;color:#C5FF3C;line-height:1}
+.live-stats .score-circle .l{font-size:8px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-top:1px}
+/* mini bars */
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:6px}
+.metric{background:rgba(255,255,255,.04);border-radius:10px;padding:8px 9px}
+.metric .l{font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.metric .v{font-size:13px;font-weight:700;margin-top:2px;display:flex;align-items:center;gap:5px}
+.metric .v .pulse{width:5px;height:5px;border-radius:3px;background:#C5FF3C}
+.metric .v.warn{color:#FF3B5C}
+.metric .v.warn .pulse{background:#FF3B5C}
+
+/* bottom bar */
+.bottom{position:absolute;left:0;right:0;bottom:0;height:200px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:46px;z-index:30}
+.timer{font-size:14px;font-weight:600;color:#fff;margin-bottom:18px;background:rgba(0,0,0,.55);backdrop-filter:blur(20px);padding:7px 14px;border-radius:11px;border:1px solid rgba(255,255,255,.08);letter-spacing:.02em}
+.timer i{color:#C5FF3C;margin-right:6px;font-size:11px}
+.ctrl-row{display:flex;align-items:center;gap:34px}
+.smallbtn{width:54px;height:54px;border-radius:18px;background:rgba(0,0,0,.55);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center}
+.smallbtn i{color:#fff;font-size:18px}
+.stopbtn{width:80px;height:80px;border-radius:40px;background:#FF3B5C;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 36px rgba(255,59,92,.4);position:relative}
+.stopbtn::before{content:'';position:absolute;inset:-6px;border-radius:50px;border:2px solid rgba(255,255,255,.2)}
+.stopbtn i{color:#fff;font-size:24px}
+</style>
+</head>
+<body>
+<div class="cam"></div>
+
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+<div class="corner bl"></div>
+<div class="corner br"></div>
+
+<div class="status-bar">
+  <div class="time">9:41</div>
+  <div class="dynamic-island"></div>
+  <div class="indicators">
+    <i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="top-ctrl">
+  <div class="iconbtn"><i class="fas fa-xmark"></i></div>
+  <div class="rec-pill"><span class="red"></span> REC · 00:42</div>
+  <div class="iconbtn"><i class="fas fa-camera-rotate"></i></div>
+</div>
+
+<div class="ex-tag">
+  <span class="d"></span>
+  <span class="t">Barbell Squat</span>
+  <span class="s">Set 2 / 4</span>
+</div>
+
+<!-- pose skeleton overlay -->
+<svg class="pose" width="240" height="380" viewBox="0 0 240 380">
+  <defs>
+    <radialGradient id="dotGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#C5FF3C" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#C5FF3C" stop-opacity="0.4"/>
+    </radialGradient>
+  </defs>
+  <!-- bones -->
+  <g stroke="#C5FF3C" stroke-width="2.5" stroke-linecap="round" fill="none">
+    <!-- head to spine -->
+    <line x1="120" y1="50" x2="120" y2="100"/>
+    <!-- shoulders -->
+    <line x1="120" y1="100" x2="78" y2="115"/>
+    <line x1="120" y1="100" x2="162" y2="115"/>
+    <!-- upper arms -->
+    <line x1="78" y1="115" x2="60" y2="170"/>
+    <line x1="162" y1="115" x2="180" y2="170"/>
+    <!-- forearms (bar grip) -->
+    <line x1="60" y1="170" x2="62" y2="125"/>
+    <line x1="180" y1="170" x2="178" y2="125"/>
+    <!-- spine -->
+    <line x1="120" y1="100" x2="120" y2="180"/>
+    <!-- hips -->
+    <line x1="120" y1="180" x2="92" y2="200"/>
+    <line x1="120" y1="180" x2="148" y2="200"/>
+    <!-- thighs -->
+    <line x1="92" y1="200" x2="72" y2="270"/>
+    <line x1="148" y1="200" x2="168" y2="270"/>
+    <!-- shins -->
+    <line x1="72" y1="270" x2="80" y2="340"/>
+    <line x1="168" y1="270" x2="160" y2="340"/>
+    <!-- bar -->
+    <line x1="40" y1="118" x2="200" y2="118" stroke-width="4" stroke="#00E5FF"/>
+  </g>
+  <!-- joints -->
+  <g>
+    <circle cx="120" cy="50" r="7" fill="url(#dotGrad)"/>
+    <circle cx="120" cy="50" r="3.5" fill="#fff"/>
+    <circle cx="120" cy="100" r="5" fill="#C5FF3C"/>
+    <circle cx="78" cy="115" r="5" fill="#C5FF3C"/>
+    <circle cx="162" cy="115" r="5" fill="#C5FF3C"/>
+    <circle cx="60" cy="170" r="5" fill="#C5FF3C"/>
+    <circle cx="180" cy="170" r="5" fill="#C5FF3C"/>
+    <circle cx="62" cy="125" r="4" fill="#C5FF3C"/>
+    <circle cx="178" cy="125" r="4" fill="#C5FF3C"/>
+    <circle cx="120" cy="180" r="5" fill="#C5FF3C"/>
+    <circle cx="92" cy="200" r="5" fill="#C5FF3C"/>
+    <circle cx="148" cy="200" r="5" fill="#C5FF3C"/>
+    <circle cx="72" cy="270" r="6" fill="#C5FF3C"/>
+    <circle cx="168" cy="270" r="6" fill="#C5FF3C"/>
+    <circle cx="80" cy="340" r="5" fill="#C5FF3C"/>
+    <circle cx="160" cy="340" r="5" fill="#C5FF3C"/>
+  </g>
+  <!-- angle arc at knee -->
+  <path d="M 60 268 A 18 18 0 0 1 86 282" stroke="#C5FF3C" stroke-width="1.5" fill="none" stroke-dasharray="2,2"/>
+  <path d="M 170 282 A 18 18 0 0 1 196 268" stroke="#C5FF3C" stroke-width="1.5" fill="none" stroke-dasharray="2,2"/>
+</svg>
+
+<div class="feedback">
+  <i class="fas fa-circle-check"></i>
+  <span class="t">Knees tracking over toes · depth optimal</span>
+  <span class="badge">GOOD</span>
+</div>
+
+<!-- angle annotations -->
+<div class="angle" style="top:362px;right:78px">94° KNEE</div>
+<div class="angle" style="top:338px;left:80px">88° HIP</div>
+<div class="angle warn" style="top:200px;right:50px">↘ HEAD 5° FWD</div>
+
+<div class="live-stats">
+  <div class="row1">
+    <div>
+      <div class="reps"><div class="n">08</div><div class="d">/ 10</div></div>
+      <div class="lbl">Reps This Set</div>
+    </div>
+    <div class="score-circle">
+      <div class="n">94</div>
+      <div class="l">Form</div>
+    </div>
+  </div>
+  <div class="metrics-grid">
+    <div class="metric">
+      <div class="l">Depth</div>
+      <div class="v"><span class="pulse"></span>Parallel</div>
+    </div>
+    <div class="metric">
+      <div class="l">Spine</div>
+      <div class="v"><span class="pulse"></span>Neutral</div>
+    </div>
+    <div class="metric">
+      <div class="l">Tempo</div>
+      <div class="v warn"><span class="pulse"></span>2.1s ↑</div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom">
+  <div class="timer"><i class="fas fa-stopwatch"></i>Rest 00:32</div>
+  <div class="ctrl-row">
+    <div class="smallbtn"><i class="fas fa-volume-high"></i></div>
+    <div class="stopbtn"><i class="fas fa-square"></i></div>
+    <div class="smallbtn"><i class="fas fa-grip-lines"></i></div>
+  </div>
+</div>
+</body>
+</html>

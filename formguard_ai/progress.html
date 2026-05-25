@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FormGuard AI — Progress</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;font-family:'Inter',sans-serif}
+*::-webkit-scrollbar{display:none}*{scrollbar-width:none}
+html,body{width:100%;height:100%;background:#0A0A0F;color:#fff;overflow:hidden}
+.status-bar{height:59px;padding:18px 28px 0;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:30}
+.dynamic-island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:120px;height:37px;background:#000;border-radius:20px}
+.status-bar .time{font-size:15px;font-weight:600}
+.status-bar .indicators{display:flex;gap:6px;font-size:14px}
+
+.scroll{height:calc(100% - 59px - 88px);overflow-y:auto;padding:0 28px 30px}
+.h-row{display:flex;align-items:center;justify-content:space-between;margin:8px 0 16px}
+.h-row .t{font-size:26px;font-weight:800;letter-spacing:-.02em}
+.h-row .ic{width:38px;height:38px;border-radius:13px;background:#16161E;border:1px solid #1F1F28;display:flex;align-items:center;justify-content:center}
+
+.range-pills{display:flex;background:#16161E;border:1px solid #1F1F28;border-radius:12px;padding:4px;margin-bottom:18px}
+.range-pills div{flex:1;text-align:center;font-size:12px;padding:8px 0;font-weight:600;color:rgba(255,255,255,.5);border-radius:9px}
+.range-pills div.active{background:#C5FF3C;color:#0A0A0F}
+
+/* main chart card */
+.main-chart{background:#16161E;border:1px solid #1F1F28;border-radius:24px;padding:20px;margin-bottom:14px}
+.main-chart .top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.main-chart .l{font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.main-chart .v{font-size:42px;font-weight:800;letter-spacing:-.04em;line-height:1;margin-top:4px;color:#fff}
+.main-chart .v .x{font-size:18px;color:rgba(255,255,255,.4)}
+.main-chart .pill{background:rgba(197,255,60,.15);color:#C5FF3C;font-size:11px;font-weight:700;padding:5px 9px;border-radius:8px;display:flex;align-items:center;gap:5px;align-self:flex-start;margin-top:6px}
+.main-chart .pill i{font-size:10px}
+.line-svg{width:100%;height:120px;margin-top:14px}
+.x-axis{display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.35);margin-top:4px}
+
+/* split stats */
+.split-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.s-card{background:#16161E;border:1px solid #1F1F28;border-radius:20px;padding:16px 16px 18px}
+.s-card .ic{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.s-card .v{font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.s-card .l{font-size:11px;color:rgba(255,255,255,.5);font-weight:500;margin-top:3px}
+.s-card .bar{height:5px;background:rgba(255,255,255,.08);border-radius:3px;margin-top:10px;overflow:hidden}
+.s-card .bar i{display:block;height:100%;border-radius:3px}
+
+/* improvements */
+.sect-t{font-size:11px;font-weight:700;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em;margin:14px 0 10px;display:flex;justify-content:space-between}
+.sect-t .more{color:#C5FF3C;font-size:12px;text-transform:none;letter-spacing:0;font-weight:600}
+
+.body-card{background:#16161E;border:1px solid #1F1F28;border-radius:22px;padding:18px;margin-bottom:14px;display:flex;gap:14px;align-items:center}
+.body-card .body-svg{width:90px;height:120px;flex-shrink:0}
+.body-card .info{flex:1}
+.b-item{display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:12px}
+.b-item:last-child{margin-bottom:0}
+.b-item .d{width:8px;height:8px;border-radius:4px;flex-shrink:0}
+.b-item .l{flex:1;color:rgba(255,255,255,.7);font-weight:500}
+.b-item .v{font-weight:700;font-size:13px}
+
+/* achievements */
+.ach-row{display:flex;gap:10px}
+.ach{flex:1;background:linear-gradient(135deg,#1B1B26 0%,#16161E 100%);border:1px solid #1F1F28;border-radius:18px;padding:14px 12px;text-align:center}
+.ach .ic{width:42px;height:42px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center}
+.ach .ic i{font-size:18px}
+.ach .n{font-size:11px;font-weight:700;letter-spacing:-.01em}
+.ach .s{font-size:10px;color:rgba(255,255,255,.45);margin-top:1px}
+
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:88px;background:rgba(16,16,22,.96);backdrop-filter:blur(30px);border-top:1px solid rgba(255,255,255,.05);padding:10px 28px 30px;display:flex;align-items:center;justify-content:space-between;z-index:40}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;color:rgba(255,255,255,.4);font-size:10px;font-weight:600}
+.tab i{font-size:18px}
+.tab.active{color:#C5FF3C}
+.scan-tab{width:54px;height:54px;border-radius:18px;background:#C5FF3C;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 26px rgba(197,255,60,.4)}
+.scan-tab i{color:#0A0A0F;font-size:22px}
+</style>
+</head>
+<body>
+<div class="status-bar">
+  <div class="time">9:41</div>
+  <div class="dynamic-island"></div>
+  <div class="indicators">
+    <i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="scroll">
+  <div class="h-row">
+    <div class="t">Progress</div>
+    <div class="ic"><i class="fas fa-calendar" style="font-size:13px"></i></div>
+  </div>
+
+  <div class="range-pills">
+    <div>Week</div>
+    <div class="active">Month</div>
+    <div>3M</div>
+    <div>Year</div>
+  </div>
+
+  <div class="main-chart">
+    <div class="top">
+      <div>
+        <div class="l">Avg Form Score</div>
+        <div class="v">89<span class="x">/100</span></div>
+      </div>
+      <div class="pill"><i class="fas fa-arrow-trend-up"></i>+11 pts</div>
+    </div>
+    <svg class="line-svg" viewBox="0 0 300 120" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="lg" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#C5FF3C" stop-opacity=".42"/>
+          <stop offset="100%" stop-color="#C5FF3C" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <g stroke="rgba(255,255,255,.06)" stroke-dasharray="3,5">
+        <line x1="0" y1="30" x2="300" y2="30"/>
+        <line x1="0" y1="60" x2="300" y2="60"/>
+        <line x1="0" y1="90" x2="300" y2="90"/>
+      </g>
+      <path d="M 0 80 L 30 70 L 60 75 L 90 55 L 120 60 L 150 42 L 180 48 L 210 30 L 240 36 L 270 22 L 300 28 L 300 120 L 0 120 Z" fill="url(#lg)"/>
+      <path d="M 0 80 L 30 70 L 60 75 L 90 55 L 120 60 L 150 42 L 180 48 L 210 30 L 240 36 L 270 22 L 300 28" stroke="#C5FF3C" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="270" cy="22" r="5" fill="#C5FF3C"/>
+      <circle cx="270" cy="22" r="11" fill="rgba(197,255,60,.25)"/>
+    </svg>
+    <div class="x-axis"><span>W1</span><span>W2</span><span>W3</span><span>W4</span><span>Now</span></div>
+  </div>
+
+  <div class="split-stats">
+    <div class="s-card">
+      <div class="ic" style="background:rgba(197,255,60,.15)"><i class="fas fa-repeat" style="color:#C5FF3C;font-size:14px"></i></div>
+      <div class="v">3,247</div>
+      <div class="l">Total Reps Analyzed</div>
+      <div class="bar"><i style="width:84%;background:#C5FF3C"></i></div>
+    </div>
+    <div class="s-card">
+      <div class="ic" style="background:rgba(0,229,255,.15)"><i class="fas fa-shield-halved" style="color:#00E5FF;font-size:14px"></i></div>
+      <div class="v">142</div>
+      <div class="l">Form Errors Caught</div>
+      <div class="bar"><i style="width:62%;background:#00E5FF"></i></div>
+    </div>
+    <div class="s-card">
+      <div class="ic" style="background:rgba(255,170,60,.15)"><i class="fas fa-fire" style="color:#FFAA3C;font-size:14px"></i></div>
+      <div class="v">14d</div>
+      <div class="l">Active Streak</div>
+      <div class="bar"><i style="width:75%;background:#FFAA3C"></i></div>
+    </div>
+    <div class="s-card">
+      <div class="ic" style="background:rgba(255,59,92,.15)"><i class="fas fa-bolt-lightning" style="color:#FF3B5C;font-size:14px"></i></div>
+      <div class="v">28h</div>
+      <div class="l">Coached Volume</div>
+      <div class="bar"><i style="width:48%;background:#FF3B5C"></i></div>
+    </div>
+  </div>
+
+  <div class="sect-t"><span>Body Region Performance</span><span class="more">All</span></div>
+  <div class="body-card">
+    <svg class="body-svg" viewBox="0 0 90 120">
+      <g fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1.5">
+        <circle cx="45" cy="14" r="9"/>
+        <path d="M 28 35 Q 45 28 62 35 L 60 70 L 30 70 Z"/>
+        <line x1="30" y1="35" x2="15" y2="68"/>
+        <line x1="60" y1="35" x2="75" y2="68"/>
+        <line x1="38" y1="70" x2="34" y2="110"/>
+        <line x1="52" y1="70" x2="56" y2="110"/>
+      </g>
+      <!-- highlight legs -->
+      <line x1="38" y1="70" x2="34" y2="110" stroke="#C5FF3C" stroke-width="3" stroke-linecap="round"/>
+      <line x1="52" y1="70" x2="56" y2="110" stroke="#C5FF3C" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="38" cy="70" r="3" fill="#C5FF3C"/>
+      <circle cx="52" cy="70" r="3" fill="#C5FF3C"/>
+      <!-- shoulders warning -->
+      <circle cx="28" cy="35" r="3" fill="#FFAA3C"/>
+      <circle cx="62" cy="35" r="3" fill="#FFAA3C"/>
+    </svg>
+    <div class="info">
+      <div class="b-item"><div class="d" style="background:#C5FF3C"></div><div class="l">Hip mobility</div><div class="v" style="color:#C5FF3C">+18%</div></div>
+      <div class="b-item"><div class="d" style="background:#C5FF3C"></div><div class="l">Knee tracking</div><div class="v" style="color:#C5FF3C">+12%</div></div>
+      <div class="b-item"><div class="d" style="background:#00E5FF"></div><div class="l">Spinal control</div><div class="v" style="color:#00E5FF">+9%</div></div>
+      <div class="b-item"><div class="d" style="background:#FFAA3C"></div><div class="l">Shoulder ROM</div><div class="v" style="color:#FFAA3C">-3%</div></div>
+    </div>
+  </div>
+
+  <div class="sect-t"><span>Recent Wins</span><span class="more">All</span></div>
+  <div class="ach-row">
+    <div class="ach">
+      <div class="ic" style="background:rgba(197,255,60,.18)"><i class="fas fa-bolt" style="color:#C5FF3C"></i></div>
+      <div class="n">Form Streak</div>
+      <div class="s">14 days</div>
+    </div>
+    <div class="ach">
+      <div class="ic" style="background:rgba(255,170,60,.18)"><i class="fas fa-medal" style="color:#FFAA3C"></i></div>
+      <div class="n">Hinge Pro</div>
+      <div class="s">Earned</div>
+    </div>
+    <div class="ach">
+      <div class="ic" style="background:rgba(0,229,255,.18)"><i class="fas fa-trophy" style="color:#00E5FF"></i></div>
+      <div class="n">3K Reps</div>
+      <div class="s">Unlocked</div>
+    </div>
+  </div>
+</div>
+
+<div class="tabbar">
+  <div class="tab"><i class="fas fa-house"></i><span>Home</span></div>
+  <div class="tab"><i class="fas fa-dumbbell"></i><span>Train</span></div>
+  <div class="scan-tab"><i class="fas fa-bolt"></i></div>
+  <div class="tab active"><i class="fas fa-chart-simple"></i><span>Progress</span></div>
+  <div class="tab"><i class="fas fa-user"></i><span>Profile</span></div>
+</div>
+</body>
+</html>

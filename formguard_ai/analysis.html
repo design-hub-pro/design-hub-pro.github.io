@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FormGuard AI — Analysis</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;font-family:'Inter',sans-serif}
+*::-webkit-scrollbar{display:none}*{scrollbar-width:none}
+html,body{width:100%;height:100%;background:#0A0A0F;color:#fff;overflow:hidden}
+.status-bar{height:59px;padding:18px 28px 0;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:30}
+.dynamic-island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:120px;height:37px;background:#000;border-radius:20px}
+.status-bar .time{font-size:15px;font-weight:600}
+.status-bar .indicators{display:flex;gap:6px;font-size:14px}
+
+.nav{padding:8px 28px 18px;display:flex;align-items:center;justify-content:space-between}
+.nav .back,.nav .share{width:38px;height:38px;border-radius:13px;background:#16161E;border:1px solid #1F1F28;display:flex;align-items:center;justify-content:center}
+.nav .back i,.nav .share i{font-size:13px}
+.nav .title{font-size:16px;font-weight:700;letter-spacing:-.01em}
+
+.scroll{height:calc(100% - 59px - 64px);overflow-y:auto;padding:0 28px 30px}
+
+/* hero score */
+.score-hero{position:relative;background:linear-gradient(135deg,#1A2B0E 0%,#16161E 100%);border:1px solid #2A3D17;border-radius:26px;padding:24px 22px;margin-bottom:14px;overflow:hidden}
+.score-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;border-radius:100px;background:radial-gradient(circle,rgba(197,255,60,.18),transparent 70%)}
+.score-hero .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;position:relative}
+.score-hero .top .l{font-size:11px;color:rgba(197,255,60,.7);font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.score-hero .top .grade{padding:4px 9px;background:#C5FF3C;color:#0A0A0F;font-size:11px;font-weight:800;border-radius:7px;letter-spacing:.04em}
+.score-hero .score{display:flex;align-items:baseline;gap:6px;position:relative}
+.score-hero .score .n{font-size:78px;font-weight:800;letter-spacing:-.05em;line-height:.85;background:linear-gradient(180deg,#C5FF3C 0%,#82B523 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.score-hero .score .d{font-size:24px;color:rgba(255,255,255,.4);font-weight:600}
+.score-hero .meta{display:flex;gap:18px;margin-top:14px;font-size:12px;color:rgba(255,255,255,.6);position:relative}
+.score-hero .meta div i{color:#C5FF3C;margin-right:5px;font-size:11px}
+
+/* radar of metrics */
+.radar-card{background:#16161E;border:1px solid #1F1F28;border-radius:22px;padding:18px;margin-bottom:14px}
+.radar-row{display:flex;gap:14px;align-items:center}
+.radar-svg{width:130px;height:130px;flex-shrink:0}
+.radar-list{flex:1}
+.radar-item{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:7px}
+.radar-item:last-child{margin-bottom:0}
+.radar-item .dot{width:8px;height:8px;border-radius:4px}
+.radar-item .l{flex:1;color:rgba(255,255,255,.7);font-weight:500}
+.radar-item .v{font-weight:700;font-size:13px}
+
+.sect-t{font-size:11px;font-weight:700;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em;margin:18px 0 10px}
+
+/* issues */
+.issue{background:#16161E;border:1px solid #1F1F28;border-radius:18px;padding:14px;margin-bottom:8px;display:flex;gap:12px;align-items:center}
+.issue .ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.issue .ic i{font-size:16px}
+.issue .info{flex:1}
+.issue .info .t{font-size:13px;font-weight:700}
+.issue .info .s{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
+.issue .stamp{font-size:11px;font-weight:700;padding:5px 9px;border-radius:9px;letter-spacing:.02em}
+
+/* joint angle chart */
+.chart-card{background:#16161E;border:1px solid #1F1F28;border-radius:22px;padding:18px;margin-bottom:14px}
+.chart-card .top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.chart-card .top .l{font-size:13px;font-weight:700}
+.chart-card .top .v{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1}
+.chart-card .top .s{font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-top:2px}
+.chart-card .top .tag{background:rgba(0,229,255,.12);color:#00E5FF;font-size:10px;font-weight:700;padding:4px 8px;border-radius:7px;letter-spacing:.04em}
+.chart-svg{width:100%;height:90px}
+.x-labels{display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:rgba(255,255,255,.35)}
+
+/* rep ribbon */
+.reps-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.rep{flex:1;min-width:0;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+
+/* recommendation */
+.rec{background:linear-gradient(135deg,#16161E 0%,#1A1A24 100%);border:1px solid #1F1F28;border-radius:20px;padding:16px;display:flex;gap:12px;align-items:flex-start}
+.rec .ic{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#C5FF3C,#74D000);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rec .ic i{color:#0A0A0F;font-size:16px}
+.rec .info .t{font-size:13px;font-weight:700;margin-bottom:3px}
+.rec .info .s{font-size:11px;color:rgba(255,255,255,.55);line-height:1.5}
+
+.cta{margin-top:18px;height:54px;border-radius:18px;background:#C5FF3C;color:#0A0A0F;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 10px 28px rgba(197,255,60,.28)}
+</style>
+</head>
+<body>
+<div class="status-bar">
+  <div class="time">9:41</div>
+  <div class="dynamic-island"></div>
+  <div class="indicators">
+    <i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="nav">
+  <div class="back"><i class="fas fa-chevron-left"></i></div>
+  <div class="title">Session Report</div>
+  <div class="share"><i class="fas fa-arrow-up-from-bracket"></i></div>
+</div>
+
+<div class="scroll">
+  <div class="score-hero">
+    <div class="top">
+      <div class="l">Overall Form Score</div>
+      <div class="grade">A · CLEAN</div>
+    </div>
+    <div class="score"><div class="n">87</div><div class="d">/100</div></div>
+    <div class="meta">
+      <div><i class="fas fa-dumbbell"></i>Barbell Squat</div>
+      <div><i class="fas fa-clock"></i>32 min</div>
+      <div><i class="fas fa-repeat"></i>40 reps</div>
+    </div>
+  </div>
+
+  <div class="radar-card">
+    <svg class="radar-svg" viewBox="0 0 130 130">
+      <g stroke="rgba(255,255,255,.06)" fill="none">
+        <polygon points="65,15 117,45 117,95 65,125 13,95 13,45"/>
+        <polygon points="65,30 104,52 104,88 65,110 26,88 26,52"/>
+        <polygon points="65,45 91,60 91,80 65,95 39,80 39,60"/>
+      </g>
+      <polygon points="65,20 110,50 105,90 65,118 22,90 18,52" fill="rgba(197,255,60,.22)" stroke="#C5FF3C" stroke-width="2"/>
+      <g fill="#C5FF3C">
+        <circle cx="65" cy="20" r="3"/>
+        <circle cx="110" cy="50" r="3"/>
+        <circle cx="105" cy="90" r="3"/>
+        <circle cx="65" cy="118" r="3"/>
+        <circle cx="22" cy="90" r="3"/>
+        <circle cx="18" cy="52" r="3"/>
+      </g>
+    </svg>
+    <div class="radar-list">
+      <div class="radar-item"><div class="dot" style="background:#C5FF3C"></div><div class="l">Depth</div><div class="v">94</div></div>
+      <div class="radar-item"><div class="dot" style="background:#C5FF3C"></div><div class="l">Spine</div><div class="v">91</div></div>
+      <div class="radar-item"><div class="dot" style="background:#FFAA3C"></div><div class="l">Tempo</div><div class="v" style="color:#FFAA3C">76</div></div>
+      <div class="radar-item"><div class="dot" style="background:#C5FF3C"></div><div class="l">Symmetry</div><div class="v">89</div></div>
+      <div class="radar-item"><div class="dot" style="background:#C5FF3C"></div><div class="l">Knee Track</div><div class="v">93</div></div>
+      <div class="radar-item"><div class="dot" style="background:#FFAA3C"></div><div class="l">Bar Path</div><div class="v" style="color:#FFAA3C">78</div></div>
+    </div>
+  </div>
+
+  <div class="sect-t">Issues Detected · 2</div>
+  <div class="issue">
+    <div class="ic" style="background:rgba(255,170,60,.15)"><i class="fas fa-triangle-exclamation" style="color:#FFAA3C"></i></div>
+    <div class="info">
+      <div class="t">Slight forward bar drift</div>
+      <div class="s">Rep 17, 23, 31 · keep bar over midfoot</div>
+    </div>
+    <div class="stamp" style="background:rgba(255,170,60,.15);color:#FFAA3C">MEDIUM</div>
+  </div>
+  <div class="issue">
+    <div class="ic" style="background:rgba(255,59,92,.15)"><i class="fas fa-bolt" style="color:#FF3B5C"></i></div>
+    <div class="info">
+      <div class="t">Eccentric tempo too fast</div>
+      <div class="s">Avg 1.4s · target 2.5–3.0s descent</div>
+    </div>
+    <div class="stamp" style="background:rgba(255,59,92,.15);color:#FF3B5C">HIGH</div>
+  </div>
+
+  <div class="sect-t">Knee Angle Over Set</div>
+  <div class="chart-card">
+    <div class="top">
+      <div>
+        <div class="v">94°</div>
+        <div class="s">Avg Bottom Position</div>
+      </div>
+      <div class="tag">↑ 6° vs last</div>
+    </div>
+    <svg class="chart-svg" viewBox="0 0 300 90" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#C5FF3C" stop-opacity=".4"/>
+          <stop offset="100%" stop-color="#C5FF3C" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <line x1="0" y1="40" x2="300" y2="40" stroke="rgba(255,255,255,.08)" stroke-dasharray="3,4"/>
+      <path d="M 0 50 Q 30 30, 60 35 T 120 32 T 180 42 T 240 28 T 300 38 L 300 90 L 0 90 Z" fill="url(#g)"/>
+      <path d="M 0 50 Q 30 30, 60 35 T 120 32 T 180 42 T 240 28 T 300 38" stroke="#C5FF3C" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <circle cx="240" cy="28" r="4" fill="#C5FF3C"/>
+      <circle cx="240" cy="28" r="8" fill="rgba(197,255,60,.25)"/>
+    </svg>
+    <div class="x-labels"><span>Set 1</span><span>Set 2</span><span>Set 3</span><span>Set 4</span></div>
+  </div>
+
+  <div class="sect-t">Rep Quality · Set 2</div>
+  <div class="reps-row">
+    <div class="rep" style="background:rgba(197,255,60,.18);color:#C5FF3C">1</div>
+    <div class="rep" style="background:rgba(197,255,60,.18);color:#C5FF3C">2</div>
+    <div class="rep" style="background:rgba(197,255,60,.18);color:#C5FF3C">3</div>
+    <div class="rep" style="background:rgba(255,170,60,.18);color:#FFAA3C">4</div>
+    <div class="rep" style="background:rgba(197,255,60,.18);color:#C5FF3C">5</div>
+    <div class="rep" style="background:rgba(197,255,60,.18);color:#C5FF3C">6</div>
+    <div class="rep" style="background:rgba(255,59,92,.18);color:#FF3B5C">7</div>
+    <div class="rep" style="background:rgba(197,255,60,.18);color:#C5FF3C">8</div>
+    <div class="rep" style="background:rgba(197,255,60,.18);color:#C5FF3C">9</div>
+    <div class="rep" style="background:rgba(197,255,60,.18);color:#C5FF3C">10</div>
+  </div>
+
+  <div class="sect-t">AI Recommendation</div>
+  <div class="rec">
+    <div class="ic"><i class="fas fa-lightbulb"></i></div>
+    <div class="info">
+      <div class="t">Pause squat drill, 3×6</div>
+      <div class="s">A 2-second pause at the bottom will rebuild your tempo control and lock in your bar path. Try this before your next heavy session.</div>
+    </div>
+  </div>
+
+  <button class="cta">Save & Review Replay <i class="fas fa-arrow-right" style="font-size:12px"></i></button>
+</div>
+</body>
+</html>
