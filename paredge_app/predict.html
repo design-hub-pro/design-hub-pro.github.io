@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ParEdge — Predict</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+* { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+.screen { width: 100%; height: 100%; position: relative; overflow: hidden; background: #0a0e1a; }
+.status-bar { height: 59px; padding: 0 28px; display:flex; align-items: flex-end; justify-content: space-between; padding-bottom: 8px; color: #fff; }
+.dynamic-island { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 122px; height: 36px; background: #000; border-radius: 20px; z-index: 50; }
+.content { position: absolute; top: 59px; bottom: 88px; left: 0; right: 0; overflow-y: auto; padding: 0 28px 24px; color: #fff; }
+.tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(10,14,26,0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; }
+.tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; color: #475569; font-weight: 600; }
+.tab-item.active { color: #34d399; }
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(16, 185, 129, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 185, 129, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.glass { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(20px); }
+.glass-strong { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(20px); }
+.live-dot { animation: lp 1.4s infinite; }
+@keyframes lp { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+.gauge-bg { stroke: rgba(255,255,255,0.08); }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="absolute inset-0 grid-bg opacity-50"></div>
+  <div class="absolute inset-x-0 top-0 h-[400px] bg-gradient-to-b from-emerald-900/30 to-transparent pointer-events-none"></div>
+
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="text-sm font-semibold">9:41</span>
+    <div class="flex items-center gap-1.5">
+      <i class="fas fa-signal text-xs"></i>
+      <i class="fas fa-wifi text-xs"></i>
+      <i class="fas fa-battery-full text-xs"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Header -->
+    <div class="flex items-center justify-between pt-2 pb-4">
+      <div>
+        <div class="mono text-[10px] text-emerald-400 font-bold tracking-widest">SCORE MODEL v2.4</div>
+        <div class="text-2xl font-black tracking-tight mt-1">Predict</div>
+      </div>
+      <button class="w-10 h-10 rounded-full glass flex items-center justify-center">
+        <i class="fas fa-sliders text-white text-sm"></i>
+      </button>
+    </div>
+
+    <!-- Course selector -->
+    <div class="glass rounded-2xl p-3 mb-3 flex items-center gap-3">
+      <img src="https://images.unsplash.com/photo-1535132011086-b8818f016104?w=200" class="w-12 h-12 rounded-xl object-cover">
+      <div class="flex-1 min-w-0">
+        <div class="text-[10px] text-emerald-400 mono font-bold tracking-wider">COURSE</div>
+        <div class="text-sm font-bold leading-tight">Bayonet GC · Par 72</div>
+        <div class="text-[10px] text-white/50 mt-0.5">Black tees · 7,134 yd · slope 142</div>
+      </div>
+      <i class="fas fa-chevron-down text-white/40 text-xs"></i>
+    </div>
+
+    <!-- Main prediction card -->
+    <div class="glass-strong rounded-3xl p-5 mb-4 relative overflow-hidden">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full live-dot"></span>
+          <span class="mono text-[10px] text-emerald-300 font-black tracking-widest">XGBOOST · 87 FEATURES</span>
+        </div>
+        <span class="mono text-[10px] text-white/40 font-bold">CONF 92%</span>
+      </div>
+
+      <!-- Gauge with score -->
+      <div class="flex items-center justify-center mb-3">
+        <div class="relative">
+          <svg width="180" height="180" viewBox="0 0 180 180">
+            <defs>
+              <linearGradient id="gaugeg" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#10b981"/>
+                <stop offset="100%" stop-color="#06b6d4"/>
+              </linearGradient>
+            </defs>
+            <circle cx="90" cy="90" r="78" class="gauge-bg" stroke-width="10" fill="none"/>
+            <circle cx="90" cy="90" r="78" stroke="url(#gaugeg)" stroke-width="10" fill="none"
+              stroke-dasharray="490" stroke-dashoffset="160" stroke-linecap="round"
+              transform="rotate(-90 90 90)"/>
+            <!-- Tick marks -->
+            <g stroke="rgba(255,255,255,0.3)" stroke-width="1">
+              <line x1="90" y1="6" x2="90" y2="14"/>
+              <line x1="174" y1="90" x2="166" y2="90"/>
+              <line x1="90" y1="174" x2="90" y2="166"/>
+              <line x1="6" y1="90" x2="14" y2="90"/>
+            </g>
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <div class="mono text-[10px] text-emerald-300 font-bold tracking-widest mb-1">EXPECTED</div>
+            <div class="text-[64px] leading-none font-black tracking-tighter">78.4</div>
+            <div class="mono text-[10px] text-white/50 mt-1">±2.3 STROKES</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Distribution histogram -->
+      <div class="flex items-end justify-between gap-1 h-12 mb-1">
+        <div class="flex-1 bg-emerald-400/20 rounded-t" style="height: 20%;"></div>
+        <div class="flex-1 bg-emerald-400/30 rounded-t" style="height: 35%;"></div>
+        <div class="flex-1 bg-emerald-400/50 rounded-t" style="height: 60%;"></div>
+        <div class="flex-1 bg-emerald-400/80 rounded-t" style="height: 85%;"></div>
+        <div class="flex-1 bg-emerald-400 rounded-t" style="height: 100%;"></div>
+        <div class="flex-1 bg-emerald-400/80 rounded-t" style="height: 80%;"></div>
+        <div class="flex-1 bg-emerald-400/50 rounded-t" style="height: 55%;"></div>
+        <div class="flex-1 bg-emerald-400/30 rounded-t" style="height: 30%;"></div>
+        <div class="flex-1 bg-emerald-400/20 rounded-t" style="height: 18%;"></div>
+      </div>
+      <div class="flex justify-between mono text-[9px] text-white/40 font-bold">
+        <span>73</span><span>76</span><span>78</span><span>81</span><span>84</span>
+      </div>
+    </div>
+
+    <!-- Input conditions -->
+    <div class="mb-3 flex items-center justify-between">
+      <div class="text-xs font-bold text-white/90 tracking-tight">Course conditions</div>
+      <button class="mono text-[10px] text-emerald-400 font-bold">EDIT</button>
+    </div>
+
+    <div class="grid grid-cols-2 gap-2.5 mb-4">
+      <!-- Wind -->
+      <div class="glass rounded-2xl p-3">
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center gap-1.5">
+            <i class="fas fa-wind text-sky-400 text-xs"></i>
+            <span class="mono text-[9px] text-white/60 font-bold tracking-wider">WIND</span>
+          </div>
+          <span class="mono text-[9px] text-sky-400 font-black">SSW</span>
+        </div>
+        <div class="flex items-baseline gap-1">
+          <span class="text-2xl font-black tracking-tight">12</span>
+          <span class="text-xs text-white/50 font-bold">mph</span>
+        </div>
+        <div class="w-full h-1 bg-white/5 rounded-full mt-2 relative">
+          <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-sky-400 to-cyan-500 rounded-full" style="width: 40%;"></div>
+        </div>
+      </div>
+      <!-- Stimp -->
+      <div class="glass rounded-2xl p-3">
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center gap-1.5">
+            <i class="fas fa-flag text-emerald-400 text-xs"></i>
+            <span class="mono text-[9px] text-white/60 font-bold tracking-wider">STIMP</span>
+          </div>
+          <span class="mono text-[9px] text-emerald-400 font-black">FAST</span>
+        </div>
+        <div class="flex items-baseline gap-1">
+          <span class="text-2xl font-black tracking-tight">11.2</span>
+          <span class="text-xs text-white/50 font-bold">ft</span>
+        </div>
+        <div class="w-full h-1 bg-white/5 rounded-full mt-2 relative">
+          <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full" style="width: 78%;"></div>
+        </div>
+      </div>
+      <!-- Temp -->
+      <div class="glass rounded-2xl p-3">
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center gap-1.5">
+            <i class="fas fa-temperature-three-quarters text-amber-400 text-xs"></i>
+            <span class="mono text-[9px] text-white/60 font-bold tracking-wider">TEMP</span>
+          </div>
+          <span class="mono text-[9px] text-amber-400 font-black">MILD</span>
+        </div>
+        <div class="flex items-baseline gap-1">
+          <span class="text-2xl font-black tracking-tight">68</span>
+          <span class="text-xs text-white/50 font-bold">°F</span>
+        </div>
+        <div class="w-full h-1 bg-white/5 rounded-full mt-2 relative">
+          <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full" style="width: 52%;"></div>
+        </div>
+      </div>
+      <!-- Humidity -->
+      <div class="glass rounded-2xl p-3">
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center gap-1.5">
+            <i class="fas fa-droplet text-violet-400 text-xs"></i>
+            <span class="mono text-[9px] text-white/60 font-bold tracking-wider">HUM</span>
+          </div>
+          <span class="mono text-[9px] text-violet-400 font-black">LOW</span>
+        </div>
+        <div class="flex items-baseline gap-1">
+          <span class="text-2xl font-black tracking-tight">42</span>
+          <span class="text-xs text-white/50 font-bold">%</span>
+        </div>
+        <div class="w-full h-1 bg-white/5 rounded-full mt-2 relative">
+          <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-violet-400 to-fuchsia-500 rounded-full" style="width: 42%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature importance -->
+    <div class="mb-3 flex items-center justify-between">
+      <div class="text-xs font-bold text-white/90 tracking-tight">Top feature drivers</div>
+      <span class="mono text-[10px] text-white/40 font-bold">SHAP</span>
+    </div>
+
+    <div class="glass rounded-2xl p-4 mb-4 space-y-3">
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs font-semibold">Stimp 11+ on greens</span>
+          <span class="mono text-[10px] font-black text-rose-400">+1.8</span>
+        </div>
+        <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-rose-500 to-pink-500 rounded-full" style="width: 78%;"></div>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs font-semibold">Driver avg · last 7 rds</span>
+          <span class="mono text-[10px] font-black text-emerald-400">−1.2</span>
+        </div>
+        <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full" style="width: 62%;"></div>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs font-semibold">Wind direction · SSW</span>
+          <span class="mono text-[10px] font-black text-rose-400">+0.9</span>
+        </div>
+        <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-rose-500 to-pink-500 rounded-full" style="width: 48%;"></div>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs font-semibold">Scoring avg · par 4s</span>
+          <span class="mono text-[10px] font-black text-emerald-400">−0.7</span>
+        </div>
+        <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full" style="width: 38%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <button class="w-full bg-gradient-to-r from-emerald-400 to-teal-500 text-emerald-950 font-black py-4 rounded-2xl flex items-center justify-center gap-2" style="box-shadow: 0 10px 30px -10px rgba(16,185,129,0.6);">
+      <i class="fas fa-bolt"></i> Run new prediction
+    </button>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house text-lg"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-flask text-lg"></i>
+      <span>Lab</span>
+    </div>
+    <div class="tab-item active">
+      <div class="w-14 h-14 -mt-6 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center" style="box-shadow: 0 10px 24px -6px rgba(16,185,129,0.6);">
+        <i class="fas fa-wand-magic-sparkles text-white text-xl"></i>
+      </div>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-chart-column text-lg"></i>
+      <span>Stats</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user text-lg"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>
