@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Observe</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{-webkit-tap-highlight-color:transparent}
+*::-webkit-scrollbar{display:none}
+*{scrollbar-width:none}
+html,body{height:100%}
+body{font-family:-apple-system,'SF Pro Display',system-ui,sans-serif;background:#0A1612;width:100%;height:100%;margin:0;overflow:hidden;color:white}
+.screen{width:100%;height:100%;position:relative;overflow:hidden}
+.status-bar{height:59px;padding:0 28px;display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:6px;font-size:15px;font-weight:600;color:white;position:absolute;top:0;left:0;right:0;z-index:30}
+.dynamic-island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:120px;height:34px;background:#000;border-radius:20px;z-index:40}
+.viewfinder{position:absolute;top:0;left:0;right:0;bottom:0;background:url('https://images.unsplash.com/photo-1444464666168-49d633b86797?w=900&h=1500&fit=crop') center/cover}
+.vf-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,22,18,0.55) 0%,rgba(10,22,18,0) 18%,rgba(10,22,18,0) 50%,rgba(10,22,18,0.85) 100%)}
+.tab-bar{position:absolute;bottom:0;left:0;right:0;height:88px;background:rgba(10,22,18,0.85);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-around;align-items:flex-start;padding-top:12px;z-index:30}
+.tab{display:flex;flex-direction:column;align-items:center;gap:4px;color:rgba(255,255,255,0.45);font-size:10px;font-weight:500}
+.tab.active{color:#95D5B2}
+.tab i{font-size:22px}
+.focus-frame{position:absolute;width:200px;height:200px;top:50%;left:50%;transform:translate(-50%,-50%);border:2px solid #95D5B2;border-radius:18px;box-shadow:0 0 0 4000px rgba(0,0,0,0.18) inset}
+.focus-frame::before,.focus-frame::after{content:'';position:absolute;width:18px;height:18px;border:3px solid #fff}
+.focus-frame::before{top:-3px;left:-3px;border-right:none;border-bottom:none;border-top-left-radius:6px}
+.focus-frame::after{bottom:-3px;right:-3px;border-left:none;border-top:none;border-bottom-right-radius:6px}
+.chip{background:rgba(0,0,0,0.55);backdrop-filter:blur(10px);border-radius:14px;padding:6px 11px;display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600}
+.id-card{background:rgba(255,255,255,0.97);color:#1B4332;border-radius:24px;padding:14px;backdrop-filter:blur(20px)}
+.match-row{display:flex;align-items:center;gap:10px;padding:8px;border-radius:14px}
+.match-row.top{background:linear-gradient(90deg,rgba(45,106,79,0.12),transparent)}
+.confidence-bar{height:5px;background:#E3EFE0;border-radius:3px;overflow:hidden}
+.shutter{width:78px;height:78px;border-radius:50%;background:white;border:5px solid rgba(255,255,255,0.3);box-shadow:0 0 0 4px rgba(149,213,178,0.4)}
+.shutter-inner{width:62px;height:62px;border-radius:50%;background:linear-gradient(135deg,#95D5B2,#52B788);margin:3px}
+.mini-btn{width:48px;height:48px;border-radius:16px;background:rgba(255,255,255,0.18);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;color:white}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="viewfinder"></div>
+  <div class="vf-overlay"></div>
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span>9:41</span>
+    <span class="flex items-center gap-1"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><i class="fas fa-battery-full text-sm"></i></span>
+  </div>
+
+  <!-- Top chips -->
+  <div class="absolute top-[72px] left-7 right-7 flex items-center justify-between z-20">
+    <div class="chip">
+      <i class="fas fa-location-dot text-[#95D5B2] text-[10px]"></i>
+      <span>Hole 7 · Pond Edge</span>
+    </div>
+    <div class="flex gap-2">
+      <div class="chip"><i class="fas fa-bolt text-yellow-300 text-[10px]"></i><span>Auto</span></div>
+    </div>
+  </div>
+
+  <!-- Focus frame -->
+  <div class="focus-frame"></div>
+
+  <!-- AI label tag floating -->
+  <div class="absolute z-20" style="top:38%;left:30%">
+    <div class="bg-[#95D5B2]/95 text-[#1B4332] text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1.5">
+      <span class="w-1.5 h-1.5 bg-[#1B4332] rounded-full"></span>
+      Sialia sialis
+    </div>
+  </div>
+
+  <!-- Bottom panel -->
+  <div class="absolute bottom-[110px] left-5 right-5 z-20">
+    <div class="id-card">
+      <div class="flex items-center justify-between mb-2.5">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 bg-[#52B788] rounded-full animate-pulse"></span>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-[#2D6A4F]">AI Identifying...</span>
+        </div>
+        <span class="text-[10px] text-[#6B8E76] font-semibold">3 matches</span>
+      </div>
+
+      <div class="match-row top">
+        <img src="https://images.unsplash.com/photo-1444464666168-49d633b86797?w=200&h=200&fit=crop" class="w-12 h-12 rounded-xl object-cover">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between">
+            <p class="text-sm font-bold leading-tight">Eastern Bluebird</p>
+            <span class="text-xs font-black text-[#2D6A4F]">98%</span>
+          </div>
+          <p class="text-[10px] text-[#6B8E76] italic">Sialia sialis</p>
+          <div class="confidence-bar mt-1.5"><div style="width:98%;height:100%;background:linear-gradient(90deg,#52B788,#2D6A4F)"></div></div>
+        </div>
+      </div>
+
+      <div class="match-row">
+        <div class="w-12 h-12 rounded-xl bg-[#E3EFE0] flex items-center justify-center"><i class="fas fa-feather text-[#52B788]"></i></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between">
+            <p class="text-xs font-semibold">Indigo Bunting</p>
+            <span class="text-[10px] font-bold text-[#6B8E76]">12%</span>
+          </div>
+          <div class="confidence-bar mt-1"><div style="width:12%;height:100%;background:#A7BBA1"></div></div>
+        </div>
+      </div>
+
+      <!-- Habitat tags -->
+      <div class="flex gap-1.5 mt-3 flex-wrap">
+        <span class="text-[10px] bg-[#E3EFE0] text-[#2D6A4F] px-2 py-1 rounded-full font-semibold"><i class="fas fa-water mr-1"></i>Wetland</span>
+        <span class="text-[10px] bg-[#E3EFE0] text-[#2D6A4F] px-2 py-1 rounded-full font-semibold"><i class="fas fa-tree mr-1"></i>Native trees</span>
+        <span class="text-[10px] bg-[#FFF4E6] text-[#B07A1F] px-2 py-1 rounded-full font-semibold"><i class="fas fa-sun mr-1"></i>Morning</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shutter controls -->
+  <div class="absolute left-0 right-0 z-20" style="bottom:108px;display:none"></div>
+
+  <!-- Camera control row (above tab bar) -->
+  <div class="absolute left-0 right-0 z-20 px-8 flex items-center justify-between" style="bottom:24px;display:none"></div>
+
+  <div class="tab-bar">
+    <div class="tab"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab"><i class="fas fa-map-location-dot"></i><span>Map</span></div>
+    <div class="tab active"><i class="fas fa-camera"></i><span>Observe</span></div>
+    <div class="tab"><i class="fas fa-chart-column"></i><span>Analyze</span></div>
+    <div class="tab"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>
