@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TurfLens AI — Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', sans-serif; background: #f7f8fb; }
+  .nav-item.active { background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(5,150,105,0.08)); color: #047857; }
+  .nav-item.active .nav-icon { color: #059669; }
+  .kpi-card { transition: all .2s ease; }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px -12px rgba(15,23,42,.1); }
+  .scroll-hide::-webkit-scrollbar { display: none; }
+  .pill { padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .progress-track { height: 6px; border-radius: 999px; background: #f1f5f9; overflow: hidden; }
+</style>
+</head>
+<body class="text-slate-800">
+
+<div class="flex min-h-screen">
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col">
+    <div class="px-6 py-5 border-b border-slate-100">
+      <div class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
+          <i class="fas fa-satellite text-white text-sm"></i>
+        </div>
+        <div>
+          <div class="font-bold text-slate-900">TurfLens<span class="text-emerald-600">AI</span></div>
+          <div class="text-[10px] text-slate-400 -mt-0.5">Satellite × Ecology</div>
+        </div>
+      </div>
+    </div>
+    <nav class="flex-1 px-3 py-4 space-y-1 text-sm">
+      <div class="text-[10px] uppercase tracking-wider text-slate-400 px-3 mb-1">Workspace</div>
+      <a href="dashboard.html" class="nav-item active flex items-center gap-3 px-3 py-2 rounded-lg">
+        <i class="nav-icon fas fa-chart-pie w-5 text-slate-400"></i><span>Dashboard</span>
+      </a>
+      <a href="explorer.html" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50">
+        <i class="nav-icon fas fa-map-location-dot w-5 text-slate-400"></i><span>Course Explorer</span>
+      </a>
+      <a href="analyze.html" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50">
+        <i class="nav-icon fas fa-wand-magic-sparkles w-5 text-slate-400"></i><span>Run Analysis</span>
+      </a>
+      <a href="course-detail.html" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50">
+        <i class="nav-icon fas fa-layer-group w-5 text-slate-400"></i><span>Course Detail</span>
+      </a>
+      <a href="compare.html" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50">
+        <i class="nav-icon fas fa-scale-balanced w-5 text-slate-400"></i><span>Compare</span>
+      </a>
+
+      <div class="text-[10px] uppercase tracking-wider text-slate-400 px-3 mb-1 mt-4">Research</div>
+      <a href="insights.html" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50">
+        <i class="nav-icon fas fa-flask w-5 text-slate-400"></i><span>Insights</span>
+      </a>
+      <a href="methodology.html" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50">
+        <i class="nav-icon fas fa-book-open w-5 text-slate-400"></i><span>Methodology</span>
+      </a>
+    </nav>
+
+    <div class="p-3">
+      <div class="rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 p-4 border border-emerald-100">
+        <div class="flex items-center gap-2 mb-1">
+          <i class="fas fa-leaf text-emerald-600 text-sm"></i>
+          <span class="text-xs font-semibold text-emerald-800">Eco Credits</span>
+        </div>
+        <div class="text-2xl font-bold text-slate-900">12,480</div>
+        <div class="text-[11px] text-slate-500">Used for satellite tile queries</div>
+        <button class="mt-3 w-full text-xs bg-white border border-emerald-200 text-emerald-700 font-semibold py-1.5 rounded-lg hover:bg-emerald-50">Top up</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 flex flex-col overflow-hidden">
+    <!-- Topbar -->
+    <header class="h-16 bg-white border-b border-slate-200 flex items-center px-6 gap-4">
+      <div class="flex-1 max-w-xl relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+        <input type="text" placeholder="Search by course name, region, or coordinates…" class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500">
+      </div>
+      <button class="text-slate-400 hover:text-slate-600 text-sm"><i class="fas fa-circle-question"></i></button>
+      <button class="text-slate-400 hover:text-slate-600 text-sm relative">
+        <i class="fas fa-bell"></i>
+        <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-rose-500"></span>
+      </button>
+      <div class="h-6 w-px bg-slate-200"></div>
+      <div class="flex items-center gap-2">
+        <img src="https://i.pravatar.cc/100?img=47" class="w-8 h-8 rounded-full border-2 border-white shadow">
+        <div class="text-sm">
+          <div class="font-semibold text-slate-800 leading-tight">Dr. Amelia Chen</div>
+          <div class="text-[11px] text-slate-500 leading-tight">UC Davis · Researcher</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex-1 overflow-auto p-6 space-y-6">
+      <!-- Title row -->
+      <div class="flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <div class="text-xs text-slate-400 font-medium">DASHBOARD</div>
+          <h1 class="text-2xl font-bold text-slate-900 leading-tight">Environmental Footprint Overview</h1>
+          <p class="text-sm text-slate-500 mt-1">Live land-cover analysis across 412 golf courses · last refresh 14 min ago</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="bg-white border border-slate-200 rounded-lg flex text-xs">
+            <button class="px-3 py-1.5 text-slate-500">Day</button>
+            <button class="px-3 py-1.5 text-slate-500">Week</button>
+            <button class="px-3 py-1.5 bg-slate-900 text-white rounded-md m-0.5">Month</button>
+            <button class="px-3 py-1.5 text-slate-500">Year</button>
+          </div>
+          <button class="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-600 flex items-center gap-2 hover:bg-slate-50">
+            <i class="fas fa-arrow-down-to-line"></i>Export CSV
+          </button>
+          <a href="analyze.html" class="bg-emerald-600 text-white rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-2 hover:bg-emerald-700">
+            <i class="fas fa-plus"></i>New Analysis
+          </a>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-4 gap-4">
+        <div class="kpi-card bg-white border border-slate-200 rounded-2xl p-5">
+          <div class="flex items-center justify-between">
+            <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center"><i class="fas fa-flag text-emerald-600"></i></div>
+            <span class="pill bg-emerald-50 text-emerald-700"><i class="fas fa-arrow-up text-[9px] mr-1"></i>+18</span>
+          </div>
+          <div class="mt-4 text-3xl font-bold text-slate-900">412</div>
+          <div class="text-xs text-slate-500">Courses analyzed</div>
+        </div>
+        <div class="kpi-card bg-white border border-slate-200 rounded-2xl p-5">
+          <div class="flex items-center justify-between">
+            <div class="w-10 h-10 rounded-lg bg-lime-50 flex items-center justify-center"><i class="fas fa-square text-lime-500"></i></div>
+            <span class="pill bg-rose-50 text-rose-700"><i class="fas fa-arrow-down text-[9px] mr-1"></i>-3.2%</span>
+          </div>
+          <div class="mt-4 text-3xl font-bold text-slate-900">48.7<span class="text-base text-slate-400 font-medium">%</span></div>
+          <div class="text-xs text-slate-500">Avg. maintained turf</div>
+        </div>
+        <div class="kpi-card bg-white border border-slate-200 rounded-2xl p-5">
+          <div class="flex items-center justify-between">
+            <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center"><i class="fas fa-tree text-green-700"></i></div>
+            <span class="pill bg-emerald-50 text-emerald-700"><i class="fas fa-arrow-up text-[9px] mr-1"></i>+1.4%</span>
+          </div>
+          <div class="mt-4 text-3xl font-bold text-slate-900">21.3<span class="text-base text-slate-400 font-medium">%</span></div>
+          <div class="text-xs text-slate-500">Avg. tree canopy</div>
+        </div>
+        <div class="kpi-card bg-white border border-slate-200 rounded-2xl p-5">
+          <div class="flex items-center justify-between">
+            <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center"><i class="fas fa-droplet text-blue-500"></i></div>
+            <span class="pill bg-slate-100 text-slate-700">±0.0%</span>
+          </div>
+          <div class="mt-4 text-3xl font-bold text-slate-900">6.9<span class="text-base text-slate-400 font-medium">%</span></div>
+          <div class="text-xs text-slate-500">Avg. water bodies</div>
+        </div>
+      </div>
+
+      <!-- Charts row -->
+      <div class="grid grid-cols-3 gap-4">
+        <!-- Land cover breakdown -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 col-span-1">
+          <div class="flex items-center justify-between mb-2">
+            <div>
+              <div class="text-sm font-semibold text-slate-900">Land cover breakdown</div>
+              <div class="text-xs text-slate-500">Aggregated across all courses</div>
+            </div>
+            <button class="text-slate-400 hover:text-slate-600 text-sm"><i class="fas fa-ellipsis"></i></button>
+          </div>
+          <div class="relative">
+            <canvas id="donut" height="200"></canvas>
+            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <div class="text-2xl font-bold text-slate-900">412</div>
+              <div class="text-[11px] text-slate-500">courses</div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-x-3 gap-y-2 mt-4 text-xs">
+            <div class="flex items-center gap-2"><span class="legend-dot" style="background:#65a30d"></span><span class="text-slate-600">Maintained turf</span><span class="ml-auto font-semibold">48.7%</span></div>
+            <div class="flex items-center gap-2"><span class="legend-dot" style="background:#14532d"></span><span class="text-slate-600">Tree canopy</span><span class="ml-auto font-semibold">21.3%</span></div>
+            <div class="flex items-center gap-2"><span class="legend-dot" style="background:#0284c7"></span><span class="text-slate-600">Water bodies</span><span class="ml-auto font-semibold">6.9%</span></div>
+            <div class="flex items-center gap-2"><span class="legend-dot" style="background:#d6b56a"></span><span class="text-slate-600">Bare / pavement</span><span class="ml-auto font-semibold">8.4%</span></div>
+            <div class="flex items-center gap-2 col-span-2"><span class="legend-dot" style="background:#84cc16"></span><span class="text-slate-600">Natural vegetation</span><span class="ml-auto font-semibold">14.7%</span></div>
+          </div>
+        </div>
+
+        <!-- Trend chart -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 col-span-2">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <div class="text-sm font-semibold text-slate-900">Turf vs. natural vegetation trend</div>
+              <div class="text-xs text-slate-500">Past 12 months · pulled from Sentinel-2 + NAIP archive</div>
+            </div>
+            <div class="flex items-center gap-2 text-[11px]">
+              <div class="flex items-center gap-1"><span class="legend-dot" style="background:#65a30d"></span>Turf</div>
+              <div class="flex items-center gap-1"><span class="legend-dot" style="background:#84cc16"></span>Natural</div>
+              <div class="flex items-center gap-1"><span class="legend-dot" style="background:#0284c7"></span>Water</div>
+            </div>
+          </div>
+          <canvas id="trend" height="120"></canvas>
+        </div>
+      </div>
+
+      <!-- Recently analyzed table -->
+      <div class="bg-white border border-slate-200 rounded-2xl">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div>
+            <div class="text-sm font-semibold text-slate-900">Recently analyzed courses</div>
+            <div class="text-xs text-slate-500">Sorted by ecology score (lower = more turf, less habitat)</div>
+          </div>
+          <a href="explorer.html" class="text-xs text-emerald-700 font-semibold hover:underline">View all <i class="fas fa-arrow-right text-[10px]"></i></a>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+              <tr>
+                <th class="text-left px-5 py-3 font-semibold">Course</th>
+                <th class="text-left px-5 py-3 font-semibold">Region</th>
+                <th class="text-left px-5 py-3 font-semibold">Turf</th>
+                <th class="text-left px-5 py-3 font-semibold">Trees</th>
+                <th class="text-left px-5 py-3 font-semibold">Water</th>
+                <th class="text-left px-5 py-3 font-semibold">Natural</th>
+                <th class="text-left px-5 py-3 font-semibold">Ecology score</th>
+                <th class="px-5 py-3"></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr class="hover:bg-slate-50/60">
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-3">
+                    <img src="https://images.unsplash.com/photo-1592919505780-303950717480?auto=format&fit=crop&w=80&q=70" class="w-9 h-9 rounded-lg object-cover">
+                    <div>
+                      <div class="font-semibold text-slate-900">Pebble Beach Golf Links</div>
+                      <div class="text-[11px] text-slate-500">36.5681°N, 121.9491°W</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-5 py-3 text-slate-600">CA, USA</td>
+                <td class="px-5 py-3"><span class="font-semibold">42.8%</span></td>
+                <td class="px-5 py-3">19.4%</td>
+                <td class="px-5 py-3">3.1%</td>
+                <td class="px-5 py-3">26.7%</td>
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-2"><span class="font-bold text-emerald-700">72</span><div class="w-20 progress-track"><div class="h-full bg-emerald-500" style="width:72%"></div></div></div>
+                </td>
+                <td class="px-5 py-3 text-right"><a href="course-detail.html" class="text-emerald-700 text-xs font-semibold hover:underline">Open</a></td>
+              </tr>
+              <tr class="hover:bg-slate-50/60">
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-3">
+                    <img src="https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?auto=format&fit=crop&w=80&q=70" class="w-9 h-9 rounded-lg object-cover">
+                    <div>
+                      <div class="font-semibold text-slate-900">Augusta National</div>
+                      <div class="text-[11px] text-slate-500">33.5021°N, 82.0232°W</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-5 py-3 text-slate-600">GA, USA</td>
+                <td class="px-5 py-3"><span class="font-semibold">61.2%</span></td>
+                <td class="px-5 py-3">26.8%</td>
+                <td class="px-5 py-3">4.5%</td>
+                <td class="px-5 py-3">5.7%</td>
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-2"><span class="font-bold text-amber-600">48</span><div class="w-20 progress-track"><div class="h-full bg-amber-500" style="width:48%"></div></div></div>
+                </td>
+                <td class="px-5 py-3 text-right"><a href="course-detail.html" class="text-emerald-700 text-xs font-semibold hover:underline">Open</a></td>
+              </tr>
+              <tr class="hover:bg-slate-50/60">
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-3">
+                    <img src="https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&w=80&q=70" class="w-9 h-9 rounded-lg object-cover">
+                    <div>
+                      <div class="font-semibold text-slate-900">St Andrews Old Course</div>
+                      <div class="text-[11px] text-slate-500">56.3429°N, 2.8019°W</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-5 py-3 text-slate-600">Fife, Scotland</td>
+                <td class="px-5 py-3"><span class="font-semibold">38.5%</span></td>
+                <td class="px-5 py-3">2.1%</td>
+                <td class="px-5 py-3">1.0%</td>
+                <td class="px-5 py-3">52.4%</td>
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-2"><span class="font-bold text-emerald-700">85</span><div class="w-20 progress-track"><div class="h-full bg-emerald-500" style="width:85%"></div></div></div>
+                </td>
+                <td class="px-5 py-3 text-right"><a href="course-detail.html" class="text-emerald-700 text-xs font-semibold hover:underline">Open</a></td>
+              </tr>
+              <tr class="hover:bg-slate-50/60">
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-3">
+                    <img src="https://images.unsplash.com/photo-1500932334442-8761ee4810a7?auto=format&fit=crop&w=80&q=70" class="w-9 h-9 rounded-lg object-cover">
+                    <div>
+                      <div class="font-semibold text-slate-900">TPC Scottsdale</div>
+                      <div class="text-[11px] text-slate-500">33.6383°N, 111.9000°W</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-5 py-3 text-slate-600">AZ, USA</td>
+                <td class="px-5 py-3"><span class="font-semibold text-rose-700">68.9%</span></td>
+                <td class="px-5 py-3">8.2%</td>
+                <td class="px-5 py-3">5.8%</td>
+                <td class="px-5 py-3">3.1%</td>
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-2"><span class="font-bold text-rose-700">31</span><div class="w-20 progress-track"><div class="h-full bg-rose-500" style="width:31%"></div></div></div>
+                </td>
+                <td class="px-5 py-3 text-right"><a href="course-detail.html" class="text-emerald-700 text-xs font-semibold hover:underline">Open</a></td>
+              </tr>
+              <tr class="hover:bg-slate-50/60">
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-3">
+                    <img src="https://images.unsplash.com/photo-1622396481359-95a3f8b8baea?auto=format&fit=crop&w=80&q=70" class="w-9 h-9 rounded-lg object-cover">
+                    <div>
+                      <div class="font-semibold text-slate-900">Royal Melbourne</div>
+                      <div class="text-[11px] text-slate-500">37.9794°S, 145.0344°E</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-5 py-3 text-slate-600">VIC, Australia</td>
+                <td class="px-5 py-3"><span class="font-semibold">41.2%</span></td>
+                <td class="px-5 py-3">22.7%</td>
+                <td class="px-5 py-3">2.4%</td>
+                <td class="px-5 py-3">28.9%</td>
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-2"><span class="font-bold text-emerald-700">78</span><div class="w-20 progress-track"><div class="h-full bg-emerald-500" style="width:78%"></div></div></div>
+                </td>
+                <td class="px-5 py-3 text-right"><a href="course-detail.html" class="text-emerald-700 text-xs font-semibold hover:underline">Open</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Bottom row -->
+      <div class="grid grid-cols-3 gap-4">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 col-span-2">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <div class="text-sm font-semibold text-slate-900">Pipeline status</div>
+              <div class="text-xs text-slate-500">Live ML segmentation jobs</div>
+            </div>
+            <span class="pill bg-emerald-50 text-emerald-700"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block mr-1.5 animate-pulse"></span>4 running</span>
+          </div>
+          <div class="space-y-3">
+            <div class="border border-slate-100 rounded-xl p-3 flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center"><i class="fas fa-circle-notch fa-spin text-emerald-600 text-xs"></i></div>
+              <div class="flex-1">
+                <div class="text-sm font-semibold text-slate-800">Cypress Point Club</div>
+                <div class="text-[11px] text-slate-500">Sentinel-2 · DeepLabV3+ · 5 classes</div>
+              </div>
+              <div class="w-32"><div class="progress-track"><div class="h-full bg-emerald-500" style="width:62%"></div></div></div>
+              <div class="text-xs font-semibold text-slate-700 w-10 text-right">62%</div>
+            </div>
+            <div class="border border-slate-100 rounded-xl p-3 flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center"><i class="fas fa-circle-notch fa-spin text-emerald-600 text-xs"></i></div>
+              <div class="flex-1">
+                <div class="text-sm font-semibold text-slate-800">Bandon Dunes</div>
+                <div class="text-[11px] text-slate-500">NAIP · U-Net · 5 classes</div>
+              </div>
+              <div class="w-32"><div class="progress-track"><div class="h-full bg-emerald-500" style="width:88%"></div></div></div>
+              <div class="text-xs font-semibold text-slate-700 w-10 text-right">88%</div>
+            </div>
+            <div class="border border-slate-100 rounded-xl p-3 flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center"><i class="fas fa-clock text-slate-400 text-xs"></i></div>
+              <div class="flex-1">
+                <div class="text-sm font-semibold text-slate-800">Pinehurst No. 2</div>
+                <div class="text-[11px] text-slate-500">Queued · Sentinel-2 · v2.4 model</div>
+              </div>
+              <div class="text-xs text-slate-400 italic">in queue</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-slate-900 to-emerald-900 rounded-2xl p-5 text-white relative overflow-hidden">
+          <div class="absolute -right-6 -top-6 opacity-10"><i class="fas fa-satellite-dish text-9xl"></i></div>
+          <div class="text-xs text-emerald-200 font-semibold mb-1">RESEARCH HIGHLIGHT</div>
+          <div class="text-lg font-bold leading-snug">Desert courses use 2.7× more irrigated turf area than coastal links courses.</div>
+          <div class="text-xs text-slate-300 mt-2">From our 412-course Sentinel-2 sample, 2020–2025</div>
+          <a href="insights.html" class="inline-flex items-center gap-2 mt-4 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-lg">
+            <i class="fas fa-book-open-reader"></i>Read full study
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // Donut chart
+  new Chart(document.getElementById('donut'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Maintained turf','Tree canopy','Water','Bare / pavement','Natural vegetation'],
+      datasets: [{
+        data: [48.7, 21.3, 6.9, 8.4, 14.7],
+        backgroundColor: ['#65a30d','#14532d','#0284c7','#d6b56a','#84cc16'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      cutout: '68%',
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // Trend chart
+  new Chart(document.getElementById('trend'), {
+    type: 'line',
+    data: {
+      labels: ['Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May'],
+      datasets: [
+        { label: 'Turf', data: [50.2,51.4,51.8,50.9,49.4,48.7,47.9,47.2,46.8,47.5,48.3,48.7], borderColor:'#65a30d', backgroundColor:'rgba(101,163,13,.1)', tension:.4, fill:true, borderWidth:2, pointRadius:0 },
+        { label: 'Natural', data: [13.1,13.4,13.0,13.8,14.2,14.4,14.8,15.0,15.2,15.0,14.6,14.7], borderColor:'#84cc16', backgroundColor:'rgba(132,204,22,.08)', tension:.4, fill:true, borderWidth:2, pointRadius:0 },
+        { label: 'Water', data: [6.4,6.5,6.7,6.8,6.9,7.0,7.0,7.0,6.9,6.9,6.9,6.9], borderColor:'#0284c7', backgroundColor:'rgba(2,132,199,.04)', tension:.4, fill:true, borderWidth:2, pointRadius:0 }
+      ]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color:'#94a3b8', font: { size: 10 } } },
+        y: { grid: { color:'#f1f5f9' }, ticks: { color:'#94a3b8', font: { size: 10 }, callback: v=>v+'%' } }
+      }
+    }
+  });
+</script>
+</body>
+</html>
