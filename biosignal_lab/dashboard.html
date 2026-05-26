@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioSignal Lab — Ecosystem Health Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace; }
+        .gradient-text { background: linear-gradient(135deg, #0d9488, #059669); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .grid-bg { background-image: linear-gradient(rgba(15,118,110,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(15,118,110,0.04) 1px, transparent 1px); background-size: 24px 24px; }
+        .pulse-dot { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .live-dot { box-shadow: 0 0 0 0 rgba(16,185,129,0.6); animation: live 2s infinite; }
+        @keyframes live { 70% { box-shadow: 0 0 0 8px rgba(16,185,129,0); } }
+    </style>
+</head>
+<body class="bg-slate-50">
+
+    <!-- Top Bar -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-gradient-to-br from-teal-600 to-emerald-700 rounded-lg flex items-center justify-center shadow-sm">
+                        <i class="fas fa-wave-square text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <span class="text-lg font-bold text-slate-900">BioSignal</span>
+                        <span class="text-[10px] text-teal-600 font-bold uppercase tracking-widest ml-1">Lab</span>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center gap-1 text-sm">
+                    <a href="dashboard.html" class="px-3 py-1.5 text-teal-700 bg-teal-50 rounded-md font-semibold">Dashboard</a>
+                    <a href="map.html" class="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-md font-medium">Map</a>
+                    <a href="observations.html" class="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-md font-medium">Observations</a>
+                    <a href="species.html" class="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-md font-medium">Species</a>
+                    <a href="datasets.html" class="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-md font-medium">Datasets</a>
+                    <a href="analysis.html" class="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-md font-medium">Analysis</a>
+                    <a href="studies.html" class="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-md font-medium">Studies</a>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="hidden md:flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-1.5 w-64">
+                        <i class="fas fa-search text-slate-400 text-xs"></i>
+                        <input class="bg-transparent text-xs outline-none flex-1 placeholder:text-slate-400" placeholder="Search species, datasets, regions..." />
+                        <span class="text-[10px] bg-white text-slate-500 px-1.5 py-0.5 rounded mono">⌘K</span>
+                    </div>
+                    <button class="relative w-9 h-9 rounded-lg hover:bg-slate-100 flex items-center justify-center">
+                        <i class="far fa-bell text-slate-600 text-sm"></i>
+                        <span class="absolute top-1.5 right-2 w-2 h-2 bg-rose-500 rounded-full"></span>
+                    </button>
+                    <div class="flex items-center gap-2">
+                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&q=80" class="w-8 h-8 rounded-full" alt="user" />
+                        <div class="hidden md:block">
+                            <div class="text-xs font-semibold text-slate-800">Dr. M. Ortiz</div>
+                            <div class="text-[10px] text-slate-500">Research Lead</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Title Header -->
+    <header class="bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-6 py-5">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs text-teal-700 font-semibold uppercase tracking-wider">Ecosystem Health</span>
+                        <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+                        <span class="text-xs text-slate-500">Northeast US · Atlantic Forest Corridor</span>
+                    </div>
+                    <h1 class="text-2xl font-bold text-slate-900">Dashboard</h1>
+                    <p class="text-sm text-slate-500 mt-0.5">Live bioindicator signals across 142 monitoring sites, fused with NASA, EPA, and GBIF datasets.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
+                        <span class="w-2 h-2 bg-emerald-500 rounded-full live-dot"></span>
+                        <span class="text-xs font-semibold text-emerald-700">LIVE · synced 2m ago</span>
+                    </div>
+                    <select class="text-xs border border-slate-300 rounded-lg px-3 py-1.5 bg-white">
+                        <option>Last 30 days</option>
+                        <option>Last 90 days</option>
+                        <option>Last 12 months</option>
+                        <option>Custom range</option>
+                    </select>
+                    <button class="text-xs font-semibold bg-slate-900 text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 hover:bg-slate-800">
+                        <i class="fas fa-download text-[10px]"></i> Export report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-6 space-y-6">
+
+        <!-- 4 KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-100 rounded-full -mt-12 -mr-12 opacity-50"></div>
+                <div class="flex items-center justify-between mb-3 relative">
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Biodiversity Index</span>
+                    <i class="fas fa-leaf text-emerald-500"></i>
+                </div>
+                <div class="text-3xl font-extrabold text-slate-900 mono">0.642</div>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="text-xs font-semibold text-rose-600 flex items-center gap-1"><i class="fas fa-arrow-down text-[9px]"></i> 4.1%</span>
+                    <span class="text-[10px] text-slate-500">vs 5-yr baseline (Shannon-Wiener H')</span>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 p-5 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-rose-100 rounded-full -mt-12 -mr-12 opacity-50"></div>
+                <div class="flex items-center justify-between mb-3 relative">
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Urban Stress Score</span>
+                    <i class="fas fa-city text-rose-500"></i>
+                </div>
+                <div class="text-3xl font-extrabold text-slate-900 mono">68 <span class="text-base font-medium text-slate-400">/100</span></div>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="text-xs font-semibold text-rose-600 flex items-center gap-1"><i class="fas fa-arrow-up text-[9px]"></i> 6 pts</span>
+                    <span class="text-[10px] text-slate-500">impervious surface + light + noise</span>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 p-5 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-amber-100 rounded-full -mt-12 -mr-12 opacity-50"></div>
+                <div class="flex items-center justify-between mb-3 relative">
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Heat Anomaly</span>
+                    <i class="fas fa-temperature-high text-amber-500"></i>
+                </div>
+                <div class="text-3xl font-extrabold text-slate-900 mono">+2.4°C</div>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="text-xs font-semibold text-amber-600 flex items-center gap-1"><i class="fas fa-arrow-up text-[9px]"></i> 0.3°</span>
+                    <span class="text-[10px] text-slate-500">vs 30-yr seasonal norm (NASA MODIS)</span>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 p-5 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-violet-100 rounded-full -mt-12 -mr-12 opacity-50"></div>
+                <div class="flex items-center justify-between mb-3 relative">
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pollution Load</span>
+                    <i class="fas fa-smog text-violet-500"></i>
+                </div>
+                <div class="text-3xl font-extrabold text-slate-900 mono">31.2 <span class="text-base font-medium text-slate-400">µg/m³</span></div>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="text-xs font-semibold text-emerald-600 flex items-center gap-1"><i class="fas fa-arrow-down text-[9px]"></i> 8.3%</span>
+                    <span class="text-[10px] text-slate-500">PM2.5 mean (EPA AirNow)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Grid: Charts + Alerts -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Chart: Biodiversity vs Urbanization Scatter -->
+            <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-5">
+                <div class="flex items-start justify-between mb-4">
+                    <div>
+                        <h3 class="font-bold text-slate-900">Biodiversity vs Urbanization</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">142 monitoring sites · Shannon diversity (H') against % impervious surface within 500m buffer</p>
+                    </div>
+                    <div class="flex gap-1 text-[10px]">
+                        <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-semibold">r = −0.74</span>
+                        <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-semibold">p &lt; 0.001</span>
+                    </div>
+                </div>
+                <div class="h-64"><canvas id="scatterChart"></canvas></div>
+                <div class="mt-3 p-3 bg-teal-50 rounded-lg border border-teal-100 flex items-start gap-2">
+                    <i class="fas fa-lightbulb text-teal-600 text-xs mt-0.5"></i>
+                    <p class="text-xs text-teal-900"><span class="font-semibold">Finding:</span> Strong negative correlation. Each 10% rise in impervious surface predicts a 0.08 drop in H' diversity — equivalent to losing 1 of every 7 species in that quadrant.</p>
+                </div>
+            </div>
+
+            <!-- Live Alerts -->
+            <div class="bg-white rounded-xl border border-slate-200 p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-bold text-slate-900 flex items-center gap-2"><i class="fas fa-bolt text-amber-500 text-sm"></i> Signal Alerts</h3>
+                    <span class="text-[10px] bg-rose-100 text-rose-700 px-2 py-0.5 rounded font-bold">4 active</span>
+                </div>
+                <div class="space-y-3">
+                    <div class="border-l-4 border-rose-500 pl-3 py-1">
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <span class="text-[10px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold">CRITICAL</span>
+                            <span class="text-[10px] text-slate-400">23 min ago</span>
+                        </div>
+                        <p class="text-xs text-slate-800 font-semibold">Mayfly decline detected — Hudson watershed</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Abundance dropped 38% in 4 wks. Likely driver: nitrate spike (12 mg/L)</p>
+                    </div>
+                    <div class="border-l-4 border-amber-500 pl-3 py-1">
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <span class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold">WARNING</span>
+                            <span class="text-[10px] text-slate-400">1h ago</span>
+                        </div>
+                        <p class="text-xs text-slate-800 font-semibold">Lichen coverage −12% — Lower Manhattan</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">SO₂ exceedance 3 of last 7 days. Air-quality bioindicator stressed.</p>
+                    </div>
+                    <div class="border-l-4 border-amber-500 pl-3 py-1">
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <span class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold">WARNING</span>
+                            <span class="text-[10px] text-slate-400">3h ago</span>
+                        </div>
+                        <p class="text-xs text-slate-800 font-semibold">Spring Peeper calls 11 days early</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Phenology shift correlates with +2.4°C local anomaly.</p>
+                    </div>
+                    <div class="border-l-4 border-sky-500 pl-3 py-1">
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <span class="text-[10px] bg-sky-100 text-sky-700 px-1.5 py-0.5 rounded font-bold">INFO</span>
+                            <span class="text-[10px] text-slate-400">5h ago</span>
+                        </div>
+                        <p class="text-xs text-slate-800 font-semibold">Firefly count +18% — Prospect Park</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Light-pollution cap appears to be working — first positive signal in 3 yrs.</p>
+                    </div>
+                </div>
+                <button class="w-full mt-4 text-xs font-semibold text-teal-700 hover:text-teal-900 py-1.5 border border-slate-200 rounded-lg">View all 24 alerts <i class="fas fa-arrow-right text-[10px] ml-1"></i></button>
+            </div>
+        </div>
+
+        <!-- Bioindicators Status Board -->
+        <div class="bg-white rounded-xl border border-slate-200 p-5">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="font-bold text-slate-900">Bioindicator Status Board</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Species whose health directly reflects specific environmental conditions — your early-warning system.</p>
+                </div>
+                <a href="species.html" class="text-xs font-semibold text-teal-700 hover:text-teal-900">All species <i class="fas fa-arrow-right text-[9px]"></i></a>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div class="border border-slate-200 rounded-lg p-3 hover:shadow-md transition">
+                    <div class="aspect-square rounded-lg overflow-hidden mb-2 bg-slate-100">
+                        <img src="https://images.unsplash.com/photo-1551244072-5d12893278ab?w=300&q=80" class="w-full h-full object-cover" alt="frog"/>
+                    </div>
+                    <div class="text-[10px] text-slate-400 uppercase font-bold mb-0.5">Water Quality</div>
+                    <div class="text-xs font-bold text-slate-900">Spring Peeper</div>
+                    <div class="mt-1.5 flex items-center gap-1">
+                        <div class="h-1.5 flex-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-amber-500 rounded-full" style="width:54%"></div></div>
+                        <span class="text-[10px] text-amber-600 font-bold">54</span>
+                    </div>
+                </div>
+                <div class="border border-slate-200 rounded-lg p-3 hover:shadow-md transition">
+                    <div class="aspect-square rounded-lg overflow-hidden mb-2 bg-slate-100">
+                        <img src="https://images.unsplash.com/photo-1568526381923-caf3fd520382?w=300&q=80" class="w-full h-full object-cover" alt="bee"/>
+                    </div>
+                    <div class="text-[10px] text-slate-400 uppercase font-bold mb-0.5">Pesticides</div>
+                    <div class="text-xs font-bold text-slate-900">Honeybee</div>
+                    <div class="mt-1.5 flex items-center gap-1">
+                        <div class="h-1.5 flex-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-rose-500 rounded-full" style="width:38%"></div></div>
+                        <span class="text-[10px] text-rose-600 font-bold">38</span>
+                    </div>
+                </div>
+                <div class="border border-slate-200 rounded-lg p-3 hover:shadow-md transition">
+                    <div class="aspect-square rounded-lg overflow-hidden mb-2 bg-slate-100">
+                        <img src="https://images.unsplash.com/photo-1564537341682-c5ed9678f72d?w=300&q=80" class="w-full h-full object-cover" alt="lichen"/>
+                    </div>
+                    <div class="text-[10px] text-slate-400 uppercase font-bold mb-0.5">Air Quality</div>
+                    <div class="text-xs font-bold text-slate-900">Lichen</div>
+                    <div class="mt-1.5 flex items-center gap-1">
+                        <div class="h-1.5 flex-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-rose-500 rounded-full" style="width:42%"></div></div>
+                        <span class="text-[10px] text-rose-600 font-bold">42</span>
+                    </div>
+                </div>
+                <div class="border border-slate-200 rounded-lg p-3 hover:shadow-md transition">
+                    <div class="aspect-square rounded-lg overflow-hidden mb-2 bg-slate-100">
+                        <img src="https://images.unsplash.com/photo-1444465693019-aa0b6392460d?w=300&q=80" class="w-full h-full object-cover" alt="mayfly"/>
+                    </div>
+                    <div class="text-[10px] text-slate-400 uppercase font-bold mb-0.5">Stream Health</div>
+                    <div class="text-xs font-bold text-slate-900">Mayfly Nymph</div>
+                    <div class="mt-1.5 flex items-center gap-1">
+                        <div class="h-1.5 flex-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-rose-500 rounded-full" style="width:29%"></div></div>
+                        <span class="text-[10px] text-rose-600 font-bold">29</span>
+                    </div>
+                </div>
+                <div class="border border-slate-200 rounded-lg p-3 hover:shadow-md transition">
+                    <div class="aspect-square rounded-lg overflow-hidden mb-2 bg-slate-100">
+                        <img src="https://images.unsplash.com/photo-1623076485502-be0b6863a86c?w=300&q=80" class="w-full h-full object-cover" alt="firefly"/>
+                    </div>
+                    <div class="text-[10px] text-slate-400 uppercase font-bold mb-0.5">Light Pollution</div>
+                    <div class="text-xs font-bold text-slate-900">Firefly</div>
+                    <div class="mt-1.5 flex items-center gap-1">
+                        <div class="h-1.5 flex-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-500 rounded-full" style="width:71%"></div></div>
+                        <span class="text-[10px] text-emerald-600 font-bold">71</span>
+                    </div>
+                </div>
+                <div class="border border-slate-200 rounded-lg p-3 hover:shadow-md transition">
+                    <div class="aspect-square rounded-lg overflow-hidden mb-2 bg-slate-100">
+                        <img src="https://images.unsplash.com/photo-1452570053594-1b985d6ea890?w=300&q=80" class="w-full h-full object-cover" alt="salamander"/>
+                    </div>
+                    <div class="text-[10px] text-slate-400 uppercase font-bold mb-0.5">Forest Floor</div>
+                    <div class="text-xs font-bold text-slate-900">Red-Backed Salamander</div>
+                    <div class="mt-1.5 flex items-center gap-1">
+                        <div class="h-1.5 flex-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-amber-500 rounded-full" style="width:62%"></div></div>
+                        <span class="text-[10px] text-amber-600 font-bold">62</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lower charts: Pollution-Health correlation + Adaptation tracker -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl border border-slate-200 p-5">
+                <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <h3 class="font-bold text-slate-900">Pollution Load vs Amphibian Health</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">30-day trailing — nitrate, PM2.5, and species health index</p>
+                    </div>
+                </div>
+                <div class="h-56"><canvas id="lineChart"></canvas></div>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 p-5">
+                <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <h3 class="font-bold text-slate-900">Adaptation Signals</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Species responses to environmental stress, last 12 months</p>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <div class="p-3 bg-slate-50 rounded-lg">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-bold text-slate-800">House Sparrow — body size −5.2%</span>
+                            <span class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold">CLIMATE</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600">Smaller bodies aid heat dissipation. Aligned with Bergmann's-rule reversal observed in warming cities.</p>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-lg">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-bold text-slate-800">Anole lizards — longer toe pads</span>
+                            <span class="text-[10px] bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded font-bold">URBAN</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600">+11% scansorial pad surface in urban populations vs forest. Faster vertical movement on glass & concrete.</p>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-lg">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-bold text-slate-800">European Blackbird — earlier nesting</span>
+                            <span class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold">CLIMATE</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600">First-egg dates have shifted 14.3 days earlier since 2008. Mismatched with caterpillar peak in some sites.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+<script>
+// Scatter — biodiversity vs urbanization
+const sCtx = document.getElementById('scatterChart').getContext('2d');
+const sData = [
+  {x:5,y:2.7},{x:8,y:2.5},{x:12,y:2.6},{x:14,y:2.4},{x:18,y:2.3},{x:22,y:2.4},{x:28,y:2.1},{x:31,y:2.2},
+  {x:35,y:1.9},{x:38,y:2.0},{x:42,y:1.8},{x:46,y:1.7},{x:51,y:1.6},{x:55,y:1.4},{x:58,y:1.5},{x:62,y:1.3},
+  {x:67,y:1.1},{x:70,y:1.2},{x:74,y:0.9},{x:78,y:0.8},{x:82,y:1.0},{x:86,y:0.7},{x:89,y:0.6},{x:93,y:0.5}
+];
+new Chart(sCtx, {
+  type:'scatter',
+  data:{ datasets:[
+    {label:'Monitoring site', data:sData, backgroundColor:'rgba(13,148,136,0.7)', borderColor:'#0d9488', pointRadius:5},
+    {label:'Best fit', type:'line', data:[{x:5,y:2.7},{x:93,y:0.5}], borderColor:'rgba(244,63,94,0.7)', borderDash:[4,4], borderWidth:2, pointRadius:0, fill:false}
+  ]},
+  options:{
+    plugins:{legend:{position:'bottom', labels:{boxWidth:8,font:{size:10}}}},
+    scales:{
+      x:{title:{display:true,text:'Impervious surface within 500m (%)',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'}},
+      y:{title:{display:true,text:'Shannon Diversity H\'',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'}}
+    },
+    maintainAspectRatio:false
+  }
+});
+
+// Line — pollution vs amphibian
+const lCtx = document.getElementById('lineChart').getContext('2d');
+new Chart(lCtx, {
+  type:'line',
+  data:{
+    labels:Array.from({length:30},(_,i)=>`D${i+1}`),
+    datasets:[
+      {label:'Amphibian Health Idx', data:[78,77,75,74,72,71,72,70,68,67,65,64,62,60,58,57,55,54,52,51,49,48,47,45,46,44,43,42,40,38], borderColor:'#0d9488', backgroundColor:'rgba(13,148,136,0.1)', borderWidth:2, tension:0.3, fill:true, yAxisID:'y'},
+      {label:'PM2.5 (µg/m³)', data:[18,19,21,20,23,25,28,30,29,32,31,35,38,40,42,44,41,38,36,34,33,31,30,29,28,30,32,31,34,35], borderColor:'#8b5cf6', borderWidth:2, tension:0.3, fill:false, yAxisID:'y1'},
+      {label:'Nitrate (mg/L)', data:[2,2,3,3,4,4,5,5,6,7,6,7,8,9,10,11,12,11,10,9,9,8,8,7,7,8,8,7,8,9], borderColor:'#f59e0b', borderWidth:2, borderDash:[3,3], tension:0.3, fill:false, yAxisID:'y1'}
+    ]
+  },
+  options:{
+    plugins:{legend:{position:'bottom', labels:{boxWidth:8,font:{size:10}}}},
+    scales:{
+      x:{display:false},
+      y:{position:'left', title:{display:true,text:'Health',font:{size:9}}, grid:{color:'rgba(0,0,0,0.04)'}},
+      y1:{position:'right', title:{display:true,text:'Pollutants',font:{size:9}}, grid:{display:false}}
+    },
+    maintainAspectRatio:false
+  }
+});
+</script>
+</body>
+</html>

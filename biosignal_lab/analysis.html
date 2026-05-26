@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioSignal Lab — Analysis Workbench</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace; }
+        .code { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; line-height: 1.6; }
+    </style>
+</head>
+<body class="bg-slate-50">
+
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-gradient-to-br from-teal-600 to-emerald-700 rounded-lg flex items-center justify-center shadow-sm">
+                        <i class="fas fa-wave-square text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <span class="text-lg font-bold text-slate-900">BioSignal</span>
+                        <span class="text-[10px] text-teal-600 font-bold uppercase tracking-widest ml-1">Lab</span>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center gap-1 text-sm">
+                    <a href="dashboard.html" class="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-md font-medium">Dashboard</a>
+                    <a href="map.html" class="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-md font-medium">Map</a>
+                    <a href="observations.html" class="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-md font-medium">Observations</a>
+                    <a href="species.html" class="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-md font-medium">Species</a>
+                    <a href="datasets.html" class="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-md font-medium">Datasets</a>
+                    <a href="analysis.html" class="px-3 py-1.5 text-teal-700 bg-teal-50 rounded-md font-semibold">Analysis</a>
+                    <a href="studies.html" class="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-md font-medium">Studies</a>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button class="text-xs font-semibold bg-white border border-slate-300 px-3 py-1.5 rounded-lg flex items-center gap-1.5 hover:bg-slate-50"><i class="fas fa-save text-slate-500"></i> Save</button>
+                    <button class="text-xs font-semibold bg-slate-900 text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 hover:bg-slate-800"><i class="fas fa-share-nodes"></i> Publish</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-6 py-6">
+
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="text-xs text-teal-700 font-semibold uppercase tracking-wider">Analysis · Untitled</span>
+                    <span class="text-[10px] text-slate-400">·</span>
+                    <span class="text-[10px] text-slate-400">autosaved 12s ago</span>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-900">Does urbanization drive amphibian decline?</h1>
+                <p class="text-sm text-slate-500 mt-0.5">Multivariate analysis · 142 sites · 2014 – 2026</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-12 gap-6">
+
+            <!-- LEFT: Variable picker -->
+            <aside class="col-span-12 lg:col-span-3 space-y-4">
+
+                <div class="bg-white rounded-xl border border-slate-200 p-4">
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Step 1 · Question</h3>
+                    <div class="grid grid-cols-3 gap-1 text-[10px] mb-3">
+                        <button class="bg-teal-600 text-white px-2 py-1 rounded font-bold">Correlation</button>
+                        <button class="bg-slate-100 text-slate-600 px-2 py-1 rounded font-medium">Trend</button>
+                        <button class="bg-slate-100 text-slate-600 px-2 py-1 rounded font-medium">Forecast</button>
+                    </div>
+                    <select class="w-full text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white">
+                        <option>Linear regression (Pearson)</option>
+                        <option>Spearman rank</option>
+                        <option>GLM (Poisson)</option>
+                        <option>Random Forest</option>
+                    </select>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 p-4">
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Step 2 · Predictor (X)</h3>
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-center justify-between p-2 bg-teal-50 border border-teal-200 rounded cursor-pointer">
+                            <span class="flex items-center gap-2"><input type="radio" name="x" checked class="accent-teal-600"/><span><i class="fas fa-city text-fuchsia-500 text-[10px]"></i> Impervious surface (%)</span></span>
+                            <span class="text-[10px] text-slate-400 mono">NLCD</span>
+                        </label>
+                        <label class="flex items-center justify-between p-2 hover:bg-slate-50 rounded cursor-pointer">
+                            <span class="flex items-center gap-2"><input type="radio" name="x" class="accent-teal-600"/><span><i class="fas fa-temperature-high text-amber-500 text-[10px]"></i> Heat anomaly (°C)</span></span>
+                            <span class="text-[10px] text-slate-400 mono">MODIS</span>
+                        </label>
+                        <label class="flex items-center justify-between p-2 hover:bg-slate-50 rounded cursor-pointer">
+                            <span class="flex items-center gap-2"><input type="radio" name="x" class="accent-teal-600"/><span><i class="fas fa-smog text-violet-500 text-[10px]"></i> PM2.5 (µg/m³)</span></span>
+                            <span class="text-[10px] text-slate-400 mono">EPA</span>
+                        </label>
+                        <label class="flex items-center justify-between p-2 hover:bg-slate-50 rounded cursor-pointer">
+                            <span class="flex items-center gap-2"><input type="radio" name="x" class="accent-teal-600"/><span><i class="fas fa-flask text-rose-500 text-[10px]"></i> Nitrate (mg/L)</span></span>
+                            <span class="text-[10px] text-slate-400 mono">USGS</span>
+                        </label>
+                        <label class="flex items-center justify-between p-2 hover:bg-slate-50 rounded cursor-pointer">
+                            <span class="flex items-center gap-2"><input type="radio" name="x" class="accent-teal-600"/><span><i class="fas fa-moon text-slate-700 text-[10px]"></i> Sky brightness (mag)</span></span>
+                            <span class="text-[10px] text-slate-400 mono">SQM</span>
+                        </label>
+                        <label class="flex items-center justify-between p-2 hover:bg-slate-50 rounded cursor-pointer">
+                            <span class="flex items-center gap-2"><input type="radio" name="x" class="accent-teal-600"/><span><i class="fas fa-volume-high text-orange-500 text-[10px]"></i> Noise (dBA night)</span></span>
+                            <span class="text-[10px] text-slate-400 mono">NPS</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 p-4">
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Step 3 · Response (Y)</h3>
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-center p-2 bg-teal-50 border border-teal-200 rounded cursor-pointer gap-2">
+                            <input type="radio" name="y" checked class="accent-teal-600"/>
+                            <span><i class="fas fa-leaf text-emerald-500 text-[10px]"></i> Shannon diversity (H')</span>
+                        </label>
+                        <label class="flex items-center p-2 hover:bg-slate-50 rounded cursor-pointer gap-2">
+                            <input type="radio" name="y" class="accent-teal-600"/>
+                            <span><i class="fas fa-frog text-amber-500 text-[10px]"></i> Amphibian abundance</span>
+                        </label>
+                        <label class="flex items-center p-2 hover:bg-slate-50 rounded cursor-pointer gap-2">
+                            <input type="radio" name="y" class="accent-teal-600"/>
+                            <span><i class="fas fa-calendar text-rose-500 text-[10px]"></i> First-call date (phenology)</span>
+                        </label>
+                        <label class="flex items-center p-2 hover:bg-slate-50 rounded cursor-pointer gap-2">
+                            <input type="radio" name="y" class="accent-teal-600"/>
+                            <span><i class="fas fa-ruler text-slate-500 text-[10px]"></i> Body size (mass · g)</span>
+                        </label>
+                        <label class="flex items-center p-2 hover:bg-slate-50 rounded cursor-pointer gap-2">
+                            <input type="radio" name="y" class="accent-teal-600"/>
+                            <span><i class="fas fa-bug text-violet-500 text-[10px]"></i> EPT stream index</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 p-4">
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Step 4 · Filters</h3>
+                    <div class="space-y-2 text-xs">
+                        <div>
+                            <div class="text-[10px] text-slate-500 font-bold mb-1">Region</div>
+                            <select class="w-full text-xs border border-slate-200 rounded px-2 py-1.5 bg-white">
+                                <option>Atlantic Forest Corridor</option>
+                                <option>Hudson Watershed only</option>
+                                <option>NYC metro only</option>
+                            </select>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-slate-500 font-bold mb-1">Date range</div>
+                            <select class="w-full text-xs border border-slate-200 rounded px-2 py-1.5 bg-white">
+                                <option>Last 5 years (2021-2026)</option>
+                                <option>Last 10 years</option>
+                                <option>Full record</option>
+                            </select>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-slate-500 font-bold mb-1">Site type</div>
+                            <select class="w-full text-xs border border-slate-200 rounded px-2 py-1.5 bg-white">
+                                <option>All (n=142)</option>
+                                <option>Urban core</option>
+                                <option>Suburban</option>
+                                <option>Forest</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="w-full mt-3 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 py-2 rounded-lg flex items-center justify-center gap-1.5"><i class="fas fa-play text-[10px]"></i> Run analysis</button>
+                </div>
+
+            </aside>
+
+            <!-- CENTER: Results -->
+            <main class="col-span-12 lg:col-span-6 space-y-4">
+
+                <!-- Summary metric cards -->
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="bg-white rounded-xl border border-slate-200 p-4">
+                        <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Correlation</div>
+                        <div class="text-2xl font-extrabold mono text-rose-600">−0.74</div>
+                        <div class="text-[10px] text-emerald-600 mt-1">Strong negative</div>
+                    </div>
+                    <div class="bg-white rounded-xl border border-slate-200 p-4">
+                        <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">p-value</div>
+                        <div class="text-2xl font-extrabold mono text-slate-900">&lt; 0.001</div>
+                        <div class="text-[10px] text-emerald-600 mt-1">Significant ✓</div>
+                    </div>
+                    <div class="bg-white rounded-xl border border-slate-200 p-4">
+                        <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">R²</div>
+                        <div class="text-2xl font-extrabold mono text-slate-900">0.55</div>
+                        <div class="text-[10px] text-slate-500 mt-1">n = 142 sites</div>
+                    </div>
+                </div>
+
+                <!-- Main scatter -->
+                <div class="bg-white rounded-xl border border-slate-200 p-5">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <h3 class="font-bold text-slate-900">Shannon Diversity vs Impervious Surface</h3>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Each point is a monitoring site · 95% confidence band shaded</p>
+                        </div>
+                        <div class="flex gap-1 text-[10px]">
+                            <button class="px-2 py-1 bg-slate-900 text-white rounded font-bold">Scatter</button>
+                            <button class="px-2 py-1 bg-slate-100 text-slate-600 rounded font-medium">Heatmap</button>
+                            <button class="px-2 py-1 bg-slate-100 text-slate-600 rounded font-medium">Residual</button>
+                        </div>
+                    </div>
+                    <div class="h-72"><canvas id="scatter"></canvas></div>
+                </div>
+
+                <!-- Interpretation -->
+                <div class="bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl border border-teal-200 p-5">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 bg-teal-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-microscope text-white"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h4 class="font-bold text-slate-900">Auto-interpretation</h4>
+                                <span class="text-[10px] bg-teal-200 text-teal-800 px-2 py-0.5 rounded font-bold">GPT + statsmodels</span>
+                            </div>
+                            <p class="text-sm text-slate-700 leading-relaxed">There is a <span class="font-bold">strong, statistically significant negative relationship</span> between impervious surface and Shannon diversity (β = −0.014, r = −0.74, p &lt; 0.001). Across 142 sites, each 10-percentage-point rise in impervious surface predicts a 0.08 drop in H' — roughly equivalent to losing one of every seven species at that site.</p>
+                            <p class="text-sm text-slate-700 leading-relaxed mt-2">The relationship is roughly linear until ~60% impervious cover, where diversity collapses sharply — a <span class="font-bold">tipping point</span> consistent with the literature on urban biodiversity thresholds (McKinney 2008, Aronson et al. 2014).</p>
+                            <div class="flex gap-2 mt-3">
+                                <button class="text-[11px] font-semibold bg-white border border-teal-300 text-teal-700 px-3 py-1 rounded">Add to paper draft</button>
+                                <button class="text-[11px] font-semibold bg-white border border-teal-300 text-teal-700 px-3 py-1 rounded">Generate methods text</button>
+                                <button class="text-[11px] font-semibold bg-white border border-teal-300 text-teal-700 px-3 py-1 rounded">Suggest follow-up</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Code block -->
+                <div class="bg-slate-900 rounded-xl overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-2 bg-slate-800 border-b border-slate-700">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-rose-500 rounded-full"></span>
+                            <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
+                            <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                            <span class="ml-2 text-[11px] text-slate-400 mono">analysis.py · generated</span>
+                        </div>
+                        <button class="text-[10px] text-slate-400 hover:text-white"><i class="far fa-copy"></i> Copy</button>
+                    </div>
+                    <pre class="code text-slate-200 p-4 overflow-x-auto"><span class="text-fuchsia-400">import</span> pandas <span class="text-fuchsia-400">as</span> pd
+<span class="text-fuchsia-400">from</span> biosignal <span class="text-fuchsia-400">import</span> datasets, fit
+
+df = datasets.join([
+    <span class="text-emerald-300">"gbif.amphibia"</span>, <span class="text-emerald-300">"nlcd.impervious"</span>, <span class="text-emerald-300">"local.surveys"</span>
+], on=<span class="text-emerald-300">"h3_9"</span>, since=<span class="text-emerald-300">"2021-01-01"</span>)
+
+model = fit.regress(
+    y=<span class="text-emerald-300">"shannon_h"</span>,
+    x=<span class="text-emerald-300">"impervious_pct"</span>,
+    by=<span class="text-emerald-300">"site_id"</span>,
+)
+<span class="text-slate-500"># r=-0.74, p&lt;0.001, R²=0.55, n=142</span></pre>
+                </div>
+            </main>
+
+            <!-- RIGHT: Methodology + saved -->
+            <aside class="col-span-12 lg:col-span-3 space-y-4">
+
+                <div class="bg-white rounded-xl border border-slate-200 p-4">
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Methodology notes</h3>
+                    <ul class="space-y-2 text-[11px] text-slate-600">
+                        <li class="flex gap-2"><i class="fas fa-check text-emerald-500 mt-0.5"></i><span>Sites aligned to H3 resolution-9 cells (~100m radius)</span></li>
+                        <li class="flex gap-2"><i class="fas fa-check text-emerald-500 mt-0.5"></i><span>Impervious surface buffer: 500m</span></li>
+                        <li class="flex gap-2"><i class="fas fa-check text-emerald-500 mt-0.5"></i><span>Sampling effort normalized (records per survey-hour)</span></li>
+                        <li class="flex gap-2"><i class="fas fa-triangle-exclamation text-amber-500 mt-0.5"></i><span>3 outlier sites Winsorized at p99</span></li>
+                        <li class="flex gap-2"><i class="fas fa-triangle-exclamation text-amber-500 mt-0.5"></i><span>Possible confound: site age &amp; restoration history</span></li>
+                    </ul>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 p-4">
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Suggested follow-ups</h3>
+                    <div class="space-y-2 text-xs">
+                        <button class="w-full text-left p-2 hover:bg-slate-50 rounded border border-slate-200">
+                            <div class="font-bold text-slate-900">Add covariate: heat</div>
+                            <div class="text-[11px] text-slate-500">Test if urban heat explains residual variance</div>
+                        </button>
+                        <button class="w-full text-left p-2 hover:bg-slate-50 rounded border border-slate-200">
+                            <div class="font-bold text-slate-900">Split by taxon</div>
+                            <div class="text-[11px] text-slate-500">Birds vs amphibians vs insects — do groups differ?</div>
+                        </button>
+                        <button class="w-full text-left p-2 hover:bg-slate-50 rounded border border-slate-200">
+                            <div class="font-bold text-slate-900">Time-lag check</div>
+                            <div class="text-[11px] text-slate-500">Does diversity respond to development with a delay?</div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 p-4">
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Saved analyses</h3>
+                    <div class="space-y-2 text-xs">
+                        <a href="#" class="block p-2 hover:bg-slate-50 rounded">
+                            <div class="font-bold text-slate-900">Heat × phenology shift</div>
+                            <div class="text-[10px] text-slate-500">12 days ago · r = +0.84</div>
+                        </a>
+                        <a href="#" class="block p-2 hover:bg-slate-50 rounded">
+                            <div class="font-bold text-slate-900">PM2.5 × lichen coverage</div>
+                            <div class="text-[10px] text-slate-500">18 days ago · r = −0.69</div>
+                        </a>
+                        <a href="#" class="block p-2 hover:bg-slate-50 rounded">
+                            <div class="font-bold text-slate-900">Light × firefly flash rate</div>
+                            <div class="text-[10px] text-slate-500">3 wks ago · r = −0.58</div>
+                        </a>
+                        <a href="#" class="block p-2 hover:bg-slate-50 rounded">
+                            <div class="font-bold text-slate-900">Sparrow body size × UHI</div>
+                            <div class="text-[10px] text-slate-500">5 wks ago · r = −0.51</div>
+                        </a>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+<script>
+const ctx = document.getElementById('scatter').getContext('2d');
+const pts = [
+  {x:4,y:2.8},{x:7,y:2.6},{x:11,y:2.5},{x:13,y:2.7},{x:16,y:2.4},{x:18,y:2.6},{x:21,y:2.5},{x:25,y:2.3},
+  {x:28,y:2.2},{x:32,y:2.1},{x:34,y:2.2},{x:37,y:2.0},{x:41,y:1.9},{x:44,y:2.0},{x:47,y:1.7},{x:51,y:1.8},
+  {x:54,y:1.5},{x:57,y:1.6},{x:60,y:1.3},{x:63,y:1.4},{x:66,y:1.0},{x:69,y:1.1},{x:72,y:0.8},{x:75,y:0.7},
+  {x:78,y:0.9},{x:81,y:0.6},{x:84,y:0.5},{x:88,y:0.7},{x:91,y:0.4},{x:94,y:0.3}
+];
+new Chart(ctx, {
+    type:'scatter',
+    data:{ datasets:[
+        { label:'Sites', data:pts, backgroundColor:'rgba(13,148,136,0.7)', borderColor:'#0d9488', pointRadius:5 },
+        { label:'Fit', type:'line', data:[{x:4,y:2.75},{x:94,y:0.3}], borderColor:'#f43f5e', borderDash:[6,4], borderWidth:2, pointRadius:0 },
+        { label:'95% CI upper', type:'line', data:[{x:4,y:3.05},{x:94,y:0.55}], borderColor:'rgba(244,63,94,0.3)', borderWidth:1, pointRadius:0, fill:'+1' },
+        { label:'95% CI lower', type:'line', data:[{x:4,y:2.45},{x:94,y:0.05}], borderColor:'rgba(244,63,94,0.3)', backgroundColor:'rgba(244,63,94,0.05)', borderWidth:1, pointRadius:0 }
+    ]},
+    options:{
+        plugins:{ legend:{position:'bottom', labels:{boxWidth:8,font:{size:10}, filter:(item)=>!item.text.startsWith('95%')}} },
+        scales:{
+            x:{ title:{display:true,text:'Impervious surface (%)',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'} },
+            y:{ title:{display:true,text:'Shannon Diversity H\'',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'} }
+        },
+        maintainAspectRatio:false
+    }
+});
+</script>
+</body>
+</html>
