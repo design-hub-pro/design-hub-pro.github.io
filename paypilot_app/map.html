@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Map · PayPilot</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}*::-webkit-scrollbar{display:none}html,body{scrollbar-width:none}
+  html,body{margin:0;padding:0;width:100%;height:100%;font-family:'Inter',sans-serif;background:#0F172A;color:#0F172A;overflow:hidden;}
+  .font-display{font-family:'Space Grotesk',sans-serif;}
+  .map-bg{
+    background:
+      radial-gradient(circle at 20% 30%, rgba(16,185,129,.18) 0, transparent 28%),
+      radial-gradient(circle at 75% 20%, rgba(244,63,94,.22) 0, transparent 26%),
+      radial-gradient(circle at 60% 65%, rgba(139,92,246,.20) 0, transparent 30%),
+      radial-gradient(circle at 30% 80%, rgba(245,158,11,.18) 0, transparent 25%),
+      linear-gradient(180deg, #DCE7EC 0%, #C7D6DE 100%);
+  }
+  .grid-overlay{
+    background-image:
+      linear-gradient(to right, rgba(15,23,42,.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(15,23,42,.05) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .road{stroke:#FFFFFF;stroke-width:6;stroke-linecap:round;opacity:.7;}
+  .road-thin{stroke:#FFFFFF;stroke-width:3;stroke-linecap:round;opacity:.5;}
+  .water{fill:#9CC8DA;opacity:.5;}
+</style>
+</head>
+<body>
+<div class="relative w-full h-full overflow-hidden">
+
+  <!-- Status bar -->
+  <div class="absolute top-0 left-0 right-0 flex items-center justify-between px-7 pt-3 text-slate-900 text-sm font-semibold z-40" style="height:59px">
+    <span>9:41</span>
+    <div class="absolute top-3 left-1/2 -translate-x-1/2 w-28 h-7 bg-black rounded-full"></div>
+    <div class="flex items-center gap-1.5"><i class="fas fa-signal text-xs"></i><i class="fas fa-wifi text-xs"></i><i class="fas fa-battery-full text-xs"></i></div>
+  </div>
+
+  <!-- Map background -->
+  <div class="absolute inset-0 map-bg">
+    <div class="absolute inset-0 grid-overlay"></div>
+    <!-- Water/river SVG -->
+    <svg class="absolute inset-0 w-full h-full" viewBox="0 0 460 980" preserveAspectRatio="none">
+      <path d="M0 280 Q120 240 220 290 T460 320 L460 380 Q300 360 200 400 T0 360 Z" class="water"/>
+      <path d="M0 720 Q150 700 280 740 L460 720 L460 800 Q300 820 150 800 L0 820 Z" class="water"/>
+      <!-- Roads -->
+      <path d="M-20 200 Q200 220 480 180" class="road" fill="none"/>
+      <path d="M-20 500 Q200 480 480 530" class="road" fill="none"/>
+      <path d="M-20 640 Q200 660 480 640" class="road" fill="none"/>
+      <path d="M120 0 Q140 300 120 980" class="road-thin" fill="none"/>
+      <path d="M320 0 Q300 400 340 980" class="road-thin" fill="none"/>
+      <path d="M230 0 Q220 500 240 980" class="road-thin" fill="none"/>
+    </svg>
+  </div>
+
+  <!-- Top search bar -->
+  <div class="absolute left-0 right-0 px-7 z-30" style="top:75px">
+    <div class="bg-white rounded-2xl shadow-lg flex items-center gap-2 px-4 py-3 ring-1 ring-slate-200/60">
+      <i class="fas fa-magnifying-glass text-slate-400 text-sm"></i>
+      <input class="flex-1 text-sm bg-transparent outline-none" placeholder="Stockholm · search a payment spot…">
+      <div class="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center"><i class="fas fa-sliders text-violet-600 text-xs"></i></div>
+    </div>
+    <!-- Filter chips -->
+    <div class="flex items-center gap-2 mt-3 overflow-x-auto" style="-webkit-overflow-scrolling:touch">
+      <span class="text-[10px] font-bold px-3 py-1.5 rounded-full bg-slate-900 text-white whitespace-nowrap shadow-md">All methods</span>
+      <span class="text-[10px] font-bold px-3 py-1.5 rounded-full bg-white text-emerald-700 ring-1 ring-emerald-200 whitespace-nowrap shadow-sm flex items-center gap-1"><i class="fas fa-money-bill text-[9px]"></i> Cash OK</span>
+      <span class="text-[10px] font-bold px-3 py-1.5 rounded-full bg-white text-violet-700 ring-1 ring-violet-200 whitespace-nowrap shadow-sm flex items-center gap-1"><i class="fas fa-qrcode text-[9px]"></i> Swish</span>
+      <span class="text-[10px] font-bold px-3 py-1.5 rounded-full bg-white text-sky-700 ring-1 ring-sky-200 whitespace-nowrap shadow-sm flex items-center gap-1"><i class="fas fa-credit-card text-[9px]"></i> Card</span>
+      <span class="text-[10px] font-bold px-3 py-1.5 rounded-full bg-white text-amber-700 ring-1 ring-amber-200 whitespace-nowrap shadow-sm flex items-center gap-1"><i class="fas fa-building-columns text-[9px]"></i> ATM</span>
+    </div>
+  </div>
+
+  <!-- Pins / clusters -->
+  <div class="absolute inset-0 z-20 pointer-events-none">
+    <!-- Cluster green -->
+    <div class="absolute" style="top:280px;left:60px">
+      <div class="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center text-white text-sm font-bold ring-4 ring-emerald-100 shadow-xl shadow-emerald-500/40">38</div>
+      <div class="text-[10px] font-bold text-emerald-700 text-center mt-1">Cash zone</div>
+    </div>
+    <!-- Cluster violet -->
+    <div class="absolute" style="top:380px;left:280px">
+      <div class="w-16 h-16 rounded-full bg-violet-600 flex items-center justify-center text-white text-base font-bold ring-4 ring-violet-100 shadow-xl shadow-violet-500/40">142</div>
+      <div class="text-[10px] font-bold text-violet-700 text-center mt-1">Mobile pay</div>
+    </div>
+    <!-- Single pin red -->
+    <div class="absolute" style="top:480px;left:130px">
+      <div class="w-10 h-10 rounded-2xl bg-rose-500 flex items-center justify-center text-white shadow-xl shadow-rose-500/40 ring-2 ring-white">
+        <i class="fas fa-ban text-sm"></i>
+      </div>
+    </div>
+    <!-- Single pin amber ATM -->
+    <div class="absolute" style="top:530px;left:340px">
+      <div class="w-10 h-10 rounded-2xl bg-amber-500 flex items-center justify-center text-white shadow-xl shadow-amber-500/40 ring-2 ring-white">
+        <i class="fas fa-building-columns text-sm"></i>
+      </div>
+    </div>
+    <!-- Big highlighted pin -->
+    <div class="absolute" style="top:560px;left:210px">
+      <div class="relative">
+        <div class="absolute -inset-3 rounded-full bg-violet-500/30 animate-ping"></div>
+        <div class="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white shadow-xl shadow-violet-500/40 ring-2 ring-white">
+          <i class="fas fa-mug-saucer text-sm"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Heatmap toggle -->
+  <div class="absolute right-7 z-30" style="top:295px">
+    <div class="bg-white rounded-2xl p-1.5 shadow-lg ring-1 ring-slate-200 flex flex-col gap-1.5">
+      <div class="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center"><i class="fas fa-layer-group text-white text-xs"></i></div>
+      <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center"><i class="fas fa-fire text-rose-500 text-xs"></i></div>
+      <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center"><i class="fas fa-location-crosshairs text-violet-600 text-xs"></i></div>
+    </div>
+  </div>
+
+  <!-- Live stats pill -->
+  <div class="absolute left-7 right-7 z-30" style="top:185px">
+    <div class="bg-slate-900/90 backdrop-blur-md text-white rounded-2xl px-3.5 py-2.5 flex items-center justify-between shadow-lg">
+      <div class="flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="text-[10px] font-bold uppercase tracking-widest text-slate-300">Live · 1.2 km radius</span>
+      </div>
+      <div class="flex items-center gap-3 text-[10px] font-semibold">
+        <span class="text-emerald-300">38 cash</span>
+        <span class="text-violet-300">142 mobile</span>
+        <span class="text-rose-300">12 refuses</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom sheet detail -->
+  <div class="absolute left-0 right-0 bottom-0 z-30">
+    <div class="bg-white rounded-t-[28px] shadow-2xl pt-3 pb-24 px-7">
+      <div class="w-10 h-1 bg-slate-300 rounded-full mx-auto mb-4"></div>
+
+      <!-- Place card -->
+      <div class="flex items-center gap-3">
+        <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=120&h=120&fit=crop" class="w-14 h-14 rounded-xl object-cover ring-1 ring-slate-200">
+        <div class="flex-1">
+          <div class="font-display text-[15px] font-bold leading-tight">Café Pascal</div>
+          <div class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5">
+            <i class="fas fa-location-dot text-violet-600 text-[10px]"></i> Norrlandsgatan · 180 m
+            <span class="ml-1 text-amber-500 flex items-center gap-1"><i class="fas fa-star text-[9px]"></i> 4.6</span>
+          </div>
+        </div>
+        <button class="w-9 h-9 rounded-xl bg-violet-600 flex items-center justify-center text-white"><i class="fas fa-route text-xs"></i></button>
+      </div>
+
+      <!-- Accepted methods row -->
+      <div class="mt-4">
+        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Accepted methods</div>
+        <div class="grid grid-cols-4 gap-2">
+          <div class="rounded-xl bg-violet-50 p-2.5 text-center">
+            <i class="fas fa-mobile-screen text-violet-600 text-base"></i>
+            <div class="text-[9px] font-bold text-violet-700 mt-1">Swish</div>
+          </div>
+          <div class="rounded-xl bg-sky-50 p-2.5 text-center">
+            <i class="fas fa-credit-card text-sky-600 text-base"></i>
+            <div class="text-[9px] font-bold text-sky-700 mt-1">Card</div>
+          </div>
+          <div class="rounded-xl bg-emerald-50 p-2.5 text-center">
+            <i class="fab fa-apple-pay text-emerald-700 text-base"></i>
+            <div class="text-[9px] font-bold text-emerald-700 mt-1">Wallet</div>
+          </div>
+          <div class="rounded-xl bg-slate-100 p-2.5 text-center relative">
+            <i class="fas fa-money-bill text-slate-300 text-base"></i>
+            <div class="text-[9px] font-bold text-slate-400 mt-1">Cash</div>
+            <span class="absolute top-1 right-1.5 text-[8px] text-rose-500 font-bold">×</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Risk strip -->
+      <div class="mt-4 bg-slate-50 rounded-2xl p-3 ring-1 ring-slate-100">
+        <div class="flex items-center justify-between mb-2.5">
+          <div class="text-[11px] font-bold text-slate-900">Pilot risk read</div>
+          <span class="text-[9px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">Mostly safe</span>
+        </div>
+        <div class="grid grid-cols-4 gap-2 text-center">
+          <div>
+            <div class="text-[10px] text-slate-500">Privacy</div>
+            <div class="font-display text-sm font-bold text-rose-600 mt-0.5">3.4</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-500">Bank</div>
+            <div class="font-display text-sm font-bold text-amber-600 mt-0.5">5.1</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-500">Access</div>
+            <div class="font-display text-sm font-bold text-rose-600 mt-0.5">2.8</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-500">Uptime</div>
+            <div class="font-display text-sm font-bold text-emerald-600 mt-0.5">9.1</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="w-full mt-4 bg-gradient-to-r from-indigo-500 to-violet-600 text-white rounded-2xl py-3 text-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-violet-500/30">
+        <i class="fas fa-wand-magic-sparkles text-xs"></i> Plan my payment
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-slate-200/60 px-6 pt-2 pb-7 z-50">
+    <div class="flex items-center justify-between">
+      <div class="flex flex-col items-center gap-0.5">
+        <i class="fas fa-house text-slate-400 text-base"></i>
+        <span class="text-[9px] font-semibold text-slate-400">Home</span>
+      </div>
+      <div class="flex flex-col items-center gap-0.5">
+        <i class="fas fa-map text-violet-600 text-base"></i>
+        <span class="text-[9px] font-bold text-violet-600">Map</span>
+      </div>
+      <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-violet-500/40 -mt-6">
+        <i class="fas fa-wand-magic-sparkles text-white text-base"></i>
+      </div>
+      <div class="flex flex-col items-center gap-0.5">
+        <i class="fas fa-shield-halved text-slate-400 text-base"></i>
+        <span class="text-[9px] font-semibold text-slate-400">Risks</span>
+      </div>
+      <div class="flex flex-col items-center gap-0.5">
+        <i class="fas fa-user text-slate-400 text-base"></i>
+        <span class="text-[9px] font-semibold text-slate-400">Profile</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
