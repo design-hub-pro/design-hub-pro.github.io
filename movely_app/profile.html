@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Movely — Profile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0612; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:108px; background:#0A0612; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; color:#fff; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; color:#fff; }
+
+  .nav { padding:8px 28px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .nav-icon { width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; color:#fff; }
+  .nav-icon i { font-size:14px; }
+
+  /* Hero profile card */
+  .profile-hero {
+    margin:0 28px; border-radius:28px; padding:24px 20px 20px; position:relative; overflow:hidden;
+    background:linear-gradient(135deg, rgba(255,27,107,0.25), rgba(168,85,247,0.2), rgba(0,229,255,0.15));
+    border:1px solid rgba(255,255,255,0.08);
+  }
+  .profile-hero::before { content:''; position:absolute; top:-40px; right:-40px; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle, rgba(255,27,107,0.4), transparent 70%); }
+
+  .ph-top { display:flex; gap:14px; align-items:center; position:relative; z-index:2; }
+  .ph-avatar { width:78px; height:78px; border-radius:22px; overflow:hidden; position:relative; box-shadow:0 0 0 3px rgba(255,27,107,0.5); flex-shrink:0; }
+  .ph-avatar img { width:100%; height:100%; object-fit:cover; }
+  .ph-level { position:absolute; bottom:-4px; right:-4px; background:linear-gradient(135deg,#FFD600,#FF9500); padding:3px 8px; border-radius:8px; font-size:9px; font-weight:900; color:#0A0612; box-shadow:0 4px 10px rgba(255,214,0,0.4); }
+  .ph-name { font-size:18px; font-weight:900; color:#fff; letter-spacing:-0.5px; display:flex; align-items:center; gap:6px; }
+  .ph-name i { font-size:13px; color:#00E5FF; }
+  .ph-handle { font-size:11px; color:rgba(255,255,255,0.6); margin-top:2px; }
+  .ph-loc { font-size:10px; color:rgba(255,255,255,0.5); margin-top:6px; display:flex; align-items:center; gap:5px; }
+  .ph-loc i { font-size:9px; color:#FF6BA1; }
+
+  /* Level progress */
+  .level-row { margin-top:16px; position:relative; z-index:2; }
+  .lvl-top { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+  .lvl-label { font-size:10px; color:rgba(255,255,255,0.6); font-weight:700; letter-spacing:0.5px; text-transform:uppercase; }
+  .lvl-pts { font-size:11px; color:#fff; font-weight:800; }
+  .lvl-pts span { color:rgba(255,255,255,0.4); }
+  .lvl-bar { height:8px; background:rgba(0,0,0,0.3); border-radius:4px; overflow:hidden; }
+  .lvl-fill { height:100%; width:68%; background:linear-gradient(90deg,#FFD600,#FF1B6B,#A855F7); border-radius:4px; box-shadow:0 0 8px rgba(255,27,107,0.5); }
+  .lvl-next { font-size:9.5px; color:rgba(255,255,255,0.55); margin-top:6px; font-weight:600; }
+
+  /* Stats grid */
+  .stats-grid { padding:20px 28px 0; display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .sg-card { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:12px 6px; text-align:center; }
+  .sg-icon { width:24px; height:24px; border-radius:8px; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; }
+  .sg-icon i { font-size:11px; color:#fff; }
+  .sg-val { font-size:15px; font-weight:900; color:#fff; letter-spacing:-0.3px; }
+  .sg-lbl { font-size:8.5px; color:rgba(255,255,255,0.5); font-weight:700; margin-top:2px; letter-spacing:0.3px; text-transform:uppercase; }
+
+  /* Section header */
+  .section-header { padding:24px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .section-title { font-size:15px; font-weight:800; color:#fff; letter-spacing:-0.3px; }
+  .section-link { font-size:11px; color:#FF6BA1; font-weight:700; }
+
+  /* Badges grid */
+  .badges-row { padding:0 28px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .badge { aspect-ratio:1; border-radius:18px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:8px; position:relative; }
+  .badge-locked { background:rgba(255,255,255,0.04); border:1px dashed rgba(255,255,255,0.1); }
+  .badge i { font-size:20px; }
+  .badge-name { font-size:8.5px; font-weight:800; color:#fff; text-align:center; line-height:1.1; }
+  .badge-locked i, .badge-locked .badge-name { color:rgba(255,255,255,0.25); }
+  .b-1 { background:linear-gradient(135deg,#FFD600,#FF9500); }
+  .b-1 i { color:#0A0612; }
+  .b-2 { background:linear-gradient(135deg,#FF1B6B,#A855F7); }
+  .b-2 i { color:#fff; }
+  .b-3 { background:linear-gradient(135deg,#00E5FF,#0085FF); }
+  .b-3 i { color:#fff; }
+  .new-dot { position:absolute; top:6px; right:6px; width:8px; height:8px; border-radius:50%; background:#FF1B6B; box-shadow:0 0 6px #FF1B6B; }
+
+  /* Weekly chart */
+  .chart-card { margin:0 28px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:18px; }
+  .chart-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:18px; }
+  .chart-title { font-size:13px; font-weight:800; color:#fff; }
+  .chart-sub { font-size:10.5px; color:rgba(255,255,255,0.5); font-weight:600; }
+  .chart-bars { display:flex; align-items:flex-end; gap:8px; height:120px; }
+  .cb-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .cb-bar { width:100%; border-radius:6px 6px 2px 2px; background:rgba(255,255,255,0.08); position:relative; overflow:hidden; }
+  .cb-bar .fill { position:absolute; bottom:0; left:0; right:0; background:linear-gradient(180deg,#FF1B6B,#A855F7); border-radius:6px 6px 2px 2px; }
+  .cb-bar.today .fill { background:linear-gradient(180deg,#00E5FF,#0085FF); box-shadow:0 0 10px rgba(0,229,255,0.5); }
+  .cb-day { font-size:9px; color:rgba(255,255,255,0.5); font-weight:700; }
+  .cb-day.today { color:#00E5FF; }
+  .chart-foot { margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center; }
+  .chart-total { font-size:18px; font-weight:900; color:#fff; letter-spacing:-0.5px; }
+  .chart-total span { font-size:11px; color:rgba(255,255,255,0.5); font-weight:600; margin-left:4px; }
+  .chart-vs { display:flex; align-items:center; gap:5px; color:#B8FF1E; font-size:11px; font-weight:800; }
+  .chart-vs i { font-size:10px; }
+
+  /* Recent posts */
+  .posts-grid { padding:0 28px; display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+  .post-thumb { aspect-ratio:9/14; border-radius:12px; overflow:hidden; position:relative; }
+  .post-thumb img { width:100%; height:100%; object-fit:cover; }
+  .pt-grad { position:absolute; inset:0; background:linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.85)); }
+  .pt-score { position:absolute; bottom:6px; left:6px; right:6px; font-size:14px; font-weight:900; color:#fff; background:linear-gradient(135deg,#00E5FF,#FF1B6B); -webkit-background-clip:text; -webkit-text-fill-color:transparent; letter-spacing:-0.5px; }
+
+  /* Tab bar */
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(10,6,18,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:19px; color:rgba(255,255,255,0.3); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.3); font-weight:600; }
+  .tab-item.active i { color:#FF1B6B; }
+  .tab-item.active span { color:#fff; }
+  .tab-rec-btn { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#FF1B6B,#A855F7); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 10px 28px rgba(255,27,107,0.5); border:3px solid #0A0612; }
+  .tab-rec-btn i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="nav">
+    <div class="nav-icon"><i class="fas fa-user-group"></i></div>
+    <div style="display:flex; gap:8px;">
+      <div class="nav-icon"><i class="fas fa-share-nodes"></i></div>
+      <div class="nav-icon"><i class="fas fa-gear"></i></div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="profile-hero">
+    <div class="ph-top">
+      <div class="ph-avatar">
+        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&q=85" alt="">
+        <div class="ph-level">LV 14</div>
+      </div>
+      <div style="flex:1;">
+        <div class="ph-name">Maya Chen <i class="fas fa-circle-check"></i></div>
+        <div class="ph-handle">@mayadance · she/her</div>
+        <div class="ph-loc"><i class="fas fa-school"></i>Lincoln High · Dance Team Captain</div>
+      </div>
+    </div>
+
+    <div class="level-row">
+      <div class="lvl-top">
+        <div class="lvl-label">DANCER LEVEL · APPRENTICE</div>
+        <div class="lvl-pts">8,420 <span>/ 12,000 XP</span></div>
+      </div>
+      <div class="lvl-bar"><div class="lvl-fill"></div></div>
+      <div class="lvl-next">3,580 XP to <strong style="color:#FFD600;">Performer ★</strong> · Unlocks 24 advanced routines</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="sg-card">
+      <div class="sg-icon" style="background:linear-gradient(135deg,#FF1B6B,#FF6BA1);"><i class="fas fa-music"></i></div>
+      <div class="sg-val">142</div>
+      <div class="sg-lbl">Routines</div>
+    </div>
+    <div class="sg-card">
+      <div class="sg-icon" style="background:linear-gradient(135deg,#FF6B1E,#FF3B00);"><i class="fas fa-fire"></i></div>
+      <div class="sg-val">14</div>
+      <div class="sg-lbl">Streak</div>
+    </div>
+    <div class="sg-card">
+      <div class="sg-icon" style="background:linear-gradient(135deg,#00E5FF,#0085FF);"><i class="fas fa-users"></i></div>
+      <div class="sg-val">2.4K</div>
+      <div class="sg-lbl">Fans</div>
+    </div>
+    <div class="sg-card">
+      <div class="sg-icon" style="background:linear-gradient(135deg,#FFD600,#FF9500);"><i class="fas fa-trophy"></i></div>
+      <div class="sg-val">23</div>
+      <div class="sg-lbl">Badges</div>
+    </div>
+  </div>
+
+  <!-- Badges -->
+  <div class="section-header">
+    <div class="section-title">Recent Badges</div>
+    <div class="section-link">All 23</div>
+  </div>
+  <div class="badges-row">
+    <div class="badge b-1">
+      <div class="new-dot"></div>
+      <i class="fas fa-crown"></i>
+      <div class="badge-name">PERSONAL<br>BEST</div>
+    </div>
+    <div class="badge b-2">
+      <i class="fas fa-fire"></i>
+      <div class="badge-name">14-DAY<br>STREAK</div>
+    </div>
+    <div class="badge b-3">
+      <i class="fas fa-bolt"></i>
+      <div class="badge-name">BATTLE<br>WINNER</div>
+    </div>
+    <div class="badge badge-locked">
+      <i class="fas fa-lock"></i>
+      <div class="badge-name">CENTURY<br>CLUB</div>
+    </div>
+  </div>
+
+  <!-- Weekly chart -->
+  <div class="section-header">
+    <div class="section-title">This Week</div>
+    <div class="section-link">Insights</div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-head">
+      <div>
+        <div class="chart-title">Practice Time</div>
+        <div class="chart-sub">Mon — Sun</div>
+      </div>
+      <div class="chart-sub">minutes</div>
+    </div>
+    <div class="chart-bars">
+      <div class="cb-col"><div class="cb-bar" style="height:50%;"><div class="fill" style="height:100%;"></div></div><div class="cb-day">M</div></div>
+      <div class="cb-col"><div class="cb-bar" style="height:75%;"><div class="fill" style="height:100%;"></div></div><div class="cb-day">T</div></div>
+      <div class="cb-col"><div class="cb-bar" style="height:40%;"><div class="fill" style="height:100%;"></div></div><div class="cb-day">W</div></div>
+      <div class="cb-col"><div class="cb-bar" style="height:62%;"><div class="fill" style="height:100%;"></div></div><div class="cb-day">T</div></div>
+      <div class="cb-col"><div class="cb-bar" style="height:85%;"><div class="fill" style="height:100%;"></div></div><div class="cb-day">F</div></div>
+      <div class="cb-col"><div class="cb-bar today" style="height:95%;"><div class="fill" style="height:100%;"></div></div><div class="cb-day today">S</div></div>
+      <div class="cb-col"><div class="cb-bar" style="height:25%;"><div class="fill" style="height:100%; background:rgba(255,255,255,0.15);"></div></div><div class="cb-day">S</div></div>
+    </div>
+    <div class="chart-foot">
+      <div class="chart-total">2.4h <span>this week</span></div>
+      <div class="chart-vs"><i class="fas fa-arrow-up"></i>+38% vs last</div>
+    </div>
+  </div>
+
+  <!-- Recent posts -->
+  <div class="section-header">
+    <div class="section-title">Recent Posts</div>
+    <div class="section-link">All</div>
+  </div>
+  <div class="posts-grid">
+    <div class="post-thumb"><img src="https://images.unsplash.com/photo-1547153760-18fc86324498?w=400&q=85" alt=""><div class="pt-grad"></div><div class="pt-score">94</div></div>
+    <div class="post-thumb"><img src="https://images.unsplash.com/photo-1535525153412-5a42439a210d?w=400&q=85" alt=""><div class="pt-grad"></div><div class="pt-score">88</div></div>
+    <div class="post-thumb"><img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=85" alt=""><div class="pt-grad"></div><div class="pt-score">91</div></div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-grip"></i><span>Library</span></div>
+    <div class="tab-item"><button class="tab-rec-btn"><i class="fas fa-video"></i></button></div>
+    <div class="tab-item"><i class="fas fa-medal"></i><span>Ranks</span></div>
+    <div class="tab-item active"><i class="fas fa-user"></i><span>Me</span></div>
+  </div>
+</div>
+</body>
+</html>

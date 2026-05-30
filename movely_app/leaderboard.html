@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Movely — Leaderboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0612; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:108px; background:#0A0612; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; color:#fff; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; color:#fff; }
+
+  .header { padding:8px 28px 16px; display:flex; align-items:center; justify-content:space-between; }
+  .title { font-size:26px; font-weight:900; color:#fff; letter-spacing:-1px; }
+  .week-pill { display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.06); padding:8px 12px; border-radius:12px; }
+  .week-pill i { font-size:11px; color:#FFD600; }
+  .week-pill span { font-size:11px; font-weight:700; color:#fff; }
+
+  /* Segment switch */
+  .segment { margin:0 28px; background:rgba(255,255,255,0.06); border-radius:14px; padding:4px; display:flex; gap:2px; }
+  .seg-item { flex:1; text-align:center; padding:10px 0; font-size:12px; font-weight:700; color:rgba(255,255,255,0.5); border-radius:10px; }
+  .seg-item.active { background:linear-gradient(135deg,#FF1B6B,#A855F7); color:#fff; box-shadow:0 6px 16px rgba(255,27,107,0.35); }
+
+  /* Podium */
+  .podium-wrap { padding:30px 28px 24px; position:relative; }
+  .podium-bg { position:absolute; inset:0; background:radial-gradient(ellipse at center, rgba(255,27,107,0.15), transparent 60%); }
+  .podium { display:flex; justify-content:center; align-items:flex-end; gap:14px; position:relative; }
+
+  .podium-col { display:flex; flex-direction:column; align-items:center; }
+  .pod-rank { font-size:13px; font-weight:900; margin-bottom:8px; padding:3px 10px; border-radius:8px; }
+  .pod-rank.gold { background:linear-gradient(135deg,#FFD600,#FF9500); color:#0A0612; box-shadow:0 6px 18px rgba(255,214,0,0.4); }
+  .pod-rank.silver { background:rgba(255,255,255,0.18); color:#fff; }
+  .pod-rank.bronze { background:linear-gradient(135deg,#CD7F32,#A05A2C); color:#fff; }
+  .pod-avatar { border-radius:22px; overflow:hidden; position:relative; }
+  .pod-avatar img { object-fit:cover; display:block; }
+  .pod-avatar.first img { width:96px; height:96px; }
+  .pod-avatar.second img, .pod-avatar.third img { width:74px; height:74px; }
+  .pod-avatar.first { border:3px solid #FFD600; box-shadow:0 12px 30px rgba(255,214,0,0.4); }
+  .pod-avatar.second { border:2.5px solid rgba(255,255,255,0.5); }
+  .pod-avatar.third { border:2.5px solid #CD7F32; }
+  .crown { position:absolute; top:-18px; left:50%; transform:translateX(-50%); font-size:22px; color:#FFD600; filter:drop-shadow(0 4px 8px rgba(255,214,0,0.4)); }
+  .pod-name { font-size:12px; font-weight:800; color:#fff; margin-top:10px; }
+  .pod-handle { font-size:9.5px; color:rgba(255,255,255,0.5); margin-top:2px; }
+  .pod-score { margin-top:10px; padding:6px 12px; border-radius:10px; font-size:13px; font-weight:900; letter-spacing:-0.5px; }
+  .pod-score.gold { background:rgba(255,214,0,0.15); border:1px solid rgba(255,214,0,0.4); color:#FFD600; }
+  .pod-score.silver { background:rgba(255,255,255,0.08); color:#fff; }
+  .pod-score.bronze { background:rgba(205,127,50,0.18); border:1px solid rgba(205,127,50,0.4); color:#FFB47A; }
+
+  /* List */
+  .list-section { padding:8px 28px 0; }
+  .list-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:0 4px; }
+  .list-title { font-size:12px; font-weight:800; color:#fff; }
+  .list-tag { font-size:10px; color:rgba(255,255,255,0.5); font-weight:600; }
+
+  .lb-row { display:flex; align-items:center; gap:12px; padding:12px; border-radius:16px; }
+  .lb-row + .lb-row { margin-top:6px; }
+  .lb-row.me { background:linear-gradient(135deg, rgba(255,27,107,0.15), rgba(168,85,247,0.1)); border:1px solid rgba(255,27,107,0.3); }
+  .lb-rank-num { width:28px; font-size:13px; font-weight:900; color:rgba(255,255,255,0.6); text-align:center; flex-shrink:0; }
+  .lb-row.me .lb-rank-num { color:#FF6BA1; }
+  .lb-rank-trend { width:18px; font-size:9px; font-weight:800; }
+  .lb-rank-trend.up { color:#B8FF1E; }
+  .lb-rank-trend.down { color:#FF6BA1; }
+  .lb-rank-trend.same { color:rgba(255,255,255,0.4); }
+  .lb-avatar { width:38px; height:38px; border-radius:12px; object-fit:cover; flex-shrink:0; }
+  .lb-info { flex:1; min-width:0; }
+  .lb-name { font-size:13px; font-weight:700; color:#fff; }
+  .lb-meta { font-size:10px; color:rgba(255,255,255,0.5); margin-top:2px; display:flex; align-items:center; gap:6px; }
+  .lb-streak { display:flex; align-items:center; gap:3px; color:#FF6B1E; font-weight:700; }
+  .lb-streak i { font-size:9px; }
+  .lb-score { background:rgba(255,255,255,0.06); padding:6px 12px; border-radius:10px; font-size:13px; font-weight:900; color:#fff; letter-spacing:-0.3px; flex-shrink:0; }
+  .lb-row.me .lb-score { background:linear-gradient(135deg,#FF1B6B,#A855F7); }
+
+  /* Tab bar */
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(10,6,18,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:19px; color:rgba(255,255,255,0.3); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.3); font-weight:600; }
+  .tab-item.active i { color:#FF1B6B; }
+  .tab-item.active span { color:#fff; }
+  .tab-rec-btn { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#FF1B6B,#A855F7); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 10px 28px rgba(255,27,107,0.5); border:3px solid #0A0612; }
+  .tab-rec-btn i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div class="title">Ranks</div>
+    <div class="week-pill"><i class="fas fa-trophy"></i><span>Week 22 · 3d left</span></div>
+  </div>
+
+  <div class="segment">
+    <div class="seg-item">Crew</div>
+    <div class="seg-item active">School</div>
+    <div class="seg-item">Global</div>
+  </div>
+
+  <!-- Podium -->
+  <div class="podium-wrap">
+    <div class="podium-bg"></div>
+    <div class="podium">
+      <div class="podium-col">
+        <div class="pod-rank silver">2</div>
+        <div class="pod-avatar second">
+          <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80" alt="">
+        </div>
+        <div class="pod-name">Aria L.</div>
+        <div class="pod-handle">@ariadance</div>
+        <div class="pod-score silver">94</div>
+      </div>
+      <div class="podium-col">
+        <div class="pod-avatar first">
+          <i class="fas fa-crown crown"></i>
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&q=85" alt="">
+        </div>
+        <div class="pod-name">Zara K.</div>
+        <div class="pod-handle">@zaramoves</div>
+        <div class="pod-score gold">96</div>
+        <div class="pod-rank gold" style="margin-top:8px;">CHAMPION</div>
+      </div>
+      <div class="podium-col">
+        <div class="pod-rank bronze">3</div>
+        <div class="pod-avatar third">
+          <img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=200&q=80" alt="">
+        </div>
+        <div class="pod-name">Jaylen R.</div>
+        <div class="pod-handle">@jrxmoves</div>
+        <div class="pod-score bronze">91</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- List -->
+  <div class="list-section">
+    <div class="list-head">
+      <div class="list-title">Top dancers · Lincoln High</div>
+      <div class="list-tag">328 active</div>
+    </div>
+
+    <div class="lb-row">
+      <div class="lb-rank-num">4</div>
+      <div class="lb-rank-trend up"><i class="fas fa-caret-up"></i>2</div>
+      <img class="lb-avatar" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&q=80" alt="">
+      <div class="lb-info">
+        <div class="lb-name">Marcus T.</div>
+        <div class="lb-meta">12 routines<div class="lb-streak"><i class="fas fa-fire"></i>21</div></div>
+      </div>
+      <div class="lb-score">89</div>
+    </div>
+
+    <div class="lb-row">
+      <div class="lb-rank-num">5</div>
+      <div class="lb-rank-trend same">—</div>
+      <img class="lb-avatar" src="https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=120&q=80" alt="">
+      <div class="lb-info">
+        <div class="lb-name">Sofia M.</div>
+        <div class="lb-meta">9 routines<div class="lb-streak"><i class="fas fa-fire"></i>18</div></div>
+      </div>
+      <div class="lb-score">88</div>
+    </div>
+
+    <div class="lb-row">
+      <div class="lb-rank-num">6</div>
+      <div class="lb-rank-trend down"><i class="fas fa-caret-down"></i>1</div>
+      <img class="lb-avatar" src="https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=120&q=80" alt="">
+      <div class="lb-info">
+        <div class="lb-name">Devon P.</div>
+        <div class="lb-meta">8 routines<div class="lb-streak"><i class="fas fa-fire"></i>11</div></div>
+      </div>
+      <div class="lb-score">87</div>
+    </div>
+
+    <div class="lb-row me">
+      <div class="lb-rank-num">7</div>
+      <div class="lb-rank-trend up"><i class="fas fa-caret-up"></i>4</div>
+      <img class="lb-avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&q=80" alt="">
+      <div class="lb-info">
+        <div class="lb-name">You · Maya</div>
+        <div class="lb-meta">14 routines<div class="lb-streak"><i class="fas fa-fire"></i>14</div></div>
+      </div>
+      <div class="lb-score">85</div>
+    </div>
+
+    <div class="lb-row">
+      <div class="lb-rank-num">8</div>
+      <div class="lb-rank-trend up"><i class="fas fa-caret-up"></i>1</div>
+      <img class="lb-avatar" src="https://images.unsplash.com/photo-1463453091185-61582044d556?w=120&q=80" alt="">
+      <div class="lb-info">
+        <div class="lb-name">Kai N.</div>
+        <div class="lb-meta">7 routines<div class="lb-streak"><i class="fas fa-fire"></i>9</div></div>
+      </div>
+      <div class="lb-score">83</div>
+    </div>
+
+    <div class="lb-row">
+      <div class="lb-rank-num">9</div>
+      <div class="lb-rank-trend down"><i class="fas fa-caret-down"></i>3</div>
+      <img class="lb-avatar" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&q=80" alt="">
+      <div class="lb-info">
+        <div class="lb-name">Iris W.</div>
+        <div class="lb-meta">6 routines<div class="lb-streak"><i class="fas fa-fire"></i>6</div></div>
+      </div>
+      <div class="lb-score">81</div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-grip"></i><span>Library</span></div>
+    <div class="tab-item"><button class="tab-rec-btn"><i class="fas fa-video"></i></button></div>
+    <div class="tab-item active"><i class="fas fa-medal"></i><span>Ranks</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Me</span></div>
+  </div>
+</div>
+</body>
+</html>

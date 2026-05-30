@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Movely — Feed</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0612; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:108px; background:#0A0612; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; color:#fff; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; color:#fff; }
+
+  .header { padding:8px 28px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .title { font-size:26px; font-weight:900; color:#fff; letter-spacing:-1px; }
+  .header-icons { display:flex; gap:8px; }
+  .icon-btn { width:40px; height:40px; border-radius:12px; background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; color:#fff; position:relative; }
+  .icon-btn i { font-size:14px; }
+  .icon-btn .dot { position:absolute; top:8px; right:8px; width:7px; height:7px; border-radius:50%; background:#FF1B6B; box-shadow:0 0 8px #FF1B6B; }
+
+  /* Stories */
+  .stories { padding:0 28px 16px; display:flex; gap:12px; overflow-x:auto; }
+  .story { display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; }
+  .story-ring { width:62px; height:62px; border-radius:50%; padding:2.5px; background:linear-gradient(135deg,#FF1B6B,#A855F7,#00E5FF); position:relative; }
+  .story-ring img { width:100%; height:100%; border-radius:50%; object-fit:cover; border:2.5px solid #0A0612; }
+  .story-name { font-size:10px; color:rgba(255,255,255,0.7); font-weight:600; }
+  .story.live .story-ring { background:linear-gradient(135deg,#FF1B6B,#FF6BA1); }
+  .story.live::after { content:'LIVE'; position:absolute; }
+  .live-badge { position:absolute; bottom:-3px; left:50%; transform:translateX(-50%); background:#FF1B6B; color:#fff; padding:2px 6px; border-radius:5px; font-size:8px; font-weight:800; letter-spacing:0.5px; box-shadow:0 4px 10px rgba(255,27,107,0.4); }
+  .story-add { position:absolute; bottom:-3px; right:-3px; width:20px; height:20px; border-radius:50%; background:linear-gradient(135deg,#FF1B6B,#A855F7); border:2.5px solid #0A0612; display:flex; align-items:center; justify-content:center; }
+  .story-add i { font-size:9px; color:#fff; }
+
+  /* Challenge banner */
+  .challenge-banner { margin:0 28px 16px; border-radius:18px; padding:14px; display:flex; align-items:center; gap:12px; background:linear-gradient(135deg, rgba(255,27,107,0.18), rgba(168,85,247,0.18)); border:1px solid rgba(255,27,107,0.3); }
+  .cb-icon { width:42px; height:42px; border-radius:14px; background:linear-gradient(135deg,#FF1B6B,#A855F7); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .cb-icon i { font-size:18px; color:#fff; }
+  .cb-info { flex:1; }
+  .cb-label { font-size:10px; color:#FF6BA1; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; }
+  .cb-title { font-size:13px; font-weight:800; color:#fff; margin-top:2px; }
+  .cb-sub { font-size:10.5px; color:rgba(255,255,255,0.55); margin-top:2px; }
+  .cb-cta { background:#fff; color:#0A0612; padding:8px 14px; border-radius:10px; font-size:11px; font-weight:800; }
+
+  /* Post */
+  .post { margin-bottom:18px; }
+  .post-head { display:flex; align-items:center; gap:10px; padding:0 28px 10px; }
+  .post-avatar { width:38px; height:38px; border-radius:12px; object-fit:cover; }
+  .post-info { flex:1; }
+  .post-name { font-size:13px; font-weight:800; color:#fff; display:flex; align-items:center; gap:5px; }
+  .post-name i { color:#00E5FF; font-size:11px; }
+  .post-meta { font-size:10.5px; color:rgba(255,255,255,0.5); margin-top:1px; }
+  .post-meta span { color:#FF6BA1; font-weight:700; }
+  .post-more { color:rgba(255,255,255,0.5); font-size:14px; padding:6px; }
+
+  .post-video { margin:0 14px; border-radius:22px; overflow:hidden; position:relative; height:380px; }
+  .post-video img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .post-grad { position:absolute; inset:0; background:linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.85) 100%); }
+  .post-score-badge { position:absolute; top:14px; left:14px; background:rgba(0,0,0,0.55); backdrop-filter:blur(12px); padding:8px 12px; border-radius:14px; display:flex; align-items:center; gap:8px; }
+  .pscore-label { font-size:9px; color:rgba(255,255,255,0.6); font-weight:700; letter-spacing:1px; }
+  .pscore-val { font-size:20px; font-weight:900; line-height:1; background:linear-gradient(135deg,#00E5FF,#FF1B6B); -webkit-background-clip:text; -webkit-text-fill-color:transparent; letter-spacing:-1px; }
+  .post-tag-top { position:absolute; top:14px; right:14px; background:linear-gradient(135deg,#FFD600,#FF9500); padding:5px 10px; border-radius:10px; font-size:10px; font-weight:800; color:#0A0612; display:flex; align-items:center; gap:5px; }
+  .post-tag-top i { font-size:10px; }
+  .post-play-center { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:60px; height:60px; border-radius:50%; background:rgba(255,255,255,0.95); display:flex; align-items:center; justify-content:center; }
+  .post-play-center i { font-size:18px; color:#0A0612; margin-left:3px; }
+  .post-meta-bottom { position:absolute; bottom:14px; left:14px; right:14px; display:flex; justify-content:space-between; align-items:flex-end; }
+  .post-routine { font-size:11px; color:#fff; font-weight:700; background:rgba(0,0,0,0.4); backdrop-filter:blur(10px); padding:5px 10px; border-radius:8px; display:flex; align-items:center; gap:5px; }
+  .post-routine i { color:#00E5FF; }
+  .post-duration { font-size:10px; color:rgba(255,255,255,0.7); font-weight:700; background:rgba(0,0,0,0.4); backdrop-filter:blur(10px); padding:4px 8px; border-radius:8px; }
+
+  /* Action bar */
+  .action-bar { padding:12px 28px 0; display:flex; gap:18px; align-items:center; }
+  .action { display:flex; align-items:center; gap:6px; }
+  .action i { font-size:16px; color:#fff; }
+  .action span { font-size:12px; color:#fff; font-weight:700; }
+  .action.liked i { color:#FF1B6B; }
+  .action-spacer { flex:1; }
+  .battle-btn { display:flex; align-items:center; gap:6px; background:linear-gradient(135deg,#FF1B6B,#A855F7); padding:8px 14px; border-radius:12px; font-size:11px; font-weight:800; color:#fff; }
+  .battle-btn i { font-size:10px; }
+
+  .post-caption { padding:8px 28px 0; font-size:12px; color:rgba(255,255,255,0.85); line-height:1.5; }
+  .post-caption strong { color:#fff; font-weight:800; }
+  .post-caption .hash { color:#00E5FF; font-weight:600; }
+
+  /* Tab bar */
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(10,6,18,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:19px; color:rgba(255,255,255,0.3); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.3); font-weight:600; }
+  .tab-item.active i { color:#FF1B6B; }
+  .tab-item.active span { color:#fff; }
+  .tab-rec-btn { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#FF1B6B,#A855F7); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 10px 28px rgba(255,27,107,0.5); border:3px solid #0A0612; }
+  .tab-rec-btn i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div class="title">Feed</div>
+    <div class="header-icons">
+      <div class="icon-btn"><i class="fas fa-magnifying-glass"></i></div>
+      <div class="icon-btn"><i class="fas fa-bell"></i><div class="dot"></div></div>
+    </div>
+  </div>
+
+  <!-- Stories -->
+  <div class="stories">
+    <div class="story">
+      <div class="story-ring" style="background:rgba(255,255,255,0.1);">
+        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80" alt="">
+        <div class="story-add"><i class="fas fa-plus"></i></div>
+      </div>
+      <div class="story-name">You</div>
+    </div>
+    <div class="story live" style="position:relative;">
+      <div class="story-ring">
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&q=80" alt="">
+        <div class="live-badge">LIVE</div>
+      </div>
+      <div class="story-name">Zara</div>
+    </div>
+    <div class="story">
+      <div class="story-ring">
+        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80" alt="">
+      </div>
+      <div class="story-name">Marcus</div>
+    </div>
+    <div class="story">
+      <div class="story-ring">
+        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80" alt="">
+      </div>
+      <div class="story-name">Aria</div>
+    </div>
+    <div class="story">
+      <div class="story-ring">
+        <img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=200&q=80" alt="">
+      </div>
+      <div class="story-name">Jaylen</div>
+    </div>
+    <div class="story">
+      <div class="story-ring">
+        <img src="https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=200&q=80" alt="">
+      </div>
+      <div class="story-name">Sofia</div>
+    </div>
+  </div>
+
+  <!-- Challenge banner -->
+  <div class="challenge-banner">
+    <div class="cb-icon"><i class="fas fa-trophy"></i></div>
+    <div class="cb-info">
+      <div class="cb-label">⚡ Battle Mode</div>
+      <div class="cb-title">Zara challenged you</div>
+      <div class="cb-sub">Renegade Footwork · You need 97 to win</div>
+    </div>
+    <div class="cb-cta">Accept</div>
+  </div>
+
+  <!-- Post 1 -->
+  <div class="post">
+    <div class="post-head">
+      <img class="post-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&q=80" alt="">
+      <div class="post-info">
+        <div class="post-name">Zara K. <i class="fas fa-circle-check"></i></div>
+        <div class="post-meta">just now · <span>Personal Best 🎉</span></div>
+      </div>
+      <div class="post-more"><i class="fas fa-ellipsis"></i></div>
+    </div>
+    <div class="post-video">
+      <img src="https://images.unsplash.com/photo-1547153760-18fc86324498?w=900&q=85" alt="">
+      <div class="post-grad"></div>
+      <div class="post-score-badge">
+        <div>
+          <div class="pscore-label">SCORE</div>
+          <div class="pscore-val">96</div>
+        </div>
+      </div>
+      <div class="post-tag-top"><i class="fas fa-crown"></i>#1 School</div>
+      <div class="post-play-center"><i class="fas fa-play"></i></div>
+      <div class="post-meta-bottom">
+        <div class="post-routine"><i class="fas fa-music"></i>Renegade · 32s</div>
+        <div class="post-duration">0:32</div>
+      </div>
+    </div>
+    <div class="action-bar">
+      <div class="action liked"><i class="fas fa-heart"></i><span>2.1K</span></div>
+      <div class="action"><i class="fas fa-comment"></i><span>184</span></div>
+      <div class="action"><i class="fas fa-paper-plane"></i></div>
+      <div class="action-spacer"></div>
+      <div class="battle-btn"><i class="fas fa-bolt"></i>BATTLE</div>
+    </div>
+    <div class="post-caption">
+      <strong>Hit a 96 finally 🔥</strong> Drop your scores below — let's see who can beat me <span class="hash">#RenegadeFootwork #LincolnHigh</span>
+    </div>
+  </div>
+
+</div>
+<div class="tab-bar">
+  <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+  <div class="tab-item"><i class="fas fa-grip"></i><span>Library</span></div>
+  <div class="tab-item"><button class="tab-rec-btn"><i class="fas fa-video"></i></button></div>
+  <div class="tab-item"><i class="fas fa-medal"></i><span>Ranks</span></div>
+  <div class="tab-item"><i class="fas fa-user"></i><span>Me</span></div>
+</div>
+</body>
+</html>

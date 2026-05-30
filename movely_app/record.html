@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Movely — Record</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#000; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow:hidden; background:#000; }
+
+  /* Camera viewport */
+  .cam {
+    position:absolute; inset:0;
+    background:url('https://images.unsplash.com/photo-1581022295087-35e593704911?w=900&q=85') center/cover no-repeat;
+  }
+  .cam-tint { position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.1) 30%, rgba(0,0,0,0.1) 70%, rgba(0,0,0,0.85) 100%); }
+
+  /* Pose skeleton */
+  .pose-svg { position:absolute; inset:0; z-index:5; pointer-events:none; }
+  .pose-svg svg { width:100%; height:100%; }
+  @keyframes glow { 0%,100% { filter:drop-shadow(0 0 6px rgba(0,229,255,0.7)); } 50% { filter:drop-shadow(0 0 14px rgba(0,229,255,0.9)); } }
+  .pose-bone { animation:glow 1.8s ease-in-out infinite; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; color:#fff; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; color:#fff; }
+
+  /* Top HUD */
+  .top-hud { position:absolute; top:68px; left:20px; right:20px; display:flex; justify-content:space-between; align-items:flex-start; z-index:20; }
+  .icon-btn { width:42px; height:42px; border-radius:14px; background:rgba(0,0,0,0.55); backdrop-filter:blur(16px); display:flex; align-items:center; justify-content:center; color:#fff; }
+  .icon-btn i { font-size:15px; }
+  .rec-pill { display:flex; align-items:center; gap:8px; background:rgba(255,27,107,0.92); padding:8px 14px; border-radius:30px; backdrop-filter:blur(10px); }
+  .rec-dot { width:8px; height:8px; border-radius:50%; background:#fff; animation:blink 1.2s infinite; }
+  @keyframes blink { 50% { opacity:0.3; } }
+  .rec-time { font-size:13px; font-weight:800; color:#fff; letter-spacing:0.5px; }
+
+  .top-right-stack { display:flex; flex-direction:column; gap:10px; align-items:flex-end; }
+
+  /* Live song banner */
+  .song-banner {
+    position:absolute; top:130px; left:20px; right:20px; z-index:15;
+    background:rgba(0,0,0,0.55); backdrop-filter:blur(16px);
+    border-radius:18px; padding:10px 14px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .song-cover { width:36px; height:36px; border-radius:10px; object-fit:cover; }
+  .song-info { flex:1; min-width:0; }
+  .song-title { font-size:12px; font-weight:800; color:#fff; }
+  .song-artist { font-size:10px; color:rgba(255,255,255,0.55); margin-top:1px; }
+  .song-wave { display:flex; gap:2px; align-items:center; }
+  .song-wave .bar { width:2.5px; background:#FF1B6B; border-radius:2px; animation:wave 0.9s ease-in-out infinite; }
+  .song-wave .bar:nth-child(1) { height:8px; animation-delay:0s; }
+  .song-wave .bar:nth-child(2) { height:14px; animation-delay:0.1s; }
+  .song-wave .bar:nth-child(3) { height:6px; animation-delay:0.2s; }
+  .song-wave .bar:nth-child(4) { height:12px; animation-delay:0.3s; }
+  @keyframes wave { 0%,100% { transform:scaleY(0.4); } 50% { transform:scaleY(1); } }
+
+  /* Reference video PiP */
+  .reference-pip {
+    position:absolute; top:184px; right:20px; z-index:18;
+    width:110px; height:160px; border-radius:18px; overflow:hidden;
+    border:2px solid rgba(0,229,255,0.6);
+    box-shadow:0 12px 30px rgba(0,229,255,0.25);
+  }
+  .reference-pip img { width:100%; height:100%; object-fit:cover; }
+  .pip-label { position:absolute; top:6px; left:6px; background:rgba(0,229,255,0.85); padding:3px 7px; border-radius:6px; font-size:8px; font-weight:800; color:#0A0612; letter-spacing:0.5px; }
+  .pip-sync { position:absolute; bottom:6px; left:6px; right:6px; background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); padding:3px 6px; border-radius:6px; font-size:9px; font-weight:800; color:#00E5FF; text-align:center; }
+
+  /* Live score */
+  .live-score {
+    position:absolute; top:184px; left:20px; z-index:18;
+    width:110px; background:rgba(0,0,0,0.55); backdrop-filter:blur(16px);
+    border-radius:18px; padding:14px; text-align:center;
+    border:1px solid rgba(255,255,255,0.08);
+  }
+  .live-score-label { font-size:9px; color:#00E5FF; font-weight:800; letter-spacing:1px; }
+  .live-score-val { font-size:42px; font-weight:900; color:#fff; letter-spacing:-2px; line-height:1; margin-top:4px; background:linear-gradient(135deg,#00E5FF,#FF1B6B); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .live-score-sub { font-size:9px; color:rgba(255,255,255,0.5); font-weight:600; margin-top:6px; }
+  .live-score-bars { display:flex; gap:3px; justify-content:center; margin-top:8px; }
+  .lsb { width:14px; height:4px; border-radius:2px; background:rgba(255,255,255,0.15); }
+  .lsb.on { background:linear-gradient(90deg,#FF1B6B,#A855F7); }
+
+  /* Move call-out */
+  .move-callout {
+    position:absolute; left:50%; top:380px; transform:translateX(-50%); z-index:30;
+    background:rgba(168,85,247,0.92); backdrop-filter:blur(10px);
+    padding:8px 16px; border-radius:30px;
+    display:flex; align-items:center; gap:8px;
+    box-shadow:0 12px 28px rgba(168,85,247,0.5);
+  }
+  .move-callout i { font-size:11px; color:#fff; }
+  .move-callout span { font-size:11px; font-weight:800; color:#fff; letter-spacing:0.5px; }
+
+  /* Real-time form feedback */
+  .feedback-stack { position:absolute; right:20px; top:360px; z-index:20; display:flex; flex-direction:column; gap:8px; align-items:flex-end; }
+  .fb-chip { background:rgba(0,0,0,0.6); backdrop-filter:blur(12px); padding:7px 12px; border-radius:14px; display:flex; align-items:center; gap:8px; border:1px solid rgba(255,255,255,0.08); }
+  .fb-chip i { font-size:10px; }
+  .fb-chip .fb-text { font-size:10px; font-weight:700; color:#fff; }
+  .fb-chip.good { border-color:rgba(184,255,30,0.35); }
+  .fb-chip.good i { color:#B8FF1E; }
+  .fb-chip.warn { border-color:rgba(255,214,0,0.4); }
+  .fb-chip.warn i { color:#FFD600; }
+
+  /* Timeline / progress */
+  .timeline {
+    position:absolute; bottom:200px; left:20px; right:20px; z-index:20;
+  }
+  .tl-time { display:flex; justify-content:space-between; font-size:10px; color:rgba(255,255,255,0.6); font-weight:700; margin-bottom:8px; }
+  .tl-bar { height:6px; background:rgba(255,255,255,0.12); border-radius:3px; overflow:hidden; position:relative; }
+  .tl-fill { height:100%; width:42%; background:linear-gradient(90deg, #FF1B6B 0%, #A855F7 50%, #00E5FF 100%); border-radius:3px; box-shadow:0 0 12px rgba(255,27,107,0.6); }
+  .tl-cue { display:flex; justify-content:space-between; margin-top:8px; }
+  .tl-cue-item { display:flex; flex-direction:column; align-items:center; gap:3px; flex:1; }
+  .tl-cue-dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.2); }
+  .tl-cue-item.done .tl-cue-dot { background:#B8FF1E; box-shadow:0 0 8px #B8FF1E; }
+  .tl-cue-item.active .tl-cue-dot { background:#FF1B6B; box-shadow:0 0 8px #FF1B6B; }
+  .tl-cue-label { font-size:8.5px; color:rgba(255,255,255,0.5); font-weight:700; letter-spacing:0.3px; }
+  .tl-cue-item.active .tl-cue-label, .tl-cue-item.done .tl-cue-label { color:#fff; }
+
+  /* Bottom controls */
+  .bottom-controls {
+    position:absolute; bottom:30px; left:0; right:0; z-index:30;
+    display:flex; align-items:center; justify-content:space-around; padding:0 40px;
+  }
+  .ctrl-btn { width:54px; height:54px; border-radius:50%; background:rgba(255,255,255,0.1); backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; color:#fff; }
+  .ctrl-btn i { font-size:18px; }
+  .ctrl-record {
+    width:78px; height:78px; border-radius:50%; background:#fff;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 0 5px rgba(255,255,255,0.2), 0 16px 40px rgba(255,27,107,0.5);
+  }
+  .ctrl-record .inner { width:34px; height:34px; border-radius:9px; background:linear-gradient(135deg,#FF1B6B,#A855F7); }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="cam"></div>
+  <div class="cam-tint"></div>
+
+  <!-- Pose skeleton overlay -->
+  <div class="pose-svg">
+    <svg viewBox="0 0 460 980" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="boneG" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#00E5FF"/>
+          <stop offset="100%" stop-color="#FF1B6B"/>
+        </linearGradient>
+      </defs>
+      <g stroke="url(#boneG)" stroke-width="3" fill="none" class="pose-bone" stroke-linecap="round">
+        <line x1="230" y1="350" x2="230" y2="430"/>
+        <line x1="230" y1="430" x2="170" y2="470"/>
+        <line x1="230" y1="430" x2="290" y2="470"/>
+        <line x1="170" y1="470" x2="120" y2="540"/>
+        <line x1="120" y1="540" x2="90" y2="610"/>
+        <line x1="290" y1="470" x2="350" y2="540"/>
+        <line x1="350" y1="540" x2="380" y2="500"/>
+        <line x1="170" y1="470" x2="200" y2="620"/>
+        <line x1="290" y1="470" x2="260" y2="620"/>
+        <line x1="200" y1="620" x2="260" y2="620"/>
+        <line x1="200" y1="620" x2="160" y2="750"/>
+        <line x1="160" y1="750" x2="190" y2="860"/>
+        <line x1="260" y1="620" x2="310" y2="750"/>
+        <line x1="310" y1="750" x2="290" y2="860"/>
+      </g>
+      <g class="pose-bone">
+        <circle cx="230" cy="340" r="11" fill="rgba(0,229,255,0.9)" stroke="#fff" stroke-width="2"/>
+        <circle cx="230" cy="430" r="6" fill="#FF1B6B"/>
+        <circle cx="170" cy="470" r="6" fill="#FF1B6B"/>
+        <circle cx="290" cy="470" r="6" fill="#FF1B6B"/>
+        <circle cx="120" cy="540" r="6" fill="#A855F7"/>
+        <circle cx="90" cy="610" r="6" fill="#A855F7"/>
+        <circle cx="350" cy="540" r="6" fill="#A855F7"/>
+        <circle cx="380" cy="500" r="6" fill="#A855F7"/>
+        <circle cx="200" cy="620" r="6" fill="#FF1B6B"/>
+        <circle cx="260" cy="620" r="6" fill="#FF1B6B"/>
+        <circle cx="160" cy="750" r="6" fill="#00E5FF"/>
+        <circle cx="190" cy="860" r="7" fill="#00E5FF" stroke="#fff" stroke-width="1.5"/>
+        <circle cx="310" cy="750" r="6" fill="#00E5FF"/>
+        <circle cx="290" cy="860" r="7" fill="#00E5FF" stroke="#fff" stroke-width="1.5"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="top-hud">
+    <div class="icon-btn"><i class="fas fa-xmark"></i></div>
+    <div class="rec-pill"><div class="rec-dot"></div><span class="rec-time">00:14</span></div>
+    <div class="top-right-stack">
+      <div class="icon-btn"><i class="fas fa-arrows-rotate"></i></div>
+      <div class="icon-btn"><i class="fas fa-sliders"></i></div>
+    </div>
+  </div>
+
+  <!-- Song banner -->
+  <div class="song-banner">
+    <img class="song-cover" src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&q=80" alt="">
+    <div class="song-info">
+      <div class="song-title">Renegade — Original</div>
+      <div class="song-artist">K Camp · 156 BPM</div>
+    </div>
+    <div class="song-wave"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+  </div>
+
+  <!-- Live score -->
+  <div class="live-score">
+    <div class="live-score-label">LIVE SCORE</div>
+    <div class="live-score-val">92</div>
+    <div class="live-score-sub">CRISP · IN SYNC</div>
+    <div class="live-score-bars">
+      <div class="lsb on"></div><div class="lsb on"></div><div class="lsb on"></div><div class="lsb on"></div><div class="lsb"></div>
+    </div>
+  </div>
+
+  <!-- Reference video PiP -->
+  <div class="reference-pip">
+    <img src="https://images.unsplash.com/photo-1547153760-18fc86324498?w=400&q=85" alt="">
+    <div class="pip-label">REF</div>
+    <div class="pip-sync">SYNC 96%</div>
+  </div>
+
+  <!-- Move callout -->
+  <div class="move-callout"><i class="fas fa-arrow-up"></i><span>STEP 4 · WHIP</span></div>
+
+  <!-- Form feedback chips -->
+  <div class="feedback-stack">
+    <div class="fb-chip good"><i class="fas fa-check"></i><span class="fb-text">Arms clean</span></div>
+    <div class="fb-chip warn"><i class="fas fa-triangle-exclamation"></i><span class="fb-text">Bend knees more</span></div>
+    <div class="fb-chip good"><i class="fas fa-bullseye"></i><span class="fb-text">On beat</span></div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="timeline">
+    <div class="tl-time"><span>0:14</span><span>0:32</span></div>
+    <div class="tl-bar"><div class="tl-fill"></div></div>
+    <div class="tl-cue">
+      <div class="tl-cue-item done"><div class="tl-cue-dot"></div><div class="tl-cue-label">SLIDE</div></div>
+      <div class="tl-cue-item done"><div class="tl-cue-dot"></div><div class="tl-cue-label">SWAY</div></div>
+      <div class="tl-cue-item done"><div class="tl-cue-dot"></div><div class="tl-cue-label">CLAP</div></div>
+      <div class="tl-cue-item active"><div class="tl-cue-dot"></div><div class="tl-cue-label">WHIP</div></div>
+      <div class="tl-cue-item"><div class="tl-cue-dot"></div><div class="tl-cue-label">POP</div></div>
+      <div class="tl-cue-item"><div class="tl-cue-dot"></div><div class="tl-cue-label">FREEZE</div></div>
+    </div>
+  </div>
+
+  <!-- Bottom controls -->
+  <div class="bottom-controls">
+    <div class="ctrl-btn"><i class="fas fa-images"></i></div>
+    <div class="ctrl-record"><div class="inner"></div></div>
+    <div class="ctrl-btn"><i class="fas fa-bolt"></i></div>
+  </div>
+</div>
+</body>
+</html>

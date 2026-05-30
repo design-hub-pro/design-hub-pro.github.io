@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Movely — Analysis</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0612; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:100px; background:#0A0612; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; color:#fff; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; color:#fff; }
+
+  /* Header */
+  .nav-header { padding:8px 28px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .back-btn { width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; color:#fff; }
+  .back-btn i { font-size:14px; }
+  .nav-title { font-size:14px; font-weight:800; color:#fff; }
+  .nav-action { font-size:12px; color:#FF6BA1; font-weight:700; }
+
+  /* Score Hero */
+  .score-hero { padding:8px 28px 0; text-align:center; position:relative; }
+  .move-label { font-size:11px; color:rgba(255,255,255,0.5); font-weight:700; letter-spacing:2px; text-transform:uppercase; }
+  .move-name { font-size:22px; font-weight:800; color:#fff; margin-top:4px; letter-spacing:-0.5px; }
+
+  .ring-wrap { display:flex; justify-content:center; margin:14px 0 8px; position:relative; }
+  .ring { width:200px; height:200px; position:relative; }
+  .ring svg { transform:rotate(-90deg); }
+  .ring-bg { stroke:rgba(255,255,255,0.06); fill:none; }
+  .ring-fill { stroke:url(#scoreGrad); fill:none; stroke-linecap:round; filter:drop-shadow(0 0 12px rgba(255,27,107,0.5)); }
+  .ring-inner { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .ring-score { font-size:64px; font-weight:900; letter-spacing:-3px; line-height:1; background:linear-gradient(135deg,#FF1B6B,#A855F7,#00E5FF); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .ring-grade { font-size:13px; font-weight:800; color:#FFD600; margin-top:6px; letter-spacing:1px; }
+  .ring-rank { font-size:10px; color:rgba(255,255,255,0.5); font-weight:600; margin-top:2px; }
+
+  .badges-row { display:flex; justify-content:center; gap:8px; margin-bottom:18px; }
+  .badge-chip { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); padding:6px 12px; border-radius:30px; display:flex; align-items:center; gap:6px; }
+  .badge-chip i { font-size:10px; }
+  .badge-chip span { font-size:10px; font-weight:700; color:#fff; }
+  .badge-chip.gold { border-color:rgba(255,214,0,0.4); background:rgba(255,214,0,0.08); }
+  .badge-chip.gold i { color:#FFD600; }
+  .badge-chip.cyan i { color:#00E5FF; }
+  .badge-chip.pink i { color:#FF6BA1; }
+
+  /* Side-by-side video comparison */
+  .compare { margin:0 28px; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .compare-card { border-radius:18px; overflow:hidden; position:relative; height:200px; }
+  .compare-card img { width:100%; height:100%; object-fit:cover; }
+  .compare-overlay { position:absolute; inset:0; background:linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.85) 100%); }
+  .compare-label { position:absolute; top:8px; left:8px; padding:4px 8px; border-radius:8px; font-size:9px; font-weight:800; letter-spacing:0.5px; }
+  .compare-label.you { background:linear-gradient(135deg,#FF1B6B,#A855F7); color:#fff; }
+  .compare-label.coach { background:rgba(0,229,255,0.85); color:#0A0612; }
+  .compare-play { position:absolute; bottom:10px; left:10px; right:10px; display:flex; justify-content:space-between; align-items:center; }
+  .play-mini { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.9); display:flex; align-items:center; justify-content:center; }
+  .play-mini i { font-size:11px; color:#0A0612; }
+  .compare-time { font-size:10px; font-weight:800; color:#fff; }
+
+  .sync-bar { margin:12px 28px 0; background:rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.25); border-radius:14px; padding:10px 14px; display:flex; align-items:center; gap:10px; }
+  .sync-bar i { color:#00E5FF; font-size:13px; }
+  .sync-bar .sync-text { flex:1; font-size:11px; color:rgba(255,255,255,0.7); font-weight:600; }
+  .sync-bar .sync-text strong { color:#fff; }
+  .sync-bar .sync-pct { font-size:14px; font-weight:900; color:#00E5FF; }
+
+  /* Section header */
+  .section-header { padding:24px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .section-title { font-size:16px; font-weight:800; color:#fff; letter-spacing:-0.3px; }
+
+  /* Breakdown bars */
+  .breakdown { margin:0 28px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:18px; }
+  .bd-row { display:flex; align-items:center; gap:12px; }
+  .bd-row + .bd-row { margin-top:14px; }
+  .bd-icon { width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .bd-icon i { font-size:13px; color:#fff; }
+  .bd-info { flex:1; min-width:0; }
+  .bd-top { display:flex; justify-content:space-between; align-items:baseline; }
+  .bd-name { font-size:12px; font-weight:700; color:#fff; }
+  .bd-val { font-size:13px; font-weight:900; color:#fff; letter-spacing:-0.5px; }
+  .bd-bar-bg { height:5px; background:rgba(255,255,255,0.08); border-radius:3px; margin-top:6px; overflow:hidden; }
+  .bd-bar-fill { height:100%; border-radius:3px; }
+
+  /* AI Feedback */
+  .feedback-card { margin:14px 28px 0; padding:18px; border-radius:20px; background:linear-gradient(135deg, rgba(168,85,247,0.15), rgba(0,229,255,0.08)); border:1px solid rgba(168,85,247,0.25); }
+  .fb-head { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .fb-ai-icon { width:34px; height:34px; border-radius:11px; background:linear-gradient(135deg,#A855F7,#00E5FF); display:flex; align-items:center; justify-content:center; }
+  .fb-ai-icon i { font-size:14px; color:#fff; }
+  .fb-ai-title { font-size:13px; font-weight:800; color:#fff; }
+  .fb-ai-sub { font-size:10px; color:rgba(255,255,255,0.5); font-weight:600; }
+  .fb-list { display:flex; flex-direction:column; gap:10px; }
+  .fb-item { display:flex; gap:10px; align-items:flex-start; }
+  .fb-dot { width:6px; height:6px; border-radius:50%; background:#B8FF1E; margin-top:6px; flex-shrink:0; box-shadow:0 0 8px #B8FF1E; }
+  .fb-dot.warn { background:#FFD600; box-shadow:0 0 8px #FFD600; }
+  .fb-text-block { flex:1; }
+  .fb-text-main { font-size:12px; font-weight:700; color:#fff; line-height:1.4; }
+  .fb-text-sub { font-size:10.5px; color:rgba(255,255,255,0.5); margin-top:2px; line-height:1.4; }
+
+  /* CTAs */
+  .cta-row { margin:18px 28px 0; display:flex; gap:10px; }
+  .cta-btn { flex:1; padding:14px; border-radius:16px; display:flex; align-items:center; justify-content:center; gap:8px; font-size:12px; font-weight:800; }
+  .cta-primary { background:linear-gradient(135deg,#FF1B6B,#A855F7); color:#fff; box-shadow:0 12px 28px rgba(255,27,107,0.35); }
+  .cta-secondary { background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.1); }
+  .cta-btn i { font-size:11px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="nav-header">
+    <div class="back-btn"><i class="fas fa-chevron-left"></i></div>
+    <div class="nav-title">Performance Analysis</div>
+    <div class="nav-action">Share</div>
+  </div>
+
+  <!-- Score Hero -->
+  <div class="score-hero">
+    <div class="move-label">RENEGADE FOOTWORK</div>
+    <div class="move-name">Take 3 · Final Score</div>
+
+    <div class="ring-wrap">
+      <div class="ring">
+        <svg width="200" height="200">
+          <defs>
+            <linearGradient id="scoreGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#FF1B6B"/>
+              <stop offset="50%" stop-color="#A855F7"/>
+              <stop offset="100%" stop-color="#00E5FF"/>
+            </linearGradient>
+          </defs>
+          <circle class="ring-bg" cx="100" cy="100" r="86" stroke-width="14"/>
+          <circle class="ring-fill" cx="100" cy="100" r="86" stroke-width="14" stroke-dasharray="540" stroke-dashoffset="65"/>
+        </svg>
+        <div class="ring-inner">
+          <div class="ring-score">94</div>
+          <div class="ring-grade">A · ELITE</div>
+          <div class="ring-rank">Top 4% globally</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="badges-row">
+      <div class="badge-chip gold"><i class="fas fa-crown"></i><span>Personal Best</span></div>
+      <div class="badge-chip"><i class="fas fa-bolt" style="color:#A855F7"></i><span>+340 XP</span></div>
+      <div class="badge-chip pink"><i class="fas fa-heart"></i><span>On-Beat 96%</span></div>
+    </div>
+  </div>
+
+  <!-- Side-by-side -->
+  <div class="compare">
+    <div class="compare-card">
+      <img src="https://images.unsplash.com/photo-1581022295087-35e593704911?w=500&q=85" alt="">
+      <div class="compare-overlay"></div>
+      <div class="compare-label you">YOU</div>
+      <div class="compare-play"><div class="play-mini"><i class="fas fa-play"></i></div><div class="compare-time">0:32</div></div>
+    </div>
+    <div class="compare-card">
+      <img src="https://images.unsplash.com/photo-1547153760-18fc86324498?w=500&q=85" alt="">
+      <div class="compare-overlay"></div>
+      <div class="compare-label coach">COACH</div>
+      <div class="compare-play"><div class="play-mini"><i class="fas fa-play"></i></div><div class="compare-time">0:32</div></div>
+    </div>
+  </div>
+
+  <div class="sync-bar">
+    <i class="fas fa-link"></i>
+    <div class="sync-text"><strong>Pose-by-pose sync</strong> — frames aligned to reference</div>
+    <div class="sync-pct">96%</div>
+  </div>
+
+  <!-- Breakdown -->
+  <div class="section-header"><div class="section-title">Score Breakdown</div></div>
+  <div class="breakdown">
+    <div class="bd-row">
+      <div class="bd-icon" style="background:linear-gradient(135deg,#FF1B6B,#FF6BA1);"><i class="fas fa-music"></i></div>
+      <div class="bd-info">
+        <div class="bd-top"><div class="bd-name">Rhythm & Timing</div><div class="bd-val">96</div></div>
+        <div class="bd-bar-bg"><div class="bd-bar-fill" style="width:96%; background:linear-gradient(90deg,#FF1B6B,#FF6BA1);"></div></div>
+      </div>
+    </div>
+    <div class="bd-row">
+      <div class="bd-icon" style="background:linear-gradient(135deg,#A855F7,#7C3AED);"><i class="fas fa-person-running"></i></div>
+      <div class="bd-info">
+        <div class="bd-top"><div class="bd-name">Pose Accuracy</div><div class="bd-val">93</div></div>
+        <div class="bd-bar-bg"><div class="bd-bar-fill" style="width:93%; background:linear-gradient(90deg,#A855F7,#7C3AED);"></div></div>
+      </div>
+    </div>
+    <div class="bd-row">
+      <div class="bd-icon" style="background:linear-gradient(135deg,#00E5FF,#0085FF);"><i class="fas fa-bolt"></i></div>
+      <div class="bd-info">
+        <div class="bd-top"><div class="bd-name">Energy & Sharpness</div><div class="bd-val">91</div></div>
+        <div class="bd-bar-bg"><div class="bd-bar-fill" style="width:91%; background:linear-gradient(90deg,#00E5FF,#0085FF);"></div></div>
+      </div>
+    </div>
+    <div class="bd-row">
+      <div class="bd-icon" style="background:linear-gradient(135deg,#FFD600,#FF9500);"><i class="fas fa-fire"></i></div>
+      <div class="bd-info">
+        <div class="bd-top"><div class="bd-name">Flow & Transitions</div><div class="bd-val">88</div></div>
+        <div class="bd-bar-bg"><div class="bd-bar-fill" style="width:88%; background:linear-gradient(90deg,#FFD600,#FF9500);"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Feedback -->
+  <div class="section-header"><div class="section-title">Coach AI Notes</div></div>
+  <div class="feedback-card">
+    <div class="fb-head">
+      <div class="fb-ai-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+      <div>
+        <div class="fb-ai-title">3 tips to hit 100</div>
+        <div class="fb-ai-sub">Analyzed 33 joints across 240 frames</div>
+      </div>
+    </div>
+    <div class="fb-list">
+      <div class="fb-item">
+        <div class="fb-dot"></div>
+        <div class="fb-text-block">
+          <div class="fb-text-main">Beat 3 — drop into your knees deeper</div>
+          <div class="fb-text-sub">Your hips were 8° too high vs reference on the whip</div>
+        </div>
+      </div>
+      <div class="fb-item">
+        <div class="fb-dot warn"></div>
+        <div class="fb-text-block">
+          <div class="fb-text-main">Arm crossover at 0:18 was 0.2s late</div>
+          <div class="fb-text-sub">Practice the count "5-and-6" with a metronome</div>
+        </div>
+      </div>
+      <div class="fb-item">
+        <div class="fb-dot"></div>
+        <div class="fb-text-block">
+          <div class="fb-text-main">Freeze pose was 🔥 — hold it 0.3s longer</div>
+          <div class="fb-text-sub">Adds drama judges and audiences notice</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-row">
+    <div class="cta-btn cta-secondary"><i class="fas fa-rotate"></i>Retry</div>
+    <div class="cta-btn cta-primary"><i class="fas fa-paper-plane"></i>Post to Feed</div>
+  </div>
+</div>
+</body>
+</html>

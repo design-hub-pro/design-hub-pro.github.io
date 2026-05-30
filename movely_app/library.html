@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Movely — Library</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0612; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:108px; background:#0A0612; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; color:#fff; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; color:#fff; }
+
+  /* Header */
+  .header { padding:8px 28px 16px; display:flex; align-items:center; justify-content:space-between; }
+  .title { font-size:26px; font-weight:900; color:#fff; letter-spacing:-1px; }
+  .filter-btn { width:40px; height:40px; border-radius:12px; background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; color:#fff; }
+  .filter-btn i { font-size:14px; }
+
+  /* Search */
+  .search { margin:0 28px; background:rgba(255,255,255,0.06); border-radius:14px; padding:12px 14px; display:flex; align-items:center; gap:10px; }
+  .search i { color:rgba(255,255,255,0.5); font-size:13px; }
+  .search input { background:transparent; border:none; outline:none; color:#fff; font-size:13px; flex:1; font-family:inherit; }
+  .search-mic { width:26px; height:26px; border-radius:8px; background:linear-gradient(135deg,#FF1B6B,#A855F7); display:flex; align-items:center; justify-content:center; }
+  .search-mic i { color:#fff; font-size:11px; }
+
+  /* Genre cards */
+  .genre-grid { padding:18px 28px 0; display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .genre-card { border-radius:18px; padding:14px; position:relative; overflow:hidden; height:88px; display:flex; flex-direction:column; justify-content:space-between; }
+  .genre-card .gc-name { font-size:13px; font-weight:800; color:#fff; }
+  .genre-card .gc-count { font-size:10px; color:rgba(255,255,255,0.7); font-weight:600; }
+  .genre-card .gc-icon { position:absolute; right:-10px; bottom:-10px; font-size:60px; opacity:0.2; color:#fff; }
+  .gc-1 { background:linear-gradient(135deg,#FF1B6B,#FF6BA1); }
+  .gc-2 { background:linear-gradient(135deg,#A855F7,#7C3AED); }
+  .gc-3 { background:linear-gradient(135deg,#00E5FF,#0085FF); }
+  .gc-4 { background:linear-gradient(135deg,#FFD600,#FF9500); }
+
+  /* Section header */
+  .section-header { padding:22px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .section-title { font-size:16px; font-weight:800; color:#fff; letter-spacing:-0.3px; }
+  .section-link { font-size:11px; color:#FF6BA1; font-weight:700; }
+
+  /* Featured class — big */
+  .feature-card { margin:0 28px; border-radius:24px; overflow:hidden; position:relative; height:200px; }
+  .feature-card img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .feature-overlay { position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.85) 100%); }
+  .feature-top { position:absolute; top:14px; left:14px; right:14px; display:flex; justify-content:space-between; }
+  .feature-tag { background:rgba(255,27,107,0.92); padding:5px 10px; border-radius:8px; font-size:9px; font-weight:800; letter-spacing:0.5px; color:#fff; }
+  .feature-likes { background:rgba(0,0,0,0.5); backdrop-filter:blur(10px); padding:5px 10px; border-radius:8px; font-size:10px; font-weight:700; color:#fff; display:flex; align-items:center; gap:5px; }
+  .feature-likes i { color:#FF1B6B; }
+  .feature-play { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:56px; height:56px; border-radius:50%; background:rgba(255,255,255,0.95); display:flex; align-items:center; justify-content:center; box-shadow:0 12px 28px rgba(0,0,0,0.3); }
+  .feature-play i { font-size:18px; color:#0A0612; }
+  .feature-bottom { position:absolute; bottom:14px; left:14px; right:14px; }
+  .feature-genre { font-size:9px; color:#00E5FF; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+  .feature-name { font-size:18px; font-weight:900; color:#fff; line-height:1.1; margin-top:3px; letter-spacing:-0.5px; }
+  .feature-row { display:flex; align-items:center; justify-content:space-between; margin-top:8px; }
+  .feature-instr { display:flex; align-items:center; gap:6px; }
+  .feature-instr img { width:18px; height:18px; border-radius:50%; object-fit:cover; }
+  .feature-instr span { font-size:11px; color:#fff; font-weight:600; }
+  .feature-duration { font-size:10px; color:rgba(255,255,255,0.7); font-weight:700; display:flex; align-items:center; gap:4px; }
+
+  /* List items */
+  .lesson-list { padding:14px 28px 0; display:flex; flex-direction:column; gap:10px; }
+  .lesson-row { display:flex; gap:12px; align-items:center; }
+  .lesson-thumb { width:96px; height:60px; border-radius:14px; overflow:hidden; position:relative; flex-shrink:0; }
+  .lesson-thumb img { width:100%; height:100%; object-fit:cover; }
+  .lesson-thumb-play { position:absolute; inset:0; background:rgba(0,0,0,0.25); display:flex; align-items:center; justify-content:center; }
+  .lesson-thumb-play i { font-size:14px; color:#fff; }
+  .lesson-thumb-time { position:absolute; bottom:4px; right:4px; background:rgba(0,0,0,0.7); padding:2px 5px; border-radius:5px; font-size:8.5px; font-weight:800; color:#fff; }
+  .lesson-info { flex:1; min-width:0; }
+  .lesson-genre { font-size:9px; color:#00E5FF; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; }
+  .lesson-name { font-size:13px; font-weight:700; color:#fff; margin-top:2px; }
+  .lesson-meta { font-size:10px; color:rgba(255,255,255,0.5); margin-top:3px; display:flex; align-items:center; gap:8px; }
+  .lesson-meta span { display:flex; align-items:center; gap:4px; }
+  .lesson-progress { width:42px; height:42px; flex-shrink:0; position:relative; }
+  .lesson-progress svg { transform:rotate(-90deg); }
+  .lesson-progress-text { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#fff; }
+
+  /* Tab bar */
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(10,6,18,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:19px; color:rgba(255,255,255,0.3); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.3); font-weight:600; }
+  .tab-item.active i { color:#FF1B6B; }
+  .tab-item.active span { color:#fff; }
+  .tab-rec-btn { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#FF1B6B,#A855F7); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 10px 28px rgba(255,27,107,0.5); border:3px solid #0A0612; }
+  .tab-rec-btn i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div class="title">Library</div>
+    <div class="filter-btn"><i class="fas fa-sliders"></i></div>
+  </div>
+
+  <div class="search">
+    <i class="fas fa-search"></i>
+    <input type="text" placeholder="Search moves, songs, coaches...">
+    <div class="search-mic"><i class="fas fa-microphone"></i></div>
+  </div>
+
+  <!-- Genre cards -->
+  <div class="genre-grid">
+    <div class="genre-card gc-1">
+      <div class="gc-icon"><i class="fas fa-fire"></i></div>
+      <div class="gc-name">Hip-Hop</div>
+      <div class="gc-count">218 moves</div>
+    </div>
+    <div class="genre-card gc-2">
+      <div class="gc-icon"><i class="fas fa-heart"></i></div>
+      <div class="gc-name">K-Pop</div>
+      <div class="gc-count">142 moves</div>
+    </div>
+    <div class="genre-card gc-3">
+      <div class="gc-icon"><i class="fas fa-wind"></i></div>
+      <div class="gc-name">Contemporary</div>
+      <div class="gc-count">96 moves</div>
+    </div>
+    <div class="genre-card gc-4">
+      <div class="gc-icon"><i class="fas fa-bolt"></i></div>
+      <div class="gc-name">Jazz Funk</div>
+      <div class="gc-count">74 moves</div>
+    </div>
+  </div>
+
+  <!-- Featured -->
+  <div class="section-header">
+    <div class="section-title">Trending This Week</div>
+    <div class="section-link">All</div>
+  </div>
+  <div class="feature-card">
+    <img src="https://images.unsplash.com/photo-1525909002-1b05e0c869d8?w=900&q=85" alt="">
+    <div class="feature-overlay"></div>
+    <div class="feature-top">
+      <div class="feature-tag">🔥 #1 TRENDING</div>
+      <div class="feature-likes"><i class="fas fa-heart"></i>48.2K</div>
+    </div>
+    <div class="feature-play"><i class="fas fa-play"></i></div>
+    <div class="feature-bottom">
+      <div class="feature-genre">Hip-Hop · Viral</div>
+      <div class="feature-name">Renegade Footwork</div>
+      <div class="feature-row">
+        <div class="feature-instr">
+          <img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=80&q=80" alt="">
+          <span>Coach Jaylen</span>
+        </div>
+        <div class="feature-duration"><i class="fas fa-circle-play"></i>4:20 · 32s combo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Continue learning -->
+  <div class="section-header">
+    <div class="section-title">Continue Learning</div>
+    <div class="section-link">History</div>
+  </div>
+  <div class="lesson-list">
+
+    <div class="lesson-row">
+      <div class="lesson-thumb">
+        <img src="https://images.unsplash.com/photo-1547153760-18fc86324498?w=400&q=85" alt="">
+        <div class="lesson-thumb-play"><i class="fas fa-play"></i></div>
+        <div class="lesson-thumb-time">3:10</div>
+      </div>
+      <div class="lesson-info">
+        <div class="lesson-genre">K-Pop</div>
+        <div class="lesson-name">SuperShy — Chorus</div>
+        <div class="lesson-meta">
+          <span><i class="fas fa-user"></i>Coach Mina</span>
+          <span><i class="fas fa-trophy" style="color:#FFD600"></i>88</span>
+        </div>
+      </div>
+      <div class="lesson-progress">
+        <svg width="42" height="42">
+          <circle cx="21" cy="21" r="17" stroke="rgba(255,255,255,0.1)" stroke-width="3" fill="none"/>
+          <circle cx="21" cy="21" r="17" stroke="#FF1B6B" stroke-width="3" fill="none" stroke-dasharray="107" stroke-dashoffset="30" stroke-linecap="round"/>
+        </svg>
+        <div class="lesson-progress-text">72%</div>
+      </div>
+    </div>
+
+    <div class="lesson-row">
+      <div class="lesson-thumb">
+        <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=85" alt="">
+        <div class="lesson-thumb-play"><i class="fas fa-play"></i></div>
+        <div class="lesson-thumb-time">5:50</div>
+      </div>
+      <div class="lesson-info">
+        <div class="lesson-genre">Contemporary</div>
+        <div class="lesson-name">Floor Flow Combo</div>
+        <div class="lesson-meta">
+          <span><i class="fas fa-user"></i>Coach Eli</span>
+          <span><i class="fas fa-clock"></i>2 days ago</span>
+        </div>
+      </div>
+      <div class="lesson-progress">
+        <svg width="42" height="42">
+          <circle cx="21" cy="21" r="17" stroke="rgba(255,255,255,0.1)" stroke-width="3" fill="none"/>
+          <circle cx="21" cy="21" r="17" stroke="#A855F7" stroke-width="3" fill="none" stroke-dasharray="107" stroke-dashoffset="64" stroke-linecap="round"/>
+        </svg>
+        <div class="lesson-progress-text">40%</div>
+      </div>
+    </div>
+
+    <div class="lesson-row">
+      <div class="lesson-thumb">
+        <img src="https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=400&q=85" alt="">
+        <div class="lesson-thumb-play"><i class="fas fa-play"></i></div>
+        <div class="lesson-thumb-time">4:20</div>
+      </div>
+      <div class="lesson-info">
+        <div class="lesson-genre">Hip-Hop · Daily Challenge</div>
+        <div class="lesson-name">Eight-Count Combo</div>
+        <div class="lesson-meta">
+          <span><i class="fas fa-user"></i>Coach Jaylen</span>
+          <span><i class="fas fa-trophy" style="color:#FFD600"></i>94</span>
+        </div>
+      </div>
+      <div class="lesson-progress">
+        <svg width="42" height="42">
+          <circle cx="21" cy="21" r="17" stroke="rgba(255,255,255,0.1)" stroke-width="3" fill="none"/>
+          <circle cx="21" cy="21" r="17" stroke="#00E5FF" stroke-width="3" fill="none" stroke-dasharray="107" stroke-dashoffset="0" stroke-linecap="round"/>
+        </svg>
+        <div class="lesson-progress-text" style="color:#00E5FF">✓</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item active"><i class="fas fa-grip"></i><span>Library</span></div>
+    <div class="tab-item"><button class="tab-rec-btn"><i class="fas fa-video"></i></button></div>
+    <div class="tab-item"><i class="fas fa-medal"></i><span>Ranks</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Me</span></div>
+  </div>
+</div>
+</body>
+</html>

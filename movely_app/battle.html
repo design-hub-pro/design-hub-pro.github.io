@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Movely — Battle</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0612; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow:hidden; background:#0A0612; }
+
+  .bg-orbs { position:absolute; inset:0; overflow:hidden; }
+  .orb { position:absolute; border-radius:50%; filter:blur(60px); }
+  .orb-1 { width:300px; height:300px; background:radial-gradient(circle, rgba(255,27,107,0.5), transparent); top:-80px; left:-60px; }
+  .orb-2 { width:340px; height:340px; background:radial-gradient(circle, rgba(0,229,255,0.4), transparent); bottom:-80px; right:-80px; }
+  .orb-3 { width:220px; height:220px; background:radial-gradient(circle, rgba(168,85,247,0.4), transparent); top:380px; left:50%; transform:translateX(-50%); }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; color:#fff; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; color:#fff; }
+
+  .nav { padding:8px 28px 14px; display:flex; align-items:center; justify-content:space-between; position:relative; z-index:10; }
+  .back-btn { width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; color:#fff; }
+  .nav-title { font-size:14px; font-weight:800; color:#fff; }
+  .nav-share { width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; color:#fff; }
+
+  .battle-tag { display:flex; justify-content:center; margin-top:6px; position:relative; z-index:5; }
+  .tag-inner { display:inline-flex; align-items:center; gap:8px; background:rgba(255,27,107,0.15); border:1px solid rgba(255,27,107,0.4); backdrop-filter:blur(10px); padding:7px 16px; border-radius:30px; }
+  .tag-inner i { color:#FF1B6B; font-size:11px; }
+  .tag-inner span { font-size:11px; font-weight:800; color:#FF6BA1; letter-spacing:1px; }
+
+  .battle-headline { text-align:center; padding:18px 28px 24px; position:relative; z-index:5; }
+  .battle-headline h1 { font-size:30px; font-weight:900; letter-spacing:-1px; line-height:1.05; }
+  .battle-headline h1 .grad { background:linear-gradient(135deg,#FF1B6B,#A855F7,#00E5FF); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .battle-headline p { font-size:12px; color:rgba(255,255,255,0.55); margin-top:6px; }
+
+  /* Versus card */
+  .vs-card { margin:0 28px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:24px; padding:20px; position:relative; z-index:5; backdrop-filter:blur(20px); }
+  .vs-row { display:grid; grid-template-columns:1fr auto 1fr; gap:16px; align-items:center; }
+  .vs-side { text-align:center; }
+  .vs-avatar { width:80px; height:80px; border-radius:24px; margin:0 auto 10px; position:relative; }
+  .vs-avatar img { width:100%; height:100%; border-radius:24px; object-fit:cover; }
+  .vs-side.me .vs-avatar { box-shadow:0 0 0 3px #FF1B6B, 0 16px 32px rgba(255,27,107,0.4); }
+  .vs-side.opp .vs-avatar { box-shadow:0 0 0 3px #00E5FF, 0 16px 32px rgba(0,229,255,0.4); }
+  .vs-name { font-size:13px; font-weight:800; color:#fff; }
+  .vs-handle { font-size:10px; color:rgba(255,255,255,0.5); margin-top:2px; }
+  .vs-stat-row { margin-top:10px; display:flex; justify-content:center; gap:10px; }
+  .vs-stat { background:rgba(255,255,255,0.06); padding:4px 8px; border-radius:8px; font-size:10px; font-weight:700; }
+  .vs-stat.fire { color:#FF6B1E; }
+  .vs-stat.best { color:#FFD600; }
+  .vs-divider { display:flex; align-items:center; justify-content:center; flex-direction:column; gap:6px; }
+  .vs-letters { font-size:32px; font-weight:900; background:linear-gradient(135deg,#FF1B6B,#00E5FF); -webkit-background-clip:text; -webkit-text-fill-color:transparent; letter-spacing:-2px; }
+  .vs-lightning { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#FFD600,#FF9500); display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px rgba(255,214,0,0.4); }
+  .vs-lightning i { font-size:14px; color:#0A0612; }
+
+  /* Routine card */
+  .routine-card { margin:14px 28px 0; padding:16px; border-radius:20px; background:linear-gradient(135deg, rgba(168,85,247,0.18), rgba(255,27,107,0.12)); border:1px solid rgba(168,85,247,0.25); display:flex; align-items:center; gap:14px; position:relative; z-index:5; }
+  .rc-cover { width:62px; height:62px; border-radius:16px; overflow:hidden; flex-shrink:0; }
+  .rc-cover img { width:100%; height:100%; object-fit:cover; }
+  .rc-info { flex:1; }
+  .rc-label { font-size:9.5px; color:#00E5FF; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+  .rc-name { font-size:14px; font-weight:800; color:#fff; margin-top:2px; }
+  .rc-meta { font-size:10.5px; color:rgba(255,255,255,0.55); margin-top:3px; display:flex; align-items:center; gap:8px; }
+  .rc-meta span { display:flex; align-items:center; gap:4px; }
+  .rc-prize { background:rgba(255,214,0,0.15); border:1px solid rgba(255,214,0,0.35); padding:8px 10px; border-radius:12px; text-align:center; }
+  .rc-prize-val { font-size:13px; font-weight:900; color:#FFD600; letter-spacing:-0.3px; }
+  .rc-prize-lbl { font-size:8.5px; color:rgba(255,214,0,0.7); font-weight:700; margin-top:2px; letter-spacing:0.5px; }
+
+  /* Stakes & rules */
+  .stakes { margin:14px 28px 0; position:relative; z-index:5; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .stake { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:12px 8px; text-align:center; }
+  .stake-icon { width:28px; height:28px; border-radius:9px; display:flex; align-items:center; justify-content:center; margin:0 auto 8px; }
+  .stake-icon i { font-size:12px; color:#fff; }
+  .stake-val { font-size:13px; font-weight:800; color:#fff; letter-spacing:-0.3px; }
+  .stake-lbl { font-size:9px; color:rgba(255,255,255,0.5); font-weight:600; margin-top:2px; letter-spacing:0.3px; }
+
+  /* Countdown */
+  .countdown { margin:14px 28px 0; position:relative; z-index:5; background:rgba(0,0,0,0.45); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:14px; display:flex; align-items:center; gap:12px; }
+  .cd-icon { width:42px; height:42px; border-radius:14px; background:linear-gradient(135deg,#FF1B6B,#A855F7); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .cd-icon i { font-size:16px; color:#fff; }
+  .cd-info { flex:1; }
+  .cd-title { font-size:12px; font-weight:800; color:#fff; }
+  .cd-sub { font-size:10px; color:rgba(255,255,255,0.55); margin-top:2px; }
+  .cd-time { font-size:20px; font-weight:900; color:#FFD600; letter-spacing:-1px; }
+
+  /* CTAs */
+  .cta-stack { position:absolute; bottom:0; left:0; right:0; padding:20px 28px 36px; background:linear-gradient(180deg, transparent 0%, rgba(10,6,18,0.95) 50%, #0A0612 100%); z-index:10; }
+  .cta-primary { background:linear-gradient(135deg,#FF1B6B 0%, #A855F7 100%); color:#fff; padding:18px; border-radius:18px; display:flex; align-items:center; justify-content:center; gap:10px; font-size:15px; font-weight:800; letter-spacing:0.3px; box-shadow:0 16px 40px rgba(255,27,107,0.4); margin-bottom:10px; }
+  .cta-primary i { font-size:14px; }
+  .cta-secondary { color:rgba(255,255,255,0.6); padding:8px; text-align:center; font-size:12px; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="nav">
+    <div class="back-btn"><i class="fas fa-chevron-left"></i></div>
+    <div class="nav-title">Battle Request</div>
+    <div class="nav-share"><i class="fas fa-share-nodes"></i></div>
+  </div>
+
+  <div class="battle-tag">
+    <div class="tag-inner"><i class="fas fa-bolt"></i><span>1-ON-1 BATTLE · LIVE STAKES</span></div>
+  </div>
+
+  <div class="battle-headline">
+    <h1>Maya <span class="grad">VS</span> Zara</h1>
+    <p>Best score in 24h wins the crown.</p>
+  </div>
+
+  <div class="vs-card">
+    <div class="vs-row">
+      <div class="vs-side me">
+        <div class="vs-avatar">
+          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&q=85" alt="">
+        </div>
+        <div class="vs-name">You · Maya</div>
+        <div class="vs-handle">@mayadance</div>
+        <div class="vs-stat-row">
+          <div class="vs-stat fire">🔥 14</div>
+          <div class="vs-stat best">★ 94</div>
+        </div>
+      </div>
+
+      <div class="vs-divider">
+        <div class="vs-letters">VS</div>
+        <div class="vs-lightning"><i class="fas fa-bolt"></i></div>
+      </div>
+
+      <div class="vs-side opp">
+        <div class="vs-avatar">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&q=85" alt="">
+        </div>
+        <div class="vs-name">Zara K.</div>
+        <div class="vs-handle">@zaramoves</div>
+        <div class="vs-stat-row">
+          <div class="vs-stat fire">🔥 28</div>
+          <div class="vs-stat best">★ 96</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="routine-card">
+    <div class="rc-cover">
+      <img src="https://images.unsplash.com/photo-1535525153412-5a42439a210d?w=300&q=85" alt="">
+    </div>
+    <div class="rc-info">
+      <div class="rc-label">Battle Routine</div>
+      <div class="rc-name">Renegade Footwork</div>
+      <div class="rc-meta">
+        <span><i class="fas fa-clock" style="color:#FF6BA1"></i>32s</span>
+        <span><i class="fas fa-signal" style="color:#A855F7"></i>Intermediate</span>
+      </div>
+    </div>
+    <div class="rc-prize">
+      <div class="rc-prize-val">500</div>
+      <div class="rc-prize-lbl">XP POT</div>
+    </div>
+  </div>
+
+  <div class="stakes">
+    <div class="stake">
+      <div class="stake-icon" style="background:linear-gradient(135deg,#FFD600,#FF9500);"><i class="fas fa-trophy"></i></div>
+      <div class="stake-val">+500</div>
+      <div class="stake-lbl">XP PRIZE</div>
+    </div>
+    <div class="stake">
+      <div class="stake-icon" style="background:linear-gradient(135deg,#A855F7,#7C3AED);"><i class="fas fa-rotate"></i></div>
+      <div class="stake-val">3</div>
+      <div class="stake-lbl">TRIES EACH</div>
+    </div>
+    <div class="stake">
+      <div class="stake-icon" style="background:linear-gradient(135deg,#00E5FF,#0085FF);"><i class="fas fa-users"></i></div>
+      <div class="stake-val">12</div>
+      <div class="stake-lbl">JUDGES</div>
+    </div>
+  </div>
+
+  <div class="countdown">
+    <div class="cd-icon"><i class="fas fa-hourglass-half"></i></div>
+    <div class="cd-info">
+      <div class="cd-title">Battle ends in</div>
+      <div class="cd-sub">Both dancers locked in · Friends watching</div>
+    </div>
+    <div class="cd-time">23:47</div>
+  </div>
+
+  <div class="cta-stack">
+    <div class="cta-primary"><i class="fas fa-bolt"></i>Accept & Dance Now</div>
+    <div class="cta-secondary">Decline battle</div>
+  </div>
+</div>
+</body>
+</html>
