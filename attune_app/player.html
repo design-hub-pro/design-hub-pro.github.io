@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Attune — Now Playing</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0A18; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow:hidden; background:radial-gradient(120% 80% at 50% 0%, #20184A 0%, #0A0A18 55%); }
+
+  .orb { position:absolute; border-radius:50%; filter:blur(70px); opacity:0.4; }
+  .orb1 { width:240px; height:240px; background:#7C5CFF; top:60px; left:-60px; }
+  .orb2 { width:220px; height:220px; background:#2DD4FF; bottom:120px; right:-70px; opacity:0.3; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .content { position:relative; z-index:10; padding:0 28px; height:100%; display:flex; flex-direction:column; }
+
+  .top-bar { display:flex; align-items:center; justify-content:space-between; padding-top:4px; }
+  .top-btn { width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; }
+  .top-btn i { font-size:15px; }
+  .top-mid { text-align:center; }
+  .top-mid .tm-label { font-size:10px; color:rgba(255,255,255,0.45); font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+  .top-mid .tm-mode { font-size:13px; font-weight:800; margin-top:2px; }
+
+  /* Album + focus ring */
+  .art-wrap { position:relative; width:262px; height:262px; margin:26px auto 0; }
+  .focus-ring { position:absolute; inset:-14px; transform:rotate(-90deg); }
+  .art { position:absolute; inset:0; border-radius:34px; overflow:hidden; box-shadow:0 30px 70px rgba(124,92,255,0.45); }
+  .art img { width:100%; height:100%; object-fit:cover; }
+  .art-glow { position:absolute; inset:0; border-radius:34px; box-shadow:inset 0 0 0 1px rgba(255,255,255,0.12); }
+  .live-pill { position:absolute; top:14px; left:14px; z-index:3; display:flex; align-items:center; gap:6px; background:rgba(10,10,24,0.55); backdrop-filter:blur(10px); padding:6px 11px; border-radius:30px; font-size:10px; font-weight:800; letter-spacing:0.4px; }
+  .live-dot { width:7px; height:7px; border-radius:50%; background:#34E0A1; box-shadow:0 0 10px #34E0A1; animation:pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{ opacity:1; } 50%{ opacity:0.35; } }
+
+  /* Track info */
+  .track-info { text-align:center; margin-top:34px; }
+  .track-name { font-size:25px; font-weight:900; letter-spacing:-0.8px; }
+  .track-sub { font-size:13px; color:rgba(255,255,255,0.5); margin-top:6px; }
+  .track-tags { display:flex; justify-content:center; gap:8px; margin-top:14px; }
+  .ttag { background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); padding:5px 11px; border-radius:30px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.7); display:flex; align-items:center; gap:5px; }
+  .ttag i { font-size:9px; color:#2DD4FF; }
+
+  /* Visualizer / progress */
+  .viz { display:flex; align-items:flex-end; justify-content:center; gap:3px; height:40px; margin-top:24px; }
+  .viz span { width:4px; border-radius:3px; background:linear-gradient(180deg,#2DD4FF,#7C5CFF); animation:wave 1.2s ease-in-out infinite; }
+  @keyframes wave { 0%,100%{ height:8px; } 50%{ height:38px; } }
+  .viz span:nth-child(odd){ animation-delay:.25s; }
+  .viz span:nth-child(3n){ animation-delay:.5s; }
+  .viz span:nth-child(4n){ animation-delay:.15s; }
+
+  .progress { margin-top:18px; }
+  .prog-track { height:5px; border-radius:4px; background:rgba(255,255,255,0.12); position:relative; }
+  .prog-fill { position:absolute; left:0; top:0; height:100%; width:42%; border-radius:4px; background:linear-gradient(90deg,#7C5CFF,#2DD4FF); }
+  .prog-knob { position:absolute; left:42%; top:50%; transform:translate(-50%,-50%); width:13px; height:13px; border-radius:50%; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.4); }
+  .prog-times { display:flex; justify-content:space-between; margin-top:8px; font-size:11px; color:rgba(255,255,255,0.5); font-weight:600; }
+
+  /* Controls */
+  .controls { display:flex; align-items:center; justify-content:center; gap:26px; margin-top:18px; }
+  .ctrl { font-size:24px; color:rgba(255,255,255,0.75); }
+  .ctrl-main { width:74px; height:74px; border-radius:50%; background:linear-gradient(135deg,#7C5CFF,#2DD4FF); display:flex; align-items:center; justify-content:center; box-shadow:0 14px 36px rgba(124,92,255,0.5); }
+  .ctrl-main i { font-size:26px; color:#fff; }
+
+  /* Focus tracker bar */
+  .focus-bar { margin-top:auto; margin-bottom:22px; background:rgba(124,92,255,0.1); border:1px solid rgba(124,92,255,0.28); border-radius:20px; padding:14px 16px; display:flex; align-items:center; gap:13px; }
+  .fb-icon { width:40px; height:40px; border-radius:13px; background:linear-gradient(135deg,#34E0A1,#16A974); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .fb-icon i { font-size:17px; color:#0A0A18; }
+  .fb-text { flex:1; }
+  .fb-title { font-size:13px; font-weight:800; }
+  .fb-sub { font-size:11px; color:rgba(255,255,255,0.55); margin-top:2px; }
+  .fb-live { font-size:22px; font-weight:900; color:#34E0A1; letter-spacing:-0.5px; }
+  .fb-live span { font-size:11px; color:rgba(255,255,255,0.4); font-weight:600; display:block; text-align:right; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="content">
+    <div class="top-bar">
+      <div class="top-btn"><i class="fas fa-chevron-down"></i></div>
+      <div class="top-mid">
+        <div class="tm-label">Focus Session · 24:18 left</div>
+        <div class="tm-mode">Deep Work Flow State</div>
+      </div>
+      <div class="top-btn"><i class="fas fa-ellipsis"></i></div>
+    </div>
+
+    <div class="art-wrap">
+      <svg class="focus-ring" viewBox="0 0 290 290" width="290" height="290">
+        <circle cx="145" cy="145" r="138" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="5"/>
+        <circle cx="145" cy="145" r="138" fill="none" stroke="url(#g)" stroke-width="5" stroke-linecap="round" stroke-dasharray="867" stroke-dashoffset="503"/>
+        <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C5CFF"/><stop offset="1" stop-color="#2DD4FF"/></linearGradient></defs>
+      </svg>
+      <div class="art">
+        <div class="live-pill"><span class="live-dot"></span>TRACKING FOCUS</div>
+        <img src="https://images.unsplash.com/photo-1557682224-5b8590cd9ec5?w=700&q=85" alt="">
+      </div>
+      <div class="art-glow"></div>
+    </div>
+
+    <div class="track-info">
+      <div class="track-name">Suspended Light</div>
+      <div class="track-sub">Atlas Drift · Alpha Lo-Fi</div>
+      <div class="track-tags">
+        <div class="ttag"><i class="fas fa-wave-square"></i>62 BPM</div>
+        <div class="ttag"><i class="fas fa-brain"></i>Alpha waves</div>
+        <div class="ttag"><i class="fas fa-volume-low"></i>No vocals</div>
+      </div>
+    </div>
+
+    <div class="viz">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+
+    <div class="progress">
+      <div class="prog-track">
+        <div class="prog-fill"></div>
+        <div class="prog-knob"></div>
+      </div>
+      <div class="prog-times"><span>1:48</span><span>4:12</span></div>
+    </div>
+
+    <div class="controls">
+      <i class="fas fa-backward-step ctrl"></i>
+      <i class="fas fa-thumbs-up ctrl"></i>
+      <div class="ctrl-main"><i class="fas fa-pause"></i></div>
+      <i class="fas fa-thumbs-down ctrl"></i>
+      <i class="fas fa-forward-step ctrl"></i>
+    </div>
+
+    <div class="focus-bar">
+      <div class="fb-icon"><i class="fas fa-bullseye"></i></div>
+      <div class="fb-text">
+        <div class="fb-title">Focus holding steady</div>
+        <div class="fb-sub">Attune is sensing your rhythm in real time</div>
+      </div>
+      <div class="fb-live">91<span>LIVE</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

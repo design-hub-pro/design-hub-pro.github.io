@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Attune — Discover</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0A18; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:112px; background:#0A0A18; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .head { padding:6px 28px 4px; }
+  .head h1 { font-size:26px; font-weight:900; letter-spacing:-0.8px; }
+  .search { margin:14px 28px 0; height:46px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:15px; display:flex; align-items:center; gap:10px; padding:0 16px; }
+  .search i { font-size:14px; color:rgba(255,255,255,0.4); }
+  .search span { font-size:14px; color:rgba(255,255,255,0.4); }
+
+  .section-header { padding:24px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .section-title { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+  .section-link { font-size:11px; color:#2DD4FF; font-weight:700; }
+
+  /* Science-backed category cards */
+  .cat-grid { padding:0 28px; display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+  .cat { border-radius:20px; padding:16px; height:118px; position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between; }
+  .cat::after { content:''; position:absolute; right:-18px; bottom:-18px; width:80px; height:80px; border-radius:50%; background:rgba(255,255,255,0.14); }
+  .cat-ic { width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.22); display:flex; align-items:center; justify-content:center; z-index:1; }
+  .cat-ic i { font-size:17px; color:#fff; }
+  .cat-name { font-size:15px; font-weight:800; z-index:1; }
+  .cat-sub { font-size:10.5px; color:rgba(255,255,255,0.8); margin-top:2px; z-index:1; }
+  .c1 { background:linear-gradient(135deg,#7C5CFF,#5B3FE0); }
+  .c2 { background:linear-gradient(135deg,#2DD4FF,#0090E0); }
+  .c3 { background:linear-gradient(135deg,#34E0A1,#16A974); }
+  .c4 { background:linear-gradient(135deg,#FFB020,#FF7A30); }
+
+  /* Featured playlist row */
+  .pl-scroll { display:flex; gap:14px; padding:4px 28px 0; overflow-x:auto; }
+  .pl-card { min-width:200px; flex-shrink:0; border-radius:20px; overflow:hidden; position:relative; height:130px; }
+  .pl-card img { width:100%; height:100%; object-fit:cover; }
+  .pl-ov { position:absolute; inset:0; background:linear-gradient(120deg, rgba(10,10,24,0.1), rgba(10,10,24,0.85)); }
+  .pl-body { position:absolute; inset:0; padding:14px; display:flex; flex-direction:column; justify-content:flex-end; z-index:2; }
+  .pl-tag { position:absolute; top:11px; left:11px; background:rgba(52,224,161,0.9); padding:4px 9px; border-radius:8px; font-size:9px; font-weight:800; color:#0A0A18; z-index:2; }
+  .pl-name { font-size:15px; font-weight:800; }
+  .pl-meta { font-size:10.5px; color:rgba(255,255,255,0.6); margin-top:3px; }
+
+  /* Track list */
+  .track { display:flex; align-items:center; gap:13px; padding:10px 28px; }
+  .track-art { width:52px; height:52px; border-radius:13px; object-fit:cover; flex-shrink:0; position:relative; }
+  .track-play { width:52px; height:52px; border-radius:13px; flex-shrink:0; position:relative; overflow:hidden; }
+  .track-play img { width:100%; height:100%; object-fit:cover; }
+  .track-play .pov { position:absolute; inset:0; background:rgba(0,0,0,0.35); display:flex; align-items:center; justify-content:center; }
+  .track-play .pov i { font-size:14px; color:#fff; }
+  .track-info { flex:1; min-width:0; }
+  .track-name2 { font-size:14px; font-weight:700; }
+  .track-sub2 { font-size:11px; color:rgba(255,255,255,0.45); margin-top:2px; display:flex; align-items:center; gap:8px; }
+  .track-sub2 .dot { width:3px; height:3px; border-radius:50%; background:rgba(255,255,255,0.3); }
+  .track-match { font-size:11px; font-weight:800; color:#34E0A1; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:100px; background:rgba(10,10,24,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:13px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:19px; color:rgba(255,255,255,0.3); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.3); font-weight:600; }
+  .tab-item.active i { color:#7C5CFF; }
+  .tab-item.active span { color:#fff; }
+  .tab-play { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#7C5CFF,#2DD4FF); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 10px 28px rgba(124,92,255,0.55); border:3px solid #0A0A18; }
+  .tab-play i { font-size:20px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="head">
+    <h1>Discover</h1>
+    <div class="search"><i class="fas fa-magnifying-glass"></i><span>Search sounds, moods, BPM…</span></div>
+  </div>
+
+  <div class="section-header"><div class="section-title">Science-backed for focus</div></div>
+  <div class="cat-grid">
+    <div class="cat c1">
+      <div class="cat-ic"><i class="fas fa-headphones-simple"></i></div>
+      <div><div class="cat-name">Lo-Fi</div><div class="cat-sub">Steady, low arousal</div></div>
+    </div>
+    <div class="cat c2">
+      <div class="cat-ic"><i class="fas fa-wave-square"></i></div>
+      <div><div class="cat-name">Binaural Beats</div><div class="cat-sub">40Hz gamma focus</div></div>
+    </div>
+    <div class="cat c3">
+      <div class="cat-ic"><i class="fas fa-leaf"></i></div>
+      <div><div class="cat-name">Nature & Ambient</div><div class="cat-sub">Masks noise</div></div>
+    </div>
+    <div class="cat c4">
+      <div class="cat-ic"><i class="fas fa-music"></i></div>
+      <div><div class="cat-name">Classical</div><div class="cat-sub">Baroque, 60 BPM</div></div>
+    </div>
+  </div>
+
+  <div class="section-header"><div class="section-title">Trending with students</div><div class="section-link">See all</div></div>
+  <div class="pl-scroll">
+    <div class="pl-card">
+      <img src="https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=600&q=85" alt="">
+      <div class="pl-ov"></div>
+      <div class="pl-tag">EXAM SEASON</div>
+      <div class="pl-body"><div class="pl-name">Midnight Cram</div><div class="pl-meta">142 tracks · 4.8h</div></div>
+    </div>
+    <div class="pl-card">
+      <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=600&q=85" alt="">
+      <div class="pl-ov"></div>
+      <div class="pl-tag">DEEP WORK</div>
+      <div class="pl-body"><div class="pl-name">Library Silence+</div><div class="pl-meta">96 tracks · 3.2h</div></div>
+    </div>
+    <div class="pl-card">
+      <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&q=85" alt="">
+      <div class="pl-ov"></div>
+      <div class="pl-tag">CALM</div>
+      <div class="pl-body"><div class="pl-name">Rain on Glass</div><div class="pl-meta">60 tracks · 5.0h</div></div>
+    </div>
+  </div>
+
+  <div class="section-header"><div class="section-title">Tuned to you today</div></div>
+  <div class="track">
+    <div class="track-play"><img src="https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=200&q=80" alt=""><div class="pov"><i class="fas fa-play"></i></div></div>
+    <div class="track-info">
+      <div class="track-name2">Suspended Light</div>
+      <div class="track-sub2">Atlas Drift<span class="dot"></span>62 BPM<span class="dot"></span>Alpha</div>
+    </div>
+    <div class="track-match">96%</div>
+  </div>
+  <div class="track">
+    <div class="track-play"><img src="https://images.unsplash.com/photo-1614851099511-773084f6911d?w=200&q=80" alt=""><div class="pov"><i class="fas fa-play"></i></div></div>
+    <div class="track-info">
+      <div class="track-name2">Slow Tide Theory</div>
+      <div class="track-sub2">Nuvo<span class="dot"></span>58 BPM<span class="dot"></span>Ambient</div>
+    </div>
+    <div class="track-match">93%</div>
+  </div>
+  <div class="track">
+    <div class="track-play"><img src="https://images.unsplash.com/photo-1620121692029-d088224ddc74?w=200&q=80" alt=""><div class="pov"><i class="fas fa-play"></i></div></div>
+    <div class="track-info">
+      <div class="track-name2">Quiet Circuitry</div>
+      <div class="track-sub2">Halcyon<span class="dot"></span>40Hz<span class="dot"></span>Binaural</div>
+    </div>
+    <div class="track-match">90%</div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item active"><i class="fas fa-compass"></i><span>Discover</span></div>
+    <div class="tab-item"><div class="tab-play"><i class="fas fa-play"></i></div></div>
+    <div class="tab-item"><i class="fas fa-chart-simple"></i><span>Insights</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Me</span></div>
+  </div>
+</div>
+</body>
+</html>

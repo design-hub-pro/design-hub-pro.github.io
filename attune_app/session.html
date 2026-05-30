@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Attune — New Session</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0A18; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:32px; background:#0A0A18; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .top-bar { display:flex; align-items:center; justify-content:space-between; padding:4px 28px 0; }
+  .top-btn { width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:15px; }
+  .top-title { font-size:15px; font-weight:800; }
+
+  .head { padding:18px 28px 0; }
+  .head h1 { font-size:27px; font-weight:900; letter-spacing:-0.9px; line-height:1.1; }
+  .head p { font-size:13px; color:rgba(255,255,255,0.5); margin-top:6px; }
+
+  .label { padding:24px 28px 12px; font-size:12px; font-weight:800; color:rgba(255,255,255,0.5); letter-spacing:0.5px; text-transform:uppercase; }
+
+  /* Subject chips */
+  .chip-wrap { display:flex; flex-wrap:wrap; gap:9px; padding:0 28px; }
+  .chip { padding:10px 15px; border-radius:14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); font-size:13px; font-weight:700; color:rgba(255,255,255,0.7); display:flex; align-items:center; gap:7px; }
+  .chip i { font-size:12px; }
+  .chip.sel { background:linear-gradient(135deg,#7C5CFF,#2DD4FF); border-color:transparent; color:#fff; }
+
+  /* Duration */
+  .dur-row { display:flex; gap:10px; padding:0 28px; }
+  .dur { flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:16px 8px; text-align:center; }
+  .dur.sel { background:rgba(124,92,255,0.18); border-color:rgba(124,92,255,0.55); }
+  .dur-num { font-size:22px; font-weight:900; letter-spacing:-0.6px; }
+  .dur-lbl { font-size:10px; color:rgba(255,255,255,0.45); font-weight:600; margin-top:3px; }
+  .dur.sel .dur-num { color:#9D8BFF; }
+
+  /* Mode cards */
+  .mode-list { padding:0 28px; }
+  .mode { display:flex; align-items:center; gap:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:14px; margin-bottom:10px; }
+  .mode.sel { border-color:rgba(124,92,255,0.55); background:rgba(124,92,255,0.1); }
+  .mode-ic { width:46px; height:46px; border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .mode-ic i { font-size:19px; color:#fff; }
+  .m1 { background:linear-gradient(135deg,#7C5CFF,#5B3FE0); } .m2 { background:linear-gradient(135deg,#2DD4FF,#0090E0); } .m3 { background:linear-gradient(135deg,#34E0A1,#16A974); }
+  .mode-text { flex:1; }
+  .mode-name { font-size:14px; font-weight:800; }
+  .mode-sub { font-size:11px; color:rgba(255,255,255,0.45); margin-top:2px; }
+  .mode-check { width:24px; height:24px; border-radius:50%; border:2px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; }
+  .mode.sel .mode-check { background:#7C5CFF; border-color:#7C5CFF; }
+  .mode-check i { font-size:11px; color:#fff; }
+
+  /* AI preview */
+  .preview { margin:24px 28px 0; background:linear-gradient(135deg, rgba(124,92,255,0.16), rgba(45,212,255,0.1)); border:1px solid rgba(124,92,255,0.3); border-radius:22px; padding:18px; }
+  .pv-top { display:flex; align-items:center; gap:10px; }
+  .pv-ic { width:36px; height:36px; border-radius:12px; background:linear-gradient(135deg,#7C5CFF,#2DD4FF); display:flex; align-items:center; justify-content:center; }
+  .pv-ic i { font-size:15px; color:#fff; }
+  .pv-title { font-size:13px; font-weight:800; }
+  .pv-sub { font-size:11px; color:rgba(255,255,255,0.55); margin-top:1px; }
+  .pv-stats { display:flex; gap:18px; margin-top:14px; }
+  .pv-stat { }
+  .pv-val { font-size:18px; font-weight:900; letter-spacing:-0.5px; }
+  .pv-lbl { font-size:10px; color:rgba(255,255,255,0.45); font-weight:600; margin-top:1px; }
+
+  .start-cta { margin:22px 28px 0; height:58px; border-radius:18px; background:linear-gradient(135deg,#7C5CFF,#2DD4FF); display:flex; align-items:center; justify-content:center; gap:10px; font-size:16px; font-weight:800; box-shadow:0 16px 40px rgba(124,92,255,0.45); }
+  .start-cta i { font-size:14px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="top-bar">
+    <div class="top-btn"><i class="fas fa-xmark"></i></div>
+    <div class="top-title">New Focus Session</div>
+    <div class="top-btn"><i class="fas fa-clock-rotate-left"></i></div>
+  </div>
+
+  <div class="head">
+    <h1>Let's build your<br>perfect mix</h1>
+    <p>Tell Attune what you're working on</p>
+  </div>
+
+  <div class="label">Subject</div>
+  <div class="chip-wrap">
+    <div class="chip sel"><i class="fas fa-flask"></i>Chemistry</div>
+    <div class="chip"><i class="fas fa-square-root-variable"></i>Math</div>
+    <div class="chip"><i class="fas fa-pen-nib"></i>Essay</div>
+    <div class="chip"><i class="fas fa-book"></i>Reading</div>
+    <div class="chip"><i class="fas fa-code"></i>Coding</div>
+    <div class="chip"><i class="fas fa-language"></i>Language</div>
+  </div>
+
+  <div class="label">Duration</div>
+  <div class="dur-row">
+    <div class="dur"><div class="dur-num">25m</div><div class="dur-lbl">Sprint</div></div>
+    <div class="dur sel"><div class="dur-num">50m</div><div class="dur-lbl">Deep</div></div>
+    <div class="dur"><div class="dur-num">90m</div><div class="dur-lbl">Marathon</div></div>
+    <div class="dur"><div class="dur-num">∞</div><div class="dur-lbl">Open</div></div>
+  </div>
+
+  <div class="label">Sound mode</div>
+  <div class="mode-list">
+    <div class="mode sel">
+      <div class="mode-ic m1"><i class="fas fa-laptop-code"></i></div>
+      <div class="mode-text"><div class="mode-name">Deep Work Flow</div><div class="mode-sub">Alpha lo-fi · 62 BPM · 96% match</div></div>
+      <div class="mode-check"><i class="fas fa-check"></i></div>
+    </div>
+    <div class="mode">
+      <div class="mode-ic m2"><i class="fas fa-wave-square"></i></div>
+      <div class="mode-text"><div class="mode-name">Binaural Boost</div><div class="mode-sub">40Hz gamma · memorization</div></div>
+      <div class="mode-check"></div>
+    </div>
+    <div class="mode">
+      <div class="mode-ic m3"><i class="fas fa-leaf"></i></div>
+      <div class="mode-text"><div class="mode-name">Calm Ambient</div><div class="mode-sub">Nature layers · low arousal</div></div>
+      <div class="mode-check"></div>
+    </div>
+  </div>
+
+  <div class="preview">
+    <div class="pv-top">
+      <div class="pv-ic"><i class="fas fa-wand-magic-sparkles"></i></div>
+      <div><div class="pv-title">Attune built your mix</div><div class="pv-sub">14 tracks tuned to your chemistry sessions</div></div>
+    </div>
+    <div class="pv-stats">
+      <div class="pv-stat"><div class="pv-val">50m</div><div class="pv-lbl">Length</div></div>
+      <div class="pv-stat"><div class="pv-val">62 BPM</div><div class="pv-lbl">Avg tempo</div></div>
+      <div class="pv-stat"><div class="pv-val" style="color:#34E0A1">96%</div><div class="pv-lbl">Match</div></div>
+    </div>
+  </div>
+
+  <div class="start-cta"><i class="fas fa-play"></i>Start focusing</div>
+</div>
+</body>
+</html>

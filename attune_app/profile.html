@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Attune — Profile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0A18; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:112px; background:#0A0A18; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  /* Hero profile */
+  .hero { margin:6px 28px 0; background:linear-gradient(150deg,#241B52 0%,#12102B 100%); border:1px solid rgba(124,92,255,0.25); border-radius:26px; padding:22px; position:relative; overflow:hidden; }
+  .hero-orb { position:absolute; right:-40px; top:-40px; width:150px; height:150px; border-radius:50%; background:radial-gradient(circle, rgba(45,212,255,0.3), transparent 70%); }
+  .hero-top { display:flex; align-items:center; gap:14px; position:relative; z-index:2; }
+  .hero-av { width:64px; height:64px; border-radius:20px; object-fit:cover; border:2px solid rgba(124,92,255,0.5); }
+  .hero-name { font-size:20px; font-weight:900; letter-spacing:-0.5px; }
+  .hero-handle { font-size:12px; color:rgba(255,255,255,0.5); margin-top:2px; }
+  .hero-level { display:inline-flex; align-items:center; gap:6px; background:rgba(124,92,255,0.25); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:800; color:#C4B6FF; margin-top:7px; }
+  .hero-level i { font-size:9px; color:#FFB020; }
+  .level-bar { margin-top:18px; position:relative; z-index:2; }
+  .lb-top { display:flex; justify-content:space-between; font-size:11px; font-weight:700; margin-bottom:7px; }
+  .lb-top .lvl { color:rgba(255,255,255,0.6); }
+  .lb-top .xp { color:#2DD4FF; }
+  .lb-track { height:8px; border-radius:5px; background:rgba(255,255,255,0.1); overflow:hidden; }
+  .lb-fill { height:100%; width:68%; border-radius:5px; background:linear-gradient(90deg,#7C5CFF,#2DD4FF); }
+
+  /* Stats strip */
+  .stats { display:flex; gap:10px; margin:14px 28px 0; }
+  .stat { flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:18px; padding:14px 8px; text-align:center; }
+  .stat-ic { font-size:15px; margin-bottom:7px; }
+  .stat-ic.violet { color:#9D8BFF; } .stat-ic.cyan { color:#2DD4FF; } .stat-ic.amber { color:#FFB020; } .stat-ic.green { color:#34E0A1; }
+  .stat-val { font-size:19px; font-weight:900; letter-spacing:-0.5px; }
+  .stat-lbl { font-size:9.5px; color:rgba(255,255,255,0.45); font-weight:600; margin-top:3px; text-transform:uppercase; }
+
+  /* Focus DNA promo */
+  .dna-card { margin:18px 28px 0; background:linear-gradient(120deg, rgba(124,92,255,0.18), rgba(45,212,255,0.12)); border:1px solid rgba(124,92,255,0.3); border-radius:20px; padding:16px; display:flex; align-items:center; gap:14px; }
+  .dna-ic { width:46px; height:46px; border-radius:14px; background:linear-gradient(135deg,#7C5CFF,#2DD4FF); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .dna-ic i { font-size:19px; color:#fff; }
+  .dna-text { flex:1; }
+  .dna-title { font-size:14px; font-weight:800; }
+  .dna-sub { font-size:11px; color:rgba(255,255,255,0.55); margin-top:2px; }
+  .dna-arrow { font-size:14px; color:rgba(255,255,255,0.5); }
+
+  .section-header { padding:24px 28px 12px; font-size:14px; font-weight:800; }
+
+  /* Badges */
+  .badges { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:0 28px; }
+  .badge { display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .badge-ic { width:100%; aspect-ratio:1; border-radius:18px; display:flex; align-items:center; justify-content:center; }
+  .badge-ic i { font-size:21px; color:#fff; }
+  .b1 { background:linear-gradient(135deg,#FFB020,#FF7A30); } .b2 { background:linear-gradient(135deg,#7C5CFF,#5B3FE0); } .b3 { background:linear-gradient(135deg,#34E0A1,#16A974); }
+  .badge-lock { background:rgba(255,255,255,0.05); border:1px dashed rgba(255,255,255,0.15); }
+  .badge-lock i { color:rgba(255,255,255,0.25); }
+  .badge-name { font-size:9.5px; color:rgba(255,255,255,0.55); font-weight:600; text-align:center; }
+
+  /* Weekly chart */
+  .chart-card { margin:8px 28px 0; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:22px; padding:18px; }
+  .cc-top { display:flex; justify-content:space-between; align-items:center; }
+  .cc-title { font-size:13px; font-weight:800; }
+  .cc-delta { font-size:11px; font-weight:800; color:#34E0A1; }
+  .cc-bars { display:flex; align-items:flex-end; justify-content:space-between; gap:7px; height:80px; margin-top:16px; }
+  .cc-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end; }
+  .cc-bar { width:100%; max-width:22px; border-radius:6px; background:linear-gradient(180deg,#7C5CFF,#5B3FE0); }
+  .cc-bar.hi { background:linear-gradient(180deg,#2DD4FF,#0090E0); }
+  .cc-day { font-size:9px; color:rgba(255,255,255,0.4); font-weight:600; }
+
+  /* Settings */
+  .settings { margin:8px 28px 0; }
+  .set-row { display:flex; align-items:center; gap:13px; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .set-ic { width:34px; height:34px; border-radius:11px; background:rgba(255,255,255,0.07); display:flex; align-items:center; justify-content:center; }
+  .set-ic i { font-size:14px; color:#9D8BFF; }
+  .set-name { flex:1; font-size:13px; font-weight:600; }
+  .set-arrow { font-size:13px; color:rgba(255,255,255,0.35); }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:100px; background:rgba(10,10,24,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:13px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:19px; color:rgba(255,255,255,0.3); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.3); font-weight:600; }
+  .tab-item.active i { color:#7C5CFF; }
+  .tab-item.active span { color:#fff; }
+  .tab-play { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#7C5CFF,#2DD4FF); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 10px 28px rgba(124,92,255,0.55); border:3px solid #0A0A18; }
+  .tab-play i { font-size:20px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-orb"></div>
+    <div class="hero-top">
+      <img class="hero-av" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80" alt="">
+      <div>
+        <div class="hero-name">Emma Chen</div>
+        <div class="hero-handle">@emmastudies · Grade 11</div>
+        <div class="hero-level"><i class="fas fa-bolt"></i>LEVEL 7 · FOCUS SCHOLAR</div>
+      </div>
+    </div>
+    <div class="level-bar">
+      <div class="lb-top"><span class="lvl">Level 7</span><span class="xp">3,400 / 5,000 XP</span></div>
+      <div class="lb-track"><div class="lb-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-ic violet"><i class="fas fa-clock"></i></div><div class="stat-val">142</div><div class="stat-lbl">Sessions</div></div>
+    <div class="stat"><div class="stat-ic amber"><i class="fas fa-fire"></i></div><div class="stat-val">9</div><div class="stat-lbl">Streak</div></div>
+    <div class="stat"><div class="stat-ic green"><i class="fas fa-bullseye"></i></div><div class="stat-val">88</div><div class="stat-lbl">Avg focus</div></div>
+    <div class="stat"><div class="stat-ic cyan"><i class="fas fa-award"></i></div><div class="stat-val">11</div><div class="stat-lbl">Badges</div></div>
+  </div>
+
+  <div class="dna-card">
+    <div class="dna-ic"><i class="fas fa-dna"></i></div>
+    <div class="dna-text"><div class="dna-title">Your Focus DNA</div><div class="dna-sub">Calm, steady sound · 142 sessions learned</div></div>
+    <div class="dna-arrow"><i class="fas fa-chevron-right"></i></div>
+  </div>
+
+  <div class="section-header">Badges</div>
+  <div class="badges">
+    <div class="badge"><div class="badge-ic b1"><i class="fas fa-fire"></i></div><div class="badge-name">7-Day Streak</div></div>
+    <div class="badge"><div class="badge-ic b2"><i class="fas fa-brain"></i></div><div class="badge-name">Deep Focus</div></div>
+    <div class="badge"><div class="badge-ic b3"><i class="fas fa-moon"></i></div><div class="badge-name">Night Owl</div></div>
+    <div class="badge"><div class="badge-ic badge-lock"><i class="fas fa-lock"></i></div><div class="badge-name">Century Club</div></div>
+  </div>
+
+  <div class="section-header">This week's focus</div>
+  <div class="chart-card">
+    <div class="cc-top"><div class="cc-title">14.2 focused hours</div><div class="cc-delta">+18% vs last week</div></div>
+    <div class="cc-bars">
+      <div class="cc-col"><div class="cc-bar" style="height:45%"></div><div class="cc-day">M</div></div>
+      <div class="cc-col"><div class="cc-bar" style="height:62%"></div><div class="cc-day">T</div></div>
+      <div class="cc-col"><div class="cc-bar" style="height:38%"></div><div class="cc-day">W</div></div>
+      <div class="cc-col"><div class="cc-bar" style="height:74%"></div><div class="cc-day">T</div></div>
+      <div class="cc-col"><div class="cc-bar hi" style="height:100%"></div><div class="cc-day">F</div></div>
+      <div class="cc-col"><div class="cc-bar" style="height:52%"></div><div class="cc-day">S</div></div>
+      <div class="cc-col"><div class="cc-bar" style="height:28%"></div><div class="cc-day">S</div></div>
+    </div>
+  </div>
+
+  <div class="section-header">Settings</div>
+  <div class="settings">
+    <div class="set-row"><div class="set-ic"><i class="fas fa-sliders"></i></div><div class="set-name">Tune my preferences</div><i class="fas fa-chevron-right set-arrow"></i></div>
+    <div class="set-row"><div class="set-ic"><i class="fab fa-spotify"></i></div><div class="set-name">Connected accounts</div><i class="fas fa-chevron-right set-arrow"></i></div>
+    <div class="set-row"><div class="set-ic"><i class="fas fa-bell"></i></div><div class="set-name">Focus reminders</div><i class="fas fa-chevron-right set-arrow"></i></div>
+    <div class="set-row"><div class="set-ic"><i class="fas fa-shield-halved"></i></div><div class="set-name">Data & privacy</div><i class="fas fa-chevron-right set-arrow"></i></div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-compass"></i><span>Discover</span></div>
+    <div class="tab-item"><div class="tab-play"><i class="fas fa-play"></i></div></div>
+    <div class="tab-item"><i class="fas fa-chart-simple"></i><span>Insights</span></div>
+    <div class="tab-item active"><i class="fas fa-user"></i><span>Me</span></div>
+  </div>
+</div>
+</body>
+</html>

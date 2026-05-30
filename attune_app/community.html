@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Attune — Study League</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0A18; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:112px; background:#0A0A18; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .head { padding:6px 28px 4px; }
+  .head h1 { font-size:26px; font-weight:900; letter-spacing:-0.8px; }
+  .seg { display:flex; background:rgba(255,255,255,0.06); border-radius:12px; padding:3px; margin:14px 28px 0; }
+  .seg span { flex:1; text-align:center; font-size:12px; font-weight:700; color:rgba(255,255,255,0.5); padding:8px; border-radius:9px; }
+  .seg span.active { background:rgba(124,92,255,0.9); color:#fff; }
+
+  /* Live co-study banner */
+  .live-card { margin:18px 28px 0; border-radius:22px; overflow:hidden; position:relative; height:130px; }
+  .live-card img { width:100%; height:100%; object-fit:cover; }
+  .live-ov { position:absolute; inset:0; background:linear-gradient(110deg, rgba(124,92,255,0.7), rgba(10,10,24,0.85)); }
+  .live-body { position:absolute; inset:0; padding:16px; display:flex; flex-direction:column; justify-content:space-between; z-index:2; }
+  .live-tag { display:inline-flex; align-items:center; gap:6px; background:rgba(255,0,80,0.9); padding:5px 10px; border-radius:8px; font-size:9px; font-weight:800; letter-spacing:0.5px; width:fit-content; }
+  .live-dot { width:6px; height:6px; border-radius:50%; background:#fff; }
+  .live-title { font-size:18px; font-weight:900; }
+  .live-row { display:flex; align-items:center; justify-content:space-between; margin-top:8px; }
+  .live-people { display:flex; align-items:center; }
+  .live-people img { width:28px; height:28px; border-radius:50%; border:2px solid #1a1340; object-fit:cover; margin-left:-9px; }
+  .live-people img:first-child { margin-left:0; }
+  .live-count { font-size:12px; color:rgba(255,255,255,0.85); font-weight:700; margin-left:8px; }
+  .live-join { background:#fff; color:#0A0A18; padding:8px 16px; border-radius:12px; font-size:12px; font-weight:800; }
+
+  /* Podium */
+  .podium { display:flex; align-items:flex-end; justify-content:center; gap:12px; padding:30px 28px 6px; }
+  .pod { display:flex; flex-direction:column; align-items:center; }
+  .pod-av { border-radius:50%; object-fit:cover; border:3px solid; }
+  .pod1 .pod-av { width:74px; height:74px; border-color:#FFD600; }
+  .pod2 .pod-av, .pod3 .pod-av { width:58px; height:58px; }
+  .pod2 .pod-av { border-color:#C0C7D6; } .pod3 .pod-av { border-color:#E0915A; }
+  .pod-crown { font-size:18px; color:#FFD600; margin-bottom:4px; }
+  .pod-name { font-size:12px; font-weight:800; margin-top:8px; }
+  .pod-score { font-size:11px; font-weight:800; margin-top:2px; }
+  .pod1 .pod-score { color:#FFD600; } .pod2 .pod-score { color:#C0C7D6; } .pod3 .pod-score { color:#E0915A; }
+  .pod-base { width:74px; border-radius:12px 12px 0 0; background:linear-gradient(180deg, rgba(124,92,255,0.4), rgba(124,92,255,0.08)); display:flex; align-items:flex-start; justify-content:center; padding-top:8px; font-size:16px; font-weight:900; margin-top:10px; }
+  .pod1 .pod-base { height:56px; } .pod2 .pod-base { height:40px; width:58px; } .pod3 .pod-base { height:30px; width:58px; }
+
+  /* Rank list */
+  .rank-list { padding:14px 28px 0; }
+  .rank { display:flex; align-items:center; gap:13px; padding:12px 0; }
+  .rank + .rank { border-top:1px solid rgba(255,255,255,0.06); }
+  .rank.me { background:linear-gradient(135deg, rgba(124,92,255,0.16), rgba(45,212,255,0.08)); border:1px solid rgba(124,92,255,0.35); border-radius:16px; padding:12px 14px; margin:4px 0; }
+  .rank-pos { width:24px; font-size:14px; font-weight:900; color:rgba(255,255,255,0.5); text-align:center; }
+  .rank-av { width:42px; height:42px; border-radius:13px; object-fit:cover; }
+  .rank-info { flex:1; min-width:0; }
+  .rank-name { font-size:13px; font-weight:700; }
+  .rank-meta { font-size:11px; color:rgba(255,255,255,0.45); margin-top:1px; display:flex; align-items:center; gap:6px; }
+  .rank-meta i { font-size:10px; color:#FFB020; }
+  .rank-score { font-size:15px; font-weight:900; letter-spacing:-0.4px; }
+  .trend-up { font-size:10px; color:#34E0A1; }
+  .trend-down { font-size:10px; color:#FF6B6B; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:100px; background:rgba(10,10,24,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:13px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:19px; color:rgba(255,255,255,0.3); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.3); font-weight:600; }
+  .tab-item.active i { color:#7C5CFF; }
+  .tab-item.active span { color:#fff; }
+  .tab-play { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#7C5CFF,#2DD4FF); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 10px 28px rgba(124,92,255,0.55); border:3px solid #0A0A18; }
+  .tab-play i { font-size:20px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="head"><h1>Study League</h1></div>
+  <div class="seg"><span class="active">My crew</span><span>School</span><span>Global</span></div>
+
+  <div class="live-card">
+    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=700&q=85" alt="">
+    <div class="live-ov"></div>
+    <div class="live-body">
+      <div class="live-tag"><span class="live-dot"></span>LIVE FOCUS ROOM</div>
+      <div>
+        <div class="live-title">Finals Week · Silent Study</div>
+        <div class="live-row">
+          <div class="live-people">
+            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&q=80" alt="">
+            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&q=80" alt="">
+            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&q=80" alt="">
+            <span class="live-count">+38 focusing now</span>
+          </div>
+          <div class="live-join">Join</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="podium">
+    <div class="pod pod2">
+      <img class="pod-av" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&q=80" alt="">
+      <div class="pod-name">Liam</div>
+      <div class="pod-score">19.2h</div>
+      <div class="pod-base">2</div>
+    </div>
+    <div class="pod pod1">
+      <div class="pod-crown"><i class="fas fa-crown"></i></div>
+      <img class="pod-av" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80" alt="">
+      <div class="pod-name">Sofia</div>
+      <div class="pod-score">22.6h</div>
+      <div class="pod-base">1</div>
+    </div>
+    <div class="pod pod3">
+      <img class="pod-av" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=160&q=80" alt="">
+      <div class="pod-name">Noah</div>
+      <div class="pod-score">17.8h</div>
+      <div class="pod-base">3</div>
+    </div>
+  </div>
+
+  <div class="rank-list">
+    <div class="rank">
+      <div class="rank-pos">4</div>
+      <img class="rank-av" src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=160&q=80" alt="">
+      <div class="rank-info"><div class="rank-name">Maya R.</div><div class="rank-meta"><i class="fas fa-fire"></i>12-day streak</div></div>
+      <div><div class="rank-score">16.4h</div><div class="trend-up"><i class="fas fa-caret-up"></i> 2</div></div>
+    </div>
+    <div class="rank me">
+      <div class="rank-pos" style="color:#9D8BFF">5</div>
+      <img class="rank-av" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=160&q=80" alt="">
+      <div class="rank-info"><div class="rank-name">You</div><div class="rank-meta"><i class="fas fa-fire"></i>9-day streak · 88 focus</div></div>
+      <div><div class="rank-score">14.2h</div><div class="trend-up"><i class="fas fa-caret-up"></i> 3</div></div>
+    </div>
+    <div class="rank">
+      <div class="rank-pos">6</div>
+      <img class="rank-av" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&q=80" alt="">
+      <div class="rank-info"><div class="rank-name">Ava T.</div><div class="rank-meta"><i class="fas fa-fire"></i>6-day streak</div></div>
+      <div><div class="rank-score">12.9h</div><div class="trend-down"><i class="fas fa-caret-down"></i> 1</div></div>
+    </div>
+    <div class="rank">
+      <div class="rank-pos">7</div>
+      <img class="rank-av" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=160&q=80" alt="">
+      <div class="rank-info"><div class="rank-name">Ethan K.</div><div class="rank-meta"><i class="fas fa-fire"></i>4-day streak</div></div>
+      <div><div class="rank-score">11.1h</div><div class="trend-up"><i class="fas fa-caret-up"></i> 1</div></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-compass"></i><span>Discover</span></div>
+    <div class="tab-item"><div class="tab-play"><i class="fas fa-play"></i></div></div>
+    <div class="tab-item"><i class="fas fa-chart-simple"></i><span>Insights</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Me</span></div>
+  </div>
+</div>
+</body>
+</html>

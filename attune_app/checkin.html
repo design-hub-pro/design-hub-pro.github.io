@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Attune — Focus Check-in</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0A18; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:30px; background:radial-gradient(120% 70% at 50% 0%, #1A2E2A 0%, #0A0A18 50%); }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .content { padding:0 28px; }
+
+  .complete-badge { display:flex; flex-direction:column; align-items:center; margin-top:10px; }
+  .cb-icon { width:72px; height:72px; border-radius:24px; background:linear-gradient(135deg,#34E0A1,#16A974); display:flex; align-items:center; justify-content:center; box-shadow:0 18px 44px rgba(52,224,161,0.4); }
+  .cb-icon i { font-size:32px; color:#0A0A18; }
+  .cb-title { font-size:24px; font-weight:900; letter-spacing:-0.7px; margin-top:18px; text-align:center; }
+  .cb-sub { font-size:13px; color:rgba(255,255,255,0.55); margin-top:6px; text-align:center; max-width:300px; }
+
+  .session-summary { display:flex; gap:10px; margin-top:22px; }
+  .ss-card { flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:18px; padding:14px 10px; text-align:center; }
+  .ss-val { font-size:21px; font-weight:900; letter-spacing:-0.5px; }
+  .ss-val.green { color:#34E0A1; } .ss-val.cyan { color:#2DD4FF; } .ss-val.violet { color:#9D8BFF; }
+  .ss-lbl { font-size:9.5px; color:rgba(255,255,255,0.45); font-weight:600; margin-top:4px; text-transform:uppercase; letter-spacing:0.3px; }
+
+  .q-block { margin-top:28px; }
+  .q-title { font-size:16px; font-weight:800; letter-spacing:-0.3px; }
+  .q-hint { font-size:11px; color:#34E0A1; font-weight:700; margin-top:4px; display:flex; align-items:center; gap:6px; }
+  .q-hint i { font-size:10px; }
+
+  /* Emoji focus scale */
+  .face-row { display:flex; justify-content:space-between; gap:8px; margin-top:16px; }
+  .face { flex:1; aspect-ratio:1; border-radius:18px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:24px; }
+  .face.sel { background:linear-gradient(135deg,#34E0A1,#16A974); border-color:transparent; transform:scale(1.08); box-shadow:0 12px 28px rgba(52,224,161,0.4); }
+  .scale-lbls { display:flex; justify-content:space-between; margin-top:8px; font-size:10px; color:rgba(255,255,255,0.4); font-weight:600; }
+
+  /* Distraction stepper */
+  .stepper { margin-top:16px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:18px; padding:16px; display:flex; align-items:center; justify-content:space-between; }
+  .step-info { display:flex; align-items:center; gap:12px; }
+  .step-ic { width:40px; height:40px; border-radius:13px; background:linear-gradient(135deg,#FF6B6B,#E03A3A); display:flex; align-items:center; justify-content:center; }
+  .step-ic i { font-size:16px; color:#fff; }
+  .step-label { font-size:13px; font-weight:700; }
+  .step-sub { font-size:11px; color:rgba(255,255,255,0.45); margin-top:1px; }
+  .step-ctrl { display:flex; align-items:center; gap:14px; }
+  .step-btn { width:32px; height:32px; border-radius:10px; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:13px; }
+  .step-num { font-size:20px; font-weight:900; min-width:22px; text-align:center; }
+
+  /* Tag chips */
+  .tag-grid { display:flex; flex-wrap:wrap; gap:9px; margin-top:16px; }
+  .tag { padding:9px 14px; border-radius:30px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09); font-size:12px; font-weight:700; color:rgba(255,255,255,0.7); display:flex; align-items:center; gap:6px; }
+  .tag i { font-size:11px; }
+  .tag.sel { background:rgba(124,92,255,0.18); border-color:rgba(124,92,255,0.5); color:#fff; }
+  .tag.sel i { color:#9D8BFF; }
+
+  /* Model note */
+  .model-note { margin-top:26px; background:linear-gradient(135deg, rgba(124,92,255,0.14), rgba(45,212,255,0.1)); border:1px solid rgba(124,92,255,0.3); border-radius:20px; padding:16px; display:flex; gap:13px; align-items:flex-start; }
+  .mn-ic { width:38px; height:38px; border-radius:12px; background:linear-gradient(135deg,#7C5CFF,#2DD4FF); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .mn-ic i { font-size:16px; color:#fff; }
+  .mn-text { font-size:12px; color:rgba(255,255,255,0.75); line-height:1.5; }
+  .mn-text b { color:#fff; }
+
+  .submit-cta { margin-top:24px; height:56px; border-radius:18px; background:linear-gradient(135deg,#7C5CFF,#2DD4FF); display:flex; align-items:center; justify-content:center; gap:9px; font-size:15px; font-weight:800; box-shadow:0 16px 40px rgba(124,92,255,0.4); }
+  .submit-cta i { font-size:13px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="content">
+    <div class="complete-badge">
+      <div class="cb-icon"><i class="fas fa-check"></i></div>
+      <div class="cb-title">Session complete</div>
+      <div class="cb-sub">50 minutes of Deep Work Flow State · Organic Chemistry</div>
+    </div>
+
+    <div class="session-summary">
+      <div class="ss-card"><div class="ss-val cyan">50m</div><div class="ss-lbl">Listened</div></div>
+      <div class="ss-card"><div class="ss-val green">91</div><div class="ss-lbl">Live focus</div></div>
+      <div class="ss-card"><div class="ss-val violet">12</div><div class="ss-lbl">Tracks</div></div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-title">How focused did you feel?</div>
+      <div class="q-hint"><i class="fas fa-wand-magic-sparkles"></i>This trains your personal model</div>
+      <div class="face-row">
+        <div class="face">😵‍💫</div>
+        <div class="face">😕</div>
+        <div class="face">🙂</div>
+        <div class="face sel">😌</div>
+        <div class="face">🧠</div>
+      </div>
+      <div class="scale-lbls"><span>Scattered</span><span>Locked in</span></div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-title">Any distractions?</div>
+      <div class="stepper">
+        <div class="step-info">
+          <div class="step-ic"><i class="fas fa-mobile-screen-button"></i></div>
+          <div>
+            <div class="step-label">Times you drifted off</div>
+            <div class="step-sub">Phone, tabs, daydreaming…</div>
+          </div>
+        </div>
+        <div class="step-ctrl">
+          <div class="step-btn"><i class="fas fa-minus"></i></div>
+          <div class="step-num">2</div>
+          <div class="step-btn"><i class="fas fa-plus"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-title">What worked?</div>
+      <div class="tag-grid">
+        <div class="tag sel"><i class="fas fa-check"></i>Steady tempo</div>
+        <div class="tag sel"><i class="fas fa-check"></i>No vocals</div>
+        <div class="tag"><i class="fas fa-plus"></i>Too repetitive</div>
+        <div class="tag"><i class="fas fa-plus"></i>Too slow</div>
+        <div class="tag sel"><i class="fas fa-check"></i>Calming</div>
+        <div class="tag"><i class="fas fa-plus"></i>Distracting</div>
+      </div>
+    </div>
+
+    <div class="model-note">
+      <div class="mn-ic"><i class="fas fa-brain"></i></div>
+      <div class="mn-text">Attune learned that <b>62 BPM alpha-wave lo-fi</b> keeps you locked in for chemistry. Tomorrow's mix will lean further into it.</div>
+    </div>
+
+    <div class="submit-cta"><i class="fas fa-arrow-up-right-dots"></i>Save & improve my model</div>
+  </div>
+</div>
+</body>
+</html>

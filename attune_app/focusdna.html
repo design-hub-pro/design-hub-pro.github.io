@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Attune — Focus DNA</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0A18; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:32px; background:radial-gradient(110% 60% at 50% 0%, #1B1646 0%, #0A0A18 55%); }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .top-bar { display:flex; align-items:center; justify-content:space-between; padding:4px 28px 0; }
+  .top-btn { width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:15px; }
+  .top-title { font-size:14px; font-weight:800; }
+
+  .intro { text-align:center; padding:20px 28px 0; }
+  .intro-ic { width:64px; height:64px; border-radius:21px; background:linear-gradient(135deg,#7C5CFF,#2DD4FF); display:flex; align-items:center; justify-content:center; margin:0 auto; box-shadow:0 16px 40px rgba(124,92,255,0.45); }
+  .intro-ic i { font-size:28px; color:#fff; }
+  .intro h1 { font-size:24px; font-weight:900; letter-spacing:-0.7px; margin-top:16px; }
+  .intro h1 span { background:linear-gradient(135deg,#2DD4FF,#9D8BFF); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .intro p { font-size:13px; color:rgba(255,255,255,0.55); margin-top:8px; line-height:1.5; max-width:300px; margin-left:auto; margin-right:auto; }
+  .data-pill { display:inline-flex; align-items:center; gap:7px; background:rgba(52,224,161,0.12); border:1px solid rgba(52,224,161,0.3); padding:7px 13px; border-radius:30px; font-size:11px; font-weight:700; color:#34E0A1; margin-top:14px; }
+  .data-pill i { font-size:10px; }
+
+  /* DNA preference bars */
+  .card { margin:22px 28px 0; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:22px; padding:18px; }
+  .card-h { font-size:14px; font-weight:800; margin-bottom:4px; }
+  .card-s { font-size:11px; color:rgba(255,255,255,0.45); margin-bottom:16px; }
+  .pref { margin-top:15px; }
+  .pref:first-of-type { margin-top:0; }
+  .pref-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .pref-name { font-size:12.5px; font-weight:700; display:flex; align-items:center; gap:8px; }
+  .pref-name i { font-size:12px; color:#9D8BFF; width:16px; text-align:center; }
+  .pref-val { font-size:12px; font-weight:800; color:#34E0A1; }
+  .pref-track { height:8px; border-radius:5px; background:rgba(255,255,255,0.1); position:relative; overflow:hidden; }
+  .pref-fill { position:absolute; left:0; top:0; height:100%; border-radius:5px; background:linear-gradient(90deg,#7C5CFF,#2DD4FF); }
+
+  /* How it works ranked */
+  .factor { display:flex; align-items:center; gap:13px; padding:13px 0; }
+  .factor + .factor { border-top:1px solid rgba(255,255,255,0.06); }
+  .factor-rank { width:26px; height:26px; border-radius:9px; background:rgba(124,92,255,0.2); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; color:#9D8BFF; flex-shrink:0; }
+  .factor-text { flex:1; }
+  .factor-name { font-size:13px; font-weight:700; }
+  .factor-sub { font-size:11px; color:rgba(255,255,255,0.45); margin-top:1px; }
+  .factor-weight { font-size:12px; font-weight:800; color:#fff; background:rgba(255,255,255,0.08); padding:4px 9px; border-radius:8px; }
+
+  /* model loop */
+  .loop-card { margin:22px 28px 0; background:linear-gradient(135deg, rgba(124,92,255,0.16), rgba(45,212,255,0.1)); border:1px solid rgba(124,92,255,0.3); border-radius:22px; padding:18px; }
+  .loop-h { font-size:14px; font-weight:800; display:flex; align-items:center; gap:8px; }
+  .loop-h i { color:#2DD4FF; }
+  .loop-steps { display:flex; align-items:center; justify-content:space-between; margin-top:16px; }
+  .ls { text-align:center; flex:1; }
+  .ls-ic { width:40px; height:40px; border-radius:13px; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; margin:0 auto; }
+  .ls-ic i { font-size:15px; color:#fff; }
+  .ls-name { font-size:10px; color:rgba(255,255,255,0.7); font-weight:700; margin-top:7px; }
+  .ls-arrow { color:rgba(255,255,255,0.3); font-size:12px; }
+  .loop-foot { font-size:11.5px; color:rgba(255,255,255,0.7); margin-top:16px; line-height:1.5; text-align:center; }
+  .loop-foot b { color:#fff; }
+
+  .retrain { margin:18px 28px 0; height:54px; border-radius:18px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); display:flex; align-items:center; justify-content:center; gap:9px; font-size:14px; font-weight:800; }
+  .retrain i { color:#2DD4FF; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="top-bar">
+    <div class="top-btn"><i class="fas fa-chevron-left"></i></div>
+    <div class="top-title">Your Focus DNA</div>
+    <div class="top-btn"><i class="fas fa-share-nodes"></i></div>
+  </div>
+
+  <div class="intro">
+    <div class="intro-ic"><i class="fas fa-dna"></i></div>
+    <h1>You focus best on<br><span>calm, steady sound</span></h1>
+    <p>The unique audio fingerprint Attune learned from how you actually study.</p>
+    <div class="data-pill"><i class="fas fa-database"></i>Trained on 142 sessions</div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">Your sound preferences</div>
+    <div class="card-s">What keeps your focus score high</div>
+    <div class="pref">
+      <div class="pref-top"><div class="pref-name"><i class="fas fa-gauge-simple"></i>Slow tempo · 55–65 BPM</div><div class="pref-val">Strong</div></div>
+      <div class="pref-track"><div class="pref-fill" style="width:92%"></div></div>
+    </div>
+    <div class="pref">
+      <div class="pref-top"><div class="pref-name"><i class="fas fa-microphone-slash"></i>No vocals</div><div class="pref-val">Strong</div></div>
+      <div class="pref-track"><div class="pref-fill" style="width:88%"></div></div>
+    </div>
+    <div class="pref">
+      <div class="pref-top"><div class="pref-name"><i class="fas fa-wave-square"></i>Alpha / binaural layers</div><div class="pref-val">High</div></div>
+      <div class="pref-track"><div class="pref-fill" style="width:74%"></div></div>
+    </div>
+    <div class="pref">
+      <div class="pref-top"><div class="pref-name"><i class="fas fa-bolt"></i>High energy / drops</div><div class="pref-val">Low</div></div>
+      <div class="pref-track"><div class="pref-fill" style="width:21%"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">Why these tracks reach you first</div>
+    <div class="card-s">How the recommendation engine ranks for you</div>
+    <div class="factor">
+      <div class="factor-rank">1</div>
+      <div class="factor-text"><div class="factor-name">Your past focus scores</div><div class="factor-sub">Tracks that worked before</div></div>
+      <div class="factor-weight">41%</div>
+    </div>
+    <div class="factor">
+      <div class="factor-rank">2</div>
+      <div class="factor-text"><div class="factor-name">Subject & task type</div><div class="factor-sub">Chem ≠ essay writing</div></div>
+      <div class="factor-weight">28%</div>
+    </div>
+    <div class="factor">
+      <div class="factor-rank">3</div>
+      <div class="factor-text"><div class="factor-name">Time of day & energy</div><div class="factor-sub">Late-night = calmer</div></div>
+      <div class="factor-weight">19%</div>
+    </div>
+    <div class="factor">
+      <div class="factor-rank">4</div>
+      <div class="factor-text"><div class="factor-name">Students like you</div><div class="factor-sub">Collaborative signal</div></div>
+      <div class="factor-weight">12%</div>
+    </div>
+  </div>
+
+  <div class="loop-card">
+    <div class="loop-h"><i class="fas fa-arrows-rotate"></i>The learning loop</div>
+    <div class="loop-steps">
+      <div class="ls"><div class="ls-ic"><i class="fas fa-music"></i></div><div class="ls-name">Listen</div></div>
+      <div class="ls-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="ls"><div class="ls-ic"><i class="fas fa-bullseye"></i></div><div class="ls-name">Measure</div></div>
+      <div class="ls-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="ls"><div class="ls-ic"><i class="fas fa-brain"></i></div><div class="ls-name">Learn</div></div>
+      <div class="ls-arrow"><i class="fas fa-chevron-right"></i></div>
+      <div class="ls"><div class="ls-ic"><i class="fas fa-wand-magic-sparkles"></i></div><div class="ls-name">Adapt</div></div>
+    </div>
+    <div class="loop-foot">Every check-in sharpens your model. Accuracy is up <b>+34%</b> since week one.</div>
+  </div>
+
+  <div class="retrain"><i class="fas fa-sliders"></i>Fine-tune my preferences</div>
+</div>
+</body>
+</html>
