@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AceForm · Live Capture</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{ -webkit-font-smoothing:antialiased; box-sizing:border-box; scrollbar-width:none; }
+*::-webkit-scrollbar{ display:none; }
+html,body{ width:100%; height:100%; margin:0; font-family:'Inter',sans-serif; background:#000; color:#fff; }
+.screen{ position:relative; width:100%; height:100%; overflow:hidden; background:#000; }
+.island{ position:absolute; left:50%; top:14px; transform:translateX(-50%); width:124px; height:36px; background:#000; border-radius:24px; z-index:31; }
+.status-bar{ height:59px; padding:20px 28px 0; display:flex; justify-content:space-between; align-items:center; font-size:16px; font-weight:600; position:relative; z-index:20;}
+.font-display{ font-family:'Space Grotesk', sans-serif; letter-spacing:-0.03em; }
+.font-mono{ font-family:'JetBrains Mono', monospace; }
+
+.cam-bg{ position:absolute; inset:0; background-image:url('https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=900&h=1400&fit=crop'); background-size:cover; background-position:center; }
+.cam-veil{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.10) 30%, rgba(0,0,0,0.20) 70%, rgba(0,0,0,0.92) 100%); }
+
+/* skeleton overlay */
+.bone{ stroke:#D7FF36; stroke-width:2.2; fill:none; stroke-linecap:round; filter:drop-shadow(0 0 6px rgba(215,255,54,0.9)); }
+.bone-2{ stroke:#5EEAD4; stroke-width:2.0; fill:none; stroke-linecap:round; filter:drop-shadow(0 0 5px rgba(94,234,212,0.8)); }
+.joint{ fill:#fff; stroke:#D7FF36; stroke-width:1.4; }
+
+.chip{ display:inline-flex; align-items:center; gap:5px; padding:5px 10px; border-radius:99px; font-size:11px; font-weight:700; }
+.lime-bg{ background:linear-gradient(135deg, #D7FF36 0%, #4ADE80 100%); }
+.lime-gradient{ background:linear-gradient(135deg, #D7FF36 0%, #4ADE80 60%, #5EEAD4 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+
+@keyframes recPulse { 0%,100%{ opacity:1; transform:scale(1)} 50%{ opacity:0.55; transform:scale(0.85)} }
+.rec-dot{ width:9px; height:9px; border-radius:50%; background:#FF4646; animation:recPulse 1.2s ease-in-out infinite; }
+@keyframes ringPulse { 0%,100%{ box-shadow:0 0 0 0 rgba(215,255,54,0.5)} 50%{ box-shadow:0 0 0 18px rgba(215,255,54,0)} }
+.tracking-pill{ animation:ringPulse 2.4s ease-out infinite; }
+
+.home-indicator{ position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:140px; height:5px; background:#fff; border-radius:3px; opacity:0.9; z-index:25; }
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <!-- Camera background (court / player) -->
+  <div class="cam-bg"></div>
+  <div class="cam-veil"></div>
+
+  <!-- Dynamic island -->
+  <div class="island"></div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="flex items-center gap-1.5">
+      <i class="fa-solid fa-signal text-xs"></i>
+      <i class="fa-solid fa-wifi text-xs"></i>
+      <i class="fa-solid fa-battery-full text-xs"></i>
+    </div>
+  </div>
+
+  <!-- Top bar -->
+  <div class="absolute top-[64px] left-0 right-0 px-6 flex items-center justify-between z-20">
+    <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:rgba(0,0,0,0.55); backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,0.12);">
+      <i class="fa-solid fa-xmark text-white text-sm"></i>
+    </div>
+
+    <div class="flex items-center gap-2 px-3 py-1.5 rounded-full tracking-pill" style="background:rgba(215,255,54,0.16); border:1px solid rgba(215,255,54,0.45); backdrop-filter:blur(14px);">
+      <div class="rec-dot"></div>
+      <span class="text-[11px] font-bold text-lime-200 tracking-wider">TRACKING · LIVE</span>
+    </div>
+
+    <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:rgba(0,0,0,0.55); backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,0.12);">
+      <i class="fa-solid fa-bolt text-lime-300 text-sm"></i>
+    </div>
+  </div>
+
+  <!-- Top-right HUD: stroke + timer -->
+  <div class="absolute top-[124px] right-6 z-20 text-right">
+    <div class="chip mb-2" style="background:rgba(0,0,0,0.55); border:1px solid rgba(215,255,54,0.30); color:#D7FF36; backdrop-filter:blur(8px);">
+      <i class="fa-solid fa-table-tennis-paddle-ball text-[10px]"></i>FOREHAND DRILL
+    </div>
+    <div class="font-mono text-white font-bold text-[17px] tracking-tight">03:42</div>
+    <div class="text-[10px] text-slate-300 mt-0.5">Rep 24 / 30</div>
+  </div>
+
+  <!-- Pose skeleton (overlay) -->
+  <div class="absolute inset-0 z-10 pointer-events-none">
+    <svg viewBox="0 0 460 980" class="w-full h-full">
+      <!-- racket -->
+      <ellipse cx="138" cy="288" rx="26" ry="18" fill="none" stroke="#D7FF36" stroke-width="2" opacity="0.95" filter="drop-shadow(0 0 6px rgba(215,255,54,0.9))"/>
+      <line x1="158" y1="298" x2="210" y2="345" stroke="#D7FF36" stroke-width="2.2" stroke-linecap="round" filter="drop-shadow(0 0 6px rgba(215,255,54,0.9))"/>
+
+      <!-- head -->
+      <circle cx="232" cy="296" r="14" fill="none" stroke="#D7FF36" stroke-width="2" filter="drop-shadow(0 0 6px rgba(215,255,54,0.9))"/>
+      <!-- spine -->
+      <line class="bone" x1="232" y1="310" x2="226" y2="448"/>
+      <!-- shoulders -->
+      <line class="bone" x1="200" y1="334" x2="262" y2="332"/>
+      <!-- right arm (with racket) -->
+      <line class="bone" x1="200" y1="334" x2="178" y2="368"/>
+      <line class="bone" x1="178" y1="368" x2="210" y2="345"/>
+      <!-- left arm -->
+      <line class="bone-2" x1="262" y1="332" x2="295" y2="372"/>
+      <line class="bone-2" x1="295" y1="372" x2="318" y2="412"/>
+      <!-- hips -->
+      <line class="bone" x1="208" y1="452" x2="246" y2="448"/>
+      <!-- right leg (planted) -->
+      <line class="bone" x1="208" y1="452" x2="198" y2="568"/>
+      <line class="bone" x1="198" y1="568" x2="182" y2="688"/>
+      <!-- left leg (front) -->
+      <line class="bone-2" x1="246" y1="448" x2="262" y2="568"/>
+      <line class="bone-2" x1="262" y1="568" x2="276" y2="688"/>
+
+      <!-- joints -->
+      <circle class="joint" cx="232" cy="296" r="3"/>
+      <circle class="joint" cx="200" cy="334" r="3"/>
+      <circle class="joint" cx="262" cy="332" r="3"/>
+      <circle class="joint" cx="178" cy="368" r="3"/>
+      <circle class="joint" cx="210" cy="345" r="3"/>
+      <circle class="joint" cx="295" cy="372" r="3"/>
+      <circle class="joint" cx="318" cy="412" r="3"/>
+      <circle class="joint" cx="208" cy="452" r="3"/>
+      <circle class="joint" cx="246" cy="448" r="3"/>
+      <circle class="joint" cx="198" cy="568" r="3"/>
+      <circle class="joint" cx="182" cy="688" r="3"/>
+      <circle class="joint" cx="262" cy="568" r="3"/>
+      <circle class="joint" cx="276" cy="688" r="3"/>
+
+      <!-- angle annotation arc on shoulder -->
+      <path d="M 200 334 A 26 26 0 0 1 220 360" stroke="#5EEAD4" stroke-width="1.5" fill="none" opacity="0.9"/>
+      <text x="225" y="365" fill="#5EEAD4" font-size="11" font-family="JetBrains Mono" font-weight="700">82°</text>
+
+      <!-- angle annotation arc on hip -->
+      <path d="M 246 448 A 22 22 0 0 1 264 472" stroke="#D7FF36" stroke-width="1.5" fill="none" opacity="0.9"/>
+      <text x="270" y="475" fill="#D7FF36" font-size="11" font-family="JetBrains Mono" font-weight="700">+12°</text>
+    </svg>
+  </div>
+
+  <!-- Floating live score (top-left) -->
+  <div class="absolute top-[124px] left-6 z-20">
+    <div class="rounded-2xl px-3 py-2.5" style="background:rgba(0,0,0,0.55); border:1px solid rgba(215,255,54,0.35); backdrop-filter:blur(14px);">
+      <div class="text-[9px] tracking-[0.15em] uppercase font-bold text-lime-200">Live form</div>
+      <div class="font-display font-extrabold text-[34px] leading-none mt-1 lime-gradient">91</div>
+      <div class="flex items-center gap-1 mt-1.5">
+        <i class="fa-solid fa-arrow-trend-up text-emerald-300 text-[9px]"></i>
+        <span class="text-[10px] text-emerald-200 font-bold font-mono">+4 vs last</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right side metric stack -->
+  <div class="absolute top-[230px] right-5 z-20 space-y-2">
+    <div class="rounded-xl px-2.5 py-2" style="background:rgba(0,0,0,0.55); border:1px solid rgba(255,255,255,0.10); backdrop-filter:blur(10px); min-width:84px;">
+      <div class="text-[9px] uppercase tracking-wider text-slate-300 font-bold">Hip Rot.</div>
+      <div class="font-mono font-bold text-white text-[15px] mt-0.5">82°</div>
+    </div>
+    <div class="rounded-xl px-2.5 py-2" style="background:rgba(0,0,0,0.55); border:1px solid rgba(255,255,255,0.10); backdrop-filter:blur(10px); min-width:84px;">
+      <div class="text-[9px] uppercase tracking-wider text-slate-300 font-bold">Racket Spd</div>
+      <div class="font-mono font-bold text-lime-300 text-[15px] mt-0.5">94 mph</div>
+    </div>
+    <div class="rounded-xl px-2.5 py-2" style="background:rgba(0,0,0,0.55); border:1px solid rgba(255,255,255,0.10); backdrop-filter:blur(10px); min-width:84px;">
+      <div class="text-[9px] uppercase tracking-wider text-slate-300 font-bold">Contact Pt</div>
+      <div class="font-mono font-bold text-cyan-200 text-[15px] mt-0.5">+2.4 cm</div>
+    </div>
+    <div class="rounded-xl px-2.5 py-2" style="background:rgba(0,0,0,0.55); border:1px solid rgba(255,255,255,0.10); backdrop-filter:blur(10px); min-width:84px;">
+      <div class="text-[9px] uppercase tracking-wider text-slate-300 font-bold">Balance</div>
+      <div class="font-mono font-bold text-emerald-200 text-[15px] mt-0.5">96%</div>
+    </div>
+  </div>
+
+  <!-- AI live coach chip (mid screen above bottom) -->
+  <div class="absolute bottom-[268px] left-6 right-6 z-20 space-y-2">
+    <div class="rounded-2xl px-4 py-3 flex items-center gap-3" style="background:rgba(215,255,54,0.16); border:1px solid rgba(215,255,54,0.40); backdrop-filter:blur(14px);">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,#D7FF36,#4ADE80);">
+        <i class="fa-solid fa-sparkles text-emerald-950 text-xs"></i>
+      </div>
+      <div class="flex-1">
+        <div class="text-[10px] uppercase tracking-wider font-bold text-lime-200">Live coach</div>
+        <div class="text-[13px] font-semibold text-white mt-0.5">Drop racket head 4 cm lower at takeback</div>
+      </div>
+      <i class="fa-solid fa-volume-high text-lime-300 text-sm"></i>
+    </div>
+  </div>
+
+  <!-- Swing timeline graph -->
+  <div class="absolute bottom-[200px] left-6 right-6 z-20">
+    <div class="rounded-2xl px-4 py-3" style="background:rgba(0,0,0,0.55); border:1px solid rgba(255,255,255,0.10); backdrop-filter:blur(14px);">
+      <div class="flex items-center justify-between mb-2">
+        <div class="text-[10px] uppercase tracking-wider font-bold text-slate-300">Swing arc · last 6 reps</div>
+        <span class="text-[10px] font-mono text-lime-300 font-bold">A · 91 avg</span>
+      </div>
+      <svg viewBox="0 0 360 60" class="w-full h-[44px]">
+        <defs>
+          <linearGradient id="grl" x1="0" y1="0" x2="1" y2="0">
+            <stop stop-color="#D7FF36"/><stop offset="1" stop-color="#5EEAD4"/>
+          </linearGradient>
+          <linearGradient id="grl2" x1="0" y1="0" x2="0" y2="1">
+            <stop stop-color="#D7FF36" stop-opacity="0.35"/><stop offset="1" stop-color="#D7FF36" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <!-- baseline grid -->
+        <line x1="0" y1="30" x2="360" y2="30" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3"/>
+        <!-- path -->
+        <path d="M 0,42 C 30,38 50,18 80,16 S 130,46 160,40 S 210,12 240,14 S 290,46 320,38 S 350,18 360,18" stroke="url(#grl)" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <path d="M 0,42 C 30,38 50,18 80,16 S 130,46 160,40 S 210,12 240,14 S 290,46 320,38 S 350,18 360,18 L 360,60 L 0,60 Z" fill="url(#grl2)"/>
+        <!-- live dot -->
+        <circle cx="320" cy="38" r="4" fill="#fff" stroke="#D7FF36" stroke-width="2"/>
+      </svg>
+      <div class="flex justify-between text-[9px] text-slate-500 font-mono mt-1">
+        <span>R19</span><span>R20</span><span>R21</span><span>R22</span><span>R23</span><span class="text-lime-300 font-bold">R24</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom controls bar -->
+  <div class="absolute bottom-0 left-0 right-0 z-20" style="background:linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.95) 60%); padding:24px 28px 36px;">
+
+    <!-- mode selector -->
+    <div class="flex justify-center gap-1.5 mb-5">
+      <div class="px-3 py-1.5 rounded-full text-[10px] font-bold" style="background:rgba(255,255,255,0.05); color:#94A3B8; border:1px solid rgba(255,255,255,0.06);">Photo</div>
+      <div class="px-3 py-1.5 rounded-full text-[10px] font-bold" style="background:linear-gradient(135deg,#D7FF36,#4ADE80); color:#062012;">Live AI</div>
+      <div class="px-3 py-1.5 rounded-full text-[10px] font-bold" style="background:rgba(255,255,255,0.05); color:#94A3B8; border:1px solid rgba(255,255,255,0.06);">Slow-mo</div>
+      <div class="px-3 py-1.5 rounded-full text-[10px] font-bold" style="background:rgba(255,255,255,0.05); color:#94A3B8; border:1px solid rgba(255,255,255,0.06);">Pro Mirror</div>
+    </div>
+
+    <div class="flex items-center justify-between">
+      <!-- gallery -->
+      <div class="w-12 h-12 rounded-2xl overflow-hidden" style="border:2px solid rgba(255,255,255,0.18);">
+        <img src="https://images.unsplash.com/photo-1530915534234-4ebcdce39e87?w=120&h=120&fit=crop" class="w-full h-full object-cover"/>
+      </div>
+
+      <!-- Big record button -->
+      <div class="relative">
+        <div class="absolute inset-0 rounded-full" style="background:linear-gradient(135deg,#D7FF36,#4ADE80); filter:blur(18px); opacity:0.55;"></div>
+        <button class="relative w-[78px] h-[78px] rounded-full flex items-center justify-center" style="background:#fff; border:5px solid rgba(255,255,255,0.18);">
+          <div class="w-[42px] h-[42px] rounded-xl" style="background:linear-gradient(135deg,#FF4646,#EC4899);"></div>
+        </button>
+      </div>
+
+      <!-- camera flip -->
+      <div class="w-12 h-12 rounded-2xl flex items-center justify-center" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12);">
+        <i class="fa-solid fa-camera-rotate text-white text-lg"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+</body>
+</html>

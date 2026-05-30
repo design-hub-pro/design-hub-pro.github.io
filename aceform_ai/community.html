@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AceForm · Community</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{ -webkit-font-smoothing:antialiased; box-sizing:border-box; scrollbar-width:none; }
+*::-webkit-scrollbar{ display:none; }
+html,body{ width:100%; height:100%; margin:0; font-family:'Inter',sans-serif; background:#040B07; color:#fff; }
+.screen{ position:relative; width:100%; height:100%; overflow:hidden;
+  background: radial-gradient(120% 50% at 50% 0%, rgba(215,255,54,0.16) 0%, transparent 60%), linear-gradient(180deg, #061410 0%, #040B07 100%); }
+.scroll{ position:absolute; top:0; left:0; right:0; bottom:0; overflow-y:auto; padding-bottom:108px; }
+.island{ position:absolute; left:50%; top:14px; transform:translateX(-50%); width:124px; height:36px; background:#000; border-radius:24px; z-index:31; }
+.status-bar{ height:59px; padding:20px 28px 0; display:flex; justify-content:space-between; align-items:center; font-size:16px; font-weight:600; }
+.font-display{ font-family:'Space Grotesk', sans-serif; letter-spacing:-0.03em; }
+.font-mono{ font-family:'JetBrains Mono', monospace; }
+.section-padding{ padding-left:28px; padding-right:28px; }
+.lime-gradient{ background:linear-gradient(135deg, #D7FF36 0%, #4ADE80 60%, #5EEAD4 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.lime-bg{ background:linear-gradient(135deg, #D7FF36 0%, #4ADE80 100%); }
+.chip{ display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:99px; font-size:10px; font-weight:700; }
+
+.tab-bar{ position:absolute; bottom:0; left:0; right:0; height:96px; padding:10px 18px 22px; display:flex; justify-content:space-around; align-items:center;
+  background: linear-gradient(180deg, rgba(4,11,7,0.4) 0%, rgba(4,11,7,0.96) 60%); backdrop-filter:blur(28px); border-top:1px solid rgba(255,255,255,0.05); z-index:20; }
+.tab-item{ display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 10px; }
+.tab-item i{ font-size:18px; color:#64748B; }
+.tab-item span{ font-size:9.5px; color:#64748B; font-weight:700; letter-spacing:0.02em; }
+.tab-item.active i, .tab-item.active span{ color:#D7FF36; }
+.tab-capture{ width:58px; height:58px; border-radius:50%; background:linear-gradient(135deg, #D7FF36 0%, #4ADE80 100%); display:flex; align-items:center; justify-content:center; box-shadow:0 16px 36px -10px rgba(215,255,54,0.55); transform:translateY(-12px); border:3px solid #040B07;}
+.tab-capture i{ font-size:22px; color:#062012;}
+.home-indicator{ position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:140px; height:5px; background:#fff; border-radius:3px; opacity:0.9; }
+
+.story{ flex-shrink:0; width:62px; text-align:center; }
+.story-ring{ width:62px; height:62px; border-radius:50%; padding:2.5px; }
+.story-ring.unwatched{ background:linear-gradient(135deg,#D7FF36,#4ADE80,#5EEAD4); }
+.story-img{ width:100%; height:100%; border-radius:50%; object-fit:cover; border:2px solid #040B07; }
+
+.post-card{ border-radius:22px; overflow:hidden; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); }
+.media{ position:relative; aspect-ratio:1/1; }
+.media img{ width:100%; height:100%; object-fit:cover; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="island"></div>
+  <div class="scroll">
+    <div class="status-bar">
+      <span>9:41</span>
+      <div class="flex items-center gap-1.5">
+        <i class="fa-solid fa-signal text-xs"></i>
+        <i class="fa-solid fa-wifi text-xs"></i>
+        <i class="fa-solid fa-battery-full text-xs"></i>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <div class="section-padding pt-2 flex items-center justify-between">
+      <div>
+        <div class="text-[10px] tracking-[0.18em] uppercase font-bold text-lime-200">Court community</div>
+        <div class="font-display text-[26px] font-extrabold mt-0.5">Rally feed<span class="text-lime-300">.</span></div>
+      </div>
+      <div class="flex gap-2">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center relative" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08);">
+          <i class="fa-regular fa-comment text-white text-sm"></i>
+          <div class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-lime-300 ring-2 ring-[#040B07]"></div>
+        </div>
+        <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08);">
+          <i class="fa-solid fa-trophy text-amber-300 text-sm"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stories row -->
+    <div class="mt-5 pl-7 pr-2 overflow-x-auto flex gap-3">
+      <div class="story">
+        <div class="story-ring" style="background:rgba(255,255,255,0.10);">
+          <div class="w-full h-full rounded-full flex items-center justify-center" style="background:rgba(4,11,7,1); border:2px dashed rgba(215,255,54,0.30);">
+            <i class="fa-solid fa-plus text-lime-300 text-sm"></i>
+          </div>
+        </div>
+        <div class="text-[10px] mt-1.5 font-bold text-white">You</div>
+      </div>
+      <div class="story">
+        <div class="story-ring unwatched"><img class="story-img" src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=200&h=200&fit=crop"/></div>
+        <div class="text-[10px] mt-1.5 font-bold text-white">Jordan</div>
+      </div>
+      <div class="story">
+        <div class="story-ring unwatched"><img class="story-img" src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&h=200&fit=crop"/></div>
+        <div class="text-[10px] mt-1.5 font-bold text-white">Priya</div>
+      </div>
+      <div class="story">
+        <div class="story-ring unwatched"><img class="story-img" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop"/></div>
+        <div class="text-[10px] mt-1.5 font-bold text-white">Marcus</div>
+      </div>
+      <div class="story">
+        <div class="story-ring unwatched"><img class="story-img" src="https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=200&h=200&fit=crop"/></div>
+        <div class="text-[10px] mt-1.5 font-bold text-white">Aiko</div>
+      </div>
+      <div class="story">
+        <div class="story-ring" style="background:rgba(255,255,255,0.10);"><img class="story-img" src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=200&h=200&fit=crop"/></div>
+        <div class="text-[10px] mt-1.5 font-bold text-slate-400">Sofia</div>
+      </div>
+    </div>
+
+    <!-- Leaderboard mini -->
+    <div class="section-padding mt-5">
+      <div class="rounded-2xl p-4 flex items-center gap-3 relative overflow-hidden" style="background:linear-gradient(135deg, rgba(251,191,36,0.16), rgba(251,146,60,0.10)); border:1px solid rgba(251,191,36,0.25);">
+        <div class="absolute -top-10 -right-8 w-32 h-32 rounded-full" style="background:radial-gradient(circle, rgba(251,191,36,0.30), transparent 70%);"></div>
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center" style="background:linear-gradient(135deg,#FBBF24,#FB923C);">
+          <i class="fa-solid fa-trophy text-amber-950 text-lg"></i>
+        </div>
+        <div class="flex-1 relative">
+          <div class="text-[10px] uppercase tracking-wider font-bold text-amber-200">Weekly leaderboard</div>
+          <div class="text-[13px] font-bold mt-0.5">You're ranked <span class="text-amber-300">#7</span> · top 6%</div>
+          <div class="text-[10px] text-slate-300 mt-0.5">4 spots to gold · 142 XP to climb</div>
+        </div>
+        <i class="fa-solid fa-arrow-right text-amber-300 text-sm relative"></i>
+      </div>
+    </div>
+
+    <!-- Post 1 -->
+    <div class="section-padding mt-6">
+      <div class="post-card">
+        <!-- header -->
+        <div class="flex items-center gap-3 p-3.5">
+          <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop" class="w-10 h-10 rounded-full object-cover ring-2 ring-lime-300/40"/>
+          <div class="flex-1">
+            <div class="flex items-center gap-1.5">
+              <div class="text-[13px] font-bold">@priyaserve</div>
+              <i class="fa-solid fa-circle-check text-lime-300 text-[10px]"></i>
+            </div>
+            <div class="text-[10px] text-slate-400">L11 Court Crusher · 2h</div>
+          </div>
+          <div class="chip" style="background:rgba(215,255,54,0.18); color:#D7FF36;">
+            <i class="fa-solid fa-bolt text-[9px]"></i>FOREHAND
+          </div>
+        </div>
+
+        <div class="media">
+          <img src="https://images.unsplash.com/photo-1551773395-1fea2d0ba2cf?w=900&h=900&fit=crop"/>
+          <div class="absolute inset-0" style="background:linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.6) 100%);"></div>
+
+          <!-- Score badge -->
+          <div class="absolute top-3 left-3 chip" style="background:rgba(0,0,0,0.55); border:1px solid rgba(215,255,54,0.40); color:#D7FF36; backdrop-filter:blur(8px);">
+            <i class="fa-solid fa-trophy text-[9px] text-amber-300"></i>PERSONAL BEST
+          </div>
+
+          <div class="absolute top-3 right-3 w-[58px] h-[58px] rounded-2xl flex flex-col items-center justify-center" style="background:linear-gradient(135deg,#D7FF36,#4ADE80); box-shadow:0 8px 20px -6px rgba(215,255,54,0.5);">
+            <div class="font-display font-extrabold text-emerald-950 text-[22px] leading-none">96</div>
+            <div class="text-[8px] text-emerald-950 font-bold tracking-wider mt-0.5">FORM</div>
+          </div>
+
+          <!-- pose -->
+          <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full pointer-events-none" style="opacity:0.85;">
+            <line x1="46" y1="40" x2="44" y2="62" stroke="#D7FF36" stroke-width="1.4"/>
+            <line x1="36" y1="48" x2="56" y2="46" stroke="#D7FF36" stroke-width="1.4"/>
+            <line x1="36" y1="48" x2="26" y2="62" stroke="#D7FF36" stroke-width="1.4"/>
+            <line x1="56" y1="46" x2="66" y2="58" stroke="#D7FF36" stroke-width="1.4"/>
+            <circle cx="46" cy="34" r="5" fill="none" stroke="#D7FF36" stroke-width="1.2"/>
+          </svg>
+
+          <!-- play time -->
+          <div class="absolute bottom-3 left-3 chip" style="background:rgba(0,0,0,0.55); color:#fff; backdrop-filter:blur(8px);">
+            <i class="fa-solid fa-play text-[9px]"></i>0:14
+          </div>
+        </div>
+
+        <div class="p-3.5">
+          <div class="text-[12px] text-slate-100 mb-2"><span class="text-lime-300 font-bold">+12 mph</span> on my forehand after the closed-stance drill 🤩 Ace AI said hip rotation was the unlock.</div>
+
+          <div class="flex items-center gap-5 mt-2">
+            <div class="flex items-center gap-1.5">
+              <i class="fa-solid fa-heart text-pink-400 text-sm"></i>
+              <span class="text-[12px] font-bold">1.4k</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <i class="fa-regular fa-comment text-white text-sm"></i>
+              <span class="text-[12px] font-bold">128</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <i class="fa-solid fa-bolt text-lime-300 text-sm"></i>
+              <span class="text-[12px] font-bold">412 mirrored</span>
+            </div>
+            <i class="fa-solid fa-share-nodes text-white text-sm ml-auto"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Post 2 - Challenge -->
+    <div class="section-padding mt-5">
+      <div class="rounded-2xl p-4 relative overflow-hidden" style="background:linear-gradient(135deg, rgba(94,234,212,0.18), rgba(74,222,128,0.08)); border:1px solid rgba(94,234,212,0.30);">
+        <div class="absolute -top-12 -right-10 w-40 h-40 rounded-full" style="background:radial-gradient(circle, rgba(94,234,212,0.35), transparent 70%);"></div>
+
+        <div class="relative flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#5EEAD4,#4ADE80);">
+            <i class="fa-solid fa-flag-checkered text-emerald-950 text-sm"></i>
+          </div>
+          <div class="flex-1">
+            <div class="text-[10px] uppercase tracking-wider font-bold text-cyan-200">Weekly challenge</div>
+            <div class="text-[14px] font-bold">100 topspin forehands · Form ≥ 88</div>
+          </div>
+          <div class="chip" style="background:rgba(0,0,0,0.30); color:#fff;">3d left</div>
+        </div>
+
+        <div class="flex items-center gap-3 relative">
+          <div class="flex -space-x-2">
+            <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=80&h=80&fit=crop" class="w-7 h-7 rounded-full object-cover ring-2 ring-[#040B07]"/>
+            <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&h=80&fit=crop" class="w-7 h-7 rounded-full object-cover ring-2 ring-[#040B07]"/>
+            <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=80&h=80&fit=crop" class="w-7 h-7 rounded-full object-cover ring-2 ring-[#040B07]"/>
+            <div class="w-7 h-7 rounded-full ring-2 ring-[#040B07] flex items-center justify-center font-mono font-bold text-[9px] text-cyan-200" style="background:rgba(94,234,212,0.20);">+2.4k</div>
+          </div>
+          <span class="text-[11px] text-slate-200 font-semibold">Joined this week</span>
+        </div>
+
+        <div class="relative mt-3 h-2 rounded-full bg-white/10 overflow-hidden">
+          <div class="h-full rounded-full" style="width:64%; background:linear-gradient(90deg,#5EEAD4,#4ADE80);"></div>
+        </div>
+        <div class="relative flex justify-between text-[10px] mt-1.5">
+          <span class="text-slate-400 font-bold">64 / 100 reps</span>
+          <span class="text-cyan-200 font-mono font-bold">+800 XP if you finish</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Post 3 -->
+    <div class="section-padding mt-5">
+      <div class="post-card">
+        <div class="flex items-center gap-3 p-3.5">
+          <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop" class="w-10 h-10 rounded-full object-cover ring-2 ring-cyan-300/40"/>
+          <div class="flex-1">
+            <div class="flex items-center gap-1.5">
+              <div class="text-[13px] font-bold">@marcusbackhand</div>
+            </div>
+            <div class="text-[10px] text-slate-400">L9 Topspin Apprentice · 4h</div>
+          </div>
+          <div class="chip" style="background:rgba(94,234,212,0.18); color:#5EEAD4;">
+            <i class="fa-solid fa-crown text-[9px]"></i>PRO MIRROR
+          </div>
+        </div>
+        <div class="media">
+          <img src="https://images.unsplash.com/photo-1530915534234-4ebcdce39e87?w=900&h=900&fit=crop"/>
+          <div class="absolute inset-0" style="background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.7) 100%);"></div>
+
+          <div class="absolute top-3 left-3 chip" style="background:rgba(0,0,0,0.55); border:1px solid rgba(94,234,212,0.40); color:#5EEAD4; backdrop-filter:blur(8px);">
+            vs DJOKOVIC · 91% SYNC
+          </div>
+
+          <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between">
+            <div class="text-[12px] text-white font-semibold">Day 47 of mirroring the Djoker's BH 🎯</div>
+            <div class="font-display font-extrabold text-[22px] text-cyan-200">88</div>
+          </div>
+        </div>
+        <div class="p-3.5">
+          <div class="flex items-center gap-5">
+            <div class="flex items-center gap-1.5">
+              <i class="fa-regular fa-heart text-white text-sm"></i>
+              <span class="text-[12px] font-bold">892</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <i class="fa-regular fa-comment text-white text-sm"></i>
+              <span class="text-[12px] font-bold">74</span>
+            </div>
+            <i class="fa-solid fa-share-nodes text-white text-sm ml-auto"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fa-solid fa-house"></i><span>Today</span></div>
+    <div class="tab-item"><i class="fa-solid fa-table-tennis-paddle-ball"></i><span>Library</span></div>
+    <div class="tab-capture"><i class="fa-solid fa-video"></i></div>
+    <div class="tab-item active"><i class="fa-solid fa-people-group"></i><span>Rally</span></div>
+    <div class="tab-item"><i class="fa-regular fa-user"></i><span>Me</span></div>
+  </div>
+  <div class="home-indicator"></div>
+</div>
+</body>
+</html>

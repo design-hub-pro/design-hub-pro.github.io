@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AceForm · Library</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{ -webkit-font-smoothing:antialiased; box-sizing:border-box; scrollbar-width:none; }
+*::-webkit-scrollbar{ display:none; }
+html,body{ width:100%; height:100%; margin:0; font-family:'Inter',sans-serif; background:#040B07; color:#fff; }
+.screen{ position:relative; width:100%; height:100%; overflow:hidden;
+  background: radial-gradient(120% 50% at 50% 0%, rgba(215,255,54,0.16) 0%, rgba(74,222,128,0.04) 40%, transparent 70%), linear-gradient(180deg, #061410 0%, #040B07 100%); }
+.scroll{ position:absolute; top:0; left:0; right:0; bottom:0; overflow-y:auto; padding-bottom:108px; }
+.island{ position:absolute; left:50%; top:14px; transform:translateX(-50%); width:124px; height:36px; background:#000; border-radius:24px; z-index:31; }
+.status-bar{ height:59px; padding:20px 28px 0; display:flex; justify-content:space-between; align-items:center; font-size:16px; font-weight:600; }
+.font-display{ font-family:'Space Grotesk', sans-serif; letter-spacing:-0.03em; }
+.font-mono{ font-family:'JetBrains Mono', monospace; }
+.section-padding{ padding-left:28px; padding-right:28px; }
+.lime-gradient{ background:linear-gradient(135deg, #D7FF36 0%, #4ADE80 60%, #5EEAD4 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.lime-bg{ background:linear-gradient(135deg, #D7FF36 0%, #4ADE80 100%); }
+.chip{ display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:99px; font-size:10px; font-weight:700; }
+.glass{ background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:22px; }
+
+.tab-bar{ position:absolute; bottom:0; left:0; right:0; height:96px; padding:10px 18px 22px; display:flex; justify-content:space-around; align-items:center;
+  background: linear-gradient(180deg, rgba(4,11,7,0.4) 0%, rgba(4,11,7,0.96) 60%); backdrop-filter:blur(28px); border-top:1px solid rgba(255,255,255,0.05); z-index:20; }
+.tab-item{ display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 10px; }
+.tab-item i{ font-size:18px; color:#64748B; }
+.tab-item span{ font-size:9.5px; color:#64748B; font-weight:700; letter-spacing:0.02em; }
+.tab-item.active i, .tab-item.active span{ color:#D7FF36; }
+.tab-capture{ width:58px; height:58px; border-radius:50%; background:linear-gradient(135deg, #D7FF36 0%, #4ADE80 100%); display:flex; align-items:center; justify-content:center; box-shadow:0 16px 36px -10px rgba(215,255,54,0.55); transform:translateY(-12px); border:3px solid #040B07;}
+.tab-capture i{ font-size:22px; color:#062012;}
+.home-indicator{ position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:140px; height:5px; background:#fff; border-radius:3px; opacity:0.9; }
+
+.stroke-cell{ position:relative; border-radius:22px; overflow:hidden; height:172px; border:1px solid rgba(255,255,255,0.08); }
+.stroke-cell img{ width:100%; height:100%; object-fit:cover; }
+.stroke-veil{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.85) 100%); }
+.ring-mini{ width:40px; height:40px; position:relative; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="island"></div>
+  <div class="scroll">
+    <div class="status-bar">
+      <span>9:41</span>
+      <div class="flex items-center gap-1.5">
+        <i class="fa-solid fa-signal text-xs"></i>
+        <i class="fa-solid fa-wifi text-xs"></i>
+        <i class="fa-solid fa-battery-full text-xs"></i>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <div class="section-padding pt-2">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-[10px] tracking-[0.18em] uppercase font-bold text-lime-200">Stroke library</div>
+          <div class="font-display text-[26px] font-extrabold mt-0.5">Train any stroke<span class="text-lime-300">.</span></div>
+        </div>
+        <div class="w-10 h-10 rounded-full flex items-center justify-center glass">
+          <i class="fa-solid fa-magnifying-glass text-white text-xs"></i>
+        </div>
+      </div>
+
+      <!-- filter chips -->
+      <div class="flex gap-2 mt-4 overflow-x-auto">
+        <div class="chip flex-shrink-0" style="background:linear-gradient(135deg,#D7FF36,#4ADE80); color:#062012;">All strokes</div>
+        <div class="chip flex-shrink-0" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:#94A3B8;">Beginner</div>
+        <div class="chip flex-shrink-0" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:#94A3B8;">Intermediate</div>
+        <div class="chip flex-shrink-0" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:#94A3B8;">Pro</div>
+        <div class="chip flex-shrink-0" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:#94A3B8;">Singles</div>
+        <div class="chip flex-shrink-0" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:#94A3B8;">Doubles</div>
+      </div>
+    </div>
+
+    <!-- Featured masterclass -->
+    <div class="section-padding mt-5">
+      <div class="rounded-3xl overflow-hidden relative" style="border:1px solid rgba(215,255,54,0.20);">
+        <img src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=900&h=600&fit=crop" class="w-full h-[230px] object-cover"/>
+        <div class="absolute inset-0" style="background:linear-gradient(180deg, transparent 20%, rgba(4,11,7,0.98) 100%);"></div>
+
+        <div class="absolute top-4 left-4 chip" style="background:rgba(215,255,54,0.20); border:1px solid rgba(215,255,54,0.40); color:#D7FF36; backdrop-filter:blur(10px);">
+          <i class="fa-solid fa-crown text-[9px] text-amber-300"></i>MASTERCLASS · PREMIUM
+        </div>
+
+        <div class="absolute top-4 right-4 chip" style="background:rgba(0,0,0,0.55); color:#fff; backdrop-filter:blur(10px);">
+          <i class="fa-regular fa-clock text-[9px]"></i>32 min
+        </div>
+
+        <button class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,#D7FF36,#4ADE80); box-shadow:0 12px 40px -10px rgba(215,255,54,0.55);">
+          <i class="fa-solid fa-play text-emerald-950 text-2xl ml-1"></i>
+        </button>
+
+        <div class="absolute bottom-0 left-0 right-0 p-5">
+          <div class="font-display font-extrabold text-[22px] leading-tight">Master the Fed forehand</div>
+          <div class="text-[12px] text-slate-300 mt-1">A 7-part biomechanics breakdown · with live pose mirroring</div>
+
+          <div class="flex items-center justify-between mt-4">
+            <div class="flex items-center gap-2">
+              <img src="https://images.unsplash.com/photo-1599586120429-48281b6f0ece?w=80&h=80&fit=crop" class="w-7 h-7 rounded-full object-cover ring-2 ring-lime-300/40"/>
+              <div>
+                <div class="text-[11px] font-bold text-white">Coach Federica</div>
+                <div class="text-[9px] text-slate-400">WTA Pro Coach</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 text-[10px] text-slate-300 font-semibold">
+              <span><i class="fa-solid fa-eye text-[9px] mr-1"></i>184K</span>
+              <span><i class="fa-solid fa-star text-amber-300 text-[9px] mr-1"></i>4.9</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Strokes grid -->
+    <div class="section-padding mt-7">
+      <div class="flex items-center justify-between mb-3">
+        <div class="font-display font-extrabold text-[18px]">Eight stroke types</div>
+        <span class="text-[10px] text-slate-400 font-bold">Sort by progress</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+
+        <div class="stroke-cell">
+          <img src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=400&h=300&fit=crop"/>
+          <div class="stroke-veil"></div>
+          <div class="absolute top-3 left-3 chip" style="background:linear-gradient(135deg,#D7FF36,#4ADE80); color:#062012;">
+            <i class="fa-solid fa-fire text-[9px]"></i>Top score
+          </div>
+          <div class="absolute top-3 right-3 ring-mini">
+            <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+              <circle cx="18" cy="18" r="15" stroke="rgba(255,255,255,0.18)" stroke-width="3" fill="none"/>
+              <circle cx="18" cy="18" r="15" stroke="#D7FF36" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="7.5"/>
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-bold text-lime-300">92</div>
+          </div>
+          <div class="absolute bottom-3 left-3 right-3">
+            <div class="text-[15px] font-display font-extrabold">Forehand</div>
+            <div class="text-[10px] text-slate-300 font-semibold mt-0.5">14 drills · ATP avg 88</div>
+          </div>
+        </div>
+
+        <div class="stroke-cell">
+          <img src="https://images.unsplash.com/photo-1551773395-1fea2d0ba2cf?w=400&h=300&fit=crop"/>
+          <div class="stroke-veil"></div>
+          <div class="absolute top-3 right-3 ring-mini">
+            <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+              <circle cx="18" cy="18" r="15" stroke="rgba(255,255,255,0.18)" stroke-width="3" fill="none"/>
+              <circle cx="18" cy="18" r="15" stroke="#5EEAD4" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="15"/>
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-bold text-cyan-200">84</div>
+          </div>
+          <div class="absolute bottom-3 left-3 right-3">
+            <div class="text-[15px] font-display font-extrabold">Backhand</div>
+            <div class="text-[10px] text-slate-300 font-semibold mt-0.5">11 drills · 2-hand</div>
+          </div>
+        </div>
+
+        <div class="stroke-cell">
+          <img src="https://images.unsplash.com/photo-1535914254981-b5012eebbd15?w=400&h=300&fit=crop"/>
+          <div class="stroke-veil"></div>
+          <div class="absolute top-3 left-3 chip" style="background:rgba(251,146,60,0.20); border:1px solid rgba(251,146,60,0.40); color:#FB923C; backdrop-filter:blur(8px);">
+            <i class="fa-solid fa-bullseye text-[9px]"></i>Focus
+          </div>
+          <div class="absolute top-3 right-3 ring-mini">
+            <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+              <circle cx="18" cy="18" r="15" stroke="rgba(255,255,255,0.18)" stroke-width="3" fill="none"/>
+              <circle cx="18" cy="18" r="15" stroke="#FB923C" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="20.7"/>
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-bold text-amber-300">78</div>
+          </div>
+          <div class="absolute bottom-3 left-3 right-3">
+            <div class="text-[15px] font-display font-extrabold">Serve</div>
+            <div class="text-[10px] text-slate-300 font-semibold mt-0.5">9 drills · Flat / Kick / Slice</div>
+          </div>
+        </div>
+
+        <div class="stroke-cell">
+          <img src="https://images.unsplash.com/photo-1591491653056-4e0f7a8b1c01?w=400&h=300&fit=crop"/>
+          <div class="stroke-veil"></div>
+          <div class="absolute top-3 right-3 ring-mini">
+            <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+              <circle cx="18" cy="18" r="15" stroke="rgba(255,255,255,0.18)" stroke-width="3" fill="none"/>
+              <circle cx="18" cy="18" r="15" stroke="#A78BFA" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="11.3"/>
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-bold text-purple-300">88</div>
+          </div>
+          <div class="absolute bottom-3 left-3 right-3">
+            <div class="text-[15px] font-display font-extrabold">Volley</div>
+            <div class="text-[10px] text-slate-300 font-semibold mt-0.5">7 drills · Net play</div>
+          </div>
+        </div>
+
+        <div class="stroke-cell">
+          <img src="https://images.unsplash.com/photo-1622279457486-aab8aa5d2b18?w=400&h=300&fit=crop"/>
+          <div class="stroke-veil"></div>
+          <div class="absolute top-3 right-3 ring-mini">
+            <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+              <circle cx="18" cy="18" r="15" stroke="rgba(255,255,255,0.18)" stroke-width="3" fill="none"/>
+              <circle cx="18" cy="18" r="15" stroke="#67E8F9" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="17.9"/>
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-bold text-cyan-200">81</div>
+          </div>
+          <div class="absolute bottom-3 left-3 right-3">
+            <div class="text-[15px] font-display font-extrabold">Slice</div>
+            <div class="text-[10px] text-slate-300 font-semibold mt-0.5">6 drills · Defensive</div>
+          </div>
+        </div>
+
+        <div class="stroke-cell">
+          <img src="https://images.unsplash.com/photo-1530915534234-4ebcdce39e87?w=400&h=300&fit=crop"/>
+          <div class="stroke-veil"></div>
+          <div class="absolute top-3 left-3 chip" style="background:rgba(0,0,0,0.55); color:#94A3B8; backdrop-filter:blur(8px);">
+            <i class="fa-solid fa-lock text-[8px]"></i>Lv 8
+          </div>
+          <div class="absolute bottom-3 left-3 right-3">
+            <div class="text-[15px] font-display font-extrabold">Overhead Smash</div>
+            <div class="text-[10px] text-slate-400 font-semibold mt-0.5">Locked · Unlock at L8</div>
+          </div>
+        </div>
+
+        <div class="stroke-cell">
+          <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400&h=300&fit=crop"/>
+          <div class="stroke-veil"></div>
+          <div class="absolute top-3 right-3 ring-mini">
+            <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+              <circle cx="18" cy="18" r="15" stroke="rgba(255,255,255,0.18)" stroke-width="3" fill="none"/>
+              <circle cx="18" cy="18" r="15" stroke="#F472B6" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="25.4"/>
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-bold text-pink-300">73</div>
+          </div>
+          <div class="absolute bottom-3 left-3 right-3">
+            <div class="text-[15px] font-display font-extrabold">Drop Shot</div>
+            <div class="text-[10px] text-slate-300 font-semibold mt-0.5">5 drills · Touch play</div>
+          </div>
+        </div>
+
+        <div class="stroke-cell">
+          <img src="https://images.unsplash.com/photo-1626218174358-7769486f25d3?w=400&h=300&fit=crop"/>
+          <div class="stroke-veil"></div>
+          <div class="absolute top-3 right-3 ring-mini">
+            <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+              <circle cx="18" cy="18" r="15" stroke="rgba(255,255,255,0.18)" stroke-width="3" fill="none"/>
+              <circle cx="18" cy="18" r="15" stroke="#4ADE80" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="13.2"/>
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-bold text-emerald-300">86</div>
+          </div>
+          <div class="absolute bottom-3 left-3 right-3">
+            <div class="text-[15px] font-display font-extrabold">Return</div>
+            <div class="text-[10px] text-slate-300 font-semibold mt-0.5">8 drills · Read serves</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Pro mirror promo -->
+    <div class="section-padding mt-7">
+      <div class="rounded-2xl p-4 flex items-center gap-3" style="background:linear-gradient(135deg, rgba(251,146,60,0.16), rgba(244,114,182,0.10)); border:1px solid rgba(251,146,60,0.25);">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center" style="background:linear-gradient(135deg,#FBBF24,#FB923C);">
+          <i class="fa-solid fa-crown text-amber-950 text-lg"></i>
+        </div>
+        <div class="flex-1">
+          <div class="text-[10px] uppercase tracking-wider font-bold text-amber-300">Pro Mirror · New</div>
+          <div class="text-[13px] font-bold text-white mt-0.5">Sync your stroke with 24 ATP / WTA pros</div>
+        </div>
+        <i class="fa-solid fa-arrow-right text-amber-300 text-sm"></i>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fa-solid fa-house"></i><span>Today</span></div>
+    <div class="tab-item active"><i class="fa-solid fa-table-tennis-paddle-ball"></i><span>Library</span></div>
+    <div class="tab-capture"><i class="fa-solid fa-video"></i></div>
+    <div class="tab-item"><i class="fa-solid fa-sparkles"></i><span>Coach</span></div>
+    <div class="tab-item"><i class="fa-regular fa-user"></i><span>Me</span></div>
+  </div>
+  <div class="home-indicator"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AceForm · AI Coach</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{ -webkit-font-smoothing:antialiased; box-sizing:border-box; scrollbar-width:none; }
+*::-webkit-scrollbar{ display:none; }
+html,body{ width:100%; height:100%; margin:0; font-family:'Inter',sans-serif; background:#040B07; color:#fff; }
+.screen{ position:relative; width:100%; height:100%; overflow:hidden;
+  background: radial-gradient(120% 50% at 50% 0%, rgba(215,255,54,0.16) 0%, transparent 60%), linear-gradient(180deg, #061410 0%, #040B07 100%); }
+.scroll{ position:absolute; top:0; left:0; right:0; bottom:0; overflow-y:auto; padding-bottom:170px; }
+.island{ position:absolute; left:50%; top:14px; transform:translateX(-50%); width:124px; height:36px; background:#000; border-radius:24px; z-index:31; }
+.status-bar{ height:59px; padding:20px 28px 0; display:flex; justify-content:space-between; align-items:center; font-size:16px; font-weight:600; }
+.font-display{ font-family:'Space Grotesk', sans-serif; letter-spacing:-0.03em; }
+.font-mono{ font-family:'JetBrains Mono', monospace; }
+.section-padding{ padding-left:28px; padding-right:28px; }
+.lime-gradient{ background:linear-gradient(135deg, #D7FF36 0%, #4ADE80 60%, #5EEAD4 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.lime-bg{ background:linear-gradient(135deg, #D7FF36 0%, #4ADE80 100%); }
+.chip{ display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:99px; font-size:10px; font-weight:700; }
+
+.tab-bar{ position:absolute; bottom:0; left:0; right:0; height:96px; padding:10px 18px 22px; display:flex; justify-content:space-around; align-items:center;
+  background: linear-gradient(180deg, rgba(4,11,7,0.4) 0%, rgba(4,11,7,0.96) 60%); backdrop-filter:blur(28px); border-top:1px solid rgba(255,255,255,0.05); z-index:20; }
+.tab-item{ display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 10px; }
+.tab-item i{ font-size:18px; color:#64748B; }
+.tab-item span{ font-size:9.5px; color:#64748B; font-weight:700; letter-spacing:0.02em; }
+.tab-item.active i, .tab-item.active span{ color:#D7FF36; }
+.tab-capture{ width:58px; height:58px; border-radius:50%; background:linear-gradient(135deg, #D7FF36 0%, #4ADE80 100%); display:flex; align-items:center; justify-content:center; box-shadow:0 16px 36px -10px rgba(215,255,54,0.55); transform:translateY(-12px); border:3px solid #040B07;}
+.tab-capture i{ font-size:22px; color:#062012;}
+.home-indicator{ position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:140px; height:5px; background:#fff; border-radius:3px; opacity:0.9; }
+
+.bub-bot{ background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:20px 20px 20px 6px; padding:14px 16px; }
+.bub-user{ background:linear-gradient(135deg,#D7FF36,#4ADE80); color:#062012; border-radius:20px 20px 6px 20px; padding:12px 16px; }
+
+.input-bar{ position:absolute; bottom:96px; left:0; right:0; padding:14px 22px 12px; background:linear-gradient(180deg, transparent 0%, rgba(4,11,7,0.95) 50%); backdrop-filter:blur(12px); z-index:21; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="island"></div>
+  <div class="scroll">
+    <div class="status-bar">
+      <span>9:41</span>
+      <div class="flex items-center gap-1.5">
+        <i class="fa-solid fa-signal text-xs"></i>
+        <i class="fa-solid fa-wifi text-xs"></i>
+        <i class="fa-solid fa-battery-full text-xs"></i>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <div class="section-padding pt-2 flex items-center justify-between">
+      <div class="w-9 h-9 rounded-full flex items-center justify-center" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08);">
+        <i class="fa-solid fa-chevron-left text-white text-xs"></i>
+      </div>
+      <div class="text-center flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center relative" style="background:linear-gradient(135deg,#D7FF36,#4ADE80); box-shadow:0 0 0 2px rgba(215,255,54,0.30);">
+          <i class="fa-solid fa-sparkles text-emerald-950 text-sm"></i>
+          <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-lime-300 border-2 border-[#040B07]"></div>
+        </div>
+        <div class="text-left">
+          <div class="text-[14px] font-bold">Ace · AI Coach</div>
+          <div class="text-[10px] text-lime-300 font-bold">● Reading your form</div>
+        </div>
+      </div>
+      <div class="w-9 h-9 rounded-full flex items-center justify-center" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08);">
+        <i class="fa-solid fa-ellipsis text-white text-xs"></i>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div class="section-padding mt-5 space-y-3.5">
+
+      <!-- AI greeting -->
+      <div class="flex items-start gap-2.5 max-w-[88%]">
+        <div class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center mt-1" style="background:linear-gradient(135deg,#D7FF36,#4ADE80);">
+          <i class="fa-solid fa-sparkles text-emerald-950 text-[10px]"></i>
+        </div>
+        <div class="bub-bot">
+          <div class="text-[13px] text-slate-100 leading-snug">Hey Maya — your forehand is in the <span class="text-lime-300 font-bold">94 zone</span> 🔥. The next blocker is your serve toss height. Want a 4-min fix?</div>
+        </div>
+      </div>
+
+      <!-- User question -->
+      <div class="flex justify-end">
+        <div class="bub-user max-w-[76%]">
+          <div class="text-[13px] font-semibold">Why does my serve feel flat?</div>
+        </div>
+      </div>
+
+      <!-- AI deep answer with embedded chart -->
+      <div class="flex items-start gap-2.5">
+        <div class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center mt-1" style="background:linear-gradient(135deg,#D7FF36,#4ADE80);">
+          <i class="fa-solid fa-sparkles text-emerald-950 text-[10px]"></i>
+        </div>
+        <div class="bub-bot max-w-[88%]">
+          <div class="text-[13px] text-slate-100 leading-snug">Your toss <span class="text-amber-300 font-bold">drops 9 cm</span> below your ideal contact point on average. That forces your shoulder to dip → less topspin → flatter ball.</div>
+
+          <div class="mt-3 rounded-xl p-3" style="background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.06);">
+            <div class="flex items-center justify-between mb-2">
+              <div class="text-[10px] uppercase tracking-wider font-bold text-cyan-200">Toss height · last 50 serves</div>
+              <span class="text-[10px] font-mono text-amber-300 font-bold">Δ -9 cm</span>
+            </div>
+            <svg viewBox="0 0 240 70" class="w-full h-[58px]">
+              <defs>
+                <linearGradient id="ig1" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#D7FF36" stop-opacity="0.45"/><stop offset="1" stop-color="#D7FF36" stop-opacity="0"/></linearGradient>
+              </defs>
+              <line x1="0" y1="22" x2="240" y2="22" stroke="#5EEAD4" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
+              <text x="2" y="18" fill="#5EEAD4" font-size="8" font-family="JetBrains Mono">Ideal</text>
+              <path d="M0,50 C20,52 40,46 60,48 S100,40 120,44 S160,42 180,38 S220,46 240,42" stroke="#D7FF36" stroke-width="2" fill="none"/>
+              <path d="M0,50 C20,52 40,46 60,48 S100,40 120,44 S160,42 180,38 S220,46 240,42 L 240,70 L 0,70 Z" fill="url(#ig1)"/>
+            </svg>
+            <div class="text-[10px] text-slate-400 mt-1.5">Yellow line = your toss · cyan = ideal</div>
+          </div>
+
+          <div class="flex gap-2 mt-3 flex-wrap">
+            <div class="chip" style="background:rgba(215,255,54,0.20); color:#D7FF36;">+9 cm toss</div>
+            <div class="chip" style="background:rgba(94,234,212,0.20); color:#5EEAD4;">+11 mph</div>
+            <div class="chip" style="background:rgba(74,222,128,0.20); color:#86EFAC;">+3.2k rpm spin</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Optimized plan card -->
+      <div class="flex items-start gap-2.5">
+        <div class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center mt-1" style="background:linear-gradient(135deg,#D7FF36,#4ADE80);">
+          <i class="fa-solid fa-sparkles text-emerald-950 text-[10px]"></i>
+        </div>
+        <div class="rounded-3xl p-4 max-w-[92%]" style="background:linear-gradient(135deg, rgba(215,255,54,0.16), rgba(94,234,212,0.10)); border:1px solid rgba(215,255,54,0.25);">
+          <div class="flex items-center gap-2 mb-2.5">
+            <i class="fa-solid fa-bolt text-lime-300 text-xs"></i>
+            <div class="text-[10px] uppercase tracking-wider font-bold text-lime-200">Today's plan · 4 min</div>
+          </div>
+          <div class="text-[13px] font-semibold mb-3 leading-snug">Three drills to dial in your serve toss.</div>
+
+          <div class="space-y-2">
+            <div class="flex items-center gap-3 rounded-xl px-3 py-2.5" style="background:rgba(0,0,0,0.30); border:1px solid rgba(255,255,255,0.06);">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-mono font-bold" style="background:rgba(215,255,54,0.20); color:#D7FF36;">01</div>
+              <div class="flex-1">
+                <div class="text-[12px] font-semibold">Toss-only ladder · 12 reps</div>
+                <div class="text-[10px] text-slate-400">+9 cm toss · slow ascent</div>
+              </div>
+              <span class="text-[10px] text-lime-300 font-mono font-bold">90s</span>
+            </div>
+            <div class="flex items-center gap-3 rounded-xl px-3 py-2.5" style="background:rgba(0,0,0,0.30); border:1px solid rgba(255,255,255,0.06);">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-mono font-bold" style="background:rgba(215,255,54,0.20); color:#D7FF36;">02</div>
+              <div class="flex-1">
+                <div class="text-[12px] font-semibold">Trophy pose hold · 8 reps</div>
+                <div class="text-[10px] text-slate-400">Pause 2s at trophy</div>
+              </div>
+              <span class="text-[10px] text-lime-300 font-mono font-bold">90s</span>
+            </div>
+            <div class="flex items-center gap-3 rounded-xl px-3 py-2.5" style="background:rgba(0,0,0,0.30); border:1px solid rgba(255,255,255,0.06);">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-mono font-bold" style="background:rgba(215,255,54,0.20); color:#D7FF36;">03</div>
+              <div class="flex-1">
+                <div class="text-[12px] font-semibold">Full serve · 10 reps</div>
+                <div class="text-[10px] text-slate-400">AI grades every contact</div>
+              </div>
+              <span class="text-[10px] text-lime-300 font-mono font-bold">120s</span>
+            </div>
+          </div>
+
+          <button class="w-full mt-3.5 py-3 rounded-2xl font-bold text-[13px] text-emerald-950" style="background:linear-gradient(135deg,#D7FF36,#4ADE80);">
+            <i class="fa-solid fa-play text-[11px] mr-1.5"></i>Lock in today's plan
+          </button>
+        </div>
+      </div>
+
+      <!-- User chip -->
+      <div class="flex justify-end">
+        <div class="bub-user max-w-[60%]">
+          <div class="text-[13px] font-semibold">What pro should I mirror?</div>
+        </div>
+      </div>
+
+      <!-- AI quick reply -->
+      <div class="flex items-start gap-2.5 max-w-[88%]">
+        <div class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center mt-1" style="background:linear-gradient(135deg,#D7FF36,#4ADE80);">
+          <i class="fa-solid fa-sparkles text-emerald-950 text-[10px]"></i>
+        </div>
+        <div class="bub-bot">
+          <div class="text-[13px] text-slate-100 leading-snug">Closest body match: <span class="text-lime-300 font-bold">Iga Świątek</span>. Same height, same hip-shoulder lag pattern. <span class="text-cyan-200 font-bold">88% pose-sync</span> on her topspin serve.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Quick replies -->
+  <div class="input-bar">
+    <div class="flex gap-2 overflow-x-auto pb-2">
+      <div class="chip flex-shrink-0" style="background:rgba(215,255,54,0.14); border:1px solid rgba(215,255,54,0.30); color:#D7FF36;">⚡ Fix my backhand</div>
+      <div class="chip flex-shrink-0" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.10); color:#94A3B8;">📅 Plan this week</div>
+      <div class="chip flex-shrink-0" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.10); color:#94A3B8;">🎯 Match prep</div>
+      <div class="chip flex-shrink-0" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.10); color:#94A3B8;">📊 Explain my score</div>
+    </div>
+
+    <div class="flex items-center gap-2 mt-1">
+      <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.10);">
+        <i class="fa-solid fa-plus text-white text-sm"></i>
+      </div>
+      <div class="flex-1 rounded-full px-4 py-3 flex items-center gap-2" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.10);">
+        <span class="text-[12.5px] text-slate-500 flex-1">Ask Ace anything…</span>
+        <i class="fa-solid fa-microphone text-slate-400 text-xs"></i>
+      </div>
+      <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#D7FF36,#4ADE80);">
+        <i class="fa-solid fa-arrow-up text-emerald-950 text-sm"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fa-solid fa-house"></i><span>Today</span></div>
+    <div class="tab-item"><i class="fa-solid fa-table-tennis-paddle-ball"></i><span>Library</span></div>
+    <div class="tab-capture"><i class="fa-solid fa-video"></i></div>
+    <div class="tab-item active"><i class="fa-solid fa-sparkles"></i><span>Coach</span></div>
+    <div class="tab-item"><i class="fa-regular fa-user"></i><span>Me</span></div>
+  </div>
+  <div class="home-indicator"></div>
+</div>
+</body>
+</html>
