@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lumen · Daily Check-in</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{ -webkit-font-smoothing:antialiased; box-sizing:border-box; scrollbar-width:none; }
+*::-webkit-scrollbar{ display:none; }
+html,body{ width:100%; height:100%; margin:0; font-family:'Inter',sans-serif; background:#06061A; color:#fff; }
+.screen{ position:relative; width:100%; height:100%; overflow:hidden;
+  background:
+    radial-gradient(100% 60% at 50% 0%, rgba(236,72,153,0.35) 0%, rgba(236,72,153,0) 60%),
+    radial-gradient(120% 50% at 100% 100%, rgba(6,214,224,0.22) 0%, rgba(6,214,224,0) 60%),
+    linear-gradient(180deg, #0B0420 0%, #0A0A22 100%); }
+.scroll{ position:absolute; top:0; left:0; right:0; bottom:0; overflow-y:auto; padding-bottom:130px; }
+.status-bar{ height:59px; padding:20px 28px 0; display:flex; justify-content:space-between; align-items:center; font-size:16px; font-weight:600; }
+.island{ position:absolute; left:50%; top:14px; transform:translateX(-50%); width:124px; height:36px; background:#000; border-radius:24px; z-index:31; }
+.font-display{ font-family:'Space Grotesk', sans-serif; letter-spacing:-0.03em; }
+.glass{ background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); backdrop-filter:blur(20px); border-radius:24px; }
+.section-padding{ padding-left:28px; padding-right:28px; }
+.brand-gradient{ background:linear-gradient(135deg, #F0ABFC 0%, #C4B5FD 50%, #67E8F9 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.home-indicator{ position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:140px; height:5px; background:#fff; border-radius:3px; opacity:0.95; }
+
+/* mood wheel */
+.wheel-wrap{ position:relative; width:280px; height:280px; margin:0 auto; }
+.wheel{ position:absolute; inset:0; border-radius:50%;
+  background:
+    conic-gradient(from 0deg,
+      #F472B6 0deg 60deg,
+      #FB7185 60deg 120deg,
+      #FBBF24 120deg 180deg,
+      #4ADE80 180deg 240deg,
+      #67E8F9 240deg 300deg,
+      #A78BFA 300deg 360deg);
+  filter: blur(0.5px); }
+.wheel-inner{ position:absolute; inset:40px; border-radius:50%; background: radial-gradient(circle at 50% 40%, #16114A 0%, #0B0420 80%); display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.12); box-shadow: inset 0 4px 18px rgba(0,0,0,0.5); }
+.mood-icon{ position:absolute; width:46px; height:46px; border-radius:50%; background:rgba(255,255,255,0.95); display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 8px 22px rgba(0,0,0,0.35); }
+.mood-icon.sel{ outline:3px solid rgba(255,255,255,0.7); outline-offset:3px; transform:scale(1.15); }
+.mood-icon.m1{ top:-8px; left:50%; transform:translateX(-50%); }
+.mood-icon.m1.sel{ top:-8px; left:50%; transform:translateX(-50%) scale(1.15); }
+.mood-icon.m2{ top:50px; right:-8px; }
+.mood-icon.m3{ bottom:50px; right:-8px; }
+.mood-icon.m4{ bottom:-8px; left:50%; transform:translateX(-50%); }
+.mood-icon.m5{ bottom:50px; left:-8px; }
+.mood-icon.m6{ top:50px; left:-8px; }
+
+.energy-tick{ flex:1; height:8px; border-radius:99px; background: rgba(255,255,255,0.08); }
+.energy-tick.on{ background:linear-gradient(90deg,#F472B6,#67E8F9); box-shadow:0 0 12px rgba(103,232,249,0.5); }
+
+.tag-chip{ padding:10px 14px; border-radius:14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); font-size:12px; font-weight:600; color:#E2E8F0; display:flex; align-items:center; gap:6px; }
+.tag-chip.sel{ background: linear-gradient(135deg, rgba(139,92,246,0.4), rgba(236,72,153,0.4)); border-color: rgba(255,255,255,0.4); color:#fff;}
+.tag-chip i{ font-size:12px; }
+
+.slider{ height:10px; background:rgba(255,255,255,0.06); border-radius:99px; position:relative; }
+.slider .fill{ position:absolute; left:0; top:0; bottom:0; border-radius:99px; }
+.slider .thumb{ position:absolute; top:50%; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 4px 14px rgba(0,0,0,0.4); transform:translate(-50%,-50%); border:3px solid #0B0420; }
+
+.cta-btn{ padding:18px; border-radius:22px; font-weight:700; font-size:15.5px; background: linear-gradient(135deg,#8B5CF6 0%, #EC4899 50%, #06D6E0 100%); color:#0A0A22; box-shadow: 0 18px 38px rgba(236,72,153,0.45); display:flex; align-items:center; justify-content:center; gap:8px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="island"></div>
+  <div class="scroll">
+    <div class="status-bar">
+      <span>9:41</span>
+      <div class="flex items-center gap-1.5">
+        <i class="fa-solid fa-signal text-xs"></i>
+        <i class="fa-solid fa-wifi text-xs"></i>
+        <i class="fa-solid fa-battery-full text-xs"></i>
+      </div>
+    </div>
+
+    <div class="section-padding pt-2 flex items-center justify-between">
+      <div class="w-10 h-10 rounded-full glass flex items-center justify-center"><i class="fa-solid fa-chevron-left text-white text-sm"></i></div>
+      <div class="text-center">
+        <div class="text-[11px] tracking-widest text-pink-200 font-bold uppercase">Daily Check-in</div>
+        <div class="text-[13px] text-slate-300 mt-0.5">Step 2 of 4 · ~30 sec</div>
+      </div>
+      <div class="w-10 h-10 rounded-full glass flex items-center justify-center"><i class="fa-solid fa-microphone text-cyan-300 text-sm"></i></div>
+    </div>
+
+    <!-- progress dots -->
+    <div class="section-padding mt-3 flex items-center gap-1.5">
+      <div class="flex-1 h-1 rounded-full bg-white/80"></div>
+      <div class="flex-1 h-1 rounded-full bg-white/80"></div>
+      <div class="flex-1 h-1 rounded-full bg-white/10"></div>
+      <div class="flex-1 h-1 rounded-full bg-white/10"></div>
+    </div>
+
+    <div class="section-padding pt-5">
+      <h1 class="font-display font-bold text-[32px] leading-tight">How does <span class="brand-gradient">today</span> feel right now?</h1>
+      <p class="text-slate-400 text-[13px] mt-1.5">Tap the closest match. There's no wrong answer.</p>
+    </div>
+
+    <!-- Mood wheel -->
+    <div class="mt-5 flex justify-center">
+      <div class="wheel-wrap">
+        <div class="wheel"></div>
+        <div class="wheel-inner">
+          <div class="font-display font-bold text-[36px] brand-gradient leading-none">Calm</div>
+          <div class="text-[11px] text-slate-300 tracking-wider mt-1">+ FOCUSED</div>
+          <div class="mt-2 text-[11px] text-emerald-300 font-bold tracking-wider">VALENCE +0.6 · AROUSAL 0.3</div>
+        </div>
+        <div class="mood-icon m1">🤩</div>
+        <div class="mood-icon m2">😤</div>
+        <div class="mood-icon m3">😟</div>
+        <div class="mood-icon m4">😴</div>
+        <div class="mood-icon m5 sel">😌</div>
+        <div class="mood-icon m6">😊</div>
+      </div>
+    </div>
+
+    <!-- Energy slider -->
+    <div class="section-padding mt-7">
+      <div class="flex items-center justify-between mb-2.5">
+        <span class="text-[11px] tracking-widest font-bold uppercase text-cyan-200">Energy level</span>
+        <span class="text-[11px] text-slate-400">6 / 10</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <div class="energy-tick on"></div>
+        <div class="energy-tick on"></div>
+        <div class="energy-tick on"></div>
+        <div class="energy-tick on"></div>
+        <div class="energy-tick on"></div>
+        <div class="energy-tick on"></div>
+        <div class="energy-tick"></div>
+        <div class="energy-tick"></div>
+        <div class="energy-tick"></div>
+        <div class="energy-tick"></div>
+      </div>
+      <div class="flex justify-between text-[10.5px] text-slate-400 mt-2 font-semibold">
+        <span>Drained</span><span>Peak</span>
+      </div>
+    </div>
+
+    <!-- Tags -->
+    <div class="section-padding mt-6">
+      <div class="text-[11px] tracking-widest font-bold uppercase text-purple-200 mb-3">What's behind it?</div>
+      <div class="flex flex-wrap gap-2">
+        <div class="tag-chip sel"><i class="fa-solid fa-book text-cyan-300"></i>Aced calc quiz</div>
+        <div class="tag-chip sel"><i class="fa-solid fa-mug-hot text-amber-300"></i>Good sleep</div>
+        <div class="tag-chip"><i class="fa-solid fa-message text-pink-300"></i>Drama w/ Liv</div>
+        <div class="tag-chip"><i class="fa-solid fa-clock text-rose-300"></i>Behind on essay</div>
+        <div class="tag-chip sel"><i class="fa-solid fa-heart text-pink-300"></i>FaceTime mom</div>
+        <div class="tag-chip"><i class="fa-solid fa-circle-exclamation text-orange-300"></i>Skipped breakfast</div>
+        <div class="tag-chip"><i class="fa-solid fa-music text-purple-300"></i>Found new playlist</div>
+        <div class="tag-chip"><i class="fa-solid fa-plus text-slate-300"></i>Add</div>
+      </div>
+    </div>
+
+    <!-- Voice journal -->
+    <div class="section-padding mt-6">
+      <div class="glass p-4 flex items-center gap-3" style="background:linear-gradient(135deg, rgba(236,72,153,0.18), rgba(139,92,246,0.18));">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center" style="background:linear-gradient(135deg,#EC4899,#8B5CF6);">
+          <i class="fa-solid fa-waveform-lines text-white"></i>
+        </div>
+        <div class="flex-1">
+          <div class="text-[13px] font-bold">30-second voice journal</div>
+          <div class="text-[11px] text-slate-300 mt-0.5">AI extracts mood signals · stays private</div>
+        </div>
+        <button class="w-11 h-11 rounded-full bg-white flex items-center justify-center">
+          <i class="fa-solid fa-microphone text-[#0A0A22]"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stress slider -->
+    <div class="section-padding mt-6">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-[11px] tracking-widest font-bold uppercase text-pink-200">Stress today</span>
+        <span class="font-display font-bold text-lg brand-gradient">3.2</span>
+      </div>
+      <div class="slider">
+        <div class="fill" style="width:32%; background:linear-gradient(90deg,#4ADE80,#FBBF24,#EF4444);"></div>
+        <div class="thumb" style="left:32%;"></div>
+      </div>
+      <div class="flex justify-between text-[10.5px] text-slate-400 mt-2 font-semibold">
+        <span>Chill</span><span>Overwhelmed</span>
+      </div>
+    </div>
+
+    <div class="section-padding mt-8">
+      <button class="cta-btn w-full">
+        Continue <i class="fa-solid fa-arrow-right"></i>
+      </button>
+      <div class="text-center text-[11px] text-slate-500 mt-3">Skip for today</div>
+    </div>
+  </div>
+  <div class="home-indicator"></div>
+</div>
+</body>
+</html>
