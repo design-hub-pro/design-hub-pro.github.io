@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mindful Guitar · Library</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;scrollbar-width:none;}
+*::-webkit-scrollbar{display:none;}
+html,body{width:100%;height:100%;font-family:'Inter',sans-serif;background:#0D0703;color:#FEF3C7;}
+.font-serif{font-family:'Playfair Display',serif;letter-spacing:-0.025em;}
+.font-instrument{font-family:'Instrument Serif',serif;letter-spacing:-0.02em;}
+.font-mono{font-family:'JetBrains Mono',monospace;}
+.screen{position:relative;width:100%;height:100%;overflow:hidden;background:radial-gradient(120% 50% at 50% 0%, rgba(245,158,11,0.16) 0%, transparent 55%),linear-gradient(180deg,#1A0F08 0%, #0D0703 100%);}
+.scroll{position:absolute;inset:0;overflow-y:auto;padding-bottom:108px;}
+.island{position:absolute;left:50%;top:14px;transform:translateX(-50%);width:124px;height:36px;background:#000;border-radius:24px;z-index:30;}
+.status-bar{height:59px;padding:20px 28px 0;display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:600;color:#FEF3C7;}
+.section-padding{padding-left:28px;padding-right:28px;}
+.glass{background:rgba(254,243,199,0.04);border:1px solid rgba(252,211,77,0.10);backdrop-filter:blur(20px);border-radius:22px;}
+.home-indicator{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:140px;height:5px;background:#FEF3C7;border-radius:3px;opacity:0.7;}
+.amber-grad{background:linear-gradient(135deg,#FCD34D 0%, #F59E0B 50%, #B45309 100%);-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+.tab-bar{position:absolute;bottom:0;left:0;right:0;height:96px;padding:10px 18px 22px;display:flex;justify-content:space-around;align-items:center;background:linear-gradient(180deg,rgba(13,7,3,0) 0%, rgba(13,7,3,0.96) 60%);backdrop-filter:blur(28px);border-top:1px solid rgba(252,211,77,0.08);z-index:20;}
+.tab-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;}
+.tab-item i{font-size:18px;color:#7A6651;}
+.tab-item span{font-size:9.5px;color:#7A6651;font-weight:700;}
+.tab-item.active i,.tab-item.active span{color:#FCD34D;}
+.tab-play{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#FCD34D 0%, #F59E0B 60%, #B45309 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 16px 36px -10px rgba(245,158,11,0.55);transform:translateY(-12px);border:3px solid #0D0703;}
+.tab-play i{font-size:22px;color:#1A0F08;}
+
+.hero{position:relative;border-radius:24px;overflow:hidden;height:200px;}
+.hero img{width:100%;height:100%;object-fit:cover;}
+.hero .ov{position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%, rgba(13,7,3,0.92) 100%);}
+.hero .badge{position:absolute;top:14px;left:14px;display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:99px;background:rgba(252,211,77,0.20);border:1px solid rgba(252,211,77,0.35);color:#FCD34D;font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;}
+.hero .play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;border-radius:50%;background:rgba(254,243,199,0.92);display:flex;align-items:center;justify-content:center;color:#1A0F08;font-size:18px;box-shadow:0 18px 36px -10px rgba(254,243,199,0.45);}
+.hero .meta{position:absolute;bottom:14px;left:16px;right:16px;}
+
+.chip-row{display:flex;gap:8px;overflow-x:auto;padding:0 28px;}
+.fchip{flex-shrink:0;padding:8px 13px;border-radius:99px;font-size:11px;font-weight:700;border:1px solid rgba(252,211,77,0.16);color:#FEF3C7;background:rgba(254,243,199,0.04);}
+.fchip.act{background:linear-gradient(135deg,#FCD34D,#F59E0B);border-color:transparent;color:#1A0F08;}
+
+.vid{position:relative;border-radius:18px;overflow:hidden;aspect-ratio:1.2/1;}
+.vid img{width:100%;height:100%;object-fit:cover;}
+.vid .ov{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%, rgba(13,7,3,0.95) 100%);}
+.vid .dur{position:absolute;top:8px;right:8px;font-size:9px;font-weight:800;background:rgba(13,7,3,0.7);color:#FCD34D;padding:3px 6px;border-radius:6px;letter-spacing:0.04em;}
+.vid .badge-l{position:absolute;top:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;padding:3px 7px;border-radius:99px;}
+.vid .pl{position:absolute;bottom:46px;right:10px;width:30px;height:30px;border-radius:50%;background:rgba(254,243,199,0.92);display:flex;align-items:center;justify-content:center;color:#1A0F08;font-size:10px;}
+.vid .ttl{position:absolute;bottom:8px;left:10px;right:10px;}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="island"></div>
+  <div class="scroll">
+    <div class="status-bar">
+      <span>9:41</span>
+      <div class="flex items-center gap-1.5">
+        <i class="fa-solid fa-signal text-xs"></i>
+        <i class="fa-solid fa-wifi text-xs"></i>
+        <i class="fa-solid fa-battery-full text-xs"></i>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <div class="section-padding pt-2 flex items-end justify-between">
+      <div>
+        <div class="text-[10px] tracking-[0.18em] uppercase font-bold text-amber-300/80">Library · 240 lessons</div>
+        <h1 class="font-serif text-[28px] font-bold mt-1">Learn <span class="font-instrument italic amber-grad">a little at a time</span></h1>
+      </div>
+      <div class="w-10 h-10 rounded-full glass flex items-center justify-center"><i class="fa-solid fa-magnifying-glass text-amber-100 text-xs"></i></div>
+    </div>
+
+    <!-- Hero masterclass -->
+    <div class="section-padding mt-4">
+      <div class="hero">
+        <img src="https://images.unsplash.com/photo-1525201548942-d8732f6617a0?w=900&h=500&fit=crop"/>
+        <div class="ov"></div>
+        <div class="badge"><i class="fa-solid fa-crown"></i>Masterclass</div>
+        <div class="play"><i class="fa-solid fa-play"></i></div>
+        <div class="meta">
+          <div class="text-[10px] tracking-[0.12em] uppercase font-bold text-amber-200/80">Jose Gonzalez · 24 min</div>
+          <div class="font-serif text-[19px] font-bold mt-1">Heartbeats &amp; calm fingerpicking</div>
+          <div class="flex items-center gap-3 mt-2 text-[10.5px] text-amber-100/70">
+            <span><i class="fa-solid fa-star text-amber-300 mr-1"></i>4.9</span>
+            <span><i class="fa-solid fa-eye mr-1"></i>14K</span>
+            <span><i class="fa-solid fa-graduation-cap mr-1"></i>Beginner</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter chips -->
+    <div class="mt-4 chip-row">
+      <div class="fchip act"><i class="fa-solid fa-star mr-1 text-[9px]"></i>For you</div>
+      <div class="fchip">Beginner</div>
+      <div class="fchip"><i class="fa-solid fa-leaf mr-1 text-[9px] text-emerald-300"></i>Calm</div>
+      <div class="fchip">Songs</div>
+      <div class="fchip">Theory</div>
+      <div class="fchip">Strumming</div>
+    </div>
+
+    <!-- 2-col grid -->
+    <div class="section-padding mt-4 grid grid-cols-2 gap-3">
+      <div class="vid">
+        <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop"/>
+        <div class="ov"></div>
+        <div class="badge-l" style="background:rgba(110,231,183,0.18);color:#A7F3D0;border:1px solid rgba(110,231,183,0.30);"><i class="fa-solid fa-leaf text-[8px]"></i>Calm</div>
+        <div class="dur">5:12</div>
+        <div class="pl"><i class="fa-solid fa-play"></i></div>
+        <div class="ttl">
+          <div class="text-[10px] font-bold text-amber-200/80 tracking-[0.04em]">Lesson 02 · 4 chords</div>
+          <div class="font-serif text-[14px] font-bold leading-tight mt-1">Em → Am, slowly</div>
+        </div>
+      </div>
+      <div class="vid">
+        <img src="https://images.unsplash.com/photo-1605020420620-20c943cc4669?w=400&h=400&fit=crop"/>
+        <div class="ov"></div>
+        <div class="badge-l" style="background:rgba(252,211,77,0.18);color:#FCD34D;border:1px solid rgba(252,211,77,0.30);"><i class="fa-solid fa-seedling text-[8px]"></i>Beginner</div>
+        <div class="dur">3:42</div>
+        <div class="pl"><i class="fa-solid fa-play"></i></div>
+        <div class="ttl">
+          <div class="text-[10px] font-bold text-amber-200/80 tracking-[0.04em]">Lesson 03 · 1 finger</div>
+          <div class="font-serif text-[14px] font-bold leading-tight mt-1">Easy G shape</div>
+        </div>
+      </div>
+      <div class="vid">
+        <img src="https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=400&h=400&fit=crop"/>
+        <div class="ov"></div>
+        <div class="badge-l" style="background:rgba(139,92,246,0.20);color:#C4B5FD;border:1px solid rgba(167,139,250,0.30);"><i class="fa-solid fa-moon text-[8px]"></i>Sleep</div>
+        <div class="dur">8:24</div>
+        <div class="pl"><i class="fa-solid fa-play"></i></div>
+        <div class="ttl">
+          <div class="text-[10px] font-bold text-amber-200/80 tracking-[0.04em]">Drift · 4·7·8 breath</div>
+          <div class="font-serif text-[14px] font-bold leading-tight mt-1">Nightfall arpeggio</div>
+        </div>
+      </div>
+      <div class="vid">
+        <img src="https://images.unsplash.com/photo-1471478331149-c72f17e33c73?w=400&h=400&fit=crop"/>
+        <div class="ov"></div>
+        <div class="badge-l" style="background:rgba(245,158,11,0.20);color:#FCD34D;border:1px solid rgba(252,211,77,0.30);"><i class="fa-solid fa-music text-[8px]"></i>Song</div>
+        <div class="dur">6:08</div>
+        <div class="pl"><i class="fa-solid fa-play"></i></div>
+        <div class="ttl">
+          <div class="text-[10px] font-bold text-amber-200/80 tracking-[0.04em]">Wonderwall · Oasis</div>
+          <div class="font-serif text-[14px] font-bold leading-tight mt-1">Full play-along</div>
+        </div>
+      </div>
+      <div class="vid">
+        <img src="https://images.unsplash.com/photo-1556034635-e7d20c2b8b48?w=400&h=400&fit=crop"/>
+        <div class="ov"></div>
+        <div class="badge-l" style="background:rgba(110,231,183,0.18);color:#A7F3D0;border:1px solid rgba(110,231,183,0.30);"><i class="fa-solid fa-hand text-[8px]"></i>Lefty</div>
+        <div class="dur">7:18</div>
+        <div class="pl"><i class="fa-solid fa-play"></i></div>
+        <div class="ttl">
+          <div class="text-[10px] font-bold text-amber-200/80 tracking-[0.04em]">Lefty special</div>
+          <div class="font-serif text-[14px] font-bold leading-tight mt-1">Mirror chord set</div>
+        </div>
+      </div>
+      <div class="vid">
+        <img src="https://images.unsplash.com/photo-1543873779-4c5cd00d3da3?w=400&h=400&fit=crop"/>
+        <div class="ov"></div>
+        <div class="badge-l" style="background:rgba(252,211,77,0.18);color:#FCD34D;border:1px solid rgba(252,211,77,0.30);"><i class="fa-solid fa-fire text-[8px]"></i>Strum</div>
+        <div class="dur">4:52</div>
+        <div class="pl"><i class="fa-solid fa-play"></i></div>
+        <div class="ttl">
+          <div class="text-[10px] font-bold text-amber-200/80 tracking-[0.04em]">Pattern 6 · ballad</div>
+          <div class="font-serif text-[14px] font-bold leading-tight mt-1">Soft strum loop</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Parent card -->
+    <div class="section-padding mt-5">
+      <div class="glass p-4" style="background:linear-gradient(135deg,rgba(20,184,166,0.14),rgba(252,211,77,0.08));border:1px solid rgba(110,231,183,0.28);">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style="background:linear-gradient(135deg,#6EE7B7,#10B981);"><i class="fa-solid fa-people-roof text-emerald-900 text-sm"></i></div>
+          <div class="flex-1">
+            <div class="text-[10px] tracking-[0.14em] uppercase font-bold text-emerald-300">For parents · 7 guides</div>
+            <div class="font-serif text-[15.5px] font-bold mt-0.5">Music as a stress tool, not a chore</div>
+            <div class="text-[11px] text-emerald-100/65 mt-1">How to keep a teen practicing without nagging.</div>
+          </div>
+          <i class="fa-solid fa-chevron-right text-amber-100/40 text-xs mt-2"></i>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fa-solid fa-house"></i><span>Today</span></div>
+    <div class="tab-item active"><i class="fa-solid fa-music"></i><span>Chords</span></div>
+    <div class="tab-play"><i class="fa-solid fa-play"></i></div>
+    <div class="tab-item"><i class="fa-solid fa-leaf"></i><span>Calm</span></div>
+    <div class="tab-item"><i class="fa-regular fa-user"></i><span>Me</span></div>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+</body>
+</html>

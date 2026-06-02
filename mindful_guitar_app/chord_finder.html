@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mindful Guitar · Chord Finder</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;scrollbar-width:none;}
+*::-webkit-scrollbar{display:none;}
+html,body{width:100%;height:100%;font-family:'Inter',sans-serif;background:#0D0703;color:#FEF3C7;}
+.font-serif{font-family:'Playfair Display',serif;letter-spacing:-0.025em;}
+.font-instrument{font-family:'Instrument Serif',serif;letter-spacing:-0.02em;}
+.font-mono{font-family:'JetBrains Mono',monospace;}
+.screen{position:relative;width:100%;height:100%;overflow:hidden;
+  background:radial-gradient(120% 50% at 50% 0%, rgba(245,158,11,0.14) 0%, transparent 55%),linear-gradient(180deg,#1A0F08 0%, #0D0703 100%);
+}
+.scroll{position:absolute;inset:0;overflow-y:auto;padding-bottom:108px;}
+.island{position:absolute;left:50%;top:14px;transform:translateX(-50%);width:124px;height:36px;background:#000;border-radius:24px;z-index:30;}
+.status-bar{height:59px;padding:20px 28px 0;display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:600;color:#FEF3C7;}
+.section-padding{padding-left:28px;padding-right:28px;}
+.glass{background:rgba(254,243,199,0.04);border:1px solid rgba(252,211,77,0.10);backdrop-filter:blur(20px);border-radius:22px;}
+.home-indicator{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:140px;height:5px;background:#FEF3C7;border-radius:3px;opacity:0.7;}
+.amber-grad{background:linear-gradient(135deg,#FCD34D 0%, #F59E0B 50%, #B45309 100%);-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+.tab-bar{position:absolute;bottom:0;left:0;right:0;height:96px;padding:10px 18px 22px;display:flex;justify-content:space-around;align-items:center;background:linear-gradient(180deg,rgba(13,7,3,0) 0%, rgba(13,7,3,0.96) 60%);backdrop-filter:blur(28px);border-top:1px solid rgba(252,211,77,0.08);z-index:20;}
+.tab-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;}
+.tab-item i{font-size:18px;color:#7A6651;}
+.tab-item span{font-size:9.5px;color:#7A6651;font-weight:700;}
+.tab-item.active i,.tab-item.active span{color:#FCD34D;}
+.tab-play{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#FCD34D 0%, #F59E0B 60%, #B45309 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 16px 36px -10px rgba(245,158,11,0.55);transform:translateY(-12px);border:3px solid #0D0703;}
+.tab-play i{font-size:22px;color:#1A0F08;}
+
+.search{display:flex;align-items:center;gap:12px;border-radius:18px;padding:14px 16px;background:rgba(254,243,199,0.06);border:1px solid rgba(252,211,77,0.16);}
+.search i{color:#FCD34D;font-size:14px;}
+.search input{background:transparent;outline:none;border:none;flex:1;color:#FEF3C7;font-size:14px;font-weight:600;}
+.search .mic{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#B45309);display:flex;align-items:center;justify-content:center;color:#1A0F08;font-size:11px;}
+
+.fchip{padding:8px 13px;border-radius:99px;font-size:11px;font-weight:700;border:1px solid rgba(252,211,77,0.16);color:#FEF3C7;background:rgba(254,243,199,0.04);}
+.fchip.act{background:linear-gradient(135deg,#FCD34D,#F59E0B);border-color:transparent;color:#1A0F08;}
+
+.chord-card{position:relative;border-radius:22px;overflow:hidden;background:rgba(254,243,199,0.04);border:1px solid rgba(252,211,77,0.10);padding:14px;}
+.fb{width:100%;aspect-ratio:1.05/1;background:linear-gradient(160deg,#3A2817 0%, #1A0F08 100%);border-radius:14px;border:1px solid rgba(252,211,77,0.18);padding:14px 12px 10px;position:relative;}
+.fb .nut{position:absolute;top:13px;left:12px;right:12px;height:4px;background:linear-gradient(180deg,#FEF3C7,#FCD34D);border-radius:2px;}
+.fb .frets{position:absolute;left:12px;right:12px;top:23px;bottom:14px;display:flex;flex-direction:column;justify-content:space-between;}
+.fb .fret{height:1px;background:rgba(252,211,77,0.32);}
+.fb .strings{position:absolute;left:12px;right:12px;top:14px;bottom:10px;display:flex;justify-content:space-between;}
+.fb .str{width:1.5px;background:linear-gradient(180deg,rgba(254,243,199,0.85),rgba(254,243,199,0.45));}
+.fb .dot{position:absolute;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#FCD34D,#F59E0B);display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;color:#1A0F08;box-shadow:0 4px 10px rgba(245,158,11,0.45);}
+.fb .mute{position:absolute;top:-6px;width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(254,243,199,0.5);color:rgba(254,243,199,0.65);font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:800;}
+.fb .open{position:absolute;top:-5px;width:12px;height:12px;border-radius:50%;border:1.5px solid #34D399;}
+
+.chord-card .nm{font-family:'Playfair Display',serif;font-weight:700;font-size:28px;line-height:1;letter-spacing:-0.03em;}
+.chord-card .lbl{font-size:9.5px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:rgba(254,243,199,0.55);margin-top:2px;}
+.lvl-easy{color:#6EE7B7;background:rgba(16,185,129,0.18);padding:3px 8px;border-radius:99px;font-size:9px;font-weight:800;letter-spacing:0.06em;}
+.lvl-med{color:#FCD34D;background:rgba(245,158,11,0.20);padding:3px 8px;border-radius:99px;font-size:9px;font-weight:800;letter-spacing:0.06em;}
+.lvl-hard{color:#FCA5A5;background:rgba(220,38,38,0.20);padding:3px 8px;border-radius:99px;font-size:9px;font-weight:800;letter-spacing:0.06em;}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="island"></div>
+  <div class="scroll">
+    <div class="status-bar">
+      <span>9:41</span>
+      <div class="flex items-center gap-1.5">
+        <i class="fa-solid fa-signal text-xs"></i>
+        <i class="fa-solid fa-wifi text-xs"></i>
+        <i class="fa-solid fa-battery-full text-xs"></i>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <div class="section-padding pt-2">
+      <div class="text-[10px] tracking-[0.18em] uppercase font-bold text-amber-300/80">Library · 1,240 chords</div>
+      <h1 class="font-serif text-[30px] font-bold mt-1">Find any <span class="font-instrument italic amber-grad">chord.</span></h1>
+    </div>
+
+    <!-- Search bar -->
+    <div class="section-padding mt-4">
+      <div class="search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input value="Em" />
+        <div class="text-[10px] font-mono font-bold text-amber-300/70">×</div>
+        <div class="mic"><i class="fa-solid fa-microphone"></i></div>
+      </div>
+    </div>
+
+    <!-- Filter chips -->
+    <div class="section-padding mt-3.5 flex flex-wrap gap-2">
+      <div class="fchip act"><i class="fa-solid fa-star mr-1 text-[9px]"></i>All</div>
+      <div class="fchip">Easy</div>
+      <div class="fchip">Open</div>
+      <div class="fchip">Barre</div>
+      <div class="fchip">7th</div>
+      <div class="fchip"><i class="fa-solid fa-hand mr-1 text-[9px]"></i>Lefty</div>
+    </div>
+
+    <!-- Variations header -->
+    <div class="section-padding mt-5 flex items-center justify-between">
+      <div>
+        <div class="text-[10px] tracking-[0.14em] uppercase font-bold text-amber-300/80">E minor · 6 ways</div>
+        <div class="font-serif text-[18px] font-bold mt-0.5">Pick a <span class="font-instrument italic amber-grad">shape</span></div>
+      </div>
+      <button class="text-[11px] font-bold text-amber-300 flex items-center gap-1.5 glass px-3 py-1.5">
+        <i class="fa-solid fa-volume-high text-[10px]"></i>Play all
+      </button>
+    </div>
+
+    <!-- Chord grid -->
+    <div class="section-padding mt-3 grid grid-cols-2 gap-3">
+      <!-- Em open -->
+      <div class="chord-card">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="nm">Em</div>
+            <div class="lbl">Open · fr 0</div>
+          </div>
+          <div class="lvl-easy">Easy</div>
+        </div>
+        <div class="fb mt-3">
+          <div class="nut"></div>
+          <div class="strings"><div class="str"></div><div class="str"></div><div class="str"></div><div class="str"></div><div class="str"></div><div class="str"></div></div>
+          <div class="frets"><div class="fret"></div><div class="fret"></div><div class="fret"></div><div class="fret"></div></div>
+          <!-- open dots for strings 1,2,3,6 -->
+          <div class="open" style="left:12px;"></div>
+          <div class="open" style="left:33%;"></div>
+          <div class="open" style="left:66%;"></div>
+          <div class="open" style="right:12px;"></div>
+          <!-- finger dots: 2nd fret on A & D strings -->
+          <div class="dot" style="left:18%;top:34%;">2</div>
+          <div class="dot" style="left:38%;top:34%;">3</div>
+        </div>
+        <div class="mt-2.5 flex items-center justify-between">
+          <span class="text-[10.5px] font-mono text-amber-200/70">0 2 2 0 0 0</span>
+          <i class="fa-solid fa-play text-amber-300 text-[11px]"></i>
+        </div>
+      </div>
+
+      <!-- Em — beginner -->
+      <div class="chord-card" style="border:1px solid rgba(110,231,183,0.28);background:linear-gradient(160deg,rgba(16,185,129,0.10),rgba(254,243,199,0.04));">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="nm">Em</div>
+            <div class="lbl text-emerald-300/80">1-finger · beginner</div>
+          </div>
+          <div class="lvl-easy"><i class="fa-solid fa-seedling mr-1"></i>Beginner</div>
+        </div>
+        <div class="fb mt-3">
+          <div class="nut"></div>
+          <div class="strings"><div class="str"></div><div class="str"></div><div class="str"></div><div class="str"></div><div class="str"></div><div class="str"></div></div>
+          <div class="frets"><div class="fret"></div><div class="fret"></div><div class="fret"></div><div class="fret"></div></div>
+          <div class="open" style="left:12px;"></div>
+          <div class="open" style="left:33%;"></div>
+          <div class="open" style="left:66%;"></div>
+          <div class="open" style="right:12px;"></div>
+          <div class="dot" style="left:38%;top:34%;background:linear-gradient(135deg,#6EE7B7,#10B981);">1</div>
+        </div>
+        <div class="mt-2.5 flex items-center justify-between">
+          <span class="text-[10.5px] font-mono text-emerald-200/80">0 0 2 0 0 0</span>
+          <i class="fa-solid fa-play text-emerald-300 text-[11px]"></i>
+        </div>
+      </div>
+
+      <!-- Em barre -->
+      <div class="chord-card">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="nm">Em</div>
+            <div class="lbl">Barre · fr 7</div>
+          </div>
+          <div class="lvl-hard">Hard</div>
+        </div>
+        <div class="fb mt-3">
+          <!-- no nut, barre indicator -->
+          <div class="strings"><div class="str"></div><div class="str"></div><div class="str"></div><div class="str"></div><div class="str"></div><div class="str"></div></div>
+          <div class="frets"><div class="fret"></div><div class="fret"></div><div class="fret"></div><div class="fret"></div></div>
+          <div class="absolute" style="top:22%;left:12px;right:12px;height:6px;border-radius:3px;background:linear-gradient(90deg,#FCD34D,#F59E0B);"></div>
+          <div class="dot" style="left:38%;top:48%;">3</div>
+          <div class="dot" style="left:55%;top:48%;">4</div>
+          <div class="dot" style="left:38%;top:64%;">2</div>
+          <div class="absolute right-1 top-[18%] text-[8.5px] font-mono text-amber-300">7fr</div>
+        </div>
+        <div class="mt-2.5 flex items-center justify-between">
+          <span class="text-[10.5px] font-mono text-amber-200/70">7 9 9 7 7 7</span>
+          <i class="fa-solid fa-play text-amber-300 text-[11px]"></i>
+        </div>
+      </div>
+
+      <!-- Em7 -->
+      <div class="chord-card">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="nm">Em<span class="text-amber-300 text-base">7</span></div>
+            <div class="lbl">Open · fr 0</div>
+          </div>
+          <div class="lvl-easy">Easy</div>
+        </div>
+        <div class="fb mt-3">
+          <div class="nut"></div>
+          <div class="strings"><div class="str"></div><div class="str"></div><div class="str"></div><div class="str"></div><div class="str"></div><div class="str"></div></div>
+          <div class="frets"><div class="fret"></div><div class="fret"></div><div class="fret"></div><div class="fret"></div></div>
+          <div class="open" style="left:12px;"></div>
+          <div class="open" style="left:33%;"></div>
+          <div class="open" style="left:66%;"></div>
+          <div class="open" style="right:12px;"></div>
+          <div class="dot" style="left:18%;top:34%;">2</div>
+          <div class="dot" style="left:55%;top:34%;">3</div>
+        </div>
+        <div class="mt-2.5 flex items-center justify-between">
+          <span class="text-[10.5px] font-mono text-amber-200/70">0 2 0 0 3 0</span>
+          <i class="fa-solid fa-play text-amber-300 text-[11px]"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calm pairings -->
+    <div class="section-padding mt-6">
+      <div class="glass p-4" style="background:linear-gradient(135deg,rgba(20,184,166,0.14),rgba(245,158,11,0.06));border:1px solid rgba(110,231,183,0.28);">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-[10px] tracking-[0.14em] uppercase font-bold text-emerald-300">Calm pairings</div>
+            <div class="font-serif text-[15.5px] font-bold mt-0.5">Em pairs softly with…</div>
+          </div>
+          <i class="fa-solid fa-leaf text-emerald-300"></i>
+        </div>
+        <div class="mt-3 flex gap-2.5">
+          <div class="flex-1 rounded-xl py-2.5 text-center" style="background:rgba(110,231,183,0.10);border:1px solid rgba(110,231,183,0.22);">
+            <div class="font-serif text-[18px] font-bold">C</div>
+            <div class="text-[9px] text-emerald-200/70 font-bold tracking-[0.12em] uppercase">warm</div>
+          </div>
+          <div class="flex-1 rounded-xl py-2.5 text-center" style="background:rgba(110,231,183,0.10);border:1px solid rgba(110,231,183,0.22);">
+            <div class="font-serif text-[18px] font-bold">G</div>
+            <div class="text-[9px] text-emerald-200/70 font-bold tracking-[0.12em] uppercase">bright</div>
+          </div>
+          <div class="flex-1 rounded-xl py-2.5 text-center" style="background:rgba(110,231,183,0.10);border:1px solid rgba(110,231,183,0.22);">
+            <div class="font-serif text-[18px] font-bold">D</div>
+            <div class="text-[9px] text-emerald-200/70 font-bold tracking-[0.12em] uppercase">open</div>
+          </div>
+          <div class="flex-1 rounded-xl py-2.5 text-center" style="background:rgba(110,231,183,0.10);border:1px solid rgba(110,231,183,0.22);">
+            <div class="font-serif text-[18px] font-bold">Am</div>
+            <div class="text-[9px] text-emerald-200/70 font-bold tracking-[0.12em] uppercase">soft</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fa-solid fa-house"></i><span>Today</span></div>
+    <div class="tab-item active"><i class="fa-solid fa-music"></i><span>Chords</span></div>
+    <div class="tab-play"><i class="fa-solid fa-play"></i></div>
+    <div class="tab-item"><i class="fa-solid fa-leaf"></i><span>Calm</span></div>
+    <div class="tab-item"><i class="fa-regular fa-user"></i><span>Me</span></div>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+</body>
+</html>

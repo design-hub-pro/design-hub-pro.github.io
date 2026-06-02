@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mindful Guitar · Practice</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;scrollbar-width:none;}
+*::-webkit-scrollbar{display:none;}
+html,body{width:100%;height:100%;font-family:'Inter',sans-serif;background:#0D0703;color:#FEF3C7;}
+.font-serif{font-family:'Playfair Display',serif;letter-spacing:-0.025em;}
+.font-instrument{font-family:'Instrument Serif',serif;letter-spacing:-0.02em;}
+.font-mono{font-family:'JetBrains Mono',monospace;}
+.screen{position:relative;width:100%;height:100%;overflow:hidden;background:radial-gradient(120% 70% at 50% 10%, rgba(245,158,11,0.22) 0%, transparent 55%),linear-gradient(180deg,#1A0F08 0%, #0D0703 100%);}
+.scroll{position:absolute;inset:0;overflow-y:auto;padding-bottom:30px;}
+.island{position:absolute;left:50%;top:14px;transform:translateX(-50%);width:124px;height:36px;background:#000;border-radius:24px;z-index:30;}
+.status-bar{height:59px;padding:20px 28px 0;display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:600;color:#FEF3C7;}
+.section-padding{padding-left:28px;padding-right:28px;}
+.glass{background:rgba(254,243,199,0.04);border:1px solid rgba(252,211,77,0.10);backdrop-filter:blur(20px);border-radius:22px;}
+.home-indicator{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:140px;height:5px;background:#FEF3C7;border-radius:3px;opacity:0.7;}
+.amber-grad{background:linear-gradient(135deg,#FCD34D 0%, #F59E0B 50%, #B45309 100%);-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+/* Live progression ring */
+.ring-wrap{position:relative;width:300px;height:300px;margin:0 auto;}
+.ring-wrap svg{width:100%;height:100%;transform:rotate(-90deg);}
+.live-chord{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.live-chord .nm{font-family:'Playfair Display',serif;font-weight:700;font-size:124px;letter-spacing:-0.04em;line-height:1;}
+.live-chord .ph{font-size:11px;font-weight:800;letter-spacing:0.22em;text-transform:uppercase;color:rgba(254,243,199,0.55);margin-top:6px;}
+.live-chord .next{font-size:10.5px;font-weight:700;color:#FCD34D;margin-top:6px;}
+
+/* Mini chord cards in progression */
+.prog-row{display:flex;gap:10px;justify-content:center;}
+.mini{width:62px;height:78px;border-radius:14px;background:rgba(254,243,199,0.04);border:1px solid rgba(252,211,77,0.10);display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.mini .n{font-family:'Playfair Display',serif;font-weight:700;font-size:22px;line-height:1;}
+.mini .b{font-size:8.5px;font-weight:800;color:rgba(254,243,199,0.40);letter-spacing:0.10em;margin-top:4px;text-transform:uppercase;}
+.mini.now{background:linear-gradient(135deg,#FCD34D,#F59E0B);border:1px solid #FCD34D;color:#1A0F08;box-shadow:0 14px 30px -8px rgba(245,158,11,0.55);}
+.mini.now .b{color:#1A0F08;opacity:0.7;}
+.mini.done{opacity:0.42;}
+.mini.done .b{color:rgba(110,231,183,0.7);}
+
+/* breath bar */
+.breath{height:6px;border-radius:99px;background:linear-gradient(90deg,#10B981,#FCD34D,#10B981);}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="island"></div>
+  <div class="scroll">
+    <div class="status-bar">
+      <span>9:41</span>
+      <div class="flex items-center gap-1.5">
+        <i class="fa-solid fa-signal text-xs"></i>
+        <i class="fa-solid fa-wifi text-xs"></i>
+        <i class="fa-solid fa-battery-full text-xs"></i>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <div class="section-padding pt-2 flex items-center justify-between">
+      <div class="w-10 h-10 rounded-full glass flex items-center justify-center"><i class="fa-solid fa-chevron-down text-amber-100 text-xs"></i></div>
+      <div class="text-center">
+        <div class="text-[10px] tracking-[0.18em] uppercase font-bold text-amber-300/80">Live session</div>
+        <div class="font-serif text-[14px] font-bold mt-0.5">Em → C → G → D</div>
+      </div>
+      <div class="w-10 h-10 rounded-full glass flex items-center justify-center"><i class="fa-solid fa-pause text-amber-100 text-xs"></i></div>
+    </div>
+
+    <!-- Live ring -->
+    <div class="mt-7">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="46" stroke="rgba(254,243,199,0.06)" stroke-width="4" fill="none"/>
+          <!-- Beat segments — 4 chord-arcs -->
+          <circle cx="50" cy="50" r="46" stroke="rgba(110,231,183,0.7)" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="72 217" stroke-dashoffset="0"/>
+          <circle cx="50" cy="50" r="46" stroke="url(#g2)" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="72 217" stroke-dashoffset="-72"/>
+          <circle cx="50" cy="50" r="46" stroke="rgba(254,243,199,0.10)" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="72 217" stroke-dashoffset="-144"/>
+          <circle cx="50" cy="50" r="46" stroke="rgba(254,243,199,0.10)" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="72 217" stroke-dashoffset="-216"/>
+          <defs>
+            <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+              <stop stop-color="#FCD34D"/><stop offset="1" stop-color="#F59E0B"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="live-chord">
+          <div class="ph">Now playing</div>
+          <div class="nm amber-grad">C</div>
+          <div class="next"><i class="fa-solid fa-arrow-right text-[10px] mr-1"></i>Next · G in 2 beats</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progression row -->
+    <div class="section-padding mt-7">
+      <div class="prog-row">
+        <div class="mini done">
+          <div class="n">Em</div>
+          <div class="b"><i class="fa-solid fa-check text-emerald-300 text-[9px]"></i></div>
+        </div>
+        <div class="mini now">
+          <div class="n">C</div>
+          <div class="b">Now</div>
+        </div>
+        <div class="mini">
+          <div class="n">G</div>
+          <div class="b">Next</div>
+        </div>
+        <div class="mini">
+          <div class="n">D</div>
+          <div class="b">After</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tempo & accuracy meters -->
+    <div class="section-padding mt-5 grid grid-cols-3 gap-2.5">
+      <div class="glass p-3 text-center">
+        <div class="text-[9.5px] tracking-[0.10em] uppercase font-bold text-amber-300/70">Tempo</div>
+        <div class="font-serif font-bold text-[24px] amber-grad mt-1">72</div>
+        <div class="text-[9px] text-amber-100/55">BPM</div>
+      </div>
+      <div class="glass p-3 text-center">
+        <div class="text-[9.5px] tracking-[0.10em] uppercase font-bold text-emerald-300/80">Accuracy</div>
+        <div class="font-serif font-bold text-[24px] mt-1" style="background:linear-gradient(135deg,#6EE7B7,#10B981);-webkit-background-clip:text;color:transparent;">92<span class="text-[14px]">%</span></div>
+        <div class="text-[9px] text-emerald-100/55">last 16 beats</div>
+      </div>
+      <div class="glass p-3 text-center">
+        <div class="text-[9.5px] tracking-[0.10em] uppercase font-bold text-amber-300/70">Elapsed</div>
+        <div class="font-serif font-bold text-[24px] mt-1">3<span class="text-[14px]">:</span>12</div>
+        <div class="text-[9px] text-amber-100/55">of 5:00</div>
+      </div>
+    </div>
+
+    <!-- Breath cue -->
+    <div class="section-padding mt-5">
+      <div class="glass p-4" style="background:linear-gradient(135deg,rgba(20,184,166,0.16),rgba(245,158,11,0.06));border:1px solid rgba(110,231,183,0.28);">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#6EE7B7,#10B981);">
+              <i class="fa-solid fa-wind text-emerald-900 text-sm"></i>
+            </div>
+            <div>
+              <div class="text-[10px] tracking-[0.14em] uppercase font-bold text-emerald-300">Breath cue</div>
+              <div class="font-serif text-[15px] font-bold mt-0.5">Inhale on Em · exhale on C</div>
+            </div>
+          </div>
+          <div class="text-[18px] font-bold font-mono text-emerald-200">4·4</div>
+        </div>
+        <div class="breath mt-3.5"></div>
+        <div class="mt-1 flex justify-between text-[9.5px] font-bold text-emerald-200/70 tracking-[0.10em] uppercase">
+          <span>Breath in</span><span>Hold</span><span>Out</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transport bar -->
+    <div class="section-padding mt-6">
+      <div class="flex items-center justify-center gap-5">
+        <button class="w-12 h-12 rounded-full glass flex items-center justify-center">
+          <i class="fa-solid fa-backward-step text-amber-100"></i>
+        </button>
+        <button class="w-12 h-12 rounded-full glass flex items-center justify-center">
+          <i class="fa-solid fa-volume-low text-amber-100"></i>
+        </button>
+        <button class="w-20 h-20 rounded-full flex items-center justify-center" style="background:linear-gradient(135deg,#FCD34D,#F59E0B,#B45309);box-shadow:0 24px 50px -10px rgba(245,158,11,0.65);">
+          <i class="fa-solid fa-pause text-3xl text-[#1A0F08]"></i>
+        </button>
+        <button class="w-12 h-12 rounded-full glass flex items-center justify-center">
+          <i class="fa-solid fa-repeat text-amber-100"></i>
+        </button>
+        <button class="w-12 h-12 rounded-full glass flex items-center justify-center">
+          <i class="fa-solid fa-forward-step text-amber-100"></i>
+        </button>
+      </div>
+    </div>
+
+  </div>
+  <div class="home-indicator"></div>
+</div>
+</body>
+</html>
