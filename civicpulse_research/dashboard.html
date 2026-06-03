@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CivicPulse — Command Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f6f7fb; color: #0b1220; }
+        .font-serif { font-family: 'Instrument Serif', serif; }
+        .sidebar-item.active { background: linear-gradient(135deg, #1e3a8a, #312e81); color: white; }
+        .pill { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+        .glow-card { box-shadow: 0 1px 0 rgba(15,23,42,0.04), 0 8px 24px -8px rgba(15,23,42,0.08); }
+        .sentiment-bar { height: 8px; border-radius: 999px; }
+        .mini-spark path { fill: none; stroke-width: 2; }
+    </style>
+</head>
+<body class="min-h-screen flex">
+
+<!-- Sidebar -->
+<aside class="w-64 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col">
+    <div class="px-6 py-5 border-b border-gray-100">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-700 to-indigo-900 flex items-center justify-center">
+                <i class="fas fa-broadcast-tower text-white"></i>
+            </div>
+            <div>
+                <div class="font-bold text-gray-900">CivicPulse</div>
+                <div class="text-[10px] text-gray-500 uppercase tracking-wider">Mayor's Research Suite</div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="flex-1 px-3 py-4 space-y-1 text-sm">
+        <div class="text-[10px] text-gray-400 uppercase tracking-wider px-3 mb-2">Workspace</div>
+        <a class="sidebar-item active flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer">
+            <i class="fas fa-th-large text-xs w-4"></i><span>Command Center</span>
+        </a>
+        <a href="research.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50">
+            <i class="fas fa-search text-xs w-4"></i><span>New Research</span>
+            <span class="ml-auto pill bg-emerald-100 text-emerald-700">+</span>
+        </a>
+        <a href="insights.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50">
+            <i class="fas fa-chart-line text-xs w-4"></i><span>Topic Insights</span>
+        </a>
+        <a href="conversations.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50">
+            <i class="fas fa-comments text-xs w-4"></i><span>Conversations</span>
+        </a>
+        <a href="map.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50">
+            <i class="fas fa-map-marked-alt text-xs w-4"></i><span>Neighborhood Map</span>
+        </a>
+        <a href="briefing.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50">
+            <i class="fas fa-file-alt text-xs w-4"></i><span>Mayor's Briefing</span>
+            <span class="ml-auto pill bg-amber-100 text-amber-700">Mon</span>
+        </a>
+        <div class="text-[10px] text-gray-400 uppercase tracking-wider px-3 mt-6 mb-2">Operations</div>
+        <a href="settings.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50">
+            <i class="fas fa-database text-xs w-4"></i><span>Sources & Team</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50">
+            <i class="fas fa-shield-alt text-xs w-4"></i><span>Ethics & Bias Log</span>
+        </a>
+    </nav>
+
+    <div class="p-4 border-t border-gray-100">
+        <div class="flex items-center gap-3">
+            <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=80&h=80&fit=crop" class="w-9 h-9 rounded-full object-cover">
+            <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-gray-900 truncate">Dr. Lena Ortiz</div>
+                <div class="text-[10px] text-gray-500">Chief of Staff · Mayor's Office</div>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<!-- Main -->
+<main class="flex-1 overflow-y-auto">
+    <!-- Top bar -->
+    <div class="bg-white border-b border-gray-200 px-8 py-4 flex items-center gap-4">
+        <div>
+            <div class="text-[11px] text-gray-500 uppercase tracking-wider font-semibold">City of Westbrook · Pop 482K</div>
+            <h1 class="text-xl font-bold text-gray-900">Command Center</h1>
+        </div>
+        <div class="flex-1 max-w-md ml-8">
+            <div class="relative">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                <input class="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm" placeholder="Search topics, neighborhoods, voices…">
+            </div>
+        </div>
+        <button class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg flex items-center gap-2">
+            <i class="fas fa-bell text-xs"></i> <span class="pill bg-red-100 text-red-700">4</span>
+        </button>
+        <a href="research.html" class="px-4 py-2 bg-gradient-to-r from-blue-700 to-indigo-800 text-white text-sm font-semibold rounded-lg flex items-center gap-2">
+            <i class="fas fa-plus text-xs"></i> New Research
+        </a>
+    </div>
+
+    <div class="p-8 space-y-6">
+
+        <!-- KPI strip -->
+        <div class="grid grid-cols-4 gap-4">
+            <div class="bg-white rounded-2xl p-5 glow-card">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs text-gray-500 font-semibold">Active Topics</span>
+                    <i class="fas fa-stream text-blue-600 text-xs"></i>
+                </div>
+                <div class="flex items-end gap-2">
+                    <div class="text-3xl font-bold text-gray-900">12</div>
+                    <div class="text-xs text-emerald-600 font-semibold mb-1">+3 this week</div>
+                </div>
+                <div class="mt-3 text-[11px] text-gray-500">3 awaiting mayor review</div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 glow-card">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs text-gray-500 font-semibold">Voices Heard (30d)</span>
+                    <i class="fas fa-users text-purple-600 text-xs"></i>
+                </div>
+                <div class="flex items-end gap-2">
+                    <div class="text-3xl font-bold text-gray-900">84,210</div>
+                </div>
+                <div class="mt-3 text-[11px] text-gray-500">Twitter 42k · Reddit 19k · YouTube 23k</div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 glow-card">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs text-gray-500 font-semibold">City Sentiment Index</span>
+                    <i class="fas fa-heart-pulse text-rose-500 text-xs"></i>
+                </div>
+                <div class="flex items-end gap-2">
+                    <div class="text-3xl font-bold text-gray-900">58</div>
+                    <div class="text-xs text-rose-600 font-semibold mb-1">−4 vs last week</div>
+                </div>
+                <div class="mt-3 flex h-1.5 rounded-full overflow-hidden">
+                    <div class="bg-emerald-400" style="width:42%"></div>
+                    <div class="bg-amber-300" style="width:30%"></div>
+                    <div class="bg-rose-400" style="width:28%"></div>
+                </div>
+            </div>
+            <div class="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs text-amber-700 font-semibold">Emerging Signal</span>
+                    <i class="fas fa-bolt text-amber-500 text-xs"></i>
+                </div>
+                <div class="text-sm font-bold text-gray-900 leading-tight">"Cedar Park noise complaints"</div>
+                <div class="text-[11px] text-gray-600 mt-1">+412% volume · 18 hrs · negative 71%</div>
+                <button class="mt-3 text-[11px] font-semibold text-amber-700 flex items-center gap-1"><i class="fas fa-arrow-right text-[10px]"></i> Open thread</button>
+            </div>
+        </div>
+
+        <!-- Two-column main -->
+        <div class="grid grid-cols-3 gap-6">
+
+            <!-- LEFT 2/3 -->
+            <div class="col-span-2 space-y-6">
+
+                <!-- Active Research Topics -->
+                <div class="bg-white rounded-2xl glow-card overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                        <div>
+                            <h2 class="font-bold text-gray-900">Active Research Topics</h2>
+                            <p class="text-xs text-gray-500">Auto-scraping Twitter · Reddit · YouTube · TikTok comments · local news</p>
+                        </div>
+                        <button class="text-xs text-blue-700 font-semibold">View all 12 →</button>
+                    </div>
+                    <div class="divide-y divide-gray-100">
+                        <!-- Topic row 1 -->
+                        <div class="px-6 py-4 hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-home text-rose-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="font-semibold text-gray-900">Affordable housing on the East Side</span>
+                                        <span class="pill bg-rose-100 text-rose-700">Hot</span>
+                                        <span class="pill bg-gray-100 text-gray-600">Council watchlist</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500">14,820 voices · 38 narratives · started 21 days ago</div>
+
+                                    <!-- Sentiment bar -->
+                                    <div class="mt-3 flex h-2 rounded-full overflow-hidden w-72">
+                                        <div class="bg-emerald-400" style="width:18%" title="Supportive 18%"></div>
+                                        <div class="bg-amber-300" style="width:24%" title="Mixed 24%"></div>
+                                        <div class="bg-rose-500" style="width:58%" title="Critical 58%"></div>
+                                    </div>
+                                    <div class="text-[10px] text-gray-500 mt-1">Supportive 18 · Mixed 24 · Critical <span class="text-rose-600 font-semibold">58%</span></div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-rose-600">31</div>
+                                    <div class="text-[10px] text-gray-500">Pulse</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Topic row 2 -->
+                        <div class="px-6 py-4 hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-bus text-blue-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="font-semibold text-gray-900">Bus Route 41 service cuts</span>
+                                        <span class="pill bg-amber-100 text-amber-700">Rising</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500">3,940 voices · 11 narratives · started 6 days ago</div>
+                                    <div class="mt-3 flex h-2 rounded-full overflow-hidden w-72">
+                                        <div class="bg-emerald-400" style="width:11%"></div>
+                                        <div class="bg-amber-300" style="width:34%"></div>
+                                        <div class="bg-rose-500" style="width:55%"></div>
+                                    </div>
+                                    <div class="text-[10px] text-gray-500 mt-1">Riders + bus drivers' union dominate the conversation</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-amber-600">42</div>
+                                    <div class="text-[10px] text-gray-500">Pulse</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Topic row 3 -->
+                        <div class="px-6 py-4 hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-tree text-emerald-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="font-semibold text-gray-900">Lincoln Park revitalization plan</span>
+                                        <span class="pill bg-emerald-100 text-emerald-700">Positive</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500">2,180 voices · 7 narratives · started 12 days ago</div>
+                                    <div class="mt-3 flex h-2 rounded-full overflow-hidden w-72">
+                                        <div class="bg-emerald-500" style="width:64%"></div>
+                                        <div class="bg-amber-300" style="width:22%"></div>
+                                        <div class="bg-rose-400" style="width:14%"></div>
+                                    </div>
+                                    <div class="text-[10px] text-gray-500 mt-1">Cyclists & dog-owners strongly supportive · parking concerns from local biz</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-emerald-600">78</div>
+                                    <div class="text-[10px] text-gray-500">Pulse</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Topic row 4 -->
+                        <div class="px-6 py-4 hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-graduation-cap text-purple-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="font-semibold text-gray-900">School district rezoning</span>
+                                        <span class="pill bg-gray-100 text-gray-600">Tracking</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500">8,640 voices · 23 narratives · started 34 days ago</div>
+                                    <div class="mt-3 flex h-2 rounded-full overflow-hidden w-72">
+                                        <div class="bg-emerald-400" style="width:28%"></div>
+                                        <div class="bg-amber-300" style="width:38%"></div>
+                                        <div class="bg-rose-400" style="width:34%"></div>
+                                    </div>
+                                    <div class="text-[10px] text-gray-500 mt-1">Parents split by income bracket; teachers cautiously supportive</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-amber-600">54</div>
+                                    <div class="text-[10px] text-gray-500">Pulse</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Topic row 5 -->
+                        <div class="px-6 py-4 hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-recycle text-teal-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="font-semibold text-gray-900">Citywide composting rollout</span>
+                                        <span class="pill bg-emerald-100 text-emerald-700">Positive</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500">1,540 voices · 5 narratives · started 8 days ago</div>
+                                    <div class="mt-3 flex h-2 rounded-full overflow-hidden w-72">
+                                        <div class="bg-emerald-500" style="width:71%"></div>
+                                        <div class="bg-amber-300" style="width:18%"></div>
+                                        <div class="bg-rose-400" style="width:11%"></div>
+                                    </div>
+                                    <div class="text-[10px] text-gray-500 mt-1">Confusion about pickup days · would like a kitchen-pail giveaway</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-emerald-600">82</div>
+                                    <div class="text-[10px] text-gray-500">Pulse</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 30-day sentiment chart -->
+                <div class="bg-white rounded-2xl p-6 glow-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 class="font-bold text-gray-900">30-Day Citywide Sentiment</h2>
+                            <p class="text-xs text-gray-500">Rolling 7-day average across all active topics</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <span class="text-[11px] flex items-center gap-1.5"><span class="w-2 h-2 bg-emerald-500 rounded-full"></span>Supportive</span>
+                            <span class="text-[11px] flex items-center gap-1.5"><span class="w-2 h-2 bg-amber-400 rounded-full"></span>Mixed</span>
+                            <span class="text-[11px] flex items-center gap-1.5"><span class="w-2 h-2 bg-rose-500 rounded-full"></span>Critical</span>
+                        </div>
+                    </div>
+                    <canvas id="sentimentChart" height="90"></canvas>
+                </div>
+            </div>
+
+            <!-- RIGHT 1/3 -->
+            <div class="col-span-1 space-y-6">
+
+                <!-- Alerts -->
+                <div class="bg-white rounded-2xl glow-card overflow-hidden">
+                    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                        <h2 class="font-bold text-gray-900 text-sm">Live Alerts</h2>
+                        <span class="pill bg-red-100 text-red-700">4 new</span>
+                    </div>
+                    <div class="divide-y divide-gray-100">
+                        <div class="px-5 py-3">
+                            <div class="flex items-center gap-2 text-[11px] text-rose-700 font-semibold mb-1"><i class="fas fa-fire-alt text-[10px]"></i>VIRAL · 18 min ago</div>
+                            <div class="text-sm font-semibold text-gray-900 leading-snug">Reddit r/Westbrook thread on potholes hits 1.2K upvotes</div>
+                            <div class="text-[11px] text-gray-500 mt-1">"Pothole on Elm Ave has been there 9 months — I named it Greg"</div>
+                        </div>
+                        <div class="px-5 py-3">
+                            <div class="flex items-center gap-2 text-[11px] text-amber-700 font-semibold mb-1"><i class="fas fa-bolt text-[10px]"></i>SPIKE · 2 hrs ago</div>
+                            <div class="text-sm font-semibold text-gray-900 leading-snug">YouTube comments on Mayor's town hall video are 73% critical</div>
+                            <div class="text-[11px] text-gray-500 mt-1">Theme: budget transparency, housing policy</div>
+                        </div>
+                        <div class="px-5 py-3">
+                            <div class="flex items-center gap-2 text-[11px] text-blue-700 font-semibold mb-1"><i class="fas fa-newspaper text-[10px]"></i>NARRATIVE · 6 hrs ago</div>
+                            <div class="text-sm font-semibold text-gray-900 leading-snug">New angle on housing: short-term rentals blamed by 22% of posters</div>
+                        </div>
+                        <div class="px-5 py-3">
+                            <div class="flex items-center gap-2 text-[11px] text-gray-500 font-semibold mb-1"><i class="fas fa-tower-broadcast text-[10px]"></i>SOURCE · 1 day ago</div>
+                            <div class="text-sm font-semibold text-gray-900 leading-snug">New local subreddit r/EastsideWBK joined data sources</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sources -->
+                <div class="bg-white rounded-2xl glow-card p-5">
+                    <h2 class="font-bold text-gray-900 text-sm mb-3">Active Data Sources</h2>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center"><i class="fab fa-twitter text-sky-600 text-sm"></i></div>
+                            <div class="flex-1">
+                                <div class="text-xs font-semibold text-gray-900">X / Twitter</div>
+                                <div class="text-[10px] text-gray-500">42,180 posts · geo + keyword</div>
+                            </div>
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center"><i class="fab fa-reddit-alien text-orange-600 text-sm"></i></div>
+                            <div class="flex-1">
+                                <div class="text-xs font-semibold text-gray-900">Reddit</div>
+                                <div class="text-[10px] text-gray-500">19,420 posts · 4 subs tracked</div>
+                            </div>
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center"><i class="fab fa-youtube text-red-600 text-sm"></i></div>
+                            <div class="flex-1">
+                                <div class="text-xs font-semibold text-gray-900">YouTube comments</div>
+                                <div class="text-[10px] text-gray-500">22,610 comments · local channels</div>
+                            </div>
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center"><i class="fab fa-tiktok text-gray-700 text-sm"></i></div>
+                            <div class="flex-1">
+                                <div class="text-xs font-semibold text-gray-900">TikTok comments</div>
+                                <div class="text-[10px] text-gray-500">7,440 · hashtag #westbrook</div>
+                            </div>
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center"><i class="fas fa-newspaper text-indigo-600 text-sm"></i></div>
+                            <div class="flex-1">
+                                <div class="text-xs font-semibold text-gray-900">Local news + 311 logs</div>
+                                <div class="text-[10px] text-gray-500">3 outlets · public 311 feed</div>
+                            </div>
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        </div>
+                    </div>
+                    <button class="mt-4 w-full py-2 text-xs font-semibold text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50">Manage sources →</button>
+                </div>
+
+                <!-- Top neighborhoods -->
+                <div class="bg-white rounded-2xl glow-card p-5">
+                    <h2 class="font-bold text-gray-900 text-sm mb-3">Loudest Neighborhoods (7d)</h2>
+                    <div class="space-y-2.5">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold text-gray-700 w-24">East Side</span>
+                            <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden"><div class="bg-rose-500 h-full" style="width:92%"></div></div>
+                            <span class="text-[11px] text-gray-500 w-10 text-right">9,210</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold text-gray-700 w-24">Cedar Park</span>
+                            <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden"><div class="bg-amber-400 h-full" style="width:71%"></div></div>
+                            <span class="text-[11px] text-gray-500 w-10 text-right">5,840</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold text-gray-700 w-24">Lincoln Hts</span>
+                            <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden"><div class="bg-emerald-500 h-full" style="width:54%"></div></div>
+                            <span class="text-[11px] text-gray-500 w-10 text-right">3,210</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold text-gray-700 w-24">Riverside</span>
+                            <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden"><div class="bg-rose-400 h-full" style="width:48%"></div></div>
+                            <span class="text-[11px] text-gray-500 w-10 text-right">2,780</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold text-gray-700 w-24">Old Town</span>
+                            <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden"><div class="bg-amber-300 h-full" style="width:32%"></div></div>
+                            <span class="text-[11px] text-gray-500 w-10 text-right">1,890</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    const ctx = document.getElementById('sentimentChart').getContext('2d');
+    const days = Array.from({length: 30}, (_, i) => 'D' + (i+1));
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: days,
+            datasets: [
+                { label: 'Supportive', data: [38,41,44,42,39,40,42,45,43,42,40,39,38,37,38,40,41,42,40,38,36,35,34,36,38,40,39,38,37,36], borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.4, borderWidth: 2, pointRadius: 0 },
+                { label: 'Mixed', data: [28,27,26,28,30,29,28,27,26,27,28,29,30,32,31,29,28,29,30,31,33,34,35,33,31,30,32,33,34,35], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.06)', fill: true, tension: 0.4, borderWidth: 2, pointRadius: 0 },
+                { label: 'Critical', data: [34,32,30,30,31,31,30,28,31,31,32,32,32,31,31,31,31,29,30,31,31,31,31,31,31,30,29,29,29,29], borderColor: '#f43f5e', backgroundColor: 'rgba(244,63,94,0.08)', fill: true, tension: 0.4, borderWidth: 2, pointRadius: 0 },
+            ]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 }, color: '#94a3b8', callback: v => v + '%' } },
+                x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#cbd5e1', maxTicksLimit: 6 } }
+            },
+            maintainAspectRatio: false
+        }
+    });
+</script>
+</body>
+</html>
