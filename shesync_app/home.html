@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SheSync — Today</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *::-webkit-scrollbar { display: none; }
+  * { scrollbar-width: none; -ms-overflow-style: none; }
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #FBF8F3; color: #2D2D3D; overflow: hidden; }
+  .serif { font-family: 'Fraunces', serif; letter-spacing: -0.02em; }
+  .screen { width: 100%; height: 100%; position: relative; background: #FBF8F3; padding-bottom: 100px; overflow-y: auto; }
+  .status-bar {
+    height: 59px; padding: 20px 28px 0; display: flex; align-items: center; justify-content: space-between;
+    font-weight: 600; font-size: 15px; color: #2D2D3D; position: relative;
+  }
+  .dynamic-island { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 118px; height: 34px; background: #0a0a0a; border-radius: 20px; }
+
+  .header { padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: flex-start; }
+  .greeting-tag { font-size: 12px; font-weight: 600; color: #8B6FB8; letter-spacing: 0.08em; text-transform: uppercase; }
+  .icon-btn { width: 44px; height: 44px; border-radius: 14px; background: rgba(139,111,184,0.08); display: flex; align-items: center; justify-content: center; color: #8B6FB8; position: relative; }
+  .icon-btn .badge { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; border-radius: 999px; background: #E07B7B; border: 2px solid #FBF8F3; }
+
+  .stability-card {
+    margin: 18px 28px 0;
+    background: linear-gradient(150deg, #8B6FB8 0%, #6B5BC1 70%, #5B7CB7 100%);
+    border-radius: 26px; padding: 22px;
+    color: #fff; position: relative; overflow: hidden;
+    box-shadow: 0 18px 32px -14px rgba(107, 91, 193, 0.5);
+  }
+  .stability-card::before {
+    content: ''; position: absolute; top: -40px; right: -30px; width: 180px; height: 180px;
+    background: radial-gradient(circle, rgba(255,255,255,0.18), transparent 70%); border-radius: 999px;
+  }
+  .stability-card::after {
+    content: ''; position: absolute; bottom: -60px; left: -40px; width: 160px; height: 160px;
+    background: radial-gradient(circle, rgba(232,181,164,0.4), transparent 70%); border-radius: 999px;
+  }
+  .stability-meta { display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2; }
+  .stability-meta .tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.18); border-radius: 999px; padding: 5px 10px; font-size: 11px; font-weight: 600; }
+  .stability-score { position: relative; z-index: 2; margin-top: 16px; display: flex; align-items: baseline; gap: 8px; }
+  .stability-score .big { font-size: 56px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; font-family: 'Fraunces', serif; }
+  .stability-score .small { font-size: 16px; opacity: 0.7; }
+  .stability-line { display: flex; gap: 4px; margin-top: 14px; position: relative; z-index: 2; }
+  .stability-line div { height: 5px; flex: 1; background: rgba(255,255,255,0.22); border-radius: 999px; }
+  .stability-line div.full { background: #FFE6D8; }
+
+  .stability-bottom { display: flex; gap: 16px; margin-top: 18px; position: relative; z-index: 2; }
+  .stat { flex: 1; }
+  .stat .num { font-size: 22px; font-weight: 700; font-family: 'Fraunces', serif; }
+  .stat .lbl { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+
+  .capture-pill {
+    margin: 16px 28px 0; background: #fff; border-radius: 18px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 6px 18px -10px rgba(45, 45, 61, 0.18); border: 1px solid #F0E8DD;
+  }
+  .capture-icon { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #E8B5A4, #D69A8A); display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; }
+  .capture-text { flex: 1; }
+  .capture-text .t1 { font-weight: 600; font-size: 14px; color: #2D2D3D; }
+  .capture-text .t2 { font-size: 12px; color: #8B8B9B; margin-top: 1px; }
+  .capture-arrow { color: #8B6FB8; }
+
+  .section-head { padding: 24px 28px 10px; display: flex; align-items: center; justify-content: space-between; }
+  .section-head h3 { font-size: 18px; font-weight: 700; color: #2D2D3D; font-family: 'Fraunces', serif; }
+  .section-head .link { font-size: 12px; font-weight: 600; color: #8B6FB8; }
+
+  /* Timeline */
+  .timeline { position: relative; padding: 0 28px; }
+  .timeline-rail { position: absolute; top: 0; bottom: 0; left: 78px; width: 2px; background: linear-gradient(180deg, #E8DCC7 0%, #E0CFC0 100%); border-radius: 999px; }
+  .timeline-rail::before { content: ''; position: absolute; top: 0; left: -3px; width: 8px; height: 60px; background: linear-gradient(180deg, #8B6FB8, transparent); border-radius: 999px; }
+
+  .t-item { display: flex; gap: 16px; padding: 8px 0 14px; position: relative; }
+  .t-time { width: 50px; text-align: right; flex-shrink: 0; padding-top: 14px; }
+  .t-time .h { font-size: 13px; font-weight: 700; color: #2D2D3D; }
+  .t-time .m { font-size: 11px; color: #8B8B9B; }
+  .t-dot { width: 18px; flex-shrink: 0; display: flex; justify-content: center; padding-top: 18px; position: relative; z-index: 2; }
+  .t-dot div { width: 14px; height: 14px; border-radius: 999px; border: 3px solid #FBF8F3; }
+  .t-card { flex: 1; background: #fff; border-radius: 20px; padding: 14px 16px; border: 1px solid #F0E8DD; box-shadow: 0 4px 14px -8px rgba(45,45,61,0.12); }
+  .t-card .row1 { display: flex; align-items: center; gap: 10px; }
+  .t-card .icon { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; flex-shrink: 0; }
+  .t-card .title { font-weight: 600; font-size: 14px; color: #2D2D3D; flex: 1; }
+  .t-card .sub { font-size: 12px; color: #8B8B9B; margin-top: 3px; display: flex; gap: 10px; align-items: center; }
+
+  .anchor-card { background: linear-gradient(135deg, #F4ECFD 0%, #FBF1E8 100%); border: 1.5px solid #E5D5F0; }
+  .anchor-card .pill { display: inline-flex; align-items: center; gap: 4px; background: rgba(139,111,184,0.15); color: #6B5BC1; padding: 3px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+
+  .conflict-card { background: linear-gradient(135deg, #FFF1EE 0%, #FFE6E0 100%); border: 1.5px solid #F2C4B8; }
+  .conflict-tag { display: inline-flex; align-items: center; gap: 4px; background: rgba(224,123,123,0.15); color: #C45757; padding: 3px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+
+  .quick-row { display: flex; gap: 10px; padding: 0 28px; margin-top: 8px; }
+  .quick { flex: 1; background: #fff; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 6px; border: 1px solid #F0E8DD; }
+  .quick i { color: #8B6FB8; font-size: 16px; }
+  .quick .lbl { font-size: 11px; color: #8B8B9B; }
+  .quick .val { font-weight: 700; font-size: 14px; color: #2D2D3D; }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 90px;
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(20px);
+    border-top: 1px solid #F0E8DD;
+    display: flex; padding: 10px 16px 26px; align-items: flex-start; justify-content: space-around;
+  }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 10px; font-size: 10px; color: #B5B5C2; font-weight: 600; }
+  .tab i { font-size: 18px; }
+  .tab.active { color: #8B6FB8; }
+  .tab.active .tab-icon-wrap { background: linear-gradient(135deg, #8B6FB8 0%, #6B5BC1 100%); color: #fff; }
+  .tab-icon-wrap { width: 44px; height: 30px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+
+  .home-indicator { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 135px; height: 5px; background: #2D2D3D; border-radius: 999px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="flex items-center gap-1.5 text-xs">
+      <i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="greeting-tag">Wednesday · Feb 4</div>
+      <h1 class="serif text-[28px] font-bold mt-1 leading-tight">Good morning,<br/>Maya</h1>
+    </div>
+    <div class="flex gap-2">
+      <div class="icon-btn">
+        <i class="fas fa-bell"></i>
+        <div class="badge"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stability Card -->
+  <div class="stability-card">
+    <div class="stability-meta">
+      <span class="tag"><i class="fas fa-heart text-[10px]"></i> Day Stability</span>
+      <span class="text-[11px] opacity-70">Updated 9:38 AM</span>
+    </div>
+    <div class="stability-score">
+      <span class="big">82</span>
+      <span class="small">/ 100 holding steady</span>
+    </div>
+    <div class="stability-line">
+      <div class="full"></div><div class="full"></div><div class="full"></div><div class="full"></div>
+      <div class="full"></div><div class="full"></div><div class="full"></div><div></div><div></div><div></div>
+    </div>
+    <div class="stability-bottom">
+      <div class="stat">
+        <div class="num">3</div>
+        <div class="lbl">Anchors protected</div>
+      </div>
+      <div class="stat" style="border-left: 1px solid rgba(255,255,255,0.2); border-right: 1px solid rgba(255,255,255,0.2); padding: 0 14px;">
+        <div class="num">1</div>
+        <div class="lbl">Conflict resolved</div>
+      </div>
+      <div class="stat">
+        <div class="num">47<span class="text-sm opacity-75">m</span></div>
+        <div class="lbl">For yourself</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Capture pill -->
+  <div class="capture-pill">
+    <div class="capture-icon"><i class="fas fa-envelope-open-text"></i></div>
+    <div class="capture-text">
+      <div class="t1">3 commitments captured today</div>
+      <div class="t2">Coach Ben · School · Pediatrician — tap to confirm</div>
+    </div>
+    <i class="fas fa-chevron-right capture-arrow"></i>
+  </div>
+
+  <!-- Today's plan -->
+  <div class="section-head">
+    <h3>Today's plan</h3>
+    <span class="link">Whole week →</span>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-rail"></div>
+
+    <!-- 8:30 -->
+    <div class="t-item">
+      <div class="t-time"><div class="h">8:30</div><div class="m">AM</div></div>
+      <div class="t-dot"><div style="background:#7BB89F;"></div></div>
+      <div class="t-card">
+        <div class="row1">
+          <div class="icon" style="background:linear-gradient(135deg,#7BB89F,#5DA483);"><i class="fas fa-mug-hot"></i></div>
+          <div>
+            <div class="title">Morning coffee · alone</div>
+            <div class="sub"><span><i class="fas fa-clock text-[10px] mr-1"></i>30 min</span><span><i class="fas fa-home text-[10px] mr-1"></i>Kitchen</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 10:00 -->
+    <div class="t-item">
+      <div class="t-time"><div class="h">10:00</div><div class="m">AM</div></div>
+      <div class="t-dot"><div style="background:#5B7CB7;"></div></div>
+      <div class="t-card">
+        <div class="row1">
+          <div class="icon" style="background:linear-gradient(135deg,#5B7CB7,#3F60A3);"><i class="fas fa-briefcase"></i></div>
+          <div>
+            <div class="title">Stand-up + planning block</div>
+            <div class="sub"><span><i class="fas fa-clock text-[10px] mr-1"></i>2h 30m</span><span><i class="fas fa-video text-[10px] mr-1"></i>Zoom</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3:30 - ANCHOR -->
+    <div class="t-item">
+      <div class="t-time"><div class="h">3:30</div><div class="m">PM</div></div>
+      <div class="t-dot"><div style="background:#8B6FB8;"></div></div>
+      <div class="t-card anchor-card">
+        <div class="row1">
+          <div class="icon" style="background:linear-gradient(135deg,#8B6FB8,#6B5BC1);"><i class="fas fa-child"></i></div>
+          <div class="flex-1">
+            <div class="title flex items-center gap-2">Pickup — Liam <i class="fas fa-lock text-[#8B6FB8] text-[11px]"></i></div>
+            <div class="sub"><span class="pill">Life Anchor</span><span><i class="fas fa-map-marker-alt text-[10px] mr-1"></i>Sunny Hills</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4:05 - CONFLICT/BUFFER -->
+    <div class="t-item">
+      <div class="t-time"><div class="h">4:05</div><div class="m">PM</div></div>
+      <div class="t-dot"><div style="background:#E8A65C;"></div></div>
+      <div class="t-card conflict-card">
+        <div class="row1">
+          <div class="icon" style="background:linear-gradient(135deg,#E8A65C,#D08F44);"><i class="fas fa-triangle-exclamation"></i></div>
+          <div class="flex-1">
+            <div class="title">Client call moved to 4:30</div>
+            <div class="sub flex-wrap"><span class="conflict-tag">Conflict</span><span class="text-[#C45757] text-[11px] font-semibold">2 fixes suggested</span></div>
+          </div>
+          <i class="fas fa-arrow-right text-[#C45757] text-sm"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5:30 - ANCHOR DINNER -->
+    <div class="t-item">
+      <div class="t-time"><div class="h">5:30</div><div class="m">PM</div></div>
+      <div class="t-dot"><div style="background:#8B6FB8;"></div></div>
+      <div class="t-card anchor-card">
+        <div class="row1">
+          <div class="icon" style="background:linear-gradient(135deg,#E8B5A4,#D69A8A);"><i class="fas fa-utensils"></i></div>
+          <div class="flex-1">
+            <div class="title flex items-center gap-2">Family dinner <i class="fas fa-lock text-[#8B6FB8] text-[11px]"></i></div>
+            <div class="sub"><span class="pill">Life Anchor</span><span><i class="fas fa-users text-[10px] mr-1"></i>4 of us</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8:30 - RECOVERY -->
+    <div class="t-item">
+      <div class="t-time"><div class="h">8:30</div><div class="m">PM</div></div>
+      <div class="t-dot"><div style="background:#8B6FB8;"></div></div>
+      <div class="t-card anchor-card">
+        <div class="row1">
+          <div class="icon" style="background:linear-gradient(135deg,#9C7ED8,#7E63BD);"><i class="fas fa-spa"></i></div>
+          <div class="flex-1">
+            <div class="title flex items-center gap-2">Recovery time <i class="fas fa-lock text-[#8B6FB8] text-[11px]"></i></div>
+            <div class="sub"><span class="pill">Life Anchor</span><span class="text-[#8B8B9B]">Book · candle · phone away</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab active">
+      <div class="tab-icon-wrap"><i class="fas fa-house"></i></div>
+      <span>Today</span>
+    </div>
+    <div class="tab">
+      <div class="tab-icon-wrap"><i class="fas fa-inbox"></i></div>
+      <span>Captured</span>
+    </div>
+    <div class="tab">
+      <div class="tab-icon-wrap"><i class="fas fa-shield-heart"></i></div>
+      <span>Anchors</span>
+    </div>
+    <div class="tab">
+      <div class="tab-icon-wrap"><i class="fas fa-people-roof"></i></div>
+      <span>Family</span>
+    </div>
+    <div class="tab">
+      <div class="tab-icon-wrap"><i class="fas fa-user"></i></div>
+      <span>You</span>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+</body>
+</html>

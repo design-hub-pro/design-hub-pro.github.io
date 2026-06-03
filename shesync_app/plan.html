@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SheSync — Week Plan</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *::-webkit-scrollbar { display: none; }
+  * { scrollbar-width: none; -ms-overflow-style: none; }
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #FBF8F3; color: #2D2D3D; overflow: hidden; }
+  .serif { font-family: 'Fraunces', serif; letter-spacing: -0.02em; }
+  .screen { width: 100%; height: 100%; position: relative; background: #FBF8F3; padding-bottom: 100px; overflow-y: auto; }
+  .status-bar { height: 59px; padding: 20px 28px 0; display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 15px; }
+  .dynamic-island { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 118px; height: 34px; background: #0a0a0a; border-radius: 20px; }
+
+  .header { padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: flex-start; }
+  .greeting-tag { font-size: 12px; font-weight: 600; color: #8B6FB8; letter-spacing: 0.08em; text-transform: uppercase; }
+  .h1 { font-size: 28px; font-weight: 700; line-height: 1.1; margin-top: 4px; font-family: 'Fraunces', serif; }
+  .icon-btn { width: 44px; height: 44px; border-radius: 14px; background: rgba(139,111,184,0.08); display: flex; align-items: center; justify-content: center; color: #8B6FB8; }
+
+  /* Week health summary */
+  .health-card {
+    margin: 18px 28px 0; background: linear-gradient(135deg,#2D2D3D 0%,#3D3D52 100%);
+    border-radius: 24px; padding: 20px; color: #fff; position: relative; overflow: hidden;
+  }
+  .health-card::after { content: ''; position: absolute; top: -50px; right: -50px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(139,111,184,0.4), transparent 65%); border-radius: 999px; }
+  .h-row1 { display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 2; }
+  .h-row1 .tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.12); padding: 5px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .health-chart { margin-top: 16px; position: relative; z-index: 2; }
+  .bars-row { display: flex; align-items: flex-end; gap: 8px; height: 64px; }
+  .bar { flex: 1; border-radius: 6px 6px 2px 2px; background: linear-gradient(180deg, #8B6FB8 0%, #6B5BC1 100%); position: relative; }
+  .bar.warn { background: linear-gradient(180deg, #E8A65C, #D08F44); }
+  .bar.today { background: linear-gradient(180deg, #E8B5A4, #D69A8A); box-shadow: 0 0 0 2px rgba(255,255,255,0.3); }
+  .bar.bgd { background: rgba(255,255,255,0.15); }
+  .bar-day { font-size: 10px; color: rgba(255,255,255,0.6); text-align: center; margin-top: 6px; font-weight: 600; }
+  .bar-day.active { color: #fff; }
+  .legend { display: flex; gap: 12px; margin-top: 16px; font-size: 11px; position: relative; z-index: 2; }
+  .legend span { display: flex; align-items: center; gap: 5px; color: rgba(255,255,255,0.7); }
+  .legend i { font-size: 8px; }
+
+  /* Week strip */
+  .week-strip { display: flex; gap: 6px; padding: 18px 28px 0; }
+  .wd { flex: 1; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 14px; background: #fff; border: 1px solid #F0E8DD; }
+  .wd .d { font-size: 10px; color: #8B8B9B; font-weight: 600; }
+  .wd .n { font-size: 16px; font-weight: 700; }
+  .wd .dot { width: 5px; height: 5px; border-radius: 999px; background: #8B6FB8; margin-top: 2px; }
+  .wd.active { background: linear-gradient(135deg,#8B6FB8,#6B5BC1); border-color: #8B6FB8; color: #fff; }
+  .wd.active .d, .wd.active .n { color: #fff; }
+  .wd.active .dot { background: #fff; }
+
+  /* Day grid */
+  .day-section { padding: 22px 28px 0; }
+  .day-section .label { font-size: 11px; font-weight: 700; color: #8B8B9B; text-transform: uppercase; letter-spacing: 0.1em; }
+  .day-section .head { display: flex; align-items: baseline; justify-content: space-between; margin-top: 6px; margin-bottom: 12px; }
+  .day-section .head h3 { font-size: 19px; font-weight: 700; font-family: 'Fraunces', serif; }
+  .day-section .head .meta { font-size: 12px; color: #8B6FB8; font-weight: 600; }
+
+  .events { background: #fff; border-radius: 22px; border: 1px solid #F0E8DD; overflow: hidden; }
+  .ev { display: flex; gap: 12px; padding: 14px 16px; align-items: center; border-bottom: 1px dashed #F0E8DD; }
+  .ev:last-child { border-bottom: none; }
+  .ev .time { width: 56px; flex-shrink: 0; }
+  .ev .time .t { font-weight: 700; font-size: 13px; }
+  .ev .time .dur { font-size: 10px; color: #8B8B9B; }
+  .ev .stripe { width: 4px; align-self: stretch; border-radius: 999px; flex-shrink: 0; }
+  .ev .info { flex: 1; }
+  .ev .info .title { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+  .ev .info .sub { font-size: 11px; color: #8B8B9B; margin-top: 1px; }
+  .ev .icon { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; flex-shrink: 0; }
+
+  .ev.anchor .title { color: #6B5BC1; }
+  .ev.anchor .stripe { background: linear-gradient(180deg,#8B6FB8,#6B5BC1); }
+  .anchor-pill { display: inline-flex; align-items: center; gap: 3px; background: rgba(139,111,184,0.15); color: #6B5BC1; padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+
+  .day-meta { padding: 10px 16px; background: #F8F4ED; font-size: 11px; color: #8B6FB8; font-weight: 600; display: flex; align-items: center; gap: 6px; border-top: 1px solid #F0E8DD; }
+
+  .planning-tip {
+    margin: 18px 28px 0; padding: 16px; border-radius: 18px;
+    background: linear-gradient(135deg,#FDF5EC,#F5EAFD); border: 1px solid #F0E0DC;
+    display: flex; gap: 12px; align-items: center;
+  }
+  .tip-icon { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg,#E8B5A4,#D69A8A); display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; }
+  .tip-text .t1 { font-weight: 700; font-size: 13px; }
+  .tip-text .t2 { font-size: 11px; color: #8B8B9B; margin-top: 1px; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 90px; background: rgba(255,255,255,0.92); backdrop-filter: blur(20px); border-top: 1px solid #F0E8DD; display: flex; padding: 10px 16px 26px; align-items: flex-start; justify-content: space-around; }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 10px; font-size: 10px; color: #B5B5C2; font-weight: 600; }
+  .tab.active { color: #8B6FB8; }
+  .tab.active .tab-icon-wrap { background: linear-gradient(135deg, #8B6FB8 0%, #6B5BC1 100%); color: #fff; }
+  .tab-icon-wrap { width: 44px; height: 30px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+
+  .home-indicator { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 135px; height: 5px; background: #2D2D3D; border-radius: 999px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="flex items-center gap-1.5 text-xs">
+      <i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="greeting-tag">Feb 3 – Feb 9</div>
+      <div class="h1">Your week</div>
+    </div>
+    <div class="icon-btn"><i class="fas fa-calendar-plus"></i></div>
+  </div>
+
+  <!-- Stability over the week -->
+  <div class="health-card">
+    <div class="h-row1">
+      <span class="tag"><i class="fas fa-heart text-[10px]"></i> Weekly stability</span>
+      <span class="text-[11px] opacity-70">7-day · live</span>
+    </div>
+    <div class="serif text-[40px] leading-none mt-3 font-bold relative z-[2]">79<span class="text-base opacity-60 ml-1">/100</span></div>
+    <div class="text-[11px] opacity-70 relative z-[2]">↑ 8 points from last week — anchors held firm.</div>
+
+    <div class="health-chart">
+      <div class="bars-row">
+        <div class="bar" style="height:75%;"></div>
+        <div class="bar" style="height:85%;"></div>
+        <div class="bar today" style="height:82%;"></div>
+        <div class="bar warn" style="height:55%;"></div>
+        <div class="bar bgd" style="height:60%;"></div>
+        <div class="bar bgd" style="height:75%;"></div>
+        <div class="bar bgd" style="height:80%;"></div>
+      </div>
+      <div class="flex gap-2 mt-1">
+        <div class="bar-day flex-1">Mon</div>
+        <div class="bar-day flex-1">Tue</div>
+        <div class="bar-day flex-1 active">Wed</div>
+        <div class="bar-day flex-1">Thu</div>
+        <div class="bar-day flex-1">Fri</div>
+        <div class="bar-day flex-1">Sat</div>
+        <div class="bar-day flex-1">Sun</div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span><i class="fas fa-circle" style="color:#8B6FB8;"></i> Stable</span>
+      <span><i class="fas fa-circle" style="color:#E8B5A4;"></i> Today</span>
+      <span><i class="fas fa-circle" style="color:#E8A65C;"></i> Tight</span>
+    </div>
+  </div>
+
+  <!-- Week strip -->
+  <div class="week-strip">
+    <div class="wd"><div class="d">Mon</div><div class="n">3</div></div>
+    <div class="wd"><div class="d">Tue</div><div class="n">4</div></div>
+    <div class="wd active"><div class="d">Wed</div><div class="n">5</div><div class="dot"></div></div>
+    <div class="wd"><div class="d">Thu</div><div class="n">6</div></div>
+    <div class="wd"><div class="d">Fri</div><div class="n">7</div></div>
+    <div class="wd"><div class="d">Sat</div><div class="n">8</div></div>
+    <div class="wd"><div class="d">Sun</div><div class="n">9</div></div>
+  </div>
+
+  <!-- Thursday -->
+  <div class="day-section">
+    <div class="head">
+      <div>
+        <div class="label">Thursday · Feb 6</div>
+        <h3 class="mt-1">Picture day + PTA night</h3>
+      </div>
+      <div class="meta">4 events · 3 anchors</div>
+    </div>
+    <div class="events">
+      <div class="ev anchor">
+        <div class="time"><div class="t">7:30 AM</div><div class="dur">25 min</div></div>
+        <div class="stripe"></div>
+        <div class="icon" style="background:linear-gradient(135deg,#E8B5A4,#D69A8A);"><i class="fas fa-camera-retro"></i></div>
+        <div class="info">
+          <div class="title">Picture day — uniform polo <i class="fas fa-lock text-[10px]"></i></div>
+          <div class="sub"><span class="anchor-pill">Anchor</span> · Polo laid out</div>
+        </div>
+      </div>
+      <div class="ev">
+        <div class="time"><div class="t">10:00</div><div class="dur">2h</div></div>
+        <div class="stripe" style="background:#5B7CB7;"></div>
+        <div class="icon" style="background:linear-gradient(135deg,#5B7CB7,#3F60A3);"><i class="fas fa-briefcase"></i></div>
+        <div class="info">
+          <div class="title">Quarterly review prep</div>
+          <div class="sub">Solo · headphones on</div>
+        </div>
+      </div>
+      <div class="ev anchor">
+        <div class="time"><div class="t">3:30 PM</div><div class="dur">30 min</div></div>
+        <div class="stripe"></div>
+        <div class="icon" style="background:linear-gradient(135deg,#8B6FB8,#6B5BC1);"><i class="fas fa-child"></i></div>
+        <div class="info">
+          <div class="title">Pickup Liam <i class="fas fa-lock text-[10px]"></i></div>
+          <div class="sub"><span class="anchor-pill">Anchor</span> · Sunny Hills</div>
+        </div>
+      </div>
+      <div class="ev anchor">
+        <div class="time"><div class="t">5:30 PM</div><div class="dur">1h</div></div>
+        <div class="stripe"></div>
+        <div class="icon" style="background:linear-gradient(135deg,#E8B5A4,#D69A8A);"><i class="fas fa-utensils"></i></div>
+        <div class="info">
+          <div class="title">Family dinner <i class="fas fa-lock text-[10px]"></i></div>
+          <div class="sub"><span class="anchor-pill">Anchor</span> · Pasta + salad</div>
+        </div>
+      </div>
+      <div class="ev">
+        <div class="time"><div class="t">7:00 PM</div><div class="dur">90 min</div></div>
+        <div class="stripe" style="background:#E8A65C;"></div>
+        <div class="icon" style="background:linear-gradient(135deg,#E8A65C,#D08F44);"><i class="fas fa-people-group"></i></div>
+        <div class="info">
+          <div class="title">PTA meeting</div>
+          <div class="sub">Tucked behind dinner anchor</div>
+        </div>
+      </div>
+    </div>
+    <div class="day-meta">
+      <i class="fas fa-shield-heart"></i>
+      All 3 anchors protected · 38 min just for you (8 PM walk)
+    </div>
+  </div>
+
+  <!-- Friday -->
+  <div class="day-section" style="padding-top:18px;">
+    <div class="head">
+      <div>
+        <div class="label">Friday · Feb 7</div>
+        <h3 class="mt-1">Early school out</h3>
+      </div>
+      <div class="meta">3 events · 2 anchors</div>
+    </div>
+    <div class="events">
+      <div class="ev anchor">
+        <div class="time"><div class="t">2:00 PM</div><div class="dur">30 min</div></div>
+        <div class="stripe"></div>
+        <div class="icon" style="background:linear-gradient(135deg,#8B6FB8,#6B5BC1);"><i class="fas fa-child"></i></div>
+        <div class="info">
+          <div class="title">Early pickup — Liam <i class="fas fa-lock text-[10px]"></i></div>
+          <div class="sub"><span class="anchor-pill">Anchor · Backup</span> · David covers</div>
+        </div>
+      </div>
+      <div class="ev">
+        <div class="time"><div class="t">6:00 PM</div><div class="dur">2h</div></div>
+        <div class="stripe" style="background:#E8B5A4;"></div>
+        <div class="icon" style="background:linear-gradient(135deg,#E8B5A4,#D69A8A);"><i class="fas fa-pizza-slice"></i></div>
+        <div class="info">
+          <div class="title">Pizza + movie night</div>
+          <div class="sub">Family soft anchor</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="planning-tip">
+    <div class="tip-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+    <div class="tip-text">
+      <div class="t1">Your week is steady</div>
+      <div class="t2">Reschedule Thu PTA earlier? You'd unlock 25 more wind-down minutes.</div>
+    </div>
+    <i class="fas fa-chevron-right text-[#8B6FB8] text-xs"></i>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><div class="tab-icon-wrap"><i class="fas fa-house"></i></div><span>Today</span></div>
+    <div class="tab"><div class="tab-icon-wrap"><i class="fas fa-inbox"></i></div><span>Captured</span></div>
+    <div class="tab active"><div class="tab-icon-wrap"><i class="fas fa-calendar-week"></i></div><span>Week</span></div>
+    <div class="tab"><div class="tab-icon-wrap"><i class="fas fa-people-roof"></i></div><span>Family</span></div>
+    <div class="tab"><div class="tab-icon-wrap"><i class="fas fa-user"></i></div><span>You</span></div>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+</body>
+</html>
