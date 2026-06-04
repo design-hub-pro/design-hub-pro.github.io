@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UpRally — Map</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  * { -webkit-tap-highlight-color:transparent; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; width:0; height:0; }
+  * { scrollbar-width:none; -ms-overflow-style:none; }
+  html, body { margin:0; padding:0; height:100%; overflow:hidden; }
+  body { font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; background:#EAF0F4; }
+  .display { font-family:'Plus Jakarta Sans','Inter',sans-serif; letter-spacing:-0.025em; }
+  .screen { width:100%; height:100%; overflow:hidden; background:#EAF0F4; position:relative; }
+  .status-bar { height:59px; padding:22px 28px 0; display:flex; justify-content:space-between; align-items:center; position:absolute; top:0; left:0; right:0; z-index:30; }
+  .island { width:122px; height:36px; border-radius:22px; background:#000; position:absolute; left:50%; top:12px; transform:translateX(-50%); z-index:40; }
+  .brand-grad { background: linear-gradient(135deg,#84CC16 0%,#10B981 60%,#059669 100%); }
+  .map-base { position:absolute; inset:0; background: linear-gradient(160deg,#EEF3F7 0%,#E6EDF2 50%,#E2EAEF 100%); }
+  .street { position:absolute; background:#FFFFFF; border-radius:999px; box-shadow:0 0 0 1px rgba(15,23,42,0.015); }
+  .street-thin { position:absolute; background:#F4F7FA; border-radius:999px; }
+  .pin { position:absolute; transform:translate(-50%,-100%); z-index:10; }
+  .pin-chip { display:flex; align-items:center; gap:5px; background:white; border-radius:999px; padding:3px 9px 3px 3px; box-shadow:0 8px 20px -6px rgba(15,23,42,0.30); border:1px solid rgba(15,23,42,0.04); }
+  .pin-chip img { width:24px; height:24px; border-radius:999px; object-fit:cover; }
+  .pin-price { font-size:11px; font-weight:800; color:#0F172A; }
+  .pin-point { width:10px; height:10px; background:white; transform:rotate(45deg); margin:-6px auto 0; box-shadow:3px 3px 6px -3px rgba(15,23,42,0.25); }
+  .pin-sel .pin-chip { background:linear-gradient(135deg,#84CC16 0%,#10B981 60%,#059669 100%); border:2px solid white; box-shadow:0 12px 26px -6px rgba(16,185,129,0.55); padding:4px 11px 4px 4px; }
+  .pin-sel .pin-chip img { width:30px; height:30px; border:2px solid rgba(255,255,255,0.7); }
+  .pin-sel .pin-price { color:white; font-size:12px; }
+  .pin-sel .pin-point { background:#10B981; }
+  .court-pin { position:absolute; transform:translate(-50%,-100%); z-index:8; display:flex; flex-direction:column; align-items:center; }
+  .court-dot { width:30px; height:30px; border-radius:50%; background:#F59E0B; display:flex; align-items:center; justify-content:center; color:white; box-shadow:0 8px 18px -5px rgba(245,158,11,0.6); border:2px solid white; }
+  .court-label { margin-top:3px; font-size:9px; font-weight:800; color:#B45309; background:white; padding:2px 7px; border-radius:999px; box-shadow:0 4px 10px -4px rgba(15,23,42,0.2); }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="island"></div>
+  <!-- Status -->
+  <div class="status-bar">
+    <span class="text-[15px] font-semibold text-slate-900">9:41</span>
+    <div class="flex items-center gap-1.5 text-[12px] text-slate-900">
+      <i class="fa-solid fa-signal"></i>
+      <i class="fa-solid fa-wifi"></i>
+      <i class="fa-solid fa-battery-full text-[14px]"></i>
+    </div>
+  </div>
+
+  <!-- ====== FAUX MAP ====== -->
+  <div class="map-base">
+    <!-- faint grid -->
+    <svg class="absolute inset-0 w-full h-full" style="opacity:0.5">
+      <defs>
+        <pattern id="grid" width="46" height="46" patternUnits="userSpaceOnUse">
+          <path d="M 46 0 L 0 0 0 46" fill="none" stroke="#DCE5EC" stroke-width="1"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#grid)"/>
+    </svg>
+
+    <!-- park block (emerald) -->
+    <div class="absolute rounded-3xl" style="left:-30px;top:300px;width:200px;height:230px;background:linear-gradient(135deg,#D9F0DE,#C7E9D0);transform:rotate(-8deg);"></div>
+    <div class="absolute text-[10px] font-extrabold" style="left:30px;top:400px;color:#16A34A;transform:rotate(-8deg);"><i class="fa-solid fa-tree mr-1"></i>Mitchell Park</div>
+
+    <!-- water sliver -->
+    <div class="absolute rounded-full" style="right:-60px;bottom:-40px;width:240px;height:200px;background:linear-gradient(135deg,#CFE6F2,#BBD9EC);transform:rotate(20deg);opacity:0.8;"></div>
+
+    <!-- streets (wide) -->
+    <div class="street" style="left:-40px;top:200px;width:560px;height:16px;transform:rotate(8deg);"></div>
+    <div class="street" style="left:-40px;top:560px;width:560px;height:14px;transform:rotate(-6deg);"></div>
+    <div class="street" style="left:120px;top:-40px;width:14px;height:600px;transform:rotate(12deg);"></div>
+    <div class="street" style="left:330px;top:-40px;width:16px;height:760px;transform:rotate(-9deg);"></div>
+    <!-- diagonal avenue -->
+    <div class="street" style="left:-60px;top:80px;width:680px;height:18px;transform:rotate(34deg);transform-origin:left;"></div>
+
+    <!-- streets (thin) -->
+    <div class="street-thin" style="left:-40px;top:340px;width:560px;height:8px;transform:rotate(7deg);"></div>
+    <div class="street-thin" style="left:-40px;top:680px;width:560px;height:8px;transform:rotate(-4deg);"></div>
+    <div class="street-thin" style="left:230px;top:-40px;width:8px;height:760px;transform:rotate(-3deg);"></div>
+    <div class="street-thin" style="left:60px;top:-40px;width:7px;height:760px;transform:rotate(6deg);"></div>
+
+    <!-- a couple of building blocks -->
+    <div class="absolute rounded-lg" style="left:180px;top:430px;width:70px;height:60px;background:#E4EBF1;transform:rotate(-9deg);"></div>
+    <div class="absolute rounded-lg" style="left:265px;top:250px;width:60px;height:80px;background:#E4EBF1;transform:rotate(12deg);"></div>
+    <div class="absolute rounded-lg" style="left:50px;top:600px;width:80px;height:55px;background:#E4EBF1;transform:rotate(-5deg);"></div>
+  </div>
+
+  <!-- ====== PINS ====== -->
+  <!-- Court markers -->
+  <div class="court-pin" style="left:90px;top:280px;">
+    <div class="court-dot"><i class="fa-solid fa-location-dot text-[14px]"></i></div>
+    <div class="court-label">Rinconada Ct</div>
+  </div>
+  <div class="court-pin" style="left:360px;top:560px;">
+    <div class="court-dot"><i class="fa-solid fa-location-dot text-[14px]"></i></div>
+    <div class="court-label">Cubberley Ct</div>
+  </div>
+
+  <!-- Heater pins -->
+  <div class="pin" style="left:140px;top:420px;">
+    <div class="pin-chip"><img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1780265751839-image-1.png" /><span class="pin-price">$28</span></div>
+    <div class="pin-point"></div>
+  </div>
+  <div class="pin" style="left:300px;top:340px;">
+    <div class="pin-chip"><img src="https://images.unsplash.com/photo-1599586120429-48281b6f0ece?w=120&q=80" /><span class="pin-price">$22</span></div>
+    <div class="pin-point"></div>
+  </div>
+  <div class="pin" style="left:380px;top:470px;">
+    <div class="pin-chip"><img src="https://images.unsplash.com/photo-1542144582-1ba00456b5e3?w=120&q=80" /><span class="pin-price">$30</span></div>
+    <div class="pin-point"></div>
+  </div>
+  <div class="pin" style="left:100px;top:560px;">
+    <div class="pin-chip"><img src="https://images.unsplash.com/photo-1545809074-59472b3f5ecc?w=120&q=80" /><span class="pin-price">$26</span></div>
+    <div class="pin-point"></div>
+  </div>
+
+  <!-- SELECTED pin: Marcus -->
+  <div class="pin pin-sel" style="left:235px;top:480px;">
+    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-emerald-400/25 animate-pulse" style="z-index:-1;"></div>
+    <div class="pin-chip"><img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1780265500559-image-1.png" /><span class="pin-price">$35</span></div>
+    <div class="pin-point"></div>
+  </div>
+
+  <!-- ====== FLOATING TOP CONTROLS ====== -->
+  <div class="absolute left-7 right-7 flex items-center gap-2.5" style="top:96px;z-index:25;">
+    <button class="w-11 h-11 rounded-2xl bg-white border border-slate-200 flex items-center justify-center flex-shrink-0 shadow-lg shadow-slate-200">
+      <i class="fa-solid fa-chevron-left text-slate-700"></i>
+    </button>
+    <div class="flex-1 h-11 bg-white rounded-2xl flex items-center px-3.5 gap-2.5 min-w-0 shadow-lg shadow-slate-200 border border-slate-100">
+      <i class="fa-solid fa-magnifying-glass text-slate-400 text-[13px]"></i>
+      <span class="text-[12.5px] font-semibold text-slate-700 truncate flex-1">Heaters near Palo Alto</span>
+    </div>
+    <button class="w-11 h-11 rounded-2xl bg-white border border-slate-200 flex items-center justify-center flex-shrink-0 shadow-lg shadow-slate-200">
+      <i class="fa-solid fa-list text-slate-700"></i>
+    </button>
+  </div>
+
+  <!-- Segmented control -->
+  <div class="absolute left-1/2 -translate-x-1/2 flex bg-white rounded-full p-1 shadow-lg shadow-slate-200 border border-slate-100" style="top:152px;z-index:25;">
+    <div class="brand-grad text-white text-[12px] font-extrabold px-4 py-1.5 rounded-full flex items-center gap-1.5"><i class="fa-solid fa-bolt text-[10px] text-lime-200"></i>Heaters</div>
+    <div class="text-slate-500 text-[12px] font-bold px-4 py-1.5 rounded-full flex items-center gap-1.5"><i class="fa-solid fa-location-dot text-[10px]"></i>Courts</div>
+  </div>
+
+  <!-- Recenter floating button -->
+  <div class="absolute right-7 w-11 h-11 rounded-2xl bg-white flex items-center justify-center shadow-lg shadow-slate-200 border border-slate-100" style="bottom:268px;z-index:25;">
+    <i class="fa-solid fa-location-crosshairs text-emerald-600"></i>
+  </div>
+
+  <!-- "1 of 12" hint -->
+  <div class="absolute left-1/2 -translate-x-1/2 bg-slate-900/85 backdrop-blur text-white text-[11px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5" style="bottom:236px;z-index:25;">
+    <i class="fa-solid fa-bolt text-lime-300 text-[9px]"></i> 1 of 12 heaters
+  </div>
+
+  <!-- ====== BOTTOM SHEET ====== -->
+  <div class="absolute left-0 right-0 bottom-0 bg-white rounded-t-3xl shadow-2xl px-6 pt-3 pb-8" style="z-index:26;box-shadow:0 -12px 40px -12px rgba(15,23,42,0.25);">
+    <div class="w-10 h-1 rounded-full bg-slate-200 mx-auto mb-4"></div>
+    <div class="flex items-center gap-3.5">
+      <div class="relative flex-shrink-0">
+        <img class="w-16 h-16 rounded-2xl object-cover" src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1780265500559-image-1.png" />
+        <div class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 brand-grad text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-md flex items-center gap-1 whitespace-nowrap border-2 border-white">
+          <i class="fa-solid fa-bolt text-lime-200 text-[8px]"></i>UTR 7.2
+        </div>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1.5">
+          <span class="display font-extrabold text-[18px] text-slate-900 truncate">Marcus Chen</span>
+          <i class="fa-solid fa-circle-check text-emerald-500 text-[14px]"></i>
+        </div>
+        <div class="flex items-center gap-1.5 text-[12px] text-slate-500 mt-1">
+          <i class="fa-solid fa-star text-amber-400 text-[11px]"></i><b class="text-slate-700">4.9</b>
+          <span class="text-slate-300">·</span><span>1.8 mi</span>
+          <span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full ml-0.5">+2.4 above you</span>
+        </div>
+        <div class="text-[12px] text-slate-500 mt-1.5">From <span class="display font-extrabold text-[16px] text-slate-900">$35</span>/hr</div>
+      </div>
+    </div>
+    <div class="flex gap-2.5 mt-4">
+      <button class="flex-1 bg-white border border-slate-200 text-slate-800 display font-extrabold text-[14px] py-3 rounded-2xl">View profile</button>
+      <button class="flex-1 brand-grad text-white display font-extrabold text-[14px] py-3 rounded-2xl shadow-xl shadow-emerald-200 flex items-center justify-center gap-1.5">Book <i class="fa-solid fa-arrow-right text-[12px]"></i></button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
