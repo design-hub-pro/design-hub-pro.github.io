@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>StoryFund — Who you're helping</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#FAF6F1; color:#221B2E; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:112px; background:#FAF6F1; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; }
+  .status-bar .time { font-size:17px; font-weight:700; } .status-bar .icons { display:flex; gap:6px; } .status-bar .icons i { font-size:14px; }
+
+  .topnav { display:flex; align-items:center; justify-content:space-between; padding:6px 24px 0; }
+  .nav-btn { width:40px; height:40px; border-radius:50%; background:#fff; border:1px solid rgba(34,27,46,0.07); display:flex; align-items:center; justify-content:center; } .nav-btn i { font-size:15px; }
+
+  .header { padding:8px 28px 4px; }
+  .header .k { font-size:13px; color:#8C8798; font-weight:600; }
+  .header h1 { font-size:26px; font-weight:900; letter-spacing:-0.9px; line-height:1.12; margin-top:3px; }
+  .header h1 span { color:#FF4D77; }
+  .header p { font-size:13px; color:#8C8798; line-height:1.55; margin-top:9px; }
+
+  .stripe { display:flex; gap:20px; padding:18px 28px 4px; }
+  .stripe div b { font-size:22px; font-weight:900; letter-spacing:-0.8px; display:block; } .stripe div span { font-size:10.5px; color:#8C8798; font-weight:600; }
+
+  /* full-bleed cause cards */
+  .causes { padding:18px 28px 0; display:flex; flex-direction:column; gap:16px; }
+  .cause { border-radius:24px; overflow:hidden; position:relative; height:212px; box-shadow:0 16px 36px -18px rgba(34,27,46,0.4); }
+  .cause img { width:100%; height:100%; object-fit:cover; filter:saturate(0.92); }
+  .cause-grad { position:absolute; inset:0; background:linear-gradient(180deg,rgba(0,0,0,0.18) 0%,rgba(0,0,0,0) 32%,rgba(0,0,0,0.45) 62%,rgba(0,0,0,0.88) 100%); }
+  .cause-top { position:absolute; top:14px; left:14px; right:14px; display:flex; justify-content:space-between; align-items:flex-start; }
+  .cause-tag { display:inline-flex; align-items:center; gap:7px; background:rgba(255,255,255,0.92); color:#221B2E; padding:7px 12px; border-radius:11px; font-size:10.5px; font-weight:800; letter-spacing:0.3px; }
+  .cause-wait { background:rgba(0,0,0,0.42); backdrop-filter:blur(6px); color:#fff; padding:6px 11px; border-radius:10px; font-size:10.5px; font-weight:800; }
+  .cause-wait b { color:#FFB4B4; }
+  .cause-body { position:absolute; bottom:0; left:0; right:0; padding:18px; }
+  .cause-name { color:#fff; font-size:21px; font-weight:900; letter-spacing:-0.5px; }
+  .cause-ex { color:rgba(255,255,255,0.88); font-size:12px; line-height:1.45; margin-top:6px; max-width:88%; }
+  .cause-foot { display:flex; align-items:center; gap:8px; margin-top:13px; }
+  .avatars { display:flex; }
+  .avatars img { width:26px; height:26px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,0.9); margin-left:-9px; } .avatars img:first-child { margin-left:0; }
+  .cause-foot span { color:rgba(255,255,255,0.92); font-size:11px; font-weight:700; }
+  .cause-arrow { margin-left:auto; width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.92); display:flex; align-items:center; justify-content:center; } .cause-arrow i { color:#221B2E; font-size:13px; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(255,255,255,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:13px; border-top:0.5px solid rgba(34,27,46,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:54px; }
+  .tab-item i { font-size:19px; color:#C2BDCC; } .tab-item span { font-size:9.5px; color:#C2BDCC; font-weight:700; }
+  .tab-item.active i, .tab-item.active span { color:#FF4D77; }
+  .tab-fab { width:56px; height:56px; border-radius:19px; background:linear-gradient(135deg,#FF6F61,#FF3D77); display:flex; align-items:center; justify-content:center; margin-top:-12px; box-shadow:0 10px 24px rgba(255,77,119,0.45); border:none; } .tab-fab i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar"><span class="time">9:41</span><div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div></div>
+
+  <div class="topnav"><div class="nav-btn"><i class="fas fa-arrow-left"></i></div><div class="nav-btn"><i class="fas fa-magnifying-glass"></i></div></div>
+
+  <div class="header">
+    <div class="k">Who you're helping</div>
+    <h1>The people most likely<br>to go <span>unseen.</span></h1>
+    <p>The ones who need help most often lack the words, the reach and the trust to ask. StoryFund gives them all three.</p>
+  </div>
+
+  <div class="stripe">
+    <div><b>1,420</b><span>People waiting</span></div>
+    <div><b>5</b><span>Communities</span></div>
+    <div><b>92%</b><span>Verified</span></div>
+  </div>
+
+  <div class="causes">
+
+    <div class="cause">
+      <img src="https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=800&q=80" alt="">
+      <div class="cause-grad"></div>
+      <div class="cause-top">
+        <span class="cause-tag"><i class="fas fa-hand-holding-heart"></i> Seniors</span>
+        <span class="cause-wait"><b>312</b> waiting</span>
+      </div>
+      <div class="cause-body">
+        <div class="cause-name">Elders living alone</div>
+        <div class="cause-ex">Widowed, far from family — a birthday wish, a warm winter, a hand to hold.</div>
+        <div class="cause-foot">
+          <div class="avatars">
+            <img src="https://images.unsplash.com/photo-1559963110-71b394e7494d?w=80&q=80">
+            <img src="https://images.unsplash.com/photo-1556157382-97eda2d62296?w=80&q=80">
+            <img src="https://images.unsplash.com/photo-1447710441604-5bdc41bc6517?w=80&q=80">
+          </div>
+          <span>+309 stories</span>
+          <div class="cause-arrow"><i class="fas fa-arrow-right"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cause">
+      <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=800&q=80" alt="">
+      <div class="cause-grad"></div>
+      <div class="cause-top">
+        <span class="cause-tag"><i class="fas fa-house-chimney-window"></i> Immigrant Families</span>
+        <span class="cause-wait"><b>286</b> waiting</span>
+      </div>
+      <div class="cause-body">
+        <div class="cause-name">Families starting over</div>
+        <div class="cause-ex">A new country, a new language, an emergency — and no safety net to catch them.</div>
+        <div class="cause-foot">
+          <div class="avatars">
+            <img src="https://images.unsplash.com/photo-1518398046578-8cca57782e17?w=80&q=80">
+            <img src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=80&q=80">
+            <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&q=80">
+          </div>
+          <span>+283 stories</span>
+          <div class="cause-arrow"><i class="fas fa-arrow-right"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cause">
+      <img src="https://images.unsplash.com/photo-1605640840605-14ac1855827b?w=800&q=80" alt="">
+      <div class="cause-grad"></div>
+      <div class="cause-top">
+        <span class="cause-tag"><i class="fas fa-wheelchair"></i> Disability Support</span>
+        <span class="cause-wait"><b>198</b> waiting</span>
+      </div>
+      <div class="cause-body">
+        <div class="cause-name">Kids who can't wait</div>
+        <div class="cause-ex">A communication device, a therapy course, a wheelchair ramp — barriers, not limits.</div>
+        <div class="cause-foot">
+          <div class="avatars">
+            <img src="https://images.unsplash.com/photo-1542884748-2b87b36c6b90?w=80&q=80">
+            <img src="https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?w=80&q=80">
+            <img src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=80&q=80">
+          </div>
+          <span>+195 stories</span>
+          <div class="cause-arrow"><i class="fas fa-arrow-right"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cause">
+      <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&q=80" alt="">
+      <div class="cause-grad"></div>
+      <div class="cause-top">
+        <span class="cause-tag"><i class="fas fa-graduation-cap"></i> Education</span>
+        <span class="cause-wait"><b>424</b> waiting</span>
+      </div>
+      <div class="cause-body">
+        <div class="cause-name">Students with potential, not means</div>
+        <div class="cause-ex">A summer program, a contest fee, a laptop — the gap between talent and opportunity.</div>
+        <div class="cause-foot">
+          <div class="avatars">
+            <img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=80&q=80">
+            <img src="https://images.unsplash.com/photo-1517824806704-9040b037703b?w=80&q=80">
+            <img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=80&q=80">
+          </div>
+          <span>+421 stories</span>
+          <div class="cause-arrow"><i class="fas fa-arrow-right"></i></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item active"><i class="fas fa-compass"></i><span>Discover</span></div>
+    <div class="tab-item"><i class="fas fa-feather-pointed"></i><span>Writers</span></div>
+    <div class="tab-item"><button class="tab-fab"><i class="fas fa-hand-holding-heart"></i></button></div>
+    <div class="tab-item"><i class="fas fa-chart-simple"></i><span>Impact</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Me</span></div>
+  </div>
+</div>
+</body>
+</html>
