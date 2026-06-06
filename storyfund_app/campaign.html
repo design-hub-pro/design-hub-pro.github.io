@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>StoryFund — Campaign</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#FAF6F1; color:#221B2E; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:120px; background:#FAF6F1; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+
+  /* cover */
+  .cover { position:relative; height:392px; }
+  .cover img { width:100%; height:100%; object-fit:cover; }
+  .cover-grad { position:absolute; inset:0; background:linear-gradient(180deg,rgba(0,0,0,0.32) 0%,rgba(0,0,0,0) 30%,rgba(0,0,0,0) 55%,rgba(0,0,0,0.78) 100%); }
+  .nav { position:absolute; top:59px; left:0; right:0; padding:0 22px; display:flex; justify-content:space-between; align-items:center; z-index:20; }
+  .nav-btn { width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.92); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; }
+  .nav-btn i { font-size:15px; color:#221B2E; }
+  .cover-tags { position:absolute; top:14px; left:50%; transform:translateX(-50%); display:flex; gap:8px; z-index:15; margin-top:46px; }
+  .chip { display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border-radius:11px; font-size:10.5px; font-weight:800; letter-spacing:0.3px; }
+  .chip-cat { background:rgba(255,255,255,0.92); color:#221B2E; }
+  .chip-trust { background:rgba(22,163,122,0.95); color:#fff; }
+  .cover-body { position:absolute; bottom:0; left:0; right:0; padding:20px 28px 22px; }
+  .cover-title { color:#fff; font-size:25px; font-weight:900; letter-spacing:-0.6px; line-height:1.16; }
+  .cover-org { color:rgba(255,255,255,0.82); font-size:12.5px; font-weight:600; margin-top:8px; display:flex; align-items:center; gap:6px; }
+
+  .pad { padding:0 28px; }
+
+  /* progress block */
+  .prog { background:#fff; border:1px solid rgba(34,27,46,0.06); border-radius:22px; padding:20px; margin:-18px 28px 0; position:relative; z-index:5; box-shadow:0 14px 34px -18px rgba(34,27,46,0.3); }
+  .prog-row { display:flex; justify-content:space-between; align-items:flex-end; }
+  .prog-raised { font-size:30px; font-weight:900; letter-spacing:-1.2px; }
+  .prog-raised span { font-size:14px; color:#8C8798; font-weight:700; }
+  .prog-pct { font-size:14px; font-weight:850; color:#16A37A; background:rgba(22,163,122,0.1); padding:5px 11px; border-radius:10px; }
+  .pbar { height:9px; border-radius:8px; background:#F1ECF3; margin-top:14px; overflow:hidden; }
+  .pbar > div { height:100%; border-radius:8px; background:linear-gradient(90deg,#FF6F61,#FF3D77); }
+  .prog-stats { display:flex; margin-top:16px; }
+  .pstat { flex:1; text-align:center; } .pstat + .pstat { border-left:1px solid rgba(34,27,46,0.07); }
+  .pstat b { font-size:18px; font-weight:900; display:block; } .pstat span { font-size:10.5px; color:#8C8798; font-weight:600; }
+
+  .section-title { font-size:16px; font-weight:850; letter-spacing:-0.3px; margin:24px 0 12px; }
+
+  /* author */
+  .author { display:flex; align-items:center; gap:13px; background:#fff; border:1px solid rgba(34,27,46,0.06); border-radius:18px; padding:14px; }
+  .author img { width:48px; height:48px; border-radius:14px; object-fit:cover; }
+  .author-info { flex:1; } .author-info b { font-size:14px; font-weight:800; } .author-info p { font-size:11.5px; color:#8C8798; margin-top:2px; }
+  .author-badge { font-size:10px; font-weight:800; color:#FF4D77; background:rgba(255,77,119,0.1); padding:6px 11px; border-radius:10px; }
+
+  /* story text */
+  .story { font-size:14px; color:#4A4555; line-height:1.72; }
+  .story b { color:#221B2E; font-weight:700; }
+
+  /* fund use */
+  .use { display:flex; flex-direction:column; gap:11px; }
+  .use-row { display:flex; align-items:center; gap:13px; background:#fff; border:1px solid rgba(34,27,46,0.06); border-radius:16px; padding:13px 15px; }
+  .use-ico { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .use-ico i { color:#fff; font-size:15px; }
+  .use-info { flex:1; } .use-info b { font-size:13.5px; font-weight:800; } .use-info p { font-size:11px; color:#8C8798; margin-top:2px; }
+  .use-amt { font-size:14px; font-weight:850; }
+
+  /* updates */
+  .update { background:#fff; border:1px solid rgba(34,27,46,0.06); border-radius:16px; padding:15px; }
+  .update-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .update-head b { font-size:13px; font-weight:800; } .update-head span { font-size:10.5px; color:#8C8798; font-weight:600; }
+  .update p { font-size:12.5px; color:#4A4555; line-height:1.6; }
+
+  /* trust */
+  .trust { display:flex; gap:10px; background:linear-gradient(135deg,#F0FBF6,#E8F8F0); border:1px solid rgba(22,163,122,0.18); border-radius:16px; padding:15px; }
+  .trust i { color:#16A37A; font-size:17px; margin-top:1px; }
+  .trust b { font-size:13px; font-weight:800; color:#0F6B50; } .trust p { font-size:11.5px; color:#3E7A65; line-height:1.55; margin-top:3px; }
+
+  /* sticky action */
+  .actions { position:absolute; bottom:0; left:0; right:0; padding:16px 28px 30px; background:linear-gradient(180deg,rgba(250,246,241,0) 0%,#FAF6F1 28%); display:flex; gap:12px; align-items:center; }
+  .act-improve { width:56px; height:56px; border-radius:18px; background:#fff; border:1px solid rgba(34,27,46,0.1); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; flex-shrink:0; }
+  .act-improve i { font-size:16px; color:#8B5CF6; } .act-improve span { font-size:8px; font-weight:800; color:#8C8798; }
+  .act-share { width:56px; height:56px; border-radius:18px; background:#fff; border:1px solid rgba(34,27,46,0.1); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; flex-shrink:0; }
+  .act-share i { font-size:16px; color:#3B82F6; } .act-share span { font-size:8px; font-weight:800; color:#8C8798; }
+  .act-donate { flex:1; height:56px; border-radius:18px; background:linear-gradient(135deg,#FF6F61,#FF3D77); display:flex; align-items:center; justify-content:center; gap:9px; box-shadow:0 12px 28px rgba(255,77,119,0.42); }
+  .act-donate b { color:#fff; font-size:16px; font-weight:850; } .act-donate i { color:#fff; font-size:15px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+
+  <div class="cover">
+    <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=900&q=80" alt="">
+    <div class="cover-grad"></div>
+    <div class="nav">
+      <div class="nav-btn"><i class="fas fa-arrow-left"></i></div>
+      <div class="nav-btn"><i class="far fa-bookmark"></i></div>
+    </div>
+    <div class="cover-tags">
+      <span class="chip chip-cat"><i class="fas fa-graduation-cap"></i> Education</span>
+      <span class="chip chip-trust"><i class="fas fa-shield-halved"></i> Verified by StoryFund</span>
+    </div>
+    <div class="cover-body">
+      <div class="cover-title">Get Amara to the National<br>Science Fair</div>
+      <div class="cover-org"><i class="fas fa-location-dot"></i> Lincoln High School · Oakland, CA</div>
+    </div>
+  </div>
+
+  <div class="prog">
+    <div class="prog-row">
+      <div class="prog-raised">$2,880 <span>raised</span></div>
+      <div class="prog-pct">72%</div>
+    </div>
+    <div class="pbar"><div style="width:72%"></div></div>
+    <div class="prog-stats">
+      <div class="pstat"><b>$4,000</b><span>Goal</span></div>
+      <div class="pstat"><b>147</b><span>Donors</span></div>
+      <div class="pstat"><b>9</b><span>Days left</span></div>
+    </div>
+  </div>
+
+  <div class="pad">
+    <div class="section-title">Written by a student</div>
+    <div class="author">
+      <img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=160&q=80" alt="">
+      <div class="author-info"><b>Priya M. · 11th grade</b><p>Student writer · 6 stories told · 4,200 raised</p></div>
+      <div class="author-badge">Author</div>
+    </div>
+
+    <div class="section-title">Amara's story</div>
+    <p class="story">Amara, 16, built a low-cost water-quality sensor in her garage and won her regional science fair. She qualified for <b>Nationals in Washington, D.C.</b> — but her family can't cover travel, lodging and registration. With your help, a first-generation scientist gets her shot on the national stage. 🔬</p>
+
+    <div class="section-title">Where your money goes</div>
+    <div class="use">
+      <div class="use-row">
+        <div class="use-ico" style="background:linear-gradient(135deg,#3B82F6,#60A5FA)"><i class="fas fa-plane"></i></div>
+        <div class="use-info"><b>Flights & travel</b><p>Round trip + airport transfer</p></div>
+        <div class="use-amt">$1,600</div>
+      </div>
+      <div class="use-row">
+        <div class="use-ico" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA)"><i class="fas fa-bed"></i></div>
+        <div class="use-info"><b>3 nights lodging</b><p>Shared hotel near venue</p></div>
+        <div class="use-amt">$1,400</div>
+      </div>
+      <div class="use-row">
+        <div class="use-ico" style="background:linear-gradient(135deg,#16A37A,#34D399)"><i class="fas fa-clipboard-check"></i></div>
+        <div class="use-info"><b>Registration & supplies</b><p>Entry fee + display board</p></div>
+        <div class="use-amt">$1,000</div>
+      </div>
+    </div>
+
+    <div class="section-title">Trust & safety</div>
+    <div class="trust">
+      <i class="fas fa-shield-halved"></i>
+      <div><b>Identity & school verified</b><p>Beneficiary confirmed by a school counselor. Funds are released directly to Lincoln High's student travel account.</p></div>
+    </div>
+
+    <div class="section-title">Latest update</div>
+    <div class="update">
+      <div class="update-head"><b>🎉 Halfway there!</b><span>2 days ago</span></div>
+      <p>Thank you to 147 donors and everyone who shared. Amara just finalized her presentation — only 9 days left to reach the goal!</p>
+    </div>
+  </div>
+
+  <div class="actions">
+    <div class="act-improve"><i class="fas fa-wand-magic-sparkles"></i><span>Improve</span></div>
+    <div class="act-share"><i class="fas fa-share-nodes"></i><span>Share</span></div>
+    <div class="act-donate"><i class="fas fa-heart"></i><b>Donate</b></div>
+  </div>
+</div>
+</body>
+</html>

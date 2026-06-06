@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>StoryFund — Impact</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#FAF6F1; color:#221B2E; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:112px; background:#FAF6F1; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; }
+  .status-bar .time { font-size:17px; font-weight:700; } .status-bar .icons { display:flex; gap:6px; } .status-bar .icons i { font-size:14px; }
+
+  .header { padding:6px 28px 4px; }
+  .header .k { font-size:13px; color:#8C8798; font-weight:600; } .header h1 { font-size:25px; font-weight:900; letter-spacing:-0.8px; margin-top:2px; }
+  .pad { padding:0 28px; }
+
+  /* big raised hero */
+  .raised-hero { margin:16px 28px 0; border-radius:24px; background:linear-gradient(135deg,#FF6F61,#FF3D77); padding:24px; position:relative; overflow:hidden; box-shadow:0 18px 38px -18px rgba(255,77,119,0.6); }
+  .raised-hero::before { content:''; position:absolute; right:-50px; top:-50px; width:190px; height:190px; border-radius:50%; background:radial-gradient(circle,rgba(255,255,255,0.22),transparent 70%); }
+  .raised-hero .k { color:rgba(255,255,255,0.85); font-size:11px; font-weight:800; letter-spacing:0.6px; text-transform:uppercase; position:relative; z-index:2; }
+  .raised-hero .big { color:#fff; font-size:42px; font-weight:900; letter-spacing:-2px; margin-top:6px; position:relative; z-index:2; }
+  .raised-hero .sub { color:rgba(255,255,255,0.9); font-size:12.5px; margin-top:4px; position:relative; z-index:2; }
+  .raised-hero .sub b { color:#fff; }
+  .spark { display:flex; align-items:flex-end; gap:5px; height:44px; margin-top:16px; position:relative; z-index:2; }
+  .spark div { flex:1; background:rgba(255,255,255,0.45); border-radius:4px 4px 0 0; }
+
+  /* stat grid */
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:11px; padding:18px 28px 4px; }
+  .g { background:#fff; border:1px solid rgba(34,27,46,0.06); border-radius:18px; padding:15px; }
+  .g-ico { font-size:14px; margin-bottom:9px; } .g b { font-size:24px; font-weight:900; letter-spacing:-1px; display:block; line-height:1; } .g span { font-size:9.5px; color:#8C8798; font-weight:600; margin-top:5px; display:block; }
+
+  .section-header { padding:24px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .section-title { font-size:17px; font-weight:850; letter-spacing:-0.3px; } .section-link { font-size:12px; color:#FF4D77; font-weight:700; }
+
+  /* category breakdown */
+  .breakdown { padding:0 28px; display:flex; flex-direction:column; gap:13px; }
+  .bd { } .bd-top { display:flex; align-items:center; gap:9px; margin-bottom:8px; }
+  .bd-dot { width:10px; height:10px; border-radius:50%; } .bd-top b { font-size:13px; font-weight:700; flex:1; } .bd-top span { font-size:12px; font-weight:800; color:#8C8798; }
+  .bd-bar { height:8px; border-radius:6px; background:#F1ECF3; overflow:hidden; } .bd-bar > div { height:100%; border-radius:6px; }
+
+  /* top stories */
+  .top { padding:0 28px; display:flex; flex-direction:column; gap:11px; }
+  .top-row { display:flex; align-items:center; gap:12px; background:#fff; border:1px solid rgba(34,27,46,0.06); border-radius:16px; padding:12px; }
+  .top-rank { width:24px; font-size:15px; font-weight:900; color:#C2BDCC; text-align:center; }
+  .top-row img { width:44px; height:44px; border-radius:12px; object-fit:cover; }
+  .top-info { flex:1; } .top-info b { font-size:13px; font-weight:800; line-height:1.2; display:block; } .top-info span { font-size:10.5px; color:#8C8798; }
+  .top-amt { text-align:right; } .top-amt b { font-size:14px; font-weight:850; color:#16A37A; display:block; } .top-amt span { font-size:10px; color:#8C8798; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(255,255,255,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:13px; border-top:0.5px solid rgba(34,27,46,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:54px; }
+  .tab-item i { font-size:19px; color:#C2BDCC; } .tab-item span { font-size:9.5px; color:#C2BDCC; font-weight:700; }
+  .tab-item.active i, .tab-item.active span { color:#FF4D77; }
+  .tab-fab { width:56px; height:56px; border-radius:19px; background:linear-gradient(135deg,#FF6F61,#FF3D77); display:flex; align-items:center; justify-content:center; margin-top:-12px; box-shadow:0 10px 24px rgba(255,77,119,0.45); border:none; } .tab-fab i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar"><span class="time">9:41</span><div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div></div>
+
+  <div class="header">
+    <div class="k">Community Impact · 2026</div>
+    <h1>Stories made real.</h1>
+  </div>
+
+  <div class="raised-hero">
+    <div class="k">Total raised</div>
+    <div class="big">$1.24M</div>
+    <div class="sub">across <b>3,108 stories</b> · +18% this month</div>
+    <div class="spark">
+      <div style="height:38%"></div><div style="height:52%"></div><div style="height:44%"></div>
+      <div style="height:67%"></div><div style="height:58%"></div><div style="height:79%"></div>
+      <div style="height:71%"></div><div style="height:90%"></div><div style="height:100%"></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="g"><div class="g-ico" style="color:#3B82F6"><i class="fas fa-share-nodes"></i></div><b>214K</b><span>Shares</span></div>
+    <div class="g"><div class="g-ico" style="color:#8B5CF6"><i class="fas fa-pen-nib"></i></div><b>9,640</b><span>Edits made</span></div>
+    <div class="g"><div class="g-ico" style="color:#16A37A"><i class="fas fa-users"></i></div><b>62K</b><span>Contributors</span></div>
+  </div>
+
+  <div class="section-header"><div class="section-title">Where help went</div><div class="section-link">2026</div></div>
+  <div class="breakdown">
+    <div class="bd"><div class="bd-top"><span class="bd-dot" style="background:#FF4D77"></span><b>Education</b><span>$412K</span></div><div class="bd-bar"><div style="width:88%;background:#FF4D77"></div></div></div>
+    <div class="bd"><div class="bd-top"><span class="bd-dot" style="background:#F59E0B"></span><b>Seniors</b><span>$286K</span></div><div class="bd-bar"><div style="width:62%;background:#F59E0B"></div></div></div>
+    <div class="bd"><div class="bd-top"><span class="bd-dot" style="background:#3B82F6"></span><b>Immigrant Families</b><span>$248K</span></div><div class="bd-bar"><div style="width:54%;background:#3B82F6"></div></div></div>
+    <div class="bd"><div class="bd-top"><span class="bd-dot" style="background:#8B5CF6"></span><b>Disability Support</b><span>$184K</span></div><div class="bd-bar"><div style="width:40%;background:#8B5CF6"></div></div></div>
+    <div class="bd"><div class="bd-top"><span class="bd-dot" style="background:#16A37A"></span><b>Community</b><span>$110K</span></div><div class="bd-bar"><div style="width:24%;background:#16A37A"></div></div></div>
+  </div>
+
+  <div class="section-header"><div class="section-title">Top stories this month</div></div>
+  <div class="top">
+    <div class="top-row">
+      <div class="top-rank">1</div>
+      <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=120&q=80" alt="">
+      <div class="top-info"><b>Warm meals for the Rivera family</b><span>2,200 raised · 528 shares</span></div>
+      <div class="top-amt"><b>$2.2K</b><span>88%</span></div>
+    </div>
+    <div class="top-row">
+      <div class="top-rank">2</div>
+      <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=120&q=80" alt="">
+      <div class="top-info"><b>Get Amara to the Science Fair</b><span>2,880 raised · 412 shares</span></div>
+      <div class="top-amt"><b>$2.9K</b><span>72%</span></div>
+    </div>
+    <div class="top-row">
+      <div class="top-rank">3</div>
+      <img src="https://images.unsplash.com/photo-1447710441604-5bdc41bc6517?w=120&q=80" alt="">
+      <div class="top-info"><b>Mr. Chen's 90th birthday wish</b><span>660 raised · 312 shares</span></div>
+      <div class="top-amt"><b>$660</b><span>44%</span></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-compass"></i><span>Discover</span></div>
+    <div class="tab-item"><i class="fas fa-feather-pointed"></i><span>Writers</span></div>
+    <div class="tab-item"><button class="tab-fab"><i class="fas fa-hand-holding-heart"></i></button></div>
+    <div class="tab-item active"><i class="fas fa-chart-simple"></i><span>Impact</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Me</span></div>
+  </div>
+</div>
+</body>
+</html>

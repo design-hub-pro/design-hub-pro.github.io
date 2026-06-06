@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>StoryFund — Donate</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#FAF6F1; color:#221B2E; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:118px; background:#FAF6F1; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; }
+  .status-bar .time { font-size:17px; font-weight:700; } .status-bar .icons { display:flex; gap:6px; } .status-bar .icons i { font-size:14px; }
+
+  .topnav { display:flex; align-items:center; justify-content:space-between; padding:6px 24px 10px; }
+  .nav-btn { width:40px; height:40px; border-radius:50%; background:#fff; border:1px solid rgba(34,27,46,0.07); display:flex; align-items:center; justify-content:center; }
+  .nav-btn i { font-size:15px; } .topnav b { font-size:16px; font-weight:850; }
+
+  .pad { padding:0 28px; }
+
+  /* mini campaign */
+  .mini { display:flex; align-items:center; gap:13px; background:#fff; border:1px solid rgba(34,27,46,0.06); border-radius:18px; padding:13px; box-shadow:0 8px 22px -16px rgba(34,27,46,0.3); }
+  .mini img { width:52px; height:52px; border-radius:13px; object-fit:cover; }
+  .mini-info { flex:1; } .mini-info b { font-size:13.5px; font-weight:800; line-height:1.2; display:block; } .mini-info span { font-size:11px; color:#8C8798; }
+  .mini .pct { font-size:13px; font-weight:850; color:#16A37A; }
+
+  .lbl { font-size:12.5px; font-weight:800; color:#8C8798; letter-spacing:0.3px; text-transform:uppercase; margin:24px 0 13px; }
+
+  /* amount grid */
+  .amts { display:grid; grid-template-columns:repeat(3,1fr); gap:11px; }
+  .amt { background:#fff; border:1.5px solid rgba(34,27,46,0.08); border-radius:16px; padding:18px 0; text-align:center; font-size:19px; font-weight:850; }
+  .amt.active { background:#221B2E; color:#fff; border-color:#221B2E; }
+  .amt small { display:block; font-size:9px; font-weight:700; color:#16A37A; margin-top:3px; }
+  .amt.active small { color:#34D399; }
+  .amt-custom { grid-column:span 3; background:#fff; border:1.5px dashed rgba(34,27,46,0.18); border-radius:16px; padding:15px; display:flex; align-items:center; gap:10px; }
+  .amt-custom span { font-size:22px; font-weight:900; color:#C2BDCC; } .amt-custom input { border:none; outline:none; font-size:22px; font-weight:900; font-family:inherit; flex:1; background:transparent; }
+
+  /* impact preview */
+  .impact { display:flex; gap:11px; background:linear-gradient(135deg,#FFF1EE,#FFE9EF); border:1px solid rgba(255,77,119,0.16); border-radius:16px; padding:15px; margin-top:13px; }
+  .impact i { color:#FF4D77; font-size:17px; margin-top:1px; }
+  .impact b { font-size:13px; font-weight:800; color:#B3284D; } .impact p { font-size:11.5px; color:#A6536A; line-height:1.55; margin-top:3px; }
+
+  /* payment options */
+  .pay { display:flex; flex-direction:column; gap:10px; }
+  .pay-opt { display:flex; align-items:center; gap:13px; background:#fff; border:1.5px solid rgba(34,27,46,0.06); border-radius:15px; padding:14px 15px; }
+  .pay-opt.active { border-color:#FF4D77; box-shadow:0 6px 18px -10px rgba(255,77,119,0.5); }
+  .pay-ico { width:38px; height:38px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .pay-ico i { color:#fff; font-size:16px; }
+  .pay-info { flex:1; } .pay-info b { font-size:13.5px; font-weight:800; } .pay-info p { font-size:10.5px; color:#8C8798; margin-top:1px; }
+  .radio { width:21px; height:21px; border-radius:50%; border:2px solid #DDD7E3; flex-shrink:0; }
+  .radio.on { border-color:#FF4D77; background:#FF4D77; display:flex; align-items:center; justify-content:center; }
+  .radio.on::after { content:''; width:8px; height:8px; border-radius:50%; background:#fff; }
+
+  .anon { display:flex; align-items:center; gap:11px; background:#fff; border:1px solid rgba(34,27,46,0.06); border-radius:15px; padding:14px 15px; margin-top:13px; }
+  .anon i { color:#8C8798; font-size:15px; } .anon span { flex:1; font-size:13px; font-weight:700; }
+  .toggle { width:44px; height:26px; border-radius:14px; background:#E3DEE8; position:relative; }
+  .toggle::after { content:''; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
+
+  .pay-foot { position:absolute; bottom:0; left:0; right:0; padding:16px 28px 30px; background:linear-gradient(180deg,rgba(250,246,241,0),#FAF6F1 30%); }
+  .donate-btn { width:100%; height:56px; border-radius:18px; background:linear-gradient(135deg,#FF6F61,#FF3D77); display:flex; align-items:center; justify-content:center; gap:9px; box-shadow:0 12px 28px rgba(255,77,119,0.42); }
+  .donate-btn b { color:#fff; font-size:16px; font-weight:850; } .donate-btn i { color:#fff; font-size:14px; }
+  .secure { text-align:center; font-size:10.5px; color:#8C8798; margin-top:11px; } .secure i { color:#16A37A; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar"><span class="time">9:41</span><div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div></div>
+
+  <div class="topnav">
+    <div class="nav-btn"><i class="fas fa-arrow-left"></i></div>
+    <b>Donate</b>
+    <div class="nav-btn"><i class="fas fa-xmark"></i></div>
+  </div>
+
+  <div class="pad">
+    <div class="mini">
+      <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=160&q=80" alt="">
+      <div class="mini-info"><b>Get Amara to the Science Fair</b><span>$2,880 of $4,000</span></div>
+      <div class="pct">72%</div>
+    </div>
+
+    <div class="lbl">Choose an amount</div>
+    <div class="amts">
+      <div class="amt">$10</div>
+      <div class="amt active">$25 <small>POPULAR</small></div>
+      <div class="amt">$50</div>
+      <div class="amt">$100</div>
+      <div class="amt">$250</div>
+      <div class="amt">$500</div>
+      <div class="amt-custom"><span>$</span><input placeholder="Other amount"></div>
+    </div>
+
+    <div class="impact">
+      <i class="fas fa-seedling"></i>
+      <div><b>$25 covers Amara's display board</b><p>Every dollar goes directly to her verified school travel account — no platform fee.</p></div>
+    </div>
+
+    <div class="lbl">Payment method</div>
+    <div class="pay">
+      <div class="pay-opt active">
+        <div class="pay-ico" style="background:#000"><i class="fab fa-apple"></i></div>
+        <div class="pay-info"><b>Apple Pay</b><p>Fastest · one tap</p></div>
+        <div class="radio on"></div>
+      </div>
+      <div class="pay-opt">
+        <div class="pay-ico" style="background:#0070BA"><i class="fab fa-paypal"></i></div>
+        <div class="pay-info"><b>PayPal Giving Fund</b><p>Tax-deductible receipt</p></div>
+        <div class="radio"></div>
+      </div>
+      <div class="pay-opt">
+        <div class="pay-ico" style="background:linear-gradient(135deg,#635BFF,#8B5CF6)"><i class="fas fa-credit-card"></i></div>
+        <div class="pay-info"><b>Card via Stripe</b><p>Visa, Mastercard, Amex</p></div>
+        <div class="radio"></div>
+      </div>
+    </div>
+
+    <div class="anon">
+      <i class="fas fa-user-secret"></i>
+      <span>Donate anonymously</span>
+      <div class="toggle"></div>
+    </div>
+  </div>
+
+  <div class="pay-foot">
+    <div class="donate-btn"><i class="fas fa-heart"></i><b>Donate $25</b></div>
+    <div class="secure"><i class="fas fa-lock"></i> Secure payment · 0% platform fee on StoryFund</div>
+  </div>
+</div>
+</body>
+</html>
