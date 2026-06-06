@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>StudyQuest — AI Scan</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0D0B1A; color:#fff; scrollbar-width:none; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:108px; background:#0D0B1A; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .top { padding:6px 28px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .top h1 { font-size:20px; font-weight:800; letter-spacing:-0.4px; }
+  .top .close { width:36px; height:36px; border-radius:12px; background:#17142A; display:flex; align-items:center; justify-content:center; }
+  .top .close i { color:#9B93C7; font-size:14px; }
+
+  /* viewfinder */
+  .viewer { margin:0 28px; border-radius:24px; overflow:hidden; position:relative; height:300px; }
+  .viewer img { width:100%; height:100%; object-fit:cover; }
+  .viewer::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(13,11,26,0.1),rgba(13,11,26,0.55)); }
+  .scan-frame { position:absolute; inset:24px; border-radius:18px; border:2px solid rgba(200,255,61,0.8); z-index:3; box-shadow:0 0 0 9999px rgba(13,11,26,0.0); }
+  .scan-corner { position:absolute; width:22px; height:22px; border:3px solid #C8FF3D; z-index:4; }
+  .scan-line { position:absolute; left:26px; right:26px; height:2px; background:linear-gradient(90deg,transparent,#C8FF3D,transparent); top:50%; z-index:4; box-shadow:0 0 16px #C8FF3D; }
+  .detect-pill { position:absolute; top:36px; left:36px; z-index:5; background:rgba(13,11,26,0.7); backdrop-filter:blur(8px); padding:7px 12px; border-radius:12px; display:flex; align-items:center; gap:8px; }
+  .detect-pill i { color:#C8FF3D; font-size:12px; }
+  .detect-pill span { font-size:11px; font-weight:700; }
+  .detect-pill .live { width:7px; height:7px; border-radius:50%; background:#C8FF3D; box-shadow:0 0 10px #C8FF3D; }
+
+  /* status banner */
+  .gen-banner { margin:16px 28px 0; background:linear-gradient(135deg,#8B5CF6,#6D28D9); border-radius:20px; padding:16px 18px; display:flex; align-items:center; gap:14px; position:relative; overflow:hidden; }
+  .gen-banner::before { content:''; position:absolute; right:-30px; top:-30px; width:120px; height:120px; border-radius:50%; background:radial-gradient(circle,rgba(255,255,255,0.2),transparent 70%); }
+  .gen-ico { width:44px; height:44px; border-radius:14px; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; }
+  .gen-ico i { font-size:20px; color:#C8FF3D; }
+  .gen-banner b { font-size:15px; font-weight:800; display:block; }
+  .gen-banner span { font-size:11px; color:rgba(255,255,255,0.8); }
+
+  .section-header { padding:22px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .section-title { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+  .section-cnt { font-size:11px; font-weight:800; color:#0D0B1A; background:#C8FF3D; padding:4px 10px; border-radius:10px; }
+
+  .cards { padding:0 28px; display:flex; flex-direction:column; gap:12px; }
+  .gcard { background:#17142A; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:16px; position:relative; }
+  .gcard-sub { font-size:10px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; color:#22C55E; }
+  .gcard-q { font-size:14px; font-weight:700; margin-top:8px; line-height:1.4; }
+  .gcard-a { font-size:12px; color:#9B93C7; margin-top:8px; line-height:1.5; padding-top:8px; border-top:1px solid rgba(255,255,255,0.06); }
+  .gcard-a b { color:#C8FF3D; font-weight:700; }
+  .gcard-edit { position:absolute; top:14px; right:14px; width:28px; height:28px; border-radius:9px; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; }
+  .gcard-edit i { font-size:11px; color:#9B93C7; }
+
+  .save-bar { margin:18px 28px 0; }
+  .save-btn { width:100%; background:linear-gradient(135deg,#C8FF3D,#9FE000); border:none; border-radius:18px; padding:16px; font-size:15px; font-weight:800; color:#0D0B1A; display:flex; align-items:center; justify-content:center; gap:10px; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(13,11,26,0.92); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.32); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#C8FF3D; }
+  .tab-scan-btn { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#C8FF3D,#9FE000); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(200,255,61,0.4); border:none; }
+  .tab-scan-btn i { font-size:22px; color:#0D0B1A; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar"><span class="time">9:41</span><div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div></div>
+
+  <div class="top">
+    <h1>Scan Notes</h1>
+    <div class="close"><i class="fas fa-xmark"></i></div>
+  </div>
+
+  <div class="viewer">
+    <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=700&q=80" alt="notes">
+    <div class="detect-pill"><span class="live"></span><span>Reading handwriting…</span></div>
+    <div class="scan-frame"></div>
+    <div class="scan-corner" style="top:24px;left:24px;border-right:none;border-bottom:none;border-radius:8px 0 0 0"></div>
+    <div class="scan-corner" style="top:24px;right:24px;border-left:none;border-bottom:none;border-radius:0 8px 0 0"></div>
+    <div class="scan-corner" style="bottom:24px;left:24px;border-right:none;border-top:none;border-radius:0 0 0 8px"></div>
+    <div class="scan-corner" style="bottom:24px;right:24px;border-left:none;border-top:none;border-radius:0 0 8px 0"></div>
+    <div class="scan-line"></div>
+  </div>
+
+  <div class="gen-banner">
+    <div class="gen-ico"><i class="fas fa-wand-magic-sparkles"></i></div>
+    <div>
+      <b>12 flashcards generated</b>
+      <span>From "Biology — Ch. 4 Cell Division" · 2 pages</span>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Generated Cards</div>
+    <div class="section-cnt">12 cards</div>
+  </div>
+
+  <div class="cards">
+    <div class="gcard">
+      <div class="gcard-edit"><i class="fas fa-pen"></i></div>
+      <div class="gcard-sub">Biology · Cell Division</div>
+      <div class="gcard-q">What are the four phases of mitosis in order?</div>
+      <div class="gcard-a"><b>A:</b> Prophase → Metaphase → Anaphase → Telophase.</div>
+    </div>
+    <div class="gcard">
+      <div class="gcard-edit"><i class="fas fa-pen"></i></div>
+      <div class="gcard-sub">Biology · Cell Division</div>
+      <div class="gcard-q">During which phase do chromosomes align at the cell's equator?</div>
+      <div class="gcard-a"><b>A:</b> Metaphase — spindle fibers align chromosomes at the metaphase plate.</div>
+    </div>
+    <div class="gcard">
+      <div class="gcard-edit"><i class="fas fa-pen"></i></div>
+      <div class="gcard-sub">Biology · Cell Division</div>
+      <div class="gcard-q">How does meiosis differ from mitosis in chromosome number?</div>
+      <div class="gcard-a"><b>A:</b> Meiosis halves the chromosome number (diploid → haploid); mitosis keeps it the same.</div>
+    </div>
+  </div>
+
+  <div class="save-bar">
+    <button class="save-btn"><i class="fas fa-circle-plus"></i> Add 12 cards to Biology deck</button>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Today</span></div>
+    <div class="tab-item"><i class="fas fa-calendar-days"></i><span>Plan</span></div>
+    <div class="tab-item"><button class="tab-scan-btn"><i class="fas fa-wand-magic-sparkles"></i></button></div>
+    <div class="tab-item"><i class="fas fa-clone"></i><span>Cards</span></div>
+    <div class="tab-item"><i class="fas fa-chart-simple"></i><span>Progress</span></div>
+  </div>
+</div>
+</body>
+</html>

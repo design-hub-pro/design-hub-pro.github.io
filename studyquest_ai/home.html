@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>StudyQuest — Today</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0D0B1A; color:#fff; scrollbar-width:none; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:108px; background:#0D0B1A; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:10px 28px 16px; display:flex; align-items:center; justify-content:space-between; }
+  .greeting-label { font-size:13px; color:#9B93C7; font-weight:500; }
+  .greeting-name { font-size:24px; font-weight:800; letter-spacing:-0.5px; margin-top:2px; }
+  .streak-pill { display:flex; align-items:center; gap:6px; background:rgba(255,176,32,0.14); border:1px solid rgba(255,176,32,0.3); padding:7px 12px; border-radius:14px; }
+  .streak-pill i { color:#FFB020; font-size:14px; }
+  .streak-pill span { font-size:13px; font-weight:800; color:#FFB020; }
+
+  /* Hero recommendation */
+  .hero { margin:0 28px; border-radius:28px; overflow:hidden; position:relative; background:linear-gradient(140deg,#8B5CF6 0%,#6D28D9 100%); padding:24px; }
+  .hero::before { content:''; position:absolute; right:-50px; top:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle,rgba(255,255,255,0.22),transparent 70%); }
+  .hero-tag { display:inline-flex; align-items:center; gap:7px; background:rgba(255,255,255,0.18); backdrop-filter:blur(6px); padding:6px 12px; border-radius:12px; font-size:10px; font-weight:800; letter-spacing:1px; text-transform:uppercase; position:relative; z-index:2; }
+  .hero-tag i { color:#C8FF3D; font-size:11px; }
+  .hero-row { display:flex; justify-content:space-between; align-items:center; margin-top:16px; position:relative; z-index:2; }
+  .hero-title { font-size:26px; font-weight:900; letter-spacing:-0.8px; line-height:1.1; }
+  .hero-sub { font-size:13px; color:rgba(255,255,255,0.78); margin-top:8px; line-height:1.5; position:relative; z-index:2; }
+  .hero-sub b { color:#C8FF3D; font-weight:800; }
+  .ring { width:74px; height:74px; flex-shrink:0; position:relative; }
+  .ring svg { transform:rotate(-90deg); }
+  .ring-label { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .ring-label b { font-size:18px; font-weight:900; }
+  .ring-label span { font-size:8px; color:rgba(255,255,255,0.7); font-weight:700; letter-spacing:0.5px; }
+  .hero-cta { margin-top:18px; display:flex; align-items:center; gap:10px; background:#0D0B1A; padding:14px 18px; border-radius:16px; position:relative; z-index:2; }
+  .hero-cta-icon { width:36px; height:36px; border-radius:11px; background:linear-gradient(135deg,#C8FF3D,#9FE000); display:flex; align-items:center; justify-content:center; }
+  .hero-cta-icon i { color:#0D0B1A; font-size:15px; }
+  .hero-cta-text { flex:1; }
+  .hero-cta-text b { font-size:14px; font-weight:800; display:block; }
+  .hero-cta-text span { font-size:11px; color:#9B93C7; }
+  .hero-cta > i { color:#C8FF3D; font-size:14px; }
+
+  /* Quick stats */
+  .stats { display:flex; gap:12px; padding:18px 28px 4px; }
+  .stat { flex:1; background:#17142A; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:14px; }
+  .stat-val { font-size:28px; font-weight:900; letter-spacing:-1px; line-height:1; }
+  .stat-lbl { font-size:10px; color:#9B93C7; font-weight:600; margin-top:6px; }
+  .stat-ico { font-size:13px; margin-bottom:8px; }
+
+  .section-header { padding:22px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .section-title { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+  .section-link { font-size:12px; color:#A78BFA; font-weight:700; }
+
+  /* Today plan timeline */
+  .plan { padding:0 28px; display:flex; flex-direction:column; gap:10px; }
+  .plan-item { display:flex; align-items:center; gap:14px; background:#17142A; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:14px; }
+  .plan-item.done { opacity:0.55; }
+  .plan-ico { width:46px; height:46px; border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .plan-ico i { font-size:18px; color:#fff; }
+  .plan-info { flex:1; }
+  .plan-name { font-size:14px; font-weight:700; }
+  .plan-meta { font-size:11px; color:#9B93C7; margin-top:3px; }
+  .plan-time { font-size:11px; font-weight:700; color:#A78BFA; }
+  .plan-check { width:24px; height:24px; border-radius:50%; background:#C8FF3D; display:flex; align-items:center; justify-content:center; }
+  .plan-check i { font-size:11px; color:#0D0B1A; }
+  .plan-dot { width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,0.2); }
+
+  /* deadlines scroll */
+  .dl-scroll { display:flex; gap:14px; padding:0 28px; overflow-x:auto; }
+  .dl-card { min-width:172px; background:#17142A; border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:16px; position:relative; overflow:hidden; }
+  .dl-urgent { font-size:9px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; padding:4px 9px; border-radius:8px; display:inline-block; }
+  .dl-name { font-size:15px; font-weight:800; margin-top:12px; }
+  .dl-sub { font-size:11px; color:#9B93C7; margin-top:3px; }
+  .dl-count { font-size:24px; font-weight:900; letter-spacing:-1px; margin-top:14px; }
+  .dl-count span { font-size:11px; color:#9B93C7; font-weight:600; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(13,11,26,0.92); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.32); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#C8FF3D; }
+  .tab-scan-btn { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#8B5CF6,#6D28D9); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(139,92,246,0.5); border:none; }
+  .tab-scan-btn i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar"><span class="time">9:41</span><div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div></div>
+
+  <div class="header">
+    <div>
+      <div class="greeting-label">Tuesday · Let's get ahead</div>
+      <div class="greeting-name">Hey, Maya 👋</div>
+    </div>
+    <div class="streak-pill"><i class="fas fa-fire"></i><span>12</span></div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-tag"><i class="fas fa-wand-magic-sparkles"></i> Do this now</div>
+    <div class="hero-row">
+      <div>
+        <div class="hero-title">Review<br>Cell Division</div>
+      </div>
+      <div class="ring">
+        <svg width="74" height="74">
+          <circle cx="37" cy="37" r="31" stroke="rgba(255,255,255,0.18)" stroke-width="7" fill="none"/>
+          <circle cx="37" cy="37" r="31" stroke="#C8FF3D" stroke-width="7" fill="none" stroke-linecap="round" stroke-dasharray="195" stroke-dashoffset="120"/>
+        </svg>
+        <div class="ring-label"><b>38%</b><span>MASTERED</span></div>
+      </div>
+    </div>
+    <div class="hero-sub">Biology test in <b>4 days</b> — this is your <b>weakest topic</b>. Lock it in tonight.</div>
+    <div class="hero-cta">
+      <div class="hero-cta-icon"><i class="fas fa-bolt"></i></div>
+      <div class="hero-cta-text"><b>Review 12 flashcards</b><span>~15 min · highest impact</span></div>
+      <i class="fas fa-arrow-right"></i>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-ico" style="color:#C8FF3D"><i class="fas fa-layer-group"></i></div>
+      <div class="stat-val">28</div>
+      <div class="stat-lbl">Cards due</div>
+    </div>
+    <div class="stat">
+      <div class="stat-ico" style="color:#FFB020"><i class="fas fa-clock"></i></div>
+      <div class="stat-val">3</div>
+      <div class="stat-lbl">Due this week</div>
+    </div>
+    <div class="stat">
+      <div class="stat-ico" style="color:#38BDF8"><i class="fas fa-bullseye"></i></div>
+      <div class="stat-val">71<span style="font-size:14px">%</span></div>
+      <div class="stat-lbl">Avg mastery</div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Today's Plan</div>
+    <div class="section-link">Edit</div>
+  </div>
+  <div class="plan">
+    <div class="plan-item done">
+      <div class="plan-ico" style="background:linear-gradient(135deg,#22C55E,#16A34A)"><i class="fas fa-dna"></i></div>
+      <div class="plan-info"><div class="plan-name">Biology · Cell Division</div><div class="plan-meta">12 cards · finished</div></div>
+      <div class="plan-check"><i class="fas fa-check"></i></div>
+    </div>
+    <div class="plan-item">
+      <div class="plan-ico" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9)"><i class="fas fa-square-root-variable"></i></div>
+      <div class="plan-info"><div class="plan-name">Calculus · Derivatives</div><div class="plan-meta">Quiz prep · 9 cards</div></div>
+      <div class="plan-time">4:30 PM</div>
+    </div>
+    <div class="plan-item">
+      <div class="plan-ico" style="background:linear-gradient(135deg,#38BDF8,#0EA5E9)"><i class="fas fa-flask"></i></div>
+      <div class="plan-info"><div class="plan-name">Chemistry · Lab report</div><div class="plan-meta">Homework due tomorrow</div></div>
+      <div class="plan-dot"></div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Coming Up</div>
+    <div class="section-link">Calendar</div>
+  </div>
+  <div class="dl-scroll">
+    <div class="dl-card">
+      <span class="dl-urgent" style="background:rgba(255,90,106,0.16);color:#FF5A6A">High impact</span>
+      <div class="dl-name">Biology Test</div>
+      <div class="dl-sub">Cells & Genetics</div>
+      <div class="dl-count">4<span> days</span></div>
+    </div>
+    <div class="dl-card">
+      <span class="dl-urgent" style="background:rgba(255,176,32,0.16);color:#FFB020">Due soon</span>
+      <div class="dl-name">Chem Lab</div>
+      <div class="dl-sub">Titration report</div>
+      <div class="dl-count">1<span> day</span></div>
+    </div>
+    <div class="dl-card">
+      <span class="dl-urgent" style="background:rgba(56,189,248,0.16);color:#38BDF8">Quiz</span>
+      <div class="dl-name">Calculus</div>
+      <div class="dl-sub">Derivatives</div>
+      <div class="dl-count">2<span> days</span></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item active"><i class="fas fa-house"></i><span>Today</span></div>
+    <div class="tab-item"><i class="fas fa-calendar-days"></i><span>Plan</span></div>
+    <div class="tab-item"><button class="tab-scan-btn"><i class="fas fa-wand-magic-sparkles"></i></button></div>
+    <div class="tab-item"><i class="fas fa-clone"></i><span>Cards</span></div>
+    <div class="tab-item"><i class="fas fa-chart-simple"></i><span>Progress</span></div>
+  </div>
+</div>
+</body>
+</html>

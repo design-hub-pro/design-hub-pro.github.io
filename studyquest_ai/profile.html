@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>StudyQuest — Profile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0D0B1A; color:#fff; scrollbar-width:none; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:108px; background:#0D0B1A; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  /* profile header */
+  .phead { padding:8px 28px 0; text-align:center; }
+  .pavatar-wrap { position:relative; width:96px; margin:0 auto 14px; }
+  .pavatar { width:96px; height:96px; border-radius:30px; object-fit:cover; border:3px solid #C8FF3D; }
+  .plvl { position:absolute; bottom:-6px; right:-6px; background:linear-gradient(135deg,#8B5CF6,#6D28D9); border:3px solid #0D0B1A; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:900; }
+  .pname { font-size:22px; font-weight:800; letter-spacing:-0.4px; }
+  .pmeta { font-size:13px; color:#9B93C7; margin-top:4px; }
+
+  /* xp bar */
+  .xp { margin:18px 28px 0; background:#17142A; border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:18px; }
+  .xp-top { display:flex; justify-content:space-between; align-items:baseline; }
+  .xp-top b { font-size:13px; font-weight:800; }
+  .xp-top span { font-size:11px; color:#9B93C7; font-weight:600; }
+  .xp-bar { height:9px; border-radius:6px; background:rgba(255,255,255,0.08); margin-top:12px; overflow:hidden; }
+  .xp-fill { height:100%; width:64%; border-radius:6px; background:linear-gradient(90deg,#8B5CF6,#C8FF3D); }
+
+  /* stats trio */
+  .trio { display:flex; gap:12px; padding:16px 28px 0; }
+  .t { flex:1; background:#17142A; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:16px 12px; text-align:center; }
+  .t i { font-size:15px; margin-bottom:8px; }
+  .t b { font-size:24px; font-weight:900; letter-spacing:-1px; display:block; }
+  .t span { font-size:10px; color:#9B93C7; font-weight:600; }
+
+  .label { padding:24px 28px 12px; font-size:12px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; color:#9B93C7; }
+
+  /* achievements */
+  .badges { display:flex; gap:12px; padding:0 28px; overflow-x:auto; }
+  .badge { min-width:84px; background:#17142A; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:16px 10px; text-align:center; }
+  .badge-ico { width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 8px; }
+  .badge-ico i { font-size:20px; color:#fff; }
+  .badge span { font-size:10px; font-weight:700; color:#C7C1E8; }
+  .badge.locked { opacity:0.4; }
+
+  /* settings */
+  .menu { margin:0 28px; background:#17142A; border:1px solid rgba(255,255,255,0.06); border-radius:20px; overflow:hidden; }
+  .mrow { display:flex; align-items:center; gap:14px; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .mrow:last-child { border-bottom:none; }
+  .mrow-ico { width:36px; height:36px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .mrow-ico i { font-size:14px; color:#fff; }
+  .mrow b { font-size:14px; font-weight:600; flex:1; }
+  .mrow .arrow { color:#6E6A8C; font-size:13px; }
+  .toggle { width:42px; height:25px; border-radius:14px; background:#C8FF3D; position:relative; }
+  .toggle::after { content:''; position:absolute; top:3px; right:3px; width:19px; height:19px; border-radius:50%; background:#0D0B1A; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(13,11,26,0.92); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.32); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#C8FF3D; }
+  .tab-scan-btn { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#8B5CF6,#6D28D9); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(139,92,246,0.5); border:none; }
+  .tab-scan-btn i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar"><span class="time">9:41</span><div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div></div>
+
+  <div class="phead">
+    <div class="pavatar-wrap">
+      <img class="pavatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80" alt="">
+      <div class="plvl">LV 14</div>
+    </div>
+    <div class="pname">Maya Chen</div>
+    <div class="pmeta">Grade 11 · Westview High</div>
+  </div>
+
+  <div class="xp">
+    <div class="xp-top"><b>Level 14 · Scholar</b><span>2,480 / 3,500 XP</span></div>
+    <div class="xp-bar"><div class="xp-fill"></div></div>
+  </div>
+
+  <div class="trio">
+    <div class="t"><i class="fas fa-fire" style="color:#FFB020"></i><b>12</b><span>Day streak</span></div>
+    <div class="t"><i class="fas fa-layer-group" style="color:#C8FF3D"></i><b>366</b><span>Cards</span></div>
+    <div class="t"><i class="fas fa-bullseye" style="color:#38BDF8"></i><b>71%</b><span>Mastery</span></div>
+  </div>
+
+  <div class="label">Achievements</div>
+  <div class="badges">
+    <div class="badge">
+      <div class="badge-ico" style="background:linear-gradient(135deg,#FFB020,#F59E0B)"><i class="fas fa-fire"></i></div>
+      <span>Hot Streak</span>
+    </div>
+    <div class="badge">
+      <div class="badge-ico" style="background:linear-gradient(135deg,#22C55E,#16A34A)"><i class="fas fa-trophy"></i></div>
+      <span>100 Mastered</span>
+    </div>
+    <div class="badge">
+      <div class="badge-ico" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9)"><i class="fas fa-bolt"></i></div>
+      <span>Early Bird</span>
+    </div>
+    <div class="badge locked">
+      <div class="badge-ico" style="background:linear-gradient(135deg,#6E6A8C,#4B4768)"><i class="fas fa-lock"></i></div>
+      <span>Perfect Week</span>
+    </div>
+  </div>
+
+  <div class="label">Settings</div>
+  <div class="menu">
+    <div class="mrow">
+      <div class="mrow-ico" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9)"><i class="fas fa-bell"></i></div>
+      <b>Study reminders</b>
+      <div class="toggle"></div>
+    </div>
+    <div class="mrow">
+      <div class="mrow-ico" style="background:linear-gradient(135deg,#38BDF8,#0EA5E9)"><i class="fas fa-book"></i></div>
+      <b>My subjects</b>
+      <i class="fas fa-chevron-right arrow"></i>
+    </div>
+    <div class="mrow">
+      <div class="mrow-ico" style="background:linear-gradient(135deg,#22C55E,#16A34A)"><i class="fas fa-clock"></i></div>
+      <b>Daily study goal</b>
+      <i class="fas fa-chevron-right arrow"></i>
+    </div>
+    <div class="mrow">
+      <div class="mrow-ico" style="background:linear-gradient(135deg,#FF5A6A,#E11D48)"><i class="fas fa-circle-question"></i></div>
+      <b>Help & feedback</b>
+      <i class="fas fa-chevron-right arrow"></i>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Today</span></div>
+    <div class="tab-item"><i class="fas fa-calendar-days"></i><span>Plan</span></div>
+    <div class="tab-item"><button class="tab-scan-btn"><i class="fas fa-wand-magic-sparkles"></i></button></div>
+    <div class="tab-item"><i class="fas fa-clone"></i><span>Cards</span></div>
+    <div class="tab-item"><i class="fas fa-chart-simple"></i><span>Progress</span></div>
+  </div>
+</div>
+</body>
+</html>

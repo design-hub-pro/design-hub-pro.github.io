@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>StudyQuest — Decks</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0D0B1A; color:#fff; scrollbar-width:none; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:108px; background:#0D0B1A; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .top { padding:6px 28px 4px; display:flex; align-items:center; justify-content:space-between; }
+  .top h1 { font-size:24px; font-weight:800; letter-spacing:-0.6px; }
+  .top .add { width:38px; height:38px; border-radius:13px; background:linear-gradient(135deg,#8B5CF6,#6D28D9); display:flex; align-items:center; justify-content:center; }
+  .top .add i { color:#fff; font-size:14px; }
+
+  .search { margin:16px 28px 0; background:#17142A; border:1px solid rgba(255,255,255,0.07); border-radius:15px; padding:12px 16px; display:flex; align-items:center; gap:10px; }
+  .search i { color:#6E6A8C; font-size:13px; }
+  .search span { color:#6E6A8C; font-size:13px; }
+
+  /* due banner */
+  .due { margin:16px 28px 0; background:linear-gradient(135deg,#C8FF3D,#9FE000); border-radius:20px; padding:16px 18px; display:flex; align-items:center; gap:14px; }
+  .due-ico { width:44px; height:44px; border-radius:14px; background:rgba(13,11,26,0.12); display:flex; align-items:center; justify-content:center; }
+  .due-ico i { font-size:20px; color:#0D0B1A; }
+  .due-info { flex:1; }
+  .due-info b { font-size:16px; font-weight:900; color:#0D0B1A; display:block; }
+  .due-info span { font-size:11px; color:rgba(13,11,26,0.7); font-weight:600; }
+  .due-go { background:#0D0B1A; color:#C8FF3D; font-size:12px; font-weight:800; padding:10px 16px; border-radius:13px; }
+
+  .section-header { padding:24px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .section-title { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+  .section-link { font-size:12px; color:#A78BFA; font-weight:700; }
+
+  .grid { padding:0 28px; display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .deck { background:#17142A; border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:16px; position:relative; overflow:hidden; }
+  .deck-ico { width:46px; height:46px; border-radius:14px; display:flex; align-items:center; justify-content:center; margin-bottom:14px; }
+  .deck-ico i { font-size:20px; color:#fff; }
+  .deck-name { font-size:15px; font-weight:800; }
+  .deck-cnt { font-size:11px; color:#9B93C7; margin-top:3px; }
+  .deck-bar { height:6px; border-radius:5px; background:rgba(255,255,255,0.08); margin-top:14px; overflow:hidden; }
+  .deck-fill { height:100%; border-radius:5px; }
+  .deck-due { position:absolute; top:14px; right:14px; font-size:10px; font-weight:800; padding:3px 8px; border-radius:8px; background:rgba(255,90,106,0.16); color:#FF5A6A; }
+  .deck-due.ok { background:rgba(34,197,94,0.16); color:#22C55E; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(13,11,26,0.92); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.32); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#C8FF3D; }
+  .tab-scan-btn { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#8B5CF6,#6D28D9); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(139,92,246,0.5); border:none; }
+  .tab-scan-btn i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar"><span class="time">9:41</span><div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div></div>
+
+  <div class="top">
+    <h1>My Decks</h1>
+    <div class="add"><i class="fas fa-plus"></i></div>
+  </div>
+
+  <div class="search"><i class="fas fa-magnifying-glass"></i><span>Search decks & cards</span></div>
+
+  <div class="due">
+    <div class="due-ico"><i class="fas fa-bolt"></i></div>
+    <div class="due-info"><b>28 cards due now</b><span>Across 4 decks · ~20 min</span></div>
+    <div class="due-go">Review</div>
+  </div>
+
+  <div class="section-header"><div class="section-title">All Decks</div><div class="section-link">Sort</div></div>
+  <div class="grid">
+    <div class="deck">
+      <div class="deck-due">12 due</div>
+      <div class="deck-ico" style="background:linear-gradient(135deg,#22C55E,#16A34A)"><i class="fas fa-dna"></i></div>
+      <div class="deck-name">Biology</div>
+      <div class="deck-cnt">62 cards · 38% mastered</div>
+      <div class="deck-bar"><div class="deck-fill" style="width:38%;background:#22C55E"></div></div>
+    </div>
+    <div class="deck">
+      <div class="deck-due">9 due</div>
+      <div class="deck-ico" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9)"><i class="fas fa-square-root-variable"></i></div>
+      <div class="deck-name">Calculus</div>
+      <div class="deck-cnt">48 cards · 68% mastered</div>
+      <div class="deck-bar"><div class="deck-fill" style="width:68%;background:#8B5CF6"></div></div>
+    </div>
+    <div class="deck">
+      <div class="deck-due ok">All done</div>
+      <div class="deck-ico" style="background:linear-gradient(135deg,#38BDF8,#0EA5E9)"><i class="fas fa-flask"></i></div>
+      <div class="deck-name">Chemistry</div>
+      <div class="deck-cnt">54 cards · 84% mastered</div>
+      <div class="deck-bar"><div class="deck-fill" style="width:84%;background:#38BDF8"></div></div>
+    </div>
+    <div class="deck">
+      <div class="deck-due">7 due</div>
+      <div class="deck-ico" style="background:linear-gradient(135deg,#FF5A6A,#E11D48)"><i class="fas fa-book-open"></i></div>
+      <div class="deck-name">English</div>
+      <div class="deck-cnt">72 cards · 82% mastered</div>
+      <div class="deck-bar"><div class="deck-fill" style="width:82%;background:#FF5A6A"></div></div>
+    </div>
+    <div class="deck">
+      <div class="deck-due ok">All done</div>
+      <div class="deck-ico" style="background:linear-gradient(135deg,#FFB020,#F59E0B)"><i class="fas fa-landmark"></i></div>
+      <div class="deck-name">History</div>
+      <div class="deck-cnt">40 cards · 55% mastered</div>
+      <div class="deck-bar"><div class="deck-fill" style="width:55%;background:#FFB020"></div></div>
+    </div>
+    <div class="deck">
+      <div class="deck-due ok">All done</div>
+      <div class="deck-ico" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-globe"></i></div>
+      <div class="deck-name">Spanish</div>
+      <div class="deck-cnt">90 cards · 74% mastered</div>
+      <div class="deck-bar"><div class="deck-fill" style="width:74%;background:#A78BFA"></div></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Today</span></div>
+    <div class="tab-item"><i class="fas fa-calendar-days"></i><span>Plan</span></div>
+    <div class="tab-item"><button class="tab-scan-btn"><i class="fas fa-wand-magic-sparkles"></i></button></div>
+    <div class="tab-item active"><i class="fas fa-clone"></i><span>Cards</span></div>
+    <div class="tab-item"><i class="fas fa-chart-simple"></i><span>Progress</span></div>
+  </div>
+</div>
+</body>
+</html>

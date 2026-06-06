@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>StudyQuest — Calendar</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0D0B1A; color:#fff; scrollbar-width:none; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:108px; background:#0D0B1A; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .top { padding:6px 28px 4px; display:flex; align-items:center; justify-content:space-between; }
+  .top h1 { font-size:24px; font-weight:800; letter-spacing:-0.6px; }
+  .top .add { width:38px; height:38px; border-radius:13px; background:linear-gradient(135deg,#8B5CF6,#6D28D9); display:flex; align-items:center; justify-content:center; }
+  .top .add i { color:#fff; font-size:14px; }
+  .month { font-size:13px; color:#9B93C7; padding:2px 28px 0; font-weight:600; }
+
+  /* week strip */
+  .week { display:flex; gap:8px; padding:18px 28px 4px; }
+  .day { flex:1; background:#17142A; border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:12px 4px; text-align:center; position:relative; }
+  .day.active { background:linear-gradient(135deg,#8B5CF6,#6D28D9); border-color:transparent; }
+  .day .dn { font-size:10px; color:#9B93C7; font-weight:700; }
+  .day.active .dn { color:rgba(255,255,255,0.8); }
+  .day .dd { font-size:16px; font-weight:800; margin-top:5px; }
+  .day-dots { display:flex; gap:3px; justify-content:center; margin-top:6px; height:6px; }
+  .dot { width:5px; height:5px; border-radius:50%; }
+
+  .section-header { padding:24px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .section-title { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+  .section-link { font-size:12px; color:#A78BFA; font-weight:700; }
+
+  /* event list */
+  .events { padding:0 28px; display:flex; flex-direction:column; gap:12px; }
+  .ev { display:flex; gap:14px; background:#17142A; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:15px; position:relative; overflow:hidden; }
+  .ev-bar { position:absolute; left:0; top:0; bottom:0; width:4px; }
+  .ev-ico { width:46px; height:46px; border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .ev-ico i { font-size:18px; color:#fff; }
+  .ev-info { flex:1; }
+  .ev-type { font-size:10px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; }
+  .ev-name { font-size:14px; font-weight:700; margin-top:3px; }
+  .ev-meta { font-size:11px; color:#9B93C7; margin-top:4px; display:flex; align-items:center; gap:8px; }
+  .ev-right { text-align:right; flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  .ev-count { font-size:18px; font-weight:900; letter-spacing:-0.5px; }
+  .ev-count span { font-size:9px; color:#9B93C7; font-weight:700; }
+  .ev-bell { width:26px; height:26px; border-radius:9px; background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; }
+  .ev-bell i { font-size:10px; color:#C8FF3D; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(13,11,26,0.92); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.32); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#C8FF3D; }
+  .tab-scan-btn { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#8B5CF6,#6D28D9); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(139,92,246,0.5); border:none; }
+  .tab-scan-btn i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar"><span class="time">9:41</span><div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div></div>
+
+  <div class="top">
+    <h1>Calendar</h1>
+    <div class="add"><i class="fas fa-plus"></i></div>
+  </div>
+  <div class="month">June 2026</div>
+
+  <div class="week">
+    <div class="day"><div class="dn">MON</div><div class="dd">8</div><div class="day-dots"></div></div>
+    <div class="day active"><div class="dn">TUE</div><div class="dd">9</div><div class="day-dots"><span class="dot" style="background:#fff"></span></div></div>
+    <div class="day"><div class="dn">WED</div><div class="dd">10</div><div class="day-dots"><span class="dot" style="background:#FF5A6A"></span></div></div>
+    <div class="day"><div class="dn">THU</div><div class="dd">11</div><div class="day-dots"><span class="dot" style="background:#FFB020"></span></div></div>
+    <div class="day"><div class="dn">FRI</div><div class="dd">12</div><div class="day-dots"><span class="dot" style="background:#38BDF8"></span><span class="dot" style="background:#22C55E"></span></div></div>
+    <div class="day"><div class="dn">SAT</div><div class="dd">13</div><div class="day-dots"></div></div>
+    <div class="day"><div class="dn">SUN</div><div class="dd">14</div><div class="day-dots"></div></div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Upcoming Deadlines</div>
+    <div class="section-link">All</div>
+  </div>
+
+  <div class="events">
+    <div class="ev">
+      <div class="ev-bar" style="background:#FF5A6A"></div>
+      <div class="ev-ico" style="background:linear-gradient(135deg,#38BDF8,#0EA5E9)"><i class="fas fa-flask"></i></div>
+      <div class="ev-info">
+        <div class="ev-type" style="color:#FF5A6A">Homework · Due</div>
+        <div class="ev-name">Chemistry Lab Report</div>
+        <div class="ev-meta"><i class="fas fa-calendar"></i> Wed, Jun 10 · 11:59 PM</div>
+      </div>
+      <div class="ev-right">
+        <div class="ev-bell"><i class="fas fa-bell"></i></div>
+        <div class="ev-count" style="color:#FF5A6A">1<span>d</span></div>
+      </div>
+    </div>
+
+    <div class="ev">
+      <div class="ev-bar" style="background:#FFB020"></div>
+      <div class="ev-ico" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9)"><i class="fas fa-square-root-variable"></i></div>
+      <div class="ev-info">
+        <div class="ev-type" style="color:#FFB020">Quiz</div>
+        <div class="ev-name">Calculus · Derivatives</div>
+        <div class="ev-meta"><i class="fas fa-calendar"></i> Thu, Jun 11 · 9:00 AM</div>
+      </div>
+      <div class="ev-right">
+        <div class="ev-bell"><i class="fas fa-bell"></i></div>
+        <div class="ev-count" style="color:#FFB020">2<span>d</span></div>
+      </div>
+    </div>
+
+    <div class="ev">
+      <div class="ev-bar" style="background:#22C55E"></div>
+      <div class="ev-ico" style="background:linear-gradient(135deg,#22C55E,#16A34A)"><i class="fas fa-dna"></i></div>
+      <div class="ev-info">
+        <div class="ev-type" style="color:#22C55E">Major Test · 25% grade</div>
+        <div class="ev-name">Biology · Cells & Genetics</div>
+        <div class="ev-meta"><i class="fas fa-calendar"></i> Sat, Jun 13 · 10:00 AM</div>
+      </div>
+      <div class="ev-right">
+        <div class="ev-bell"><i class="fas fa-bell"></i></div>
+        <div class="ev-count" style="color:#22C55E">4<span>d</span></div>
+      </div>
+    </div>
+
+    <div class="ev">
+      <div class="ev-bar" style="background:#38BDF8"></div>
+      <div class="ev-ico" style="background:linear-gradient(135deg,#FFB020,#F59E0B)"><i class="fas fa-landmark"></i></div>
+      <div class="ev-info">
+        <div class="ev-type" style="color:#38BDF8">Essay · 20% grade</div>
+        <div class="ev-name">History · WWII Causes</div>
+        <div class="ev-meta"><i class="fas fa-calendar"></i> Mon, Jun 15 · 8:00 AM</div>
+      </div>
+      <div class="ev-right">
+        <div class="ev-bell"><i class="fas fa-bell"></i></div>
+        <div class="ev-count" style="color:#38BDF8">6<span>d</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Today</span></div>
+    <div class="tab-item active"><i class="fas fa-calendar-days"></i><span>Plan</span></div>
+    <div class="tab-item"><button class="tab-scan-btn"><i class="fas fa-wand-magic-sparkles"></i></button></div>
+    <div class="tab-item"><i class="fas fa-clone"></i><span>Cards</span></div>
+    <div class="tab-item"><i class="fas fa-chart-simple"></i><span>Progress</span></div>
+  </div>
+</div>
+</body>
+</html>

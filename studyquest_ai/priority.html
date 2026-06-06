@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>StudyQuest — Priorities</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0D0B1A; color:#fff; scrollbar-width:none; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:108px; background:#0D0B1A; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .top { padding:6px 28px 4px; }
+  .top h1 { font-size:24px; font-weight:800; letter-spacing:-0.6px; }
+  .top p { font-size:13px; color:#9B93C7; margin-top:4px; }
+  .top p b { color:#C8FF3D; font-weight:700; }
+
+  /* AI explainer */
+  .ai-row { display:flex; gap:8px; padding:16px 28px 0; overflow-x:auto; }
+  .ai-chip { display:flex; align-items:center; gap:6px; background:#17142A; border:1px solid rgba(255,255,255,0.07); padding:8px 12px; border-radius:12px; flex-shrink:0; }
+  .ai-chip i { font-size:11px; }
+  .ai-chip span { font-size:11px; font-weight:600; color:#C7C1E8; white-space:nowrap; }
+
+  /* #1 featured */
+  .feature { margin:18px 28px 0; border-radius:24px; background:linear-gradient(140deg,#8B5CF6,#6D28D9); padding:20px; position:relative; overflow:hidden; }
+  .feature::before { content:''; position:absolute; right:-40px; top:-40px; width:160px; height:160px; border-radius:50%; background:radial-gradient(circle,rgba(255,255,255,0.2),transparent 70%); }
+  .feat-rank { position:absolute; top:18px; right:20px; font-size:54px; font-weight:900; color:rgba(255,255,255,0.16); line-height:1; z-index:1; }
+  .feat-tag { display:inline-flex; align-items:center; gap:6px; background:#0D0B1A; padding:5px 11px; border-radius:10px; font-size:10px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; color:#C8FF3D; position:relative; z-index:2; }
+  .feat-name { font-size:21px; font-weight:900; letter-spacing:-0.5px; margin-top:12px; position:relative; z-index:2; }
+  .feat-why { font-size:12px; color:rgba(255,255,255,0.82); margin-top:6px; line-height:1.5; position:relative; z-index:2; }
+  .feat-bars { display:flex; gap:8px; margin-top:16px; position:relative; z-index:2; }
+  .fb { flex:1; }
+  .fb-lbl { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:rgba(255,255,255,0.6); }
+  .fb-bg { height:5px; border-radius:4px; background:rgba(255,255,255,0.18); margin-top:5px; overflow:hidden; }
+  .fb-fill { height:100%; border-radius:4px; background:#C8FF3D; }
+  .feat-cta { margin-top:18px; display:flex; align-items:center; justify-content:center; gap:9px; background:#0D0B1A; padding:13px; border-radius:14px; font-size:13px; font-weight:800; color:#C8FF3D; position:relative; z-index:2; }
+
+  .section-header { padding:24px 28px 12px; }
+  .section-title { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+
+  .queue { padding:0 28px; display:flex; flex-direction:column; gap:12px; }
+  .q-item { display:flex; gap:14px; background:#17142A; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:15px; align-items:center; }
+  .q-rank { font-size:20px; font-weight:900; color:#3D3760; width:22px; text-align:center; flex-shrink:0; }
+  .q-ico { width:44px; height:44px; border-radius:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .q-ico i { font-size:17px; color:#fff; }
+  .q-info { flex:1; min-width:0; }
+  .q-name { font-size:14px; font-weight:700; }
+  .q-tags { display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+  .q-tag { font-size:9px; font-weight:700; padding:3px 7px; border-radius:7px; }
+  .q-score { text-align:center; flex-shrink:0; }
+  .q-score b { font-size:18px; font-weight:900; letter-spacing:-0.5px; }
+  .q-score span { font-size:8px; color:#9B93C7; font-weight:700; display:block; text-transform:uppercase; letter-spacing:0.5px; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(13,11,26,0.92); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.32); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#C8FF3D; }
+  .tab-scan-btn { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#8B5CF6,#6D28D9); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(139,92,246,0.5); border:none; }
+  .tab-scan-btn i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar"><span class="time">9:41</span><div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div></div>
+
+  <div class="top">
+    <h1>Study Priorities</h1>
+    <p>Ranked by AI for <b>maximum grade impact</b> today</p>
+  </div>
+
+  <div class="ai-row">
+    <div class="ai-chip"><i class="fas fa-calendar-day" style="color:#FF5A6A"></i><span>Deadline</span></div>
+    <div class="ai-chip"><i class="fas fa-gauge-high" style="color:#FFB020"></i><span>Difficulty</span></div>
+    <div class="ai-chip"><i class="fas fa-graduation-cap" style="color:#38BDF8"></i><span>Grade weight</span></div>
+    <div class="ai-chip"><i class="fas fa-heart-pulse" style="color:#22C55E"></i><span>Confidence</span></div>
+  </div>
+
+  <div class="feature">
+    <div class="feat-rank">1</div>
+    <div class="feat-tag"><i class="fas fa-bolt"></i> Top priority</div>
+    <div class="feat-name">Biology · Cell Division</div>
+    <div class="feat-why">Test in 4 days · your weakest topic (38%) · worth 25% of your grade.</div>
+    <div class="feat-bars">
+      <div class="fb"><div class="fb-lbl">Urgency</div><div class="fb-bg"><div class="fb-fill" style="width:90%"></div></div></div>
+      <div class="fb"><div class="fb-lbl">Difficulty</div><div class="fb-bg"><div class="fb-fill" style="width:78%"></div></div></div>
+      <div class="fb"><div class="fb-lbl">Impact</div><div class="fb-bg"><div class="fb-fill" style="width:95%"></div></div></div>
+    </div>
+    <div class="feat-cta"><i class="fas fa-play"></i> Start 12-card review</div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Then work on</div>
+  </div>
+
+  <div class="queue">
+    <div class="q-item">
+      <div class="q-rank">2</div>
+      <div class="q-ico" style="background:linear-gradient(135deg,#38BDF8,#0EA5E9)"><i class="fas fa-flask"></i></div>
+      <div class="q-info">
+        <div class="q-name">Chemistry · Lab Report</div>
+        <div class="q-tags">
+          <span class="q-tag" style="background:rgba(255,90,106,0.16);color:#FF5A6A">Due tomorrow</span>
+          <span class="q-tag" style="background:rgba(56,189,248,0.16);color:#38BDF8">15% grade</span>
+        </div>
+      </div>
+      <div class="q-score"><b>88</b><span>score</span></div>
+    </div>
+    <div class="q-item">
+      <div class="q-rank">3</div>
+      <div class="q-ico" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9)"><i class="fas fa-square-root-variable"></i></div>
+      <div class="q-info">
+        <div class="q-name">Calculus · Derivatives</div>
+        <div class="q-tags">
+          <span class="q-tag" style="background:rgba(255,176,32,0.16);color:#FFB020">Quiz in 2d</span>
+          <span class="q-tag" style="background:rgba(34,197,94,0.16);color:#22C55E">Confident</span>
+        </div>
+      </div>
+      <div class="q-score"><b>74</b><span>score</span></div>
+    </div>
+    <div class="q-item">
+      <div class="q-rank">4</div>
+      <div class="q-ico" style="background:linear-gradient(135deg,#FFB020,#F59E0B)"><i class="fas fa-landmark"></i></div>
+      <div class="q-info">
+        <div class="q-name">History · WWII Essay</div>
+        <div class="q-tags">
+          <span class="q-tag" style="background:rgba(56,189,248,0.16);color:#38BDF8">Due 6d</span>
+          <span class="q-tag" style="background:rgba(255,176,32,0.16);color:#FFB020">20% grade</span>
+        </div>
+      </div>
+      <div class="q-score"><b>61</b><span>score</span></div>
+    </div>
+    <div class="q-item">
+      <div class="q-rank">5</div>
+      <div class="q-ico" style="background:linear-gradient(135deg,#FF5A6A,#E11D48)"><i class="fas fa-book-open"></i></div>
+      <div class="q-info">
+        <div class="q-name">English · Vocab Set 7</div>
+        <div class="q-tags">
+          <span class="q-tag" style="background:rgba(34,197,94,0.16);color:#22C55E">No deadline</span>
+          <span class="q-tag" style="background:rgba(34,197,94,0.16);color:#22C55E">Mastered 82%</span>
+        </div>
+      </div>
+      <div class="q-score"><b>40</b><span>score</span></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Today</span></div>
+    <div class="tab-item active"><i class="fas fa-calendar-days"></i><span>Plan</span></div>
+    <div class="tab-item"><button class="tab-scan-btn"><i class="fas fa-wand-magic-sparkles"></i></button></div>
+    <div class="tab-item"><i class="fas fa-clone"></i><span>Cards</span></div>
+    <div class="tab-item"><i class="fas fa-chart-simple"></i><span>Progress</span></div>
+  </div>
+</div>
+</body>
+</html>
