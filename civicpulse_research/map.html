@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CivicPulse — Neighborhood Map</title>
+    <title>CivicPulse — Issue Map</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -12,8 +12,9 @@
         .font-serif { font-family: 'Instrument Serif', serif; }
         .glow-card { box-shadow: 0 1px 0 rgba(15,23,42,0.04), 0 8px 24px -8px rgba(15,23,42,0.08); }
         .pill { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
-        .district { transition: filter 0.2s, transform 0.2s; cursor: pointer; }
-        .district:hover { filter: brightness(1.1); }
+        .pin { transition: transform 0.15s; cursor: pointer; transform-origin: center bottom; }
+        .pin:hover { transform: scale(1.12); }
+        .chip { cursor: pointer; transition: all 0.15s; }
     </style>
 </head>
 <body class="min-h-screen flex">
@@ -36,7 +37,7 @@
         <a href="research.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50"><i class="fas fa-search text-xs w-4"></i><span>New Research</span></a>
         <a href="insights.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50"><i class="fas fa-chart-line text-xs w-4"></i><span>Topic Insights</span></a>
         <a href="conversations.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50"><i class="fas fa-comments text-xs w-4"></i><span>Conversations</span></a>
-        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer" style="background: linear-gradient(135deg, #1e3a8a, #312e81); color: white;"><i class="fas fa-map-marked-alt text-xs w-4"></i><span>Neighborhood Map</span></a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer" style="background: linear-gradient(135deg, #1e3a8a, #312e81); color: white;"><i class="fas fa-map-marked-alt text-xs w-4"></i><span>Issue Map</span></a>
         <a href="briefing.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50"><i class="fas fa-file-alt text-xs w-4"></i><span>Mayor's Briefing</span></a>
         <a href="settings.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 mt-4"><i class="fas fa-database text-xs w-4"></i><span>Sources & Team</span></a>
     </nav>
@@ -46,19 +47,18 @@
     <!-- Top bar -->
     <div class="bg-white border-b border-gray-200 px-8 py-4 flex items-center gap-4">
         <div>
-            <div class="text-[11px] text-gray-500 uppercase tracking-wider font-semibold">City of Westbrook · 12 districts · 47 neighborhoods</div>
-            <h1 class="text-xl font-bold text-gray-900">Neighborhood map</h1>
+            <div class="text-[11px] text-gray-500 uppercase tracking-wider font-semibold">City of Irvine</div>
+            <h1 class="text-xl font-bold text-gray-900">Issue map · <span class="text-blue-700">248 pins</span></h1>
         </div>
         <div class="flex-1"></div>
-        <select class="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white">
-            <option>Topic: Affordable housing — East Side</option>
-            <option>Topic: All active topics</option>
-            <option>Topic: Bus Route 41 cuts</option>
-        </select>
-        <div class="flex bg-gray-100 rounded-lg p-1 text-xs font-semibold">
-            <button class="px-3 py-1.5 bg-white rounded shadow-sm text-gray-900">Sentiment</button>
-            <button class="px-3 py-1.5 text-gray-500">Volume</button>
-            <button class="px-3 py-1.5 text-gray-500">311 logs</button>
+        <!-- Category filter chips -->
+        <div class="flex items-center gap-2 text-xs font-semibold">
+            <span class="chip pill bg-blue-700 text-white">All</span>
+            <span class="chip pill bg-blue-50 text-blue-700"><i class="fas fa-house mr-1"></i>Housing</span>
+            <span class="chip pill bg-purple-50 text-purple-700"><i class="fas fa-bus mr-1"></i>Transit</span>
+            <span class="chip pill bg-rose-50 text-rose-700"><i class="fas fa-shield-halved mr-1"></i>Safety</span>
+            <span class="chip pill bg-amber-50 text-amber-700"><i class="fas fa-trash mr-1"></i>Sanitation</span>
+            <span class="chip pill bg-emerald-50 text-emerald-700"><i class="fas fa-tree mr-1"></i>Parks</span>
         </div>
     </div>
 
@@ -67,212 +67,196 @@
         <!-- MAP -->
         <div class="col-span-2 bg-white rounded-2xl glow-card p-6">
             <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h2 class="font-bold text-gray-900">Westbrook sentiment heatmap</h2>
-                    <p class="text-xs text-gray-500">Colored by sentiment · bubble size = voice count · 30-day window</p>
-                </div>
-                <!-- Legend -->
-                <div class="flex items-center gap-3 text-[11px]">
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-rose-500"></span>Critical</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-amber-400"></span>Mixed</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-emerald-500"></span>Supportive</span>
+                <h2 class="font-bold text-gray-900">Citizen-reported issues</h2>
+                <!-- Status legend -->
+                <div class="flex items-center gap-3 text-[11px] text-gray-600">
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>New</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>In progress</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>Resolved</span>
                 </div>
             </div>
 
             <!-- SVG map -->
-            <svg viewBox="0 0 600 480" class="w-full h-auto rounded-xl bg-gradient-to-br from-slate-50 to-blue-50">
-                <!-- River -->
-                <path d="M 0 250 Q 120 200 220 240 Q 320 280 420 230 Q 520 180 600 230 L 600 270 Q 520 220 420 270 Q 320 320 220 280 Q 120 240 0 290 Z" fill="#bfdbfe" opacity="0.6"/>
-                <text x="450" y="220" font-size="9" fill="#3b82f6" font-style="italic">Westbrook River</text>
+            <div class="relative rounded-xl overflow-hidden border border-gray-200" style="aspect-ratio: 4 / 3;">
+                <img src="irvine-map.png" alt="City of Irvine map" class="absolute inset-0 w-full h-full object-cover">
+                <div class="absolute inset-0 bg-white/5"></div>
 
-                <!-- Districts (irregular polygons) -->
-                <!-- East Side (critical, large) -->
-                <g class="district">
-                    <path d="M 400 80 L 560 90 L 575 220 L 430 230 L 410 150 Z" fill="#fb7185" opacity="0.85" stroke="white" stroke-width="3"/>
-                    <text x="490" y="155" font-size="13" font-weight="700" fill="white" text-anchor="middle">East Side</text>
-                    <text x="490" y="172" font-size="10" fill="white" text-anchor="middle">9,210 voices · 31 pulse</text>
-                </g>
-
-                <!-- Cedar Park (amber, smaller) -->
-                <g class="district">
-                    <path d="M 260 80 L 400 80 L 410 150 L 280 170 L 250 130 Z" fill="#fbbf24" opacity="0.85" stroke="white" stroke-width="3"/>
-                    <text x="330" y="120" font-size="12" font-weight="700" fill="white" text-anchor="middle">Cedar Park</text>
-                    <text x="330" y="136" font-size="9" fill="white" text-anchor="middle">5,840 · 48 pulse</text>
-                </g>
-
-                <!-- Lincoln Heights (positive) -->
-                <g class="district">
-                    <path d="M 50 80 L 260 80 L 250 130 L 60 150 Z" fill="#34d399" opacity="0.85" stroke="white" stroke-width="3"/>
-                    <text x="150" y="115" font-size="12" font-weight="700" fill="white" text-anchor="middle">Lincoln Heights</text>
-                    <text x="150" y="131" font-size="9" fill="white" text-anchor="middle">3,210 · 78 pulse</text>
-                </g>
-
-                <!-- Old Town (small, neutral) -->
-                <g class="district">
-                    <path d="M 60 150 L 250 130 L 280 170 L 270 220 L 80 230 Z" fill="#fbbf24" opacity="0.7" stroke="white" stroke-width="3"/>
-                    <text x="170" y="190" font-size="11" font-weight="700" fill="white" text-anchor="middle">Old Town</text>
-                    <text x="170" y="206" font-size="9" fill="white" text-anchor="middle">1,890 · 62 pulse</text>
-                </g>
-
-                <!-- South / Riverside (rose) -->
-                <g class="district">
-                    <path d="M 80 290 L 270 280 L 290 380 L 110 400 Z" fill="#fb7185" opacity="0.7" stroke="white" stroke-width="3"/>
-                    <text x="190" y="340" font-size="12" font-weight="700" fill="white" text-anchor="middle">Riverside</text>
-                    <text x="190" y="356" font-size="9" fill="white" text-anchor="middle">2,780 · 41 pulse</text>
-                </g>
-
-                <!-- Bayview (south east) -->
-                <g class="district">
-                    <path d="M 290 280 L 460 270 L 480 380 L 310 400 Z" fill="#fbbf24" opacity="0.7" stroke="white" stroke-width="3"/>
-                    <text x="385" y="335" font-size="12" font-weight="700" fill="white" text-anchor="middle">Bayview</text>
-                    <text x="385" y="351" font-size="9" fill="white" text-anchor="middle">1,420 · 55 pulse</text>
-                </g>
-
-                <!-- Harborfront -->
-                <g class="district">
-                    <path d="M 460 270 L 575 270 L 580 400 L 480 410 Z" fill="#34d399" opacity="0.7" stroke="white" stroke-width="3"/>
-                    <text x="520" y="335" font-size="11" font-weight="700" fill="white" text-anchor="middle">Harborfront</text>
-                    <text x="520" y="351" font-size="9" fill="white" text-anchor="middle">980 · 71 pulse</text>
-                </g>
-
-                <!-- Hotspot bubbles -->
-                <g>
-                    <!-- Brookline & 9th -->
-                    <circle cx="500" cy="140" r="14" fill="#f43f5e" stroke="white" stroke-width="2" opacity="0.9"/>
-                    <circle cx="500" cy="140" r="22" fill="#f43f5e" stroke="white" stroke-width="0" opacity="0.2"/>
-                    <text x="525" y="138" font-size="9" fill="#0b1220" font-weight="600">Brookline & 9th</text>
-                    <text x="525" y="150" font-size="8" fill="#475569">412 mentions · STR cluster</text>
-
-                    <!-- Maple Lofts -->
-                    <circle cx="180" cy="100" r="10" fill="#10b981" stroke="white" stroke-width="2" opacity="0.9"/>
-                    <text x="200" y="102" font-size="9" fill="#0b1220" font-weight="600">Maple Lofts</text>
-                    <text x="200" y="113" font-size="8" fill="#475569">218 mentions · positive</text>
-
-                    <!-- Council chambers (sentiment hotspot) -->
-                    <circle cx="320" cy="200" r="9" fill="#f59e0b" stroke="white" stroke-width="2" opacity="0.9"/>
-                    <text x="335" y="200" font-size="9" fill="#0b1220" font-weight="600">Council Chambers</text>
-                    <text x="335" y="212" font-size="8" fill="#475569">post-Apr 4 vote spike</text>
-
-                    <!-- Cedar Park noise complaint cluster -->
-                    <circle cx="350" cy="120" r="11" fill="#f43f5e" stroke="white" stroke-width="2" opacity="0.85"/>
-                    <text x="370" y="120" font-size="9" fill="#0b1220" font-weight="600">Cedar venue cluster</text>
-                    <text x="370" y="132" font-size="8" fill="#475569">+412% in 18 hrs</text>
-                </g>
-
-                <!-- Compass rose -->
-                <g transform="translate(40,440)">
-                    <circle r="14" fill="white" stroke="#cbd5e1"/>
-                    <text x="0" y="-4" font-size="9" font-weight="700" fill="#0b1220" text-anchor="middle">N</text>
-                    <line x1="0" y1="-9" x2="0" y2="-1" stroke="#0b1220" stroke-width="1"/>
-                </g>
-            </svg>
-
-            <!-- Scrub -->
-            <div class="mt-5 flex items-center gap-3">
-                <span class="text-[11px] text-gray-500">Mar 14</span>
-                <div class="flex-1 h-2 bg-gray-100 rounded-full relative">
-                    <div class="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-blue-700 to-indigo-700 rounded-full" style="width: 78%;"></div>
-                    <div class="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-blue-700 rounded-full" style="left: 76%;"></div>
+                <!-- ===== PINS ===== category = fill · status = ring ===== -->
+                <!-- Housing · NEW · cluster (38 reports) -->
+                <div class="pin absolute -translate-x-1/2 -translate-y-full" style="left:58%;top:38%">
+                    <span class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-blue-500/20 animate-ping"></span>
+                    <div class="relative w-9 h-9 rounded-full bg-blue-500 ring-2 ring-rose-500 shadow-lg flex items-center justify-center text-white">
+                        <i class="fas fa-house text-xs"></i>
+                        <span class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center border border-white">38</span>
+                    </div>
+                    <div class="w-2 h-2 bg-blue-500 rotate-45 mx-auto -mt-1"></div>
                 </div>
-                <span class="text-[11px] text-gray-500">Apr 13 (today)</span>
+
+                <!-- Transit · IN PROGRESS -->
+                <div class="pin absolute -translate-x-1/2 -translate-y-full" style="left:24%;top:64%">
+                    <div class="w-8 h-8 rounded-full bg-purple-500 ring-2 ring-amber-400 shadow-lg flex items-center justify-center text-white"><i class="fas fa-bus text-[11px]"></i></div>
+                    <div class="w-2 h-2 bg-purple-500 rotate-45 mx-auto -mt-1"></div>
+                </div>
+
+                <!-- Safety · NEW -->
+                <div class="pin absolute -translate-x-1/2 -translate-y-full" style="left:70%;top:66%">
+                    <div class="w-8 h-8 rounded-full bg-rose-500 ring-2 ring-rose-500 shadow-lg flex items-center justify-center text-white"><i class="fas fa-shield-halved text-[11px]"></i></div>
+                    <div class="w-2 h-2 bg-rose-500 rotate-45 mx-auto -mt-1"></div>
+                </div>
+
+                <!-- Sanitation · IN PROGRESS -->
+                <div class="pin absolute -translate-x-1/2 -translate-y-full" style="left:40%;top:44%">
+                    <div class="w-8 h-8 rounded-full bg-amber-500 ring-2 ring-amber-400 shadow-lg flex items-center justify-center text-white"><i class="fas fa-trash text-[11px]"></i></div>
+                    <div class="w-2 h-2 bg-amber-500 rotate-45 mx-auto -mt-1"></div>
+                </div>
+
+                <!-- Parks · RESOLVED -->
+                <div class="pin absolute -translate-x-1/2 -translate-y-full" style="left:20%;top:26%">
+                    <div class="w-8 h-8 rounded-full bg-emerald-500 ring-2 ring-emerald-500 shadow-lg flex items-center justify-center text-white"><i class="fas fa-tree text-[11px]"></i></div>
+                    <div class="w-2 h-2 bg-emerald-500 rotate-45 mx-auto -mt-1"></div>
+                </div>
+
+                <!-- Housing · IN PROGRESS -->
+                <div class="pin absolute -translate-x-1/2 -translate-y-full" style="left:36%;top:24%">
+                    <div class="w-8 h-8 rounded-full bg-blue-500 ring-2 ring-amber-400 shadow-lg flex items-center justify-center text-white"><i class="fas fa-house text-[11px]"></i></div>
+                    <div class="w-2 h-2 bg-blue-500 rotate-45 mx-auto -mt-1"></div>
+                </div>
+
+                <!-- Transit · NEW -->
+                <div class="pin absolute -translate-x-1/2 -translate-y-full" style="left:62%;top:52%">
+                    <div class="w-8 h-8 rounded-full bg-purple-500 ring-2 ring-rose-500 shadow-lg flex items-center justify-center text-white"><i class="fas fa-bus text-[11px]"></i></div>
+                    <div class="w-2 h-2 bg-purple-500 rotate-45 mx-auto -mt-1"></div>
+                </div>
+
+                <!-- Sanitation · RESOLVED -->
+                <div class="pin absolute -translate-x-1/2 -translate-y-full" style="left:44%;top:72%">
+                    <div class="w-8 h-8 rounded-full bg-amber-500 ring-2 ring-emerald-500 shadow-lg flex items-center justify-center text-white"><i class="fas fa-trash text-[11px]"></i></div>
+                    <div class="w-2 h-2 bg-amber-500 rotate-45 mx-auto -mt-1"></div>
+                </div>
+
+                <!-- Safety · IN PROGRESS -->
+                <div class="pin absolute -translate-x-1/2 -translate-y-full" style="left:80%;top:22%">
+                    <div class="w-8 h-8 rounded-full bg-rose-500 ring-2 ring-amber-400 shadow-lg flex items-center justify-center text-white"><i class="fas fa-shield-halved text-[11px]"></i></div>
+                    <div class="w-2 h-2 bg-rose-500 rotate-45 mx-auto -mt-1"></div>
+                </div>
+
+                <!-- Parks · NEW -->
+                <div class="pin absolute -translate-x-1/2 -translate-y-full" style="left:82%;top:60%">
+                    <div class="w-8 h-8 rounded-full bg-emerald-500 ring-2 ring-rose-500 shadow-lg flex items-center justify-center text-white"><i class="fas fa-tree text-[11px]"></i></div>
+                    <div class="w-2 h-2 bg-emerald-500 rotate-45 mx-auto -mt-1"></div>
+                </div>
+
+                <!-- City label chip -->
+                <div class="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-white/90 backdrop-blur text-[11px] font-semibold text-gray-700 shadow-sm"><i class="fas fa-location-dot text-rose-500 mr-1"></i>Irvine, CA</div>
+            </div>
+
+            <!-- Category legend strip (icons, minimal text) -->
+            <div class="mt-4 flex items-center justify-center gap-5 text-[11px] text-gray-500">
+                <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-blue-500"></span>Housing</span>
+                <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-purple-500"></span>Transit</span>
+                <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-rose-500"></span>Safety</span>
+                <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-amber-500"></span>Sanitation</span>
+                <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-emerald-500"></span>Parks</span>
             </div>
         </div>
 
-        <!-- RIGHT: ranked list + callouts -->
+        <!-- RIGHT: categories + selected issue progress -->
         <div class="col-span-1 space-y-5">
 
+            <!-- By category, with resolution progress -->
             <div class="bg-white rounded-2xl glow-card p-5">
-                <h3 class="font-bold text-gray-900 text-sm mb-3">Districts by pulse</h3>
-                <div class="space-y-2.5">
-                    <div class="flex items-center gap-3 p-2 rounded-lg bg-rose-50">
-                        <div class="w-8 h-8 rounded bg-rose-500 text-white text-xs font-bold flex items-center justify-center">31</div>
-                        <div class="flex-1">
-                            <div class="text-sm font-semibold text-gray-900">East Side</div>
-                            <div class="text-[10px] text-gray-500">9,210 voices · critical 58%</div>
+                <h3 class="font-bold text-gray-900 text-sm mb-4">By category</h3>
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex items-center justify-between text-sm mb-1">
+                            <span class="flex items-center gap-2 font-semibold text-gray-800"><i class="fas fa-house text-blue-500 w-4"></i>Housing</span>
+                            <span class="text-gray-500 text-xs">82</span>
                         </div>
-                        <i class="fas fa-arrow-down text-rose-500 text-xs"></i>
+                        <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-blue-500 rounded-full" style="width:34%"></div></div>
                     </div>
-                    <div class="flex items-center gap-3 p-2 rounded-lg bg-rose-50">
-                        <div class="w-8 h-8 rounded bg-rose-400 text-white text-xs font-bold flex items-center justify-center">41</div>
-                        <div class="flex-1">
-                            <div class="text-sm font-semibold text-gray-900">Riverside</div>
-                            <div class="text-[10px] text-gray-500">2,780 voices · transit-driven</div>
+                    <div>
+                        <div class="flex items-center justify-between text-sm mb-1">
+                            <span class="flex items-center gap-2 font-semibold text-gray-800"><i class="fas fa-bus text-purple-500 w-4"></i>Transit</span>
+                            <span class="text-gray-500 text-xs">61</span>
                         </div>
-                        <i class="fas fa-arrow-down text-rose-400 text-xs"></i>
+                        <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-purple-500 rounded-full" style="width:52%"></div></div>
                     </div>
-                    <div class="flex items-center gap-3 p-2 rounded-lg bg-amber-50">
-                        <div class="w-8 h-8 rounded bg-amber-400 text-white text-xs font-bold flex items-center justify-center">48</div>
-                        <div class="flex-1">
-                            <div class="text-sm font-semibold text-gray-900">Cedar Park</div>
-                            <div class="text-[10px] text-gray-500">5,840 voices · spiking</div>
+                    <div>
+                        <div class="flex items-center justify-between text-sm mb-1">
+                            <span class="flex items-center gap-2 font-semibold text-gray-800"><i class="fas fa-shield-halved text-rose-500 w-4"></i>Safety</span>
+                            <span class="text-gray-500 text-xs">44</span>
                         </div>
-                        <i class="fas fa-arrow-up text-amber-500 text-xs"></i>
+                        <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-rose-500 rounded-full" style="width:25%"></div></div>
                     </div>
-                    <div class="flex items-center gap-3 p-2 rounded-lg bg-amber-50">
-                        <div class="w-8 h-8 rounded bg-amber-400 text-white text-xs font-bold flex items-center justify-center">55</div>
-                        <div class="flex-1">
-                            <div class="text-sm font-semibold text-gray-900">Bayview</div>
-                            <div class="text-[10px] text-gray-500">1,420 voices · school district</div>
+                    <div>
+                        <div class="flex items-center justify-between text-sm mb-1">
+                            <span class="flex items-center gap-2 font-semibold text-gray-800"><i class="fas fa-trash text-amber-500 w-4"></i>Sanitation</span>
+                            <span class="text-gray-500 text-xs">37</span>
                         </div>
+                        <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-amber-500 rounded-full" style="width:70%"></div></div>
                     </div>
-                    <div class="flex items-center gap-3 p-2 rounded-lg bg-amber-50">
-                        <div class="w-8 h-8 rounded bg-amber-300 text-white text-xs font-bold flex items-center justify-center">62</div>
-                        <div class="flex-1">
-                            <div class="text-sm font-semibold text-gray-900">Old Town</div>
-                            <div class="text-[10px] text-gray-500">1,890 voices · merchants</div>
+                    <div>
+                        <div class="flex items-center justify-between text-sm mb-1">
+                            <span class="flex items-center gap-2 font-semibold text-gray-800"><i class="fas fa-tree text-emerald-500 w-4"></i>Parks</span>
+                            <span class="text-gray-500 text-xs">24</span>
                         </div>
+                        <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-500 rounded-full" style="width:61%"></div></div>
                     </div>
-                    <div class="flex items-center gap-3 p-2 rounded-lg bg-emerald-50">
-                        <div class="w-8 h-8 rounded bg-emerald-500 text-white text-xs font-bold flex items-center justify-center">71</div>
-                        <div class="flex-1">
-                            <div class="text-sm font-semibold text-gray-900">Harborfront</div>
-                            <div class="text-[10px] text-gray-500">980 voices · revitalized</div>
-                        </div>
-                        <i class="fas fa-arrow-up text-emerald-500 text-xs"></i>
-                    </div>
-                    <div class="flex items-center gap-3 p-2 rounded-lg bg-emerald-50">
-                        <div class="w-8 h-8 rounded bg-emerald-500 text-white text-xs font-bold flex items-center justify-center">78</div>
-                        <div class="flex-1">
-                            <div class="text-sm font-semibold text-gray-900">Lincoln Heights</div>
-                            <div class="text-[10px] text-gray-500">3,210 voices · Maple Lofts</div>
-                        </div>
-                        <i class="fas fa-arrow-up text-emerald-500 text-xs"></i>
-                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-gray-100 text-[11px] text-gray-400 flex items-center gap-1">
+                    <i class="fas fa-circle-check text-emerald-400"></i> bar = share resolved
                 </div>
             </div>
 
-            <!-- Selected district panel -->
+            <!-- Selected issue · progress report -->
             <div class="bg-gradient-to-br from-slate-900 to-blue-900 text-white rounded-2xl p-6">
                 <div class="flex items-center justify-between mb-3">
-                    <div class="text-[11px] uppercase text-blue-200 font-semibold">Selected · East Side</div>
-                    <span class="pill bg-rose-500/30 text-white">Pulse 31</span>
+                    <span class="pill bg-blue-500/30 text-white"><i class="fas fa-house mr-1"></i>Housing</span>
+                    <span class="pill bg-rose-500/30 text-white">New · 38 reports</span>
                 </div>
-                <div class="font-serif text-3xl mb-2">9,210 voices.<br><span class="italic text-blue-200">Three are loud.</span></div>
-                <div class="mt-4 space-y-2 text-xs text-blue-100">
-                    <div class="flex items-start gap-2"><span class="text-rose-400 font-bold">1.</span><span>"Airbnb stole my block" — 3,556 voices, concentrated around Brookline & 9th</span></div>
-                    <div class="flex items-start gap-2"><span class="text-rose-400 font-bold">2.</span><span>"Developers > residents" — 2,890 voices, citing Oak Tower approval</span></div>
-                    <div class="flex items-start gap-2"><span class="text-amber-300 font-bold">3.</span><span>"Where do my kids live?" — 1,940 voices, parents 35-55</span></div>
+                <div class="font-serif text-2xl leading-tight mb-1">Jamboree &amp; Barranca</div>
+                <div class="text-xs text-blue-200 mb-5">Short-term rentals pushing out long-term renters</div>
+
+                <!-- Progress timeline -->
+                <div class="relative pl-5">
+                    <div class="absolute left-[5px] top-1 bottom-1 w-px bg-white/20"></div>
+                    <div class="relative mb-4">
+                        <div class="absolute -left-5 top-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
+                        <div class="text-xs font-semibold">Reported</div>
+                        <div class="text-[10px] text-blue-300">Apr 2 · flagged by CivicPulse</div>
+                    </div>
+                    <div class="relative mb-4">
+                        <div class="absolute -left-5 top-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
+                        <div class="text-xs font-semibold">Routed to Housing Dept.</div>
+                        <div class="text-[10px] text-blue-300">Apr 5</div>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute -left-5 top-0.5 w-2.5 h-2.5 rounded-full bg-amber-400 ring-4 ring-amber-400/20"></div>
+                        <div class="text-xs font-semibold text-amber-200">Council review pending</div>
+                        <div class="text-[10px] text-blue-300">Next: Apr 18 session</div>
+                    </div>
                 </div>
-                <button class="mt-5 w-full py-2 text-xs font-semibold text-blue-900 bg-white rounded-lg">Open district report →</button>
+
+                <button class="mt-5 w-full py-2 text-xs font-semibold text-blue-900 bg-white rounded-lg">Open full report →</button>
             </div>
 
-            <!-- 311 overlay -->
+            <!-- Status snapshot -->
             <div class="bg-white rounded-2xl glow-card p-5">
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-bold text-gray-900 text-sm">311 calls correlate?</h3>
-                    <span class="pill bg-emerald-100 text-emerald-700">r = 0.78</span>
+                <h3 class="font-bold text-gray-900 text-sm mb-3">Status</h3>
+                <div class="grid grid-cols-3 gap-3 text-center">
+                    <div class="rounded-lg bg-rose-50 py-3">
+                        <div class="text-xl font-bold text-rose-600">96</div>
+                        <div class="text-[10px] text-gray-500">New</div>
+                    </div>
+                    <div class="rounded-lg bg-amber-50 py-3">
+                        <div class="text-xl font-bold text-amber-600">71</div>
+                        <div class="text-[10px] text-gray-500">In progress</div>
+                    </div>
+                    <div class="rounded-lg bg-emerald-50 py-3">
+                        <div class="text-xl font-bold text-emerald-600">81</div>
+                        <div class="text-[10px] text-gray-500">Resolved</div>
+                    </div>
                 </div>
-                <p class="text-xs text-gray-500 mb-2">Online sentiment in East Side tracks closely with the 311 logs — a useful validity check.</p>
-                <div class="flex h-16 items-end gap-1">
-                    <div class="flex-1 bg-rose-400 rounded-t" style="height:60%"></div>
-                    <div class="flex-1 bg-rose-400 rounded-t" style="height:70%"></div>
-                    <div class="flex-1 bg-rose-500 rounded-t" style="height:82%"></div>
-                    <div class="flex-1 bg-rose-500 rounded-t" style="height:78%"></div>
-                    <div class="flex-1 bg-rose-500 rounded-t" style="height:90%"></div>
-                    <div class="flex-1 bg-rose-600 rounded-t" style="height:96%"></div>
-                    <div class="flex-1 bg-rose-600 rounded-t" style="height:88%"></div>
-                </div>
-                <div class="text-[10px] text-gray-500 mt-1">East Side weekly 311 housing-related calls · last 7 weeks</div>
             </div>
         </div>
     </div>
