@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BuildSage — Donate & Recycle</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0D14; color:#fff; scrollbar-width:none; }
+
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; background:#0A0D14; padding-bottom:110px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:10px 28px 16px; }
+  .h-eyebrow { font-size:11px; font-weight:800; color:#34D399; letter-spacing:1.5px; text-transform:uppercase; display:flex; align-items:center; gap:7px; }
+  .h-title { font-size:24px; font-weight:900; letter-spacing:-0.5px; margin-top:5px; }
+
+  /* Impact hero */
+  .hero { margin:0 28px; border-radius:28px; overflow:hidden; position:relative; height:200px; }
+  .hero img { width:100%; height:100%; object-fit:cover; }
+  .hero-ovl { position:absolute; inset:0; background:linear-gradient(180deg, rgba(10,13,20,0.15) 0%, rgba(6,30,22,0.95) 80%); }
+  .hero-pill { position:absolute; top:14px; left:14px; background:rgba(52,211,153,0.18); backdrop-filter:blur(8px); border:1px solid rgba(52,211,153,0.5); color:#34D399; padding:7px 13px; border-radius:12px; font-size:10px; font-weight:800; letter-spacing:0.8px; display:flex; align-items:center; gap:6px; }
+  .hero-body { position:absolute; left:20px; right:20px; bottom:16px; }
+  .hero-v { font-size:34px; font-weight:900; letter-spacing:-1.5px; color:#34D399; }
+  .hero-l { font-size:12px; color:#C7D2CD; font-weight:700; margin-top:2px; }
+
+  /* Stats trio */
+  .trio { display:flex; gap:11px; padding:16px 28px 0; }
+  .tr-c { flex:1; background:#141927; border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:15px 10px; text-align:center; }
+  .tr-v { font-size:23px; font-weight:900; letter-spacing:-0.8px; }
+  .tr-l { font-size:9px; color:#76819A; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-top:4px; }
+
+  .sec-title { padding:24px 28px 14px; font-size:16px; font-weight:800; display:flex; justify-content:space-between; align-items:center; letter-spacing:-0.2px; }
+  .sec-link { font-size:12px; color:#34D399; font-weight:700; }
+
+  /* Idle part card */
+  .idle { margin:0 28px; background:#141927; border:1px solid rgba(255,255,255,0.06); border-radius:24px; padding:16px; }
+  .idle-top { display:flex; align-items:center; gap:13px; }
+  .idle-img { width:58px; height:58px; border-radius:16px; object-fit:cover; flex-shrink:0; }
+  .idle-name { font-size:14px; font-weight:800; letter-spacing:-0.2px; }
+  .idle-sub { font-size:10.5px; color:#76819A; font-weight:600; margin-top:3px; }
+  .idle-ai { display:inline-flex; align-items:center; gap:4px; font-size:9px; font-weight:800; color:#A78BFA; background:rgba(139,92,246,0.15); padding:3px 7px; border-radius:7px; margin-top:5px; }
+  .idle-acts { display:flex; gap:10px; margin-top:14px; }
+  .ia { flex:1; border-radius:16px; padding:13px 12px; text-align:center; }
+  .ia.don { background:linear-gradient(135deg,#34D399,#059669); color:#0A0D14; }
+  .ia.rec { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); }
+  .ia i { font-size:15px; display:block; margin-bottom:6px; }
+  .ia-t { font-size:12px; font-weight:900; }
+  .ia-s { font-size:9.5px; font-weight:700; opacity:0.75; margin-top:2px; }
+
+  /* Donation drives */
+  .drives { padding:0 28px; display:flex; flex-direction:column; gap:12px; }
+  .drive { background:#141927; border:1px solid rgba(255,255,255,0.06); border-radius:22px; overflow:hidden; }
+  .drive-img { height:96px; position:relative; }
+  .drive-img img { width:100%; height:100%; object-fit:cover; }
+  .drive-grad { position:absolute; inset:0; background:linear-gradient(180deg, transparent 20%, #141927 100%); }
+  .drive-tag { position:absolute; top:10px; left:10px; font-size:8.5px; font-weight:900; padding:5px 9px; border-radius:8px; backdrop-filter:blur(6px); background:rgba(52,211,153,0.85); color:#0A0D14; }
+  .drive-body { padding:0 16px 15px; margin-top:-10px; position:relative; }
+  .drive-n { font-size:14.5px; font-weight:900; letter-spacing:-0.2px; }
+  .drive-s { font-size:10.5px; color:#76819A; font-weight:600; margin-top:3px; }
+  .drive-row { display:flex; align-items:center; gap:10px; margin-top:11px; }
+  .drive-prog { flex:1; height:6px; background:#0E1320; border-radius:6px; overflow:hidden; }
+  .drive-prog div { height:100%; border-radius:6px; background:linear-gradient(90deg,#34D399,#10B981); }
+  .drive-pct { font-size:11px; font-weight:900; color:#34D399; flex-shrink:0; }
+  .drive-foot { display:flex; align-items:center; justify-content:space-between; margin-top:11px; }
+  .donors { display:flex; align-items:center; }
+  .donors img { width:24px; height:24px; border-radius:50%; border:2px solid #141927; margin-left:-7px; }
+  .donors img:first-child { margin-left:0; }
+  .donors span { font-size:10px; color:#76819A; font-weight:700; margin-left:7px; }
+  .drive-cta { font-size:11px; font-weight:900; color:#0A0D14; background:linear-gradient(135deg,#34D399,#10B981); padding:9px 16px; border-radius:12px; }
+
+  /* Recycle pickup */
+  .pickup { margin:0 28px; border-radius:24px; padding:18px 20px; background:linear-gradient(135deg,#102A33,#0D1B26); border:1px solid rgba(34,211,238,0.25); display:flex; align-items:center; gap:14px; }
+  .pk-ic { width:50px; height:50px; border-radius:16px; background:rgba(34,211,238,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .pk-ic i { font-size:20px; color:#22D3EE; }
+  .pk-t { font-size:14px; font-weight:800; }
+  .pk-s { font-size:11px; color:#9AA5BC; font-weight:600; margin-top:3px; line-height:1.5; }
+  .pk-go { margin-left:auto; width:38px; height:38px; border-radius:13px; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .pk-go i { font-size:13px; color:#22D3EE; }
+
+  /* Badge progress */
+  .badge { margin:14px 28px 0; border-radius:24px; padding:18px 20px; background:linear-gradient(135deg,#231A3D,#161226); border:1px solid rgba(139,92,246,0.3); display:flex; align-items:center; gap:16px; }
+  .bg-ic { width:54px; height:54px; border-radius:18px; background:linear-gradient(135deg,#34D399,#8B5CF6); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 8px 22px rgba(52,211,153,0.3); }
+  .bg-ic i { font-size:22px; color:#0A0D14; }
+  .bg-t { font-size:14px; font-weight:800; }
+  .bg-s { font-size:10.5px; color:#9AA5BC; font-weight:600; margin-top:3px; }
+  .bg-prog { height:6px; background:rgba(255,255,255,0.1); border-radius:6px; margin-top:9px; overflow:hidden; }
+  .bg-prog div { height:100%; width:75%; border-radius:6px; background:linear-gradient(90deg,#34D399,#8B5CF6); }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(10,13,20,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:52px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.35); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.35); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#22D3EE; }
+  .tab-fab { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#22D3EE,#8B5CF6); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(34,211,238,0.35); }
+  .tab-fab i { font-size:22px; color:#0A0D14; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div class="h-eyebrow"><i class="fas fa-seedling"></i> Donate & Recycle</div>
+    <div class="h-title">Give old parts a second life</div>
+  </div>
+
+  <div class="hero">
+    <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=900&q=80" alt="">
+    <div class="hero-ovl"></div>
+    <div class="hero-pill"><i class="fas fa-earth-americas"></i> YOUR 2026 IMPACT</div>
+    <div class="hero-body">
+      <div class="hero-v">12.4 kg</div>
+      <div class="hero-l">of e-waste diverted from landfills</div>
+    </div>
+  </div>
+
+  <div class="trio">
+    <div class="tr-c"><div class="tr-v" style="color:#34D399">6</div><div class="tr-l">Parts Donated</div></div>
+    <div class="tr-c"><div class="tr-v" style="color:#22D3EE">48 kg</div><div class="tr-l">CO₂ Avoided</div></div>
+    <div class="tr-c"><div class="tr-v" style="color:#A78BFA">$230</div><div class="tr-l">Tax Deductible</div></div>
+  </div>
+
+  <div class="sec-title">Idle Part Detected <span class="sec-link">Scan more</span></div>
+  <div class="idle">
+    <div class="idle-top">
+      <img class="idle-img" src="https://images.unsplash.com/photo-1591488320449-011701bb6704?w=300&q=80" alt="">
+      <div>
+        <div class="idle-name">GTX 1660 Super 6GB</div>
+        <div class="idle-sub">Replaced in Aurora X upgrade · still works great</div>
+        <div class="idle-ai"><i class="fas fa-wand-magic-sparkles"></i> EST. VALUE $95 · PERFECT FOR A STUDENT LAB</div>
+      </div>
+    </div>
+    <div class="idle-acts">
+      <div class="ia don">
+        <i class="fas fa-hand-holding-heart"></i>
+        <div class="ia-t">Donate It</div>
+        <div class="ia-s">Free pickup · tax receipt</div>
+      </div>
+      <div class="ia rec">
+        <i class="fas fa-recycle" style="color:#22D3EE"></i>
+        <div class="ia-t">Recycle It</div>
+        <div class="ia-s">Certified e-waste partner</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-title">Donation Drives Near You <span class="sec-link">See all</span></div>
+  <div class="drives">
+    <div class="drive">
+      <div class="drive-img">
+        <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=700&q=80" alt="">
+        <div class="drive-grad"></div>
+        <div class="drive-tag">NEEDS GPUS</div>
+      </div>
+      <div class="drive-body">
+        <div class="drive-n">STEM Lab @ Lincoln High</div>
+        <div class="drive-s">Building 12 PCs so CS students can train ML models</div>
+        <div class="drive-row">
+          <div class="drive-prog"><div style="width:62%"></div></div>
+          <div class="drive-pct">8 of 12 parts</div>
+        </div>
+        <div class="drive-foot">
+          <div class="donors">
+            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80" alt="">
+            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80" alt="">
+            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80" alt="">
+            <span>+23 donors</span>
+          </div>
+          <div class="drive-cta">Donate</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="drive">
+      <div class="drive-img">
+        <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=700&q=80" alt="">
+        <div class="drive-grad"></div>
+        <div class="drive-tag" style="background:rgba(34,211,238,0.85)">REFURB & GIFT</div>
+      </div>
+      <div class="drive-body">
+        <div class="drive-n">Community PC Workshop</div>
+        <div class="drive-s">Volunteers refurbish donated parts into PCs for families</div>
+        <div class="drive-row">
+          <div class="drive-prog"><div style="width:84%"></div></div>
+          <div class="drive-pct">84%</div>
+        </div>
+        <div class="drive-foot">
+          <div class="donors">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80" alt="">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80" alt="">
+            <span>+41 donors</span>
+          </div>
+          <div class="drive-cta">Donate</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-title">Responsible Recycling</div>
+  <div class="pickup">
+    <div class="pk-ic"><i class="fas fa-truck-arrow-right"></i></div>
+    <div>
+      <div class="pk-t">Schedule a free e-waste pickup</div>
+      <div class="pk-s">R2-certified partner · dead boards, PSUs & batteries handled safely.</div>
+    </div>
+    <div class="pk-go"><i class="fas fa-arrow-right"></i></div>
+  </div>
+
+  <div class="badge">
+    <div class="bg-ic"><i class="fas fa-medal"></i></div>
+    <div style="flex:1">
+      <div class="bg-t">Green Builder · Level 3</div>
+      <div class="bg-s">Donate 2 more parts to unlock Level 4 and a $15 market credit</div>
+      <div class="bg-prog"><div></div></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item active"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-screwdriver-wrench"></i><span>Builder</span></div>
+    <div class="tab-fab"><i class="fas fa-bolt"></i></div>
+    <div class="tab-item"><i class="fas fa-store"></i><span>Market</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>
