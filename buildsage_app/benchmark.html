@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BuildSage — Benchmark Prediction</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0D14; color:#fff; scrollbar-width:none; }
+
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; background:#0A0D14; padding-bottom:110px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:10px 28px 16px; display:flex; align-items:center; justify-content:space-between; }
+  .h-eyebrow { font-size:11px; font-weight:800; color:#22D3EE; letter-spacing:1.5px; text-transform:uppercase; display:flex; align-items:center; gap:7px; }
+  .h-title { font-size:24px; font-weight:900; letter-spacing:-0.5px; margin-top:5px; }
+  .model-chip { background:rgba(139,92,246,0.14); border:1px solid rgba(139,92,246,0.35); color:#A78BFA; font-size:9px; font-weight:800; padding:7px 11px; border-radius:11px; text-align:center; line-height:1.4; }
+
+  /* Big gauge */
+  .gauge-card { margin:0 28px; border-radius:28px; padding:26px 22px 22px; background:radial-gradient(ellipse at top, #1A2236 0%, #11141F 70%); border:1px solid rgba(34,211,238,0.2); text-align:center; position:relative; overflow:hidden; }
+  .gauge-wrap { position:relative; width:220px; height:130px; margin:0 auto; }
+  .g-num { position:absolute; left:0; right:0; bottom:0; }
+  .g-v { font-size:44px; font-weight:900; letter-spacing:-2px; background:linear-gradient(135deg,#22D3EE,#8B5CF6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .g-l { font-size:10px; color:#76819A; font-weight:800; text-transform:uppercase; letter-spacing:1px; margin-top:2px; }
+  .conf { display:inline-flex; align-items:center; gap:6px; margin-top:14px; background:rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.3); color:#34D399; font-size:11px; font-weight:800; padding:7px 14px; border-radius:12px; }
+  .pctl { display:flex; align-items:center; gap:10px; margin-top:18px; }
+  .pctl-l { font-size:9px; color:#76819A; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; flex-shrink:0; }
+  .pctl-bar { flex:1; height:8px; background:rgba(255,255,255,0.07); border-radius:8px; position:relative; }
+  .pctl-bar .fill { height:100%; width:91%; border-radius:8px; background:linear-gradient(90deg,#22D3EE,#8B5CF6); }
+  .pctl-bar .marker { position:absolute; top:-4px; left:91%; width:16px; height:16px; border-radius:50%; background:#fff; border:4px solid #8B5CF6; transform:translateX(-8px); }
+  .pctl-v { font-size:13px; font-weight:900; color:#A78BFA; flex-shrink:0; }
+
+  .sec-title { padding:24px 28px 14px; font-size:16px; font-weight:800; display:flex; justify-content:space-between; align-items:center; letter-spacing:-0.2px; }
+  .sec-link { font-size:12px; color:#22D3EE; font-weight:700; }
+
+  /* FPS predictions */
+  .fps-list { padding:0 28px; display:flex; flex-direction:column; gap:11px; }
+  .fps { background:#141927; border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:14px 16px; display:flex; align-items:center; gap:13px; }
+  .fps-img { width:52px; height:52px; border-radius:14px; object-fit:cover; flex-shrink:0; }
+  .fps-name { font-size:13px; font-weight:800; letter-spacing:-0.2px; }
+  .fps-set { font-size:10px; color:#76819A; font-weight:600; margin-top:3px; }
+  .fps-bar { height:6px; background:#0E1320; border-radius:6px; margin-top:8px; overflow:hidden; }
+  .fps-bar div { height:100%; border-radius:6px; }
+  .fps-mid { flex:1; min-width:0; }
+  .fps-right { text-align:right; flex-shrink:0; width:62px; }
+  .fps-v { font-size:24px; font-weight:900; letter-spacing:-1px; }
+  .fps-l { font-size:9px; color:#76819A; font-weight:700; text-transform:uppercase; }
+
+  /* Score breakdown */
+  .break { margin:0 28px; background:#141927; border:1px solid rgba(255,255,255,0.06); border-radius:24px; padding:18px 20px; }
+  .br-row { display:flex; align-items:center; gap:12px; padding:9px 0; }
+  .br-ic { width:34px; height:34px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .br-ic i { font-size:13px; }
+  .br-n { font-size:12px; font-weight:700; }
+  .br-bar { flex:1; height:7px; background:#0E1320; border-radius:7px; overflow:hidden; margin:0 4px; }
+  .br-bar div { height:100%; border-radius:7px; }
+  .br-v { font-size:13px; font-weight:900; width:44px; text-align:right; flex-shrink:0; }
+
+  /* Model info */
+  .mlinfo { margin:14px 28px 0; border-radius:22px; padding:16px 18px; background:linear-gradient(135deg,#231A3D,#161226); border:1px solid rgba(139,92,246,0.3); display:flex; align-items:center; gap:14px; }
+  .ml-ic { width:46px; height:46px; border-radius:15px; background:rgba(139,92,246,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .ml-ic i { font-size:19px; color:#A78BFA; }
+  .ml-t { font-size:13px; font-weight:800; }
+  .ml-s { font-size:10.5px; color:#9AA5BC; font-weight:600; margin-top:3px; line-height:1.5; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(10,13,20,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:52px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.35); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.35); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#22D3EE; }
+  .tab-fab { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#22D3EE,#8B5CF6); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(34,211,238,0.55); }
+  .tab-fab i { font-size:22px; color:#0A0D14; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="h-eyebrow"><i class="fas fa-bolt"></i> ML Performance Prediction</div>
+      <div class="h-title">Aurora X Forecast</div>
+    </div>
+    <div class="model-chip">GBM v3.2<br>R² 0.96</div>
+  </div>
+
+  <div class="gauge-card">
+    <div class="gauge-wrap">
+      <svg width="220" height="130" viewBox="0 0 220 130">
+        <defs>
+          <linearGradient id="gg" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#22D3EE"/><stop offset="100%" stop-color="#8B5CF6"/>
+          </linearGradient>
+        </defs>
+        <path d="M 20 120 A 90 90 0 0 1 200 120" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="16" stroke-linecap="round"/>
+        <path d="M 20 120 A 90 90 0 0 1 200 120" fill="none" stroke="url(#gg)" stroke-width="16" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="48"/>
+      </svg>
+      <div class="g-num">
+        <div class="g-v">18,420</div>
+        <div class="g-l">3DMark Time Spy · Predicted</div>
+      </div>
+    </div>
+    <div class="conf"><i class="fas fa-crosshairs"></i> 94% confidence · ±740 pts</div>
+    <div class="pctl">
+      <div class="pctl-l">vs all builds</div>
+      <div class="pctl-bar"><div class="fill"></div><div class="marker"></div></div>
+      <div class="pctl-v">Top 9%</div>
+    </div>
+  </div>
+
+  <div class="sec-title">Predicted In-Game FPS <span class="sec-link">4K Ultra</span></div>
+  <div class="fps-list">
+    <div class="fps">
+      <img class="fps-img" src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=300&q=80" alt="">
+      <div class="fps-mid">
+        <div class="fps-name">Cyberpunk 2077</div>
+        <div class="fps-set">Ultra RT · DLSS Quality</div>
+        <div class="fps-bar"><div style="width:74%; background:linear-gradient(90deg,#22D3EE,#8B5CF6)"></div></div>
+      </div>
+      <div class="fps-right"><div class="fps-v" style="color:#22D3EE">96</div><div class="fps-l">FPS</div></div>
+    </div>
+    <div class="fps">
+      <img class="fps-img" src="https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=300&q=80" alt="">
+      <div class="fps-mid">
+        <div class="fps-name">Call of Duty: Warzone</div>
+        <div class="fps-set">Competitive settings</div>
+        <div class="fps-bar"><div style="width:96%; background:linear-gradient(90deg,#34D399,#10B981)"></div></div>
+      </div>
+      <div class="fps-right"><div class="fps-v" style="color:#34D399">164</div><div class="fps-l">FPS</div></div>
+    </div>
+    <div class="fps">
+      <img class="fps-img" src="https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=300&q=80" alt="">
+      <div class="fps-mid">
+        <div class="fps-name">Elden Ring</div>
+        <div class="fps-set">Max settings · capped</div>
+        <div class="fps-bar"><div style="width:60%; background:linear-gradient(90deg,#FBBF24,#F59E0B)"></div></div>
+      </div>
+      <div class="fps-right"><div class="fps-v" style="color:#FBBF24">60</div><div class="fps-l">FPS</div></div>
+    </div>
+  </div>
+
+  <div class="sec-title">What Drives the Score</div>
+  <div class="break">
+    <div class="br-row">
+      <div class="br-ic" style="background:rgba(139,92,246,0.14)"><i class="fas fa-tv" style="color:#A78BFA"></i></div>
+      <div class="br-n">GPU</div>
+      <div class="br-bar"><div style="width:62%; background:linear-gradient(90deg,#8B5CF6,#A78BFA)"></div></div>
+      <div class="br-v" style="color:#A78BFA">62%</div>
+    </div>
+    <div class="br-row">
+      <div class="br-ic" style="background:rgba(34,211,238,0.12)"><i class="fas fa-microchip" style="color:#22D3EE"></i></div>
+      <div class="br-n">CPU</div>
+      <div class="br-bar"><div style="width:24%; background:linear-gradient(90deg,#22D3EE,#67E8F9)"></div></div>
+      <div class="br-v" style="color:#22D3EE">24%</div>
+    </div>
+    <div class="br-row">
+      <div class="br-ic" style="background:rgba(52,211,153,0.12)"><i class="fas fa-memory" style="color:#34D399"></i></div>
+      <div class="br-n">Memory</div>
+      <div class="br-bar"><div style="width:9%; background:linear-gradient(90deg,#34D399,#6EE7B7)"></div></div>
+      <div class="br-v" style="color:#34D399">9%</div>
+    </div>
+    <div class="br-row">
+      <div class="br-ic" style="background:rgba(251,191,36,0.12)"><i class="fas fa-hard-drive" style="color:#FBBF24"></i></div>
+      <div class="br-n">Storage</div>
+      <div class="br-bar"><div style="width:5%; background:linear-gradient(90deg,#FBBF24,#FCD34D)"></div></div>
+      <div class="br-v" style="color:#FBBF24">5%</div>
+    </div>
+  </div>
+
+  <div class="mlinfo">
+    <div class="ml-ic"><i class="fas fa-brain"></i></div>
+    <div>
+      <div class="ml-t">Gradient-boosted model · 2.4M benchmarks</div>
+      <div class="ml-s">Trained on real 3DMark, Cinebench & gaming runs. Retrained weekly as new hardware ships.</div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-screwdriver-wrench"></i><span>Builder</span></div>
+    <div class="tab-fab"><i class="fas fa-bolt"></i></div>
+    <div class="tab-item"><i class="fas fa-store"></i><span>Market</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>

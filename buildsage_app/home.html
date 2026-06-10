@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BuildSage — Home</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0D14; color:#fff; scrollbar-width:none; }
+
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; background:#0A0D14; padding-bottom:110px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:10px 28px 16px; display:flex; align-items:center; justify-content:space-between; }
+  .greet-l { font-size:13px; color:#76819A; font-weight:500; }
+  .greet-n { font-size:24px; font-weight:900; letter-spacing:-0.5px; margin-top:2px; }
+  .hdr-right { display:flex; align-items:center; gap:12px; }
+  .bell { width:46px; height:46px; border-radius:15px; background:#141927; border:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; justify-content:center; position:relative; }
+  .bell i { font-size:16px; color:#9AA5BC; }
+  .bell .dot { position:absolute; top:12px; right:12px; width:8px; height:8px; border-radius:50%; background:#F87171; border:2px solid #141927; }
+  .avatar { width:46px; height:46px; border-radius:15px; object-fit:cover; border:2px solid #22D3EE; }
+
+  /* Build hero */
+  .hero { margin:0 28px; border-radius:28px; overflow:hidden; position:relative; height:240px; }
+  .hero img { width:100%; height:100%; object-fit:cover; }
+  .hero-ovl { position:absolute; inset:0; background:linear-gradient(180deg, rgba(10,13,20,0.1) 0%, rgba(10,13,20,0.95) 78%); }
+  .hero-pill { position:absolute; top:16px; left:16px; background:rgba(34,211,238,0.15); backdrop-filter:blur(8px); border:1px solid rgba(34,211,238,0.45); color:#22D3EE; padding:7px 13px; border-radius:12px; font-size:10px; font-weight:800; letter-spacing:0.8px; display:flex; align-items:center; gap:6px; }
+  .hero-body { position:absolute; left:20px; right:20px; bottom:16px; }
+  .hero-name { font-size:22px; font-weight:900; letter-spacing:-0.4px; }
+  .hero-sub { font-size:12px; color:#9AA5BC; margin-top:3px; font-weight:600; }
+  .hero-row { display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
+  .hero-prog { flex:1; height:6px; background:rgba(255,255,255,0.14); border-radius:6px; overflow:hidden; margin-right:14px; }
+  .hero-prog div { height:100%; width:78%; background:linear-gradient(90deg,#22D3EE,#8B5CF6); border-radius:6px; }
+  .hero-pct { font-size:15px; font-weight:900; color:#22D3EE; }
+
+  /* Price pulse strip */
+  .pulse { display:flex; gap:10px; padding:16px 28px 0; overflow-x:auto; }
+  .pp { flex-shrink:0; background:#141927; border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:11px 14px; display:flex; align-items:center; gap:9px; }
+  .pp i.c { font-size:14px; }
+  .pp-n { font-size:11px; font-weight:800; }
+  .pp-v { font-size:11px; font-weight:800; }
+  .down { color:#34D399; } .up { color:#F87171; }
+
+  /* Stat duo */
+  .duo { display:flex; gap:12px; padding:16px 28px 0; }
+  .duo-card { flex:1; border-radius:22px; padding:18px; position:relative; overflow:hidden; }
+  .duo-card.a { background:linear-gradient(135deg,#102A33,#0D1B26); border:1px solid rgba(34,211,238,0.25); }
+  .duo-card.b { background:linear-gradient(135deg,#231A3D,#161226); border:1px solid rgba(139,92,246,0.3); }
+  .duo-card i.bg { position:absolute; right:-8px; bottom:-12px; font-size:62px; opacity:0.14; }
+  .duo-l { font-size:10px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+  .duo-card.a .duo-l { color:#22D3EE; } .duo-card.b .duo-l { color:#A78BFA; }
+  .duo-v { font-size:30px; font-weight:900; letter-spacing:-1px; margin-top:6px; }
+  .duo-s { font-size:10px; color:#76819A; font-weight:600; margin-top:3px; }
+
+  .sec-title { padding:24px 28px 14px; font-size:16px; font-weight:800; display:flex; justify-content:space-between; align-items:center; letter-spacing:-0.2px; }
+  .sec-link { font-size:12px; color:#22D3EE; font-weight:700; }
+
+  /* AI picks carousel */
+  .carousel { display:flex; gap:14px; padding:0 28px; overflow-x:auto; }
+  .pick { flex-shrink:0; width:200px; background:#141927; border:1px solid rgba(255,255,255,0.06); border-radius:22px; overflow:hidden; }
+  .pick-img { height:110px; position:relative; }
+  .pick-img img { width:100%; height:100%; object-fit:cover; }
+  .match { position:absolute; top:10px; right:10px; background:rgba(10,13,20,0.8); backdrop-filter:blur(6px); color:#34D399; font-size:10px; font-weight:900; padding:5px 9px; border-radius:10px; }
+  .pick-body { padding:13px 14px 15px; }
+  .pick-cat { font-size:9px; font-weight:800; letter-spacing:1px; color:#8B5CF6; text-transform:uppercase; }
+  .pick-name { font-size:13px; font-weight:800; margin-top:4px; letter-spacing:-0.2px; }
+  .pick-row { display:flex; justify-content:space-between; align-items:center; margin-top:9px; }
+  .pick-price { font-size:15px; font-weight:900; color:#22D3EE; }
+  .pick-add { width:28px; height:28px; border-radius:10px; background:linear-gradient(135deg,#22D3EE,#8B5CF6); display:flex; align-items:center; justify-content:center; }
+  .pick-add i { font-size:11px; color:#0A0D14; }
+
+  /* Predicted perf banner */
+  .perf { margin:0 28px; border-radius:24px; padding:18px 20px; background:#141927; border:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:16px; }
+  .perf-ring { position:relative; width:78px; height:78px; flex-shrink:0; }
+  .perf-ring svg { transform:rotate(-90deg); }
+  .pr-bg { fill:none; stroke:rgba(255,255,255,0.08); stroke-width:8; }
+  .pr-val { fill:none; stroke:url(#pg); stroke-width:8; stroke-linecap:round; stroke-dasharray:217; stroke-dashoffset:48; }
+  .pr-c { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .pr-n { font-size:17px; font-weight:900; color:#22D3EE; letter-spacing:-0.5px; }
+  .pr-l { font-size:8px; font-weight:700; color:#76819A; text-transform:uppercase; }
+  .perf-t { font-size:14px; font-weight:800; }
+  .perf-s { font-size:11px; color:#76819A; font-weight:600; margin-top:4px; line-height:1.5; }
+  .perf-tag { display:inline-flex; align-items:center; gap:5px; margin-top:8px; font-size:10px; font-weight:800; color:#A78BFA; background:rgba(139,92,246,0.14); padding:5px 10px; border-radius:9px; }
+
+  /* Trending builds */
+  .trend-row { display:flex; gap:14px; padding:0 28px; overflow-x:auto; }
+  .tb { flex-shrink:0; width:240px; height:150px; border-radius:22px; overflow:hidden; position:relative; }
+  .tb img { width:100%; height:100%; object-fit:cover; }
+  .tb-ovl { position:absolute; inset:0; background:linear-gradient(180deg, transparent 30%, rgba(10,13,20,0.95)); }
+  .tb-body { position:absolute; left:14px; right:14px; bottom:12px; }
+  .tb-name { font-size:14px; font-weight:900; }
+  .tb-meta { display:flex; justify-content:space-between; align-items:center; margin-top:5px; }
+  .tb-price { font-size:12px; font-weight:800; color:#22D3EE; }
+  .tb-users { display:flex; }
+  .tb-users img { width:22px; height:22px; border-radius:50%; border:2px solid #0A0D14; margin-left:-7px; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(10,13,20,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:52px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.35); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.35); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#22D3EE; }
+  .tab-fab { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#22D3EE,#8B5CF6); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(34,211,238,0.35); }
+  .tab-fab i { font-size:22px; color:#0A0D14; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="greet-l">Welcome back</div>
+      <div class="greet-n">Hey, Devon ⚡</div>
+    </div>
+    <div class="hdr-right">
+      <div class="bell"><i class="fas fa-bell"></i><div class="dot"></div></div>
+      <img class="avatar" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80" alt="">
+    </div>
+  </div>
+
+  <div class="hero">
+    <img src="https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=900&q=80" alt="">
+    <div class="hero-ovl"></div>
+    <div class="hero-pill"><i class="fas fa-circle-check"></i> ALL PARTS COMPATIBLE</div>
+    <div class="hero-body">
+      <div class="hero-name">Aurora X — 4K Gaming Rig</div>
+      <div class="hero-sub">8 components · $1,842 · 642W draw</div>
+      <div class="hero-row">
+        <div class="hero-prog"><div></div></div>
+        <div class="hero-pct">78%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pulse">
+    <div class="pp"><i class="c fas fa-microchip" style="color:#22D3EE"></i><span class="pp-n">GPUs</span><span class="pp-v down"><i class="fas fa-arrow-down"></i> 3.2%</span></div>
+    <div class="pp"><i class="c fas fa-memory" style="color:#A78BFA"></i><span class="pp-n">DDR5</span><span class="pp-v up"><i class="fas fa-arrow-up"></i> 6.8%</span></div>
+    <div class="pp"><i class="c fas fa-hard-drive" style="color:#34D399"></i><span class="pp-n">NVMe</span><span class="pp-v down"><i class="fas fa-arrow-down"></i> 1.4%</span></div>
+    <div class="pp"><i class="c fas fa-fan" style="color:#FBBF24"></i><span class="pp-n">Cooling</span><span class="pp-v down"><i class="fas fa-arrow-down"></i> 0.8%</span></div>
+  </div>
+
+  <div class="duo">
+    <div class="duo-card a">
+      <i class="bg fas fa-gauge-high" style="color:#22D3EE"></i>
+      <div class="duo-l">Predicted Score</div>
+      <div class="duo-v">18,420</div>
+      <div class="duo-s">3DMark Time Spy · ±4%</div>
+    </div>
+    <div class="duo-card b">
+      <i class="bg fas fa-piggy-bank" style="color:#A78BFA"></i>
+      <div class="duo-l">Saved by AI Timing</div>
+      <div class="duo-v">$214</div>
+      <div class="duo-s">vs. buying at peak prices</div>
+    </div>
+  </div>
+
+  <div class="sec-title">AI Picks for Your Build <span class="sec-link">See all</span></div>
+  <div class="carousel">
+    <div class="pick">
+      <div class="pick-img">
+        <img src="https://images.unsplash.com/photo-1591488320449-011701bb6704?w=500&q=80" alt="">
+        <div class="match">96% MATCH</div>
+      </div>
+      <div class="pick-body">
+        <div class="pick-cat">GPU</div>
+        <div class="pick-name">RTX 5070 Ti 16GB</div>
+        <div class="pick-row"><span class="pick-price">$749</span><div class="pick-add"><i class="fas fa-plus"></i></div></div>
+      </div>
+    </div>
+    <div class="pick">
+      <div class="pick-img">
+        <img src="https://images.unsplash.com/photo-1555617981-dac3880eac6e?w=500&q=80" alt="">
+        <div class="match">93% MATCH</div>
+      </div>
+      <div class="pick-body">
+        <div class="pick-cat">CPU</div>
+        <div class="pick-name">Ryzen 7 9800X3D</div>
+        <div class="pick-row"><span class="pick-price">$479</span><div class="pick-add"><i class="fas fa-plus"></i></div></div>
+      </div>
+    </div>
+    <div class="pick">
+      <div class="pick-img">
+        <img src="https://images.unsplash.com/photo-1541029071515-84cc54f84dc5?w=500&q=80" alt="">
+        <div class="match">91% MATCH</div>
+      </div>
+      <div class="pick-body">
+        <div class="pick-cat">Memory</div>
+        <div class="pick-name">64GB DDR5-6000</div>
+        <div class="pick-row"><span class="pick-price">$189</span><div class="pick-add"><i class="fas fa-plus"></i></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-title">Performance Forecast</div>
+  <div class="perf">
+    <div class="perf-ring">
+      <svg width="78" height="78">
+        <defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22D3EE"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient></defs>
+        <circle class="pr-bg" cx="39" cy="39" r="34.5"/>
+        <circle class="pr-val" cx="39" cy="39" r="34.5"/>
+      </svg>
+      <div class="pr-c"><span class="pr-n">96</span><span class="pr-l">FPS 4K</span></div>
+    </div>
+    <div>
+      <div class="perf-t">Cyberpunk 2077 · Ultra RT</div>
+      <div class="perf-s">ML model predicts smooth 4K with DLSS Quality on your current part list.</div>
+      <div class="perf-tag"><i class="fas fa-brain"></i> Trained on 2.4M real benchmarks</div>
+    </div>
+  </div>
+
+  <div class="sec-title">Trending Community Builds <span class="sec-link">Explore</span></div>
+  <div class="trend-row">
+    <div class="tb">
+      <img src="https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=600&q=80" alt="">
+      <div class="tb-ovl"></div>
+      <div class="tb-body">
+        <div class="tb-name">Titan AI Workstation</div>
+        <div class="tb-meta">
+          <span class="tb-price">$3,280</span>
+          <div class="tb-users">
+            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80" alt="">
+            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80" alt="">
+            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80" alt="">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tb">
+      <img src="https://images.unsplash.com/photo-1547082299-de196ea013d6?w=600&q=80" alt="">
+      <div class="tb-ovl"></div>
+      <div class="tb-body">
+        <div class="tb-name">Nano ITX Stealth</div>
+        <div class="tb-meta">
+          <span class="tb-price">$1,140</span>
+          <div class="tb-users">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80" alt="">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80" alt="">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item active"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-screwdriver-wrench"></i><span>Builder</span></div>
+    <div class="tab-fab"><i class="fas fa-bolt"></i></div>
+    <div class="tab-item"><i class="fas fa-store"></i><span>Market</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BuildSage — Price Intelligence</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0D14; color:#fff; scrollbar-width:none; }
+
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; background:#0A0D14; padding-bottom:110px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:10px 28px 16px; display:flex; align-items:center; justify-content:space-between; }
+  .h-eyebrow { font-size:11px; font-weight:800; color:#34D399; letter-spacing:1.5px; text-transform:uppercase; display:flex; align-items:center; gap:7px; }
+  .h-title { font-size:24px; font-weight:900; letter-spacing:-0.5px; margin-top:5px; }
+  .h-btn { width:46px; height:46px; border-radius:15px; background:#141927; border:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; justify-content:center; }
+  .h-btn i { font-size:16px; color:#9AA5BC; }
+
+  /* Chart card */
+  .chart-card { margin:0 28px; background:#141927; border:1px solid rgba(255,255,255,0.06); border-radius:26px; padding:18px 20px 14px; }
+  .cc-top { display:flex; align-items:center; gap:12px; }
+  .cc-img { width:44px; height:44px; border-radius:13px; object-fit:cover; }
+  .cc-name { font-size:14px; font-weight:800; }
+  .cc-sub { font-size:10px; color:#76819A; font-weight:600; margin-top:2px; }
+  .cc-right { margin-left:auto; text-align:right; }
+  .cc-price { font-size:22px; font-weight:900; letter-spacing:-0.5px; }
+  .cc-delta { font-size:11px; font-weight:800; color:#34D399; }
+  .chart { margin-top:14px; position:relative; }
+  .range { display:flex; gap:7px; margin-top:12px; }
+  .rng { flex:1; text-align:center; font-size:11px; font-weight:800; padding:8px 0; border-radius:11px; color:#76819A; background:#0E1320; }
+  .rng.active { background:rgba(34,211,238,0.14); color:#22D3EE; border:1px solid rgba(34,211,238,0.35); }
+
+  /* AI verdict */
+  .verdict { margin:14px 28px 0; border-radius:24px; padding:18px 20px; background:linear-gradient(135deg,#0F2E26,#0C1F1B); border:1px solid rgba(52,211,153,0.35); display:flex; gap:14px; }
+  .vd-ic { width:52px; height:52px; border-radius:17px; background:rgba(52,211,153,0.16); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .vd-ic i { font-size:21px; color:#34D399; }
+  .vd-tag { font-size:10px; font-weight:900; letter-spacing:1.2px; color:#34D399; }
+  .vd-t { font-size:16px; font-weight:900; margin-top:3px; letter-spacing:-0.3px; }
+  .vd-s { font-size:11px; color:#9AA5BC; font-weight:600; margin-top:4px; line-height:1.5; }
+
+  .sec-title { padding:24px 28px 14px; font-size:16px; font-weight:800; display:flex; justify-content:space-between; align-items:center; letter-spacing:-0.2px; }
+  .sec-link { font-size:12px; color:#22D3EE; font-weight:700; }
+
+  /* Watchlist */
+  .watch { padding:0 28px; display:flex; flex-direction:column; gap:11px; }
+  .w-item { background:#141927; border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:14px 16px; display:flex; align-items:center; gap:13px; }
+  .w-ic { width:42px; height:42px; border-radius:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .w-ic i { font-size:16px; }
+  .w-name { font-size:13px; font-weight:800; letter-spacing:-0.2px; }
+  .w-sub { font-size:10px; font-weight:700; margin-top:3px; display:flex; align-items:center; gap:5px; }
+  .w-sub .dot { width:6px; height:6px; border-radius:50%; }
+  .w-spark { width:74px; height:30px; flex-shrink:0; margin-left:auto; }
+  .w-right { text-align:right; flex-shrink:0; width:70px; }
+  .w-price { font-size:15px; font-weight:900; }
+  .w-delta { font-size:11px; font-weight:800; margin-top:2px; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(10,13,20,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:52px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.35); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.35); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#22D3EE; }
+  .tab-fab { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#22D3EE,#8B5CF6); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(34,211,238,0.35); }
+  .tab-fab i { font-size:22px; color:#0A0D14; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="h-eyebrow"><i class="fas fa-chart-line"></i> Price Intelligence</div>
+      <div class="h-title">Buy at the right time</div>
+    </div>
+    <div class="h-btn"><i class="fas fa-sliders"></i></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="cc-top">
+      <img class="cc-img" src="https://images.unsplash.com/photo-1591488320449-011701bb6704?w=300&q=80" alt="">
+      <div>
+        <div class="cc-name">RTX 5070 Ti 16GB</div>
+        <div class="cc-sub">Tracking 14 retailers · 90 days</div>
+      </div>
+      <div class="cc-right">
+        <div class="cc-price">$749</div>
+        <div class="cc-delta"><i class="fas fa-arrow-down"></i> 9.7% / 30d</div>
+      </div>
+    </div>
+    <div class="chart">
+      <svg width="100%" height="120" viewBox="0 0 360 120" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#22D3EE" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#8B5CF6"/><stop offset="100%" stop-color="#22D3EE"/>
+          </linearGradient>
+        </defs>
+        <path d="M0,52 C30,46 50,38 80,40 C105,42 118,28 140,24 C158,21 170,34 190,52 C210,70 224,78 248,74 C272,70 288,84 312,92 C334,99 348,96 360,94 L360,120 L0,120 Z" fill="url(#area)"/>
+        <path d="M0,52 C30,46 50,38 80,40 C105,42 118,28 140,24 C158,21 170,34 190,52 C210,70 224,78 248,74 C272,70 288,84 312,92 C334,99 348,96 360,94" fill="none" stroke="url(#line)" stroke-width="3" stroke-linecap="round"/>
+        <line x1="288" y1="8" x2="288" y2="112" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="4 4"/>
+        <circle cx="360" cy="94" r="5" fill="#22D3EE"/>
+        <circle cx="140" cy="24" r="4" fill="#F87171"/>
+      </svg>
+      <div style="position:absolute; top:6px; left:118px; font-size:9px; font-weight:800; color:#F87171; background:rgba(248,113,113,0.12); padding:3px 8px; border-radius:7px;">SPIKE $829</div>
+      <div style="position:absolute; bottom:34px; right:0; font-size:9px; font-weight:800; color:#22D3EE; background:rgba(34,211,238,0.12); padding:3px 8px; border-radius:7px;">NOW</div>
+    </div>
+    <div class="range">
+      <div class="rng">7D</div>
+      <div class="rng">30D</div>
+      <div class="rng active">90D</div>
+      <div class="rng">1Y</div>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <div class="vd-ic"><i class="fas fa-hand"></i></div>
+    <div>
+      <div class="vd-tag">AI VERDICT · WAIT</div>
+      <div class="vd-t">Drop to ~$689 likely in 3 weeks</div>
+      <div class="vd-s">Forecast model sees a 81% chance of a post-launch markdown. We'll alert you the moment it dips.</div>
+    </div>
+  </div>
+
+  <div class="sec-title">Your Watchlist <span class="sec-link">+ Add part</span></div>
+  <div class="watch">
+    <div class="w-item">
+      <div class="w-ic" style="background:rgba(248,113,113,0.12)"><i class="fas fa-memory" style="color:#F87171"></i></div>
+      <div>
+        <div class="w-name">32GB DDR5-6000</div>
+        <div class="w-sub" style="color:#F87171"><span class="dot" style="background:#F87171"></span> Spiking — hold off</div>
+      </div>
+      <svg class="w-spark" viewBox="0 0 74 30"><path d="M0,22 L12,20 L24,21 L36,16 L48,12 L60,8 L74,4" fill="none" stroke="#F87171" stroke-width="2.5" stroke-linecap="round"/></svg>
+      <div class="w-right">
+        <div class="w-price">$129</div>
+        <div class="w-delta" style="color:#F87171">+6.8%</div>
+      </div>
+    </div>
+
+    <div class="w-item">
+      <div class="w-ic" style="background:rgba(52,211,153,0.12)"><i class="fas fa-hard-drive" style="color:#34D399"></i></div>
+      <div>
+        <div class="w-name">2TB NVMe Gen5</div>
+        <div class="w-sub" style="color:#34D399"><span class="dot" style="background:#34D399"></span> Buy window open</div>
+      </div>
+      <svg class="w-spark" viewBox="0 0 74 30"><path d="M0,8 L12,10 L24,9 L36,14 L48,18 L60,22 L74,25" fill="none" stroke="#34D399" stroke-width="2.5" stroke-linecap="round"/></svg>
+      <div class="w-right">
+        <div class="w-price">$179</div>
+        <div class="w-delta" style="color:#34D399">-4.1%</div>
+      </div>
+    </div>
+
+    <div class="w-item">
+      <div class="w-ic" style="background:rgba(34,211,238,0.12)"><i class="fas fa-microchip" style="color:#22D3EE"></i></div>
+      <div>
+        <div class="w-name">Ryzen 7 9800X3D</div>
+        <div class="w-sub" style="color:#FBBF24"><span class="dot" style="background:#FBBF24"></span> Stable — fair price</div>
+      </div>
+      <svg class="w-spark" viewBox="0 0 74 30"><path d="M0,15 L12,14 L24,16 L36,15 L48,13 L60,15 L74,14" fill="none" stroke="#FBBF24" stroke-width="2.5" stroke-linecap="round"/></svg>
+      <div class="w-right">
+        <div class="w-price">$479</div>
+        <div class="w-delta" style="color:#9AA5BC">+0.2%</div>
+      </div>
+    </div>
+
+    <div class="w-item">
+      <div class="w-ic" style="background:rgba(167,139,250,0.12)"><i class="fas fa-fan" style="color:#A78BFA"></i></div>
+      <div>
+        <div class="w-name">360mm AIO Cooler</div>
+        <div class="w-sub" style="color:#34D399"><span class="dot" style="background:#34D399"></span> 30-day low — buy now</div>
+      </div>
+      <svg class="w-spark" viewBox="0 0 74 30"><path d="M0,6 L12,9 L24,12 L36,11 L48,16 L60,21 L74,26" fill="none" stroke="#34D399" stroke-width="2.5" stroke-linecap="round"/></svg>
+      <div class="w-right">
+        <div class="w-price">$149</div>
+        <div class="w-delta" style="color:#34D399">-11.3%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-screwdriver-wrench"></i><span>Builder</span></div>
+    <div class="tab-fab"><i class="fas fa-bolt"></i></div>
+    <div class="tab-item"><i class="fas fa-store"></i><span>Market</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>

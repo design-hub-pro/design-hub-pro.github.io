@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BuildSage — Builder</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0D14; color:#fff; scrollbar-width:none; }
+
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; background:#0A0D14; padding-bottom:200px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:10px 28px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .h-title { font-size:24px; font-weight:900; letter-spacing:-0.5px; }
+  .h-sub { font-size:12px; color:#76819A; font-weight:600; margin-top:3px; }
+  .h-btn { width:46px; height:46px; border-radius:15px; background:#141927; border:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; justify-content:center; }
+  .h-btn i { font-size:16px; color:#9AA5BC; }
+
+  /* Compatibility banner */
+  .compat { margin:0 28px 16px; border-radius:18px; padding:14px 16px; background:rgba(52,211,153,0.1); border:1px solid rgba(52,211,153,0.35); display:flex; align-items:center; gap:12px; }
+  .compat-ic { width:36px; height:36px; border-radius:12px; background:rgba(52,211,153,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .compat-ic i { font-size:15px; color:#34D399; }
+  .compat-t { font-size:13px; font-weight:800; color:#34D399; }
+  .compat-s { font-size:11px; color:#76819A; font-weight:600; margin-top:2px; }
+  .compat-w { margin-left:auto; text-align:right; }
+  .compat-wv { font-size:16px; font-weight:900; color:#34D399; }
+  .compat-wl { font-size:9px; color:#76819A; font-weight:700; text-transform:uppercase; }
+
+  /* Component slots */
+  .slots { padding:0 28px; display:flex; flex-direction:column; gap:11px; }
+  .slot { background:#141927; border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:14px; display:flex; align-items:center; gap:13px; position:relative; }
+  .slot.warn { border-color:rgba(251,191,36,0.4); }
+  .slot.empty { border-style:dashed; border-color:rgba(255,255,255,0.16); }
+  .slot-ic { width:48px; height:48px; border-radius:15px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .slot-ic i { font-size:19px; }
+  .slot-cat { font-size:9px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#76819A; }
+  .slot-name { font-size:14px; font-weight:800; margin-top:3px; letter-spacing:-0.2px; }
+  .slot-meta { font-size:10px; color:#76819A; font-weight:600; margin-top:3px; display:flex; align-items:center; gap:6px; }
+  .ai-badge { display:inline-flex; align-items:center; gap:4px; font-size:9px; font-weight:800; color:#A78BFA; background:rgba(139,92,246,0.15); padding:3px 7px; border-radius:7px; }
+  .spike { display:inline-flex; align-items:center; gap:4px; font-size:9px; font-weight:800; color:#FBBF24; background:rgba(251,191,36,0.13); padding:3px 7px; border-radius:7px; }
+  .slot-right { margin-left:auto; text-align:right; flex-shrink:0; }
+  .slot-price { font-size:16px; font-weight:900; color:#22D3EE; }
+  .slot-swap { font-size:10px; color:#76819A; font-weight:700; margin-top:4px; }
+  .slot-swap i { font-size:9px; }
+  .sdot { width:8px; height:8px; border-radius:50%; position:absolute; top:14px; right:14px; }
+  .empty-add { width:48px; height:48px; border-radius:15px; background:rgba(34,211,238,0.1); border:1px dashed rgba(34,211,238,0.5); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .empty-add i { font-size:17px; color:#22D3EE; }
+
+  /* Bottom summary */
+  .summary { position:absolute; bottom:92px; left:0; right:0; padding:16px 28px; background:rgba(13,17,26,0.97); backdrop-filter:blur(20px); border-top:0.5px solid rgba(255,255,255,0.08); }
+  .sum-row { display:flex; align-items:center; justify-content:space-between; }
+  .sum-l { font-size:10px; color:#76819A; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; }
+  .sum-v { font-size:28px; font-weight:900; letter-spacing:-1px; margin-top:2px; }
+  .sum-v span { font-size:13px; color:#76819A; font-weight:700; }
+  .sum-cta { background:linear-gradient(135deg,#22D3EE,#8B5CF6); color:#0A0D14; font-size:13px; font-weight:900; padding:15px 22px; border-radius:17px; display:flex; align-items:center; gap:8px; box-shadow:0 8px 24px rgba(34,211,238,0.3); }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(10,13,20,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:52px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.35); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.35); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#22D3EE; }
+  .tab-fab { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#22D3EE,#8B5CF6); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(34,211,238,0.35); }
+  .tab-fab i { font-size:22px; color:#0A0D14; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="h-title">Aurora X</div>
+      <div class="h-sub">4K Gaming · 7 of 8 parts picked</div>
+    </div>
+    <div class="h-btn"><i class="fas fa-rotate"></i></div>
+  </div>
+
+  <div class="compat">
+    <div class="compat-ic"><i class="fas fa-circle-check"></i></div>
+    <div>
+      <div class="compat-t">All parts compatible</div>
+      <div class="compat-s">Socket AM5 · PCIe 5.0 · Fits NZXT H7</div>
+    </div>
+    <div class="compat-w">
+      <div class="compat-wv">642W</div>
+      <div class="compat-wl">of 850W PSU</div>
+    </div>
+  </div>
+
+  <div class="slots">
+    <div class="slot">
+      <div class="sdot" style="background:#34D399"></div>
+      <div class="slot-ic" style="background:rgba(34,211,238,0.12)"><i class="fas fa-microchip" style="color:#22D3EE"></i></div>
+      <div>
+        <div class="slot-cat">CPU</div>
+        <div class="slot-name">AMD Ryzen 7 9800X3D</div>
+        <div class="slot-meta">8C/16T · 5.2GHz <span class="ai-badge"><i class="fas fa-wand-magic-sparkles"></i> AI PICK</span></div>
+      </div>
+      <div class="slot-right">
+        <div class="slot-price">$479</div>
+        <div class="slot-swap">Swap <i class="fas fa-chevron-right"></i></div>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="sdot" style="background:#34D399"></div>
+      <div class="slot-ic" style="background:rgba(139,92,246,0.12)"><i class="fas fa-tv" style="color:#A78BFA"></i></div>
+      <div>
+        <div class="slot-cat">GPU</div>
+        <div class="slot-name">RTX 5070 Ti 16GB</div>
+        <div class="slot-meta">300W TDP <span class="ai-badge"><i class="fas fa-wand-magic-sparkles"></i> AI PICK</span></div>
+      </div>
+      <div class="slot-right">
+        <div class="slot-price">$749</div>
+        <div class="slot-swap">Swap <i class="fas fa-chevron-right"></i></div>
+      </div>
+    </div>
+
+    <div class="slot warn">
+      <div class="sdot" style="background:#FBBF24"></div>
+      <div class="slot-ic" style="background:rgba(251,191,36,0.12)"><i class="fas fa-memory" style="color:#FBBF24"></i></div>
+      <div>
+        <div class="slot-cat">Memory</div>
+        <div class="slot-name">32GB DDR5-6000 CL30</div>
+        <div class="slot-meta"><span class="spike"><i class="fas fa-arrow-trend-up"></i> PRICE SPIKE +6.8% — WAIT</span></div>
+      </div>
+      <div class="slot-right">
+        <div class="slot-price">$129</div>
+        <div class="slot-swap">Swap <i class="fas fa-chevron-right"></i></div>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="sdot" style="background:#34D399"></div>
+      <div class="slot-ic" style="background:rgba(52,211,153,0.12)"><i class="fas fa-server" style="color:#34D399"></i></div>
+      <div>
+        <div class="slot-cat">Motherboard</div>
+        <div class="slot-name">B850 Tomahawk WiFi</div>
+        <div class="slot-meta">AM5 · ATX · PCIe 5.0</div>
+      </div>
+      <div class="slot-right">
+        <div class="slot-price">$219</div>
+        <div class="slot-swap">Swap <i class="fas fa-chevron-right"></i></div>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="sdot" style="background:#34D399"></div>
+      <div class="slot-ic" style="background:rgba(96,165,250,0.12)"><i class="fas fa-hard-drive" style="color:#60A5FA"></i></div>
+      <div>
+        <div class="slot-cat">Storage</div>
+        <div class="slot-name">2TB NVMe Gen5 SSD</div>
+        <div class="slot-meta">12,400 MB/s read <span class="ai-badge"><i class="fas fa-wand-magic-sparkles"></i> AI PICK</span></div>
+      </div>
+      <div class="slot-right">
+        <div class="slot-price">$179</div>
+        <div class="slot-swap">Swap <i class="fas fa-chevron-right"></i></div>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="sdot" style="background:#34D399"></div>
+      <div class="slot-ic" style="background:rgba(248,113,113,0.12)"><i class="fas fa-plug" style="color:#F87171"></i></div>
+      <div>
+        <div class="slot-cat">Power Supply</div>
+        <div class="slot-name">850W 80+ Gold ATX 3.1</div>
+        <div class="slot-meta">Fully modular · 10yr warranty</div>
+      </div>
+      <div class="slot-right">
+        <div class="slot-price">$139</div>
+        <div class="slot-swap">Swap <i class="fas fa-chevron-right"></i></div>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="sdot" style="background:#34D399"></div>
+      <div class="slot-ic" style="background:rgba(167,139,250,0.12)"><i class="fas fa-fan" style="color:#A78BFA"></i></div>
+      <div>
+        <div class="slot-cat">Cooling</div>
+        <div class="slot-name">360mm AIO Liquid Cooler</div>
+        <div class="slot-meta">Fits case top mount</div>
+      </div>
+      <div class="slot-right">
+        <div class="slot-price">$149</div>
+        <div class="slot-swap">Swap <i class="fas fa-chevron-right"></i></div>
+      </div>
+    </div>
+
+    <div class="slot empty">
+      <div class="empty-add"><i class="fas fa-plus"></i></div>
+      <div>
+        <div class="slot-cat">Case</div>
+        <div class="slot-name" style="color:#76819A">Choose a case</div>
+        <div class="slot-meta">3 AI suggestions ready</div>
+      </div>
+      <div class="slot-right">
+        <div class="slot-swap" style="color:#22D3EE">Pick <i class="fas fa-chevron-right"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="summary">
+    <div class="sum-row">
+      <div>
+        <div class="sum-l">Build Total</div>
+        <div class="sum-v">$1,842 <span>· 18,420 pts</span></div>
+      </div>
+      <div class="sum-cta"><i class="fas fa-bolt"></i> Predict Score</div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item active"><i class="fas fa-screwdriver-wrench"></i><span>Builder</span></div>
+    <div class="tab-fab"><i class="fas fa-bolt"></i></div>
+    <div class="tab-item"><i class="fas fa-store"></i><span>Market</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>

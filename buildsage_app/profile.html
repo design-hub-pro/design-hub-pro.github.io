@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BuildSage — Profile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0D14; color:#fff; scrollbar-width:none; }
+
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; background:#0A0D14; padding-bottom:110px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  /* Profile head */
+  .phead { padding:14px 28px 0; display:flex; align-items:center; gap:16px; }
+  .pava { width:84px; height:84px; border-radius:28px; object-fit:cover; border:3px solid #22D3EE; box-shadow:0 8px 28px rgba(34,211,238,0.3); }
+  .pname { font-size:22px; font-weight:900; letter-spacing:-0.4px; }
+  .plvl { display:inline-flex; align-items:center; gap:6px; margin-top:6px; background:linear-gradient(135deg,#22D3EE,#8B5CF6); color:#0A0D14; font-size:10px; font-weight:900; letter-spacing:0.6px; padding:6px 12px; border-radius:11px; }
+  .pxp { font-size:11px; color:#76819A; font-weight:600; margin-top:6px; }
+
+  /* Stats */
+  .stats { display:flex; gap:11px; padding:20px 28px 0; }
+  .stat { flex:1; background:#141927; border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:15px 8px; text-align:center; }
+  .stat-v { font-size:25px; font-weight:900; letter-spacing:-1px; }
+  .stat-l { font-size:9px; color:#76819A; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-top:3px; }
+
+  .sec-title { padding:24px 28px 14px; font-size:16px; font-weight:800; display:flex; justify-content:space-between; align-items:center; letter-spacing:-0.2px; }
+  .sec-link { font-size:12px; color:#22D3EE; font-weight:700; }
+
+  /* Saved builds carousel */
+  .builds { display:flex; gap:13px; padding:0 28px; overflow-x:auto; }
+  .bld { flex-shrink:0; width:215px; border-radius:22px; overflow:hidden; position:relative; height:140px; }
+  .bld img { width:100%; height:100%; object-fit:cover; }
+  .bld-ovl { position:absolute; inset:0; background:linear-gradient(180deg, transparent 25%, rgba(10,13,20,0.95)); }
+  .bld-tag { position:absolute; top:10px; left:10px; font-size:8.5px; font-weight:900; padding:5px 9px; border-radius:8px; backdrop-filter:blur(6px); }
+  .bld-body { position:absolute; left:13px; right:13px; bottom:11px; }
+  .bld-n { font-size:14px; font-weight:900; }
+  .bld-m { font-size:10px; color:#9AA5BC; font-weight:700; margin-top:3px; display:flex; justify-content:space-between; }
+  .bld-m b { color:#22D3EE; }
+
+  /* Accuracy card */
+  .acc { margin:0 28px; border-radius:24px; padding:18px 20px; background:linear-gradient(135deg,#231A3D,#161226); border:1px solid rgba(139,92,246,0.3); display:flex; align-items:center; gap:16px; }
+  .acc-ring { position:relative; width:72px; height:72px; flex-shrink:0; }
+  .acc-ring svg { transform:rotate(-90deg); }
+  .ar-bg { fill:none; stroke:rgba(255,255,255,0.08); stroke-width:7; }
+  .ar-val { fill:none; stroke:#A78BFA; stroke-width:7; stroke-linecap:round; stroke-dasharray:201; stroke-dashoffset:6; }
+  .ar-c { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:900; color:#A78BFA; }
+  .acc-t { font-size:14px; font-weight:800; }
+  .acc-s { font-size:11px; color:#9AA5BC; font-weight:600; margin-top:4px; line-height:1.5; }
+
+  /* Menu */
+  .menu { padding:0 28px; display:flex; flex-direction:column; gap:10px; }
+  .mi { background:#141927; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:14px 16px; display:flex; align-items:center; gap:13px; }
+  .mi-ic { width:40px; height:40px; border-radius:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .mi-ic i { font-size:15px; color:#fff; }
+  .mi-t { font-size:13.5px; font-weight:700; }
+  .mi-s { font-size:10px; color:#76819A; font-weight:600; margin-top:2px; }
+  .mi-r { margin-left:auto; display:flex; align-items:center; gap:9px; }
+  .mi-badge { background:rgba(34,211,238,0.13); color:#22D3EE; font-size:10px; font-weight:800; padding:4px 9px; border-radius:9px; }
+  .mi-r i { font-size:12px; color:#5A6478; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(10,13,20,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:52px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.35); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.35); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#22D3EE; }
+  .tab-fab { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#22D3EE,#8B5CF6); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(34,211,238,0.35); }
+  .tab-fab i { font-size:22px; color:#0A0D14; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="phead">
+    <img class="pava" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&q=80" alt="">
+    <div>
+      <div class="pname">Devon Park</div>
+      <div class="plvl"><i class="fas fa-trophy"></i> MASTER BUILDER · LV 7</div>
+      <div class="pxp">2,840 XP · 460 to next level</div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-v" style="color:#22D3EE">12</div><div class="stat-l">Builds</div></div>
+    <div class="stat"><div class="stat-v" style="color:#34D399">$642</div><div class="stat-l">Saved</div></div>
+    <div class="stat"><div class="stat-v" style="color:#A78BFA">9</div><div class="stat-l">Orders</div></div>
+    <div class="stat"><div class="stat-v" style="color:#FBBF24">4.9</div><div class="stat-l">Rating</div></div>
+  </div>
+
+  <div class="sec-title">My Builds <span class="sec-link">See all</span></div>
+  <div class="builds">
+    <div class="bld">
+      <img src="https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=500&q=80" alt="">
+      <div class="bld-ovl"></div>
+      <div class="bld-tag" style="background:rgba(52,211,153,0.85); color:#0A0D14">IN PROGRESS</div>
+      <div class="bld-body">
+        <div class="bld-n">Aurora X</div>
+        <div class="bld-m"><span>4K Gaming</span><b>$1,842</b></div>
+      </div>
+    </div>
+    <div class="bld">
+      <img src="https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=500&q=80" alt="">
+      <div class="bld-ovl"></div>
+      <div class="bld-tag" style="background:rgba(34,211,238,0.85); color:#0A0D14">COMPLETED</div>
+      <div class="bld-body">
+        <div class="bld-n">Titan ML Rig</div>
+        <div class="bld-m"><span>AI Workstation</span><b>$3,280</b></div>
+      </div>
+    </div>
+    <div class="bld">
+      <img src="https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=500&q=80" alt="">
+      <div class="bld-ovl"></div>
+      <div class="bld-tag" style="background:rgba(139,92,246,0.85); color:#fff">SAVED</div>
+      <div class="bld-body">
+        <div class="bld-n">Stealth ITX</div>
+        <div class="bld-m"><span>Compact</span><b>$1,140</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-title">Prediction Accuracy</div>
+  <div class="acc">
+    <div class="acc-ring">
+      <svg width="72" height="72">
+        <circle class="ar-bg" cx="36" cy="36" r="32"/>
+        <circle class="ar-val" cx="36" cy="36" r="32"/>
+      </svg>
+      <div class="ar-c">97%</div>
+    </div>
+    <div>
+      <div class="acc-t">Your benchmarks vs. our predictions</div>
+      <div class="acc-s">Titan ML Rig scored 28,140 — model predicted 28,690. Your runs help retrain the model.</div>
+    </div>
+  </div>
+
+  <div class="sec-title">Account</div>
+  <div class="menu">
+    <div class="mi">
+      <div class="mi-ic" style="background:linear-gradient(135deg,#22D3EE,#0891B2)"><i class="fas fa-box"></i></div>
+      <div>
+        <div class="mi-t">Orders & Tracking</div>
+        <div class="mi-s">1 shipment in transit</div>
+      </div>
+      <div class="mi-r"><span class="mi-badge">1 ACTIVE</span><i class="fas fa-chevron-right"></i></div>
+    </div>
+    <div class="mi">
+      <div class="mi-ic" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-bell"></i></div>
+      <div>
+        <div class="mi-t">Price Alerts</div>
+        <div class="mi-s">4 parts on watchlist</div>
+      </div>
+      <div class="mi-r"><i class="fas fa-chevron-right"></i></div>
+    </div>
+    <div class="mi">
+      <div class="mi-ic" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9)"><i class="fas fa-chart-column"></i></div>
+      <div>
+        <div class="mi-t">My Benchmark Runs</div>
+        <div class="mi-s">Upload results · earn XP</div>
+      </div>
+      <div class="mi-r"><i class="fas fa-chevron-right"></i></div>
+    </div>
+    <div class="mi">
+      <div class="mi-ic" style="background:linear-gradient(135deg,#F59E0B,#D97706)"><i class="fas fa-gear"></i></div>
+      <div>
+        <div class="mi-t">Settings</div>
+        <div class="mi-s">Currency, region, notifications</div>
+      </div>
+      <div class="mi-r"><i class="fas fa-chevron-right"></i></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-screwdriver-wrench"></i><span>Builder</span></div>
+    <div class="tab-fab"><i class="fas fa-bolt"></i></div>
+    <div class="tab-item"><i class="fas fa-store"></i><span>Market</span></div>
+    <div class="tab-item active"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>

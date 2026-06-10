@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BuildSage — Marketplace</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0D14; color:#fff; scrollbar-width:none; }
+
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; background:#0A0D14; padding-bottom:110px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:10px 28px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .h-title { font-size:24px; font-weight:900; letter-spacing:-0.5px; }
+  .cart { width:46px; height:46px; border-radius:15px; background:#141927; border:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; justify-content:center; position:relative; }
+  .cart i { font-size:16px; color:#9AA5BC; }
+  .cart .n { position:absolute; top:-5px; right:-5px; min-width:20px; height:20px; border-radius:10px; background:linear-gradient(135deg,#22D3EE,#8B5CF6); color:#0A0D14; font-size:10px; font-weight:900; display:flex; align-items:center; justify-content:center; }
+
+  .search { margin:0 28px 14px; background:#141927; border:1px solid rgba(255,255,255,0.07); border-radius:17px; padding:14px 16px; display:flex; align-items:center; gap:11px; }
+  .search i { font-size:14px; color:#76819A; }
+  .search span { font-size:13px; color:#76819A; font-weight:600; }
+
+  /* Order tracking */
+  .order { margin:0 28px 16px; border-radius:24px; padding:17px 18px; background:linear-gradient(135deg,#102A33,#0D1B26); border:1px solid rgba(34,211,238,0.25); }
+  .ord-top { display:flex; align-items:center; gap:12px; }
+  .ord-ic { width:42px; height:42px; border-radius:14px; background:rgba(34,211,238,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .ord-ic i { font-size:17px; color:#22D3EE; }
+  .ord-t { font-size:13px; font-weight:800; }
+  .ord-s { font-size:10.5px; color:#76819A; font-weight:600; margin-top:2px; }
+  .ord-eta { margin-left:auto; text-align:right; }
+  .ord-ev { font-size:14px; font-weight:900; color:#22D3EE; }
+  .ord-el { font-size:9px; color:#76819A; font-weight:700; text-transform:uppercase; }
+  .steps { display:flex; align-items:center; margin-top:15px; }
+  .step { display:flex; flex-direction:column; align-items:center; gap:6px; width:54px; }
+  .step-dot { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; }
+  .step-dot.done { background:#22D3EE; color:#0A0D14; }
+  .step-dot.now { background:rgba(34,211,238,0.18); border:2px solid #22D3EE; color:#22D3EE; }
+  .step-dot.todo { background:rgba(255,255,255,0.07); color:#5A6478; }
+  .step span { font-size:8px; font-weight:700; color:#76819A; text-transform:uppercase; letter-spacing:0.3px; }
+  .step-line { flex:1; height:3px; border-radius:3px; margin:0 2px 18px; }
+  .sl-done { background:#22D3EE; }
+  .sl-todo { background:rgba(255,255,255,0.08); }
+
+  /* Category chips */
+  .chips { display:flex; gap:9px; padding:0 28px 16px; overflow-x:auto; }
+  .chip { flex-shrink:0; padding:10px 16px; border-radius:14px; font-size:12px; font-weight:800; background:#141927; border:1px solid rgba(255,255,255,0.07); color:#9AA5BC; }
+  .chip.active { background:linear-gradient(135deg,#22D3EE,#8B5CF6); color:#0A0D14; border-color:transparent; }
+
+  /* Product grid */
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:13px; padding:0 28px; }
+  .prod { background:#141927; border:1px solid rgba(255,255,255,0.06); border-radius:22px; overflow:hidden; }
+  .prod-img { height:108px; position:relative; }
+  .prod-img img { width:100%; height:100%; object-fit:cover; }
+  .ship-badge { position:absolute; top:9px; left:9px; background:rgba(10,13,20,0.82); backdrop-filter:blur(6px); font-size:8.5px; font-weight:800; padding:5px 8px; border-radius:9px; display:flex; align-items:center; gap:4px; color:#34D399; }
+  .deal-badge { position:absolute; top:9px; right:9px; background:linear-gradient(135deg,#F87171,#EF4444); color:#fff; font-size:8.5px; font-weight:900; padding:5px 8px; border-radius:9px; }
+  .prod-body { padding:12px 13px 14px; }
+  .prod-name { font-size:12.5px; font-weight:800; letter-spacing:-0.2px; line-height:1.3; }
+  .prod-sup { display:flex; align-items:center; gap:5px; margin-top:6px; }
+  .prod-sup .dot { width:6px; height:6px; border-radius:50%; background:#34D399; }
+  .prod-sup span { font-size:9.5px; color:#76819A; font-weight:700; }
+  .prod-row { display:flex; justify-content:space-between; align-items:center; margin-top:9px; }
+  .prod-price { font-size:16px; font-weight:900; color:#22D3EE; }
+  .prod-price s { font-size:10px; color:#5A6478; font-weight:600; }
+  .buy { width:30px; height:30px; border-radius:11px; background:linear-gradient(135deg,#22D3EE,#8B5CF6); display:flex; align-items:center; justify-content:center; }
+  .buy i { font-size:11px; color:#0A0D14; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(10,13,20,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:52px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.35); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.35); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#22D3EE; }
+  .tab-fab { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#22D3EE,#8B5CF6); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(34,211,238,0.35); }
+  .tab-fab i { font-size:22px; color:#0A0D14; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div class="h-title">Marketplace</div>
+    <div class="cart"><i class="fas fa-cart-shopping"></i><div class="n">3</div></div>
+  </div>
+
+  <div class="search">
+    <i class="fas fa-magnifying-glass"></i>
+    <span>Search 48,000+ parts…</span>
+  </div>
+
+  <div class="order">
+    <div class="ord-top">
+      <div class="ord-ic"><i class="fas fa-truck-fast"></i></div>
+      <div>
+        <div class="ord-t">RTX 5070 Ti — Order #4821</div>
+        <div class="ord-s">Drop-shipped direct from supplier</div>
+      </div>
+      <div class="ord-eta">
+        <div class="ord-ev">Thu</div>
+        <div class="ord-el">Arrives</div>
+      </div>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="step-dot done"><i class="fas fa-check"></i></div><span>Ordered</span></div>
+      <div class="step-line sl-done"></div>
+      <div class="step"><div class="step-dot done"><i class="fas fa-check"></i></div><span>Supplier</span></div>
+      <div class="step-line sl-done"></div>
+      <div class="step"><div class="step-dot now"><i class="fas fa-truck"></i></div><span>Shipped</span></div>
+      <div class="step-line sl-todo"></div>
+      <div class="step"><div class="step-dot todo"><i class="fas fa-house"></i></div><span>Delivered</span></div>
+    </div>
+  </div>
+
+  <div class="chips">
+    <div class="chip active">All</div>
+    <div class="chip">GPU</div>
+    <div class="chip">CPU</div>
+    <div class="chip">Memory</div>
+    <div class="chip">Storage</div>
+    <div class="chip">Cases</div>
+  </div>
+
+  <div class="grid">
+    <div class="prod">
+      <div class="prod-img">
+        <img src="https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400&q=80" alt="">
+        <div class="ship-badge"><i class="fas fa-bolt"></i> 2-DAY</div>
+        <div class="deal-badge">-10%</div>
+      </div>
+      <div class="prod-body">
+        <div class="prod-name">RTX 5070 Ti 16GB OC</div>
+        <div class="prod-sup"><div class="dot"></div><span>TechSource · 4.9 ★</span></div>
+        <div class="prod-row">
+          <div class="prod-price">$749 <s>$829</s></div>
+          <div class="buy"><i class="fas fa-plus"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prod">
+      <div class="prod-img">
+        <img src="https://images.unsplash.com/photo-1555617981-dac3880eac6e?w=400&q=80" alt="">
+        <div class="ship-badge"><i class="fas fa-bolt"></i> 2-DAY</div>
+      </div>
+      <div class="prod-body">
+        <div class="prod-name">Ryzen 7 9800X3D</div>
+        <div class="prod-sup"><div class="dot"></div><span>CoreHub · 4.8 ★</span></div>
+        <div class="prod-row">
+          <div class="prod-price">$479</div>
+          <div class="buy"><i class="fas fa-plus"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prod">
+      <div class="prod-img">
+        <img src="https://images.unsplash.com/photo-1541029071515-84cc54f84dc5?w=400&q=80" alt="">
+        <div class="ship-badge" style="color:#FBBF24"><i class="fas fa-clock"></i> 5-DAY</div>
+        <div class="deal-badge">-18%</div>
+      </div>
+      <div class="prod-body">
+        <div class="prod-name">64GB DDR5-6000 Kit</div>
+        <div class="prod-sup"><div class="dot"></div><span>MemoryDirect · 4.7 ★</span></div>
+        <div class="prod-row">
+          <div class="prod-price">$189 <s>$229</s></div>
+          <div class="buy"><i class="fas fa-plus"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prod">
+      <div class="prod-img">
+        <img src="https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=400&q=80" alt="">
+        <div class="ship-badge"><i class="fas fa-bolt"></i> 2-DAY</div>
+      </div>
+      <div class="prod-body">
+        <div class="prod-name">NZXT H7 Flow RGB</div>
+        <div class="prod-sup"><div class="dot"></div><span>CaseWorld · 4.9 ★</span></div>
+        <div class="prod-row">
+          <div class="prod-price">$129</div>
+          <div class="buy"><i class="fas fa-plus"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prod">
+      <div class="prod-img">
+        <img src="https://images.unsplash.com/photo-1547082299-de196ea013d6?w=400&q=80" alt="">
+        <div class="ship-badge"><i class="fas fa-bolt"></i> 2-DAY</div>
+      </div>
+      <div class="prod-body">
+        <div class="prod-name">B850 Tomahawk WiFi</div>
+        <div class="prod-sup"><div class="dot"></div><span>BoardBase · 4.8 ★</span></div>
+        <div class="prod-row">
+          <div class="prod-price">$219</div>
+          <div class="buy"><i class="fas fa-plus"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prod">
+      <div class="prod-img">
+        <img src="https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=400&q=80" alt="">
+        <div class="ship-badge" style="color:#FBBF24"><i class="fas fa-clock"></i> 4-DAY</div>
+        <div class="deal-badge">-12%</div>
+      </div>
+      <div class="prod-body">
+        <div class="prod-name">2TB NVMe Gen5 SSD</div>
+        <div class="prod-sup"><div class="dot"></div><span>DriveDepot · 4.6 ★</span></div>
+        <div class="prod-row">
+          <div class="prod-price">$179 <s>$205</s></div>
+          <div class="buy"><i class="fas fa-plus"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-screwdriver-wrench"></i><span>Builder</span></div>
+    <div class="tab-fab"><i class="fas fa-bolt"></i></div>
+    <div class="tab-item active"><i class="fas fa-store"></i><span>Market</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>
