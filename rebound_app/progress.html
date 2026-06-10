@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Rebound — Progress</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0B0E13; color:#fff; scrollbar-width:none; }
+
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; background:#0B0E13; padding-bottom:110px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:10px 28px 0; display:flex; justify-content:space-between; align-items:center; }
+  .h-title { font-size:24px; font-weight:900; letter-spacing:-0.6px; }
+  .h-sub { font-size:12px; color:#7A8694; margin-top:2px; }
+  .h-btn { width:42px; height:42px; border-radius:14px; background:#151A21; border:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; }
+  .h-btn i { color:#9AA5B1; font-size:15px; }
+
+  /* RTP readiness */
+  .rtp { margin:18px 28px 0; background:linear-gradient(135deg,#151A21,#10151C); border:1px solid rgba(255,255,255,0.07); border-radius:28px; padding:22px; position:relative; overflow:hidden; }
+  .rtp::before { content:''; position:absolute; left:-60px; top:-60px; width:220px; height:220px; border-radius:50%; background:radial-gradient(circle, rgba(77,159,255,0.12), transparent 70%); }
+  .rtp-lbl { font-size:10px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:#4D9FFF; position:relative; }
+  .rtp-row { display:flex; align-items:flex-end; gap:10px; margin-top:8px; position:relative; }
+  .rtp-pct { font-size:52px; font-weight:900; letter-spacing:-2.5px; line-height:1; background:linear-gradient(135deg,#4D9FFF,#2EE6A8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .rtp-eta { font-size:12px; color:#7A8694; font-weight:600; padding-bottom:6px; }
+  .rtp-track { margin-top:16px; height:10px; background:#222A35; border-radius:10px; overflow:hidden; position:relative; }
+  .rtp-fill { width:64%; height:100%; border-radius:10px; background:linear-gradient(90deg,#4D9FFF,#2EE6A8); }
+  .rtp-marks { display:flex; justify-content:space-between; margin-top:8px; position:relative; }
+  .rtp-marks span { font-size:9px; color:#5A6470; font-weight:700; }
+
+  /* Metric bars */
+  .metrics { margin:16px 28px 0; background:#151A21; border:1px solid rgba(255,255,255,0.06); border-radius:24px; padding:20px; }
+  .m-title { font-size:14px; font-weight:800; margin-bottom:16px; }
+  .metric { margin-bottom:14px; }
+  .metric:last-child { margin-bottom:0; }
+  .m-top { display:flex; justify-content:space-between; align-items:center; }
+  .m-name { font-size:12px; font-weight:700; color:#9AA5B1; display:flex; align-items:center; gap:8px; }
+  .m-name i { font-size:11px; width:16px; text-align:center; }
+  .m-val { font-size:13px; font-weight:900; }
+  .m-bar { height:7px; background:#222A35; border-radius:7px; margin-top:7px; overflow:hidden; }
+  .m-bar div { height:100%; border-radius:7px; }
+
+  .sec-title { padding:22px 28px 12px; font-size:16px; font-weight:800; display:flex; justify-content:space-between; align-items:center; }
+
+  /* Milestones timeline */
+  .miles { margin:0 28px; display:flex; flex-direction:column; }
+  .mile { display:flex; gap:14px; position:relative; padding-bottom:16px; }
+  .mile-line { position:absolute; left:15px; top:34px; bottom:0; width:2px; background:#222A35; }
+  .mile.done .mile-line { background:#2EE6A8; }
+  .mile-dot { width:32px; height:32px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; z-index:1; }
+  .mile.done .mile-dot { background:#2EE6A8; }
+  .mile.done .mile-dot i { color:#0B0E13; font-size:12px; }
+  .mile.now .mile-dot { background:rgba(255,210,61,0.15); border:2px solid #FFD23D; }
+  .mile.now .mile-dot i { color:#FFD23D; font-size:11px; }
+  .mile.next .mile-dot { background:#151A21; border:2px dashed #3A4654; }
+  .mile.next .mile-dot i { color:#5A6470; font-size:11px; }
+  .mile-name { font-size:13px; font-weight:800; padding-top:1px; }
+  .mile.next .mile-name { color:#7A8694; }
+  .mile-date { font-size:11px; color:#7A8694; margin-top:2px; }
+  .mile-badge { margin-left:auto; align-self:flex-start; font-size:9px; font-weight:800; padding:4px 9px; border-radius:8px; }
+
+  .share { margin:8px 28px 0; background:rgba(77,159,255,0.08); border:1px solid rgba(77,159,255,0.3); border-radius:20px; padding:16px; display:flex; align-items:center; gap:13px; }
+  .share-ic { width:40px; height:40px; border-radius:13px; background:linear-gradient(135deg,#4D9FFF,#2563EB); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .share-ic i { color:#fff; font-size:15px; }
+  .share b { font-size:12px; font-weight:800; display:block; }
+  .share p { font-size:10px; color:#7A8694; margin-top:2px; }
+  .share-btn { margin-left:auto; background:#4D9FFF; color:#fff; font-size:11px; font-weight:800; padding:9px 14px; border-radius:12px; flex-shrink:0; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(11,14,19,0.92); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:52px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.35); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.35); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#2EE6A8; }
+  .tab-fab { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#2EE6A8,#19B886); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(46,230,168,0.4); }
+  .tab-fab i { font-size:22px; color:#0B0E13; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="h-title">Progress</div>
+      <div class="h-sub">Right Ankle Sprain · Week 2</div>
+    </div>
+    <div class="h-btn"><i class="fas fa-calendar-week"></i></div>
+  </div>
+
+  <div class="rtp">
+    <div class="rtp-lbl"><i class="fas fa-basketball"></i> Return-to-Play Readiness</div>
+    <div class="rtp-row">
+      <div class="rtp-pct">64%</div>
+      <div class="rtp-eta">est. back on court <b style="color:#fff">Jun 26</b></div>
+    </div>
+    <div class="rtp-track"><div class="rtp-fill"></div></div>
+    <div class="rtp-marks"><span>INJURY</span><span>WALK</span><span>JOG</span><span>DRILLS</span><span>GAME</span></div>
+  </div>
+
+  <div class="metrics">
+    <div class="m-title">Functional scores</div>
+    <div class="metric">
+      <div class="m-top"><span class="m-name"><i class="fas fa-arrows-up-down-left-right" style="color:#2EE6A8"></i> Range of motion</span><span class="m-val" style="color:#2EE6A8">82%</span></div>
+      <div class="m-bar"><div style="width:82%; background:linear-gradient(90deg,#2EE6A8,#19B886)"></div></div>
+    </div>
+    <div class="metric">
+      <div class="m-top"><span class="m-name"><i class="fas fa-dumbbell" style="color:#4D9FFF"></i> Strength vs. left side</span><span class="m-val" style="color:#4D9FFF">61%</span></div>
+      <div class="m-bar"><div style="width:61%; background:linear-gradient(90deg,#4D9FFF,#2563EB)"></div></div>
+    </div>
+    <div class="metric">
+      <div class="m-top"><span class="m-name"><i class="fas fa-scale-balanced" style="color:#A78BFA"></i> Balance & stability</span><span class="m-val" style="color:#A78BFA">58%</span></div>
+      <div class="m-bar"><div style="width:58%; background:linear-gradient(90deg,#A78BFA,#7C3AED)"></div></div>
+    </div>
+    <div class="metric">
+      <div class="m-top"><span class="m-name"><i class="fas fa-heart-pulse" style="color:#FF8A3D"></i> Pain-free movement</span><span class="m-val" style="color:#FF8A3D">74%</span></div>
+      <div class="m-bar"><div style="width:74%; background:linear-gradient(90deg,#FF8A3D,#F4511E)"></div></div>
+    </div>
+  </div>
+
+  <div class="sec-title">Milestones</div>
+  <div class="miles">
+    <div class="mile done">
+      <div class="mile-line"></div>
+      <div class="mile-dot"><i class="fas fa-check"></i></div>
+      <div><div class="mile-name">Swelling under control</div><div class="mile-date">Day 4 · Jun 2</div></div>
+      <div class="mile-badge" style="background:rgba(46,230,168,0.12); color:#2EE6A8">DONE</div>
+    </div>
+    <div class="mile done">
+      <div class="mile-line"></div>
+      <div class="mile-dot"><i class="fas fa-check"></i></div>
+      <div><div class="mile-name">Walking without support</div><div class="mile-date">Day 8 · Jun 6</div></div>
+      <div class="mile-badge" style="background:rgba(46,230,168,0.12); color:#2EE6A8">DONE</div>
+    </div>
+    <div class="mile now">
+      <div class="mile-line"></div>
+      <div class="mile-dot"><i class="fas fa-person-walking"></i></div>
+      <div><div class="mile-name">Full range of motion</div><div class="mile-date">In progress · 82% there</div></div>
+      <div class="mile-badge" style="background:rgba(255,210,61,0.12); color:#FFD23D">ACTIVE</div>
+    </div>
+    <div class="mile next">
+      <div class="mile-line"></div>
+      <div class="mile-dot"><i class="fas fa-person-running"></i></div>
+      <div><div class="mile-name">First light jog</div><div class="mile-date">Est. Jun 15</div></div>
+    </div>
+    <div class="mile next">
+      <div class="mile-dot"><i class="fas fa-basketball"></i></div>
+      <div><div class="mile-name">Cleared for full play</div><div class="mile-date">Est. Jun 26 · clearance test</div></div>
+    </div>
+  </div>
+
+  <div class="share">
+    <div class="share-ic"><i class="fas fa-file-export"></i></div>
+    <div>
+      <b>Share with your physio</b>
+      <p>Export a full recovery report (PDF)</p>
+    </div>
+    <div class="share-btn">Export</div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-clipboard-list"></i><span>Plan</span></div>
+    <div class="tab-fab"><i class="fas fa-plus"></i></div>
+    <div class="tab-item active"><i class="fas fa-chart-line"></i><span>Progress</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>

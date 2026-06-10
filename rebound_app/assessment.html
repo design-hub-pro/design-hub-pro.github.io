@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Rebound — Assessment</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0B0E13; color:#fff; scrollbar-width:none; }
+
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; background:#0B0E13; padding-bottom:40px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .nav { display:flex; align-items:center; justify-content:space-between; padding:10px 28px 4px; }
+  .nav-btn { width:40px; height:40px; border-radius:14px; background:#151A21; border:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; }
+  .nav-btn i { font-size:14px; color:#9AA5B1; }
+  .nav-title { font-size:15px; font-weight:800; }
+
+  .progress-track { margin:14px 28px 0; height:5px; background:#151A21; border-radius:5px; overflow:hidden; }
+  .progress-fill { width:66%; height:100%; border-radius:5px; background:linear-gradient(90deg,#2EE6A8,#19B886); }
+
+  .q-title { padding:22px 28px 0; font-size:22px; font-weight:900; letter-spacing:-0.5px; }
+  .q-sub { padding:4px 28px 0; font-size:12px; color:#7A8694; }
+
+  /* Body map */
+  .body-map { margin:14px 28px 0; background:#151A21; border:1px solid rgba(255,255,255,0.06); border-radius:26px; padding:14px 10px 8px; position:relative; display:flex; justify-content:center; }
+  .body-map svg { height:330px; }
+  .body-fill { fill:#222A35; }
+  .hotspot { fill:rgba(255,255,255,0.25); }
+  .hotspot.hit { fill:#FF5A5F; }
+  .pulse { fill:none; stroke:#FF5A5F; stroke-width:2; opacity:0.7; animation:pulse 1.6s ease-out infinite; transform-origin:center; }
+  @keyframes pulse { 0% { r:9; opacity:0.8; } 100% { r:22; opacity:0; } }
+  .map-tag { position:absolute; right:18px; bottom:88px; background:#FF5A5F; color:#fff; font-size:11px; font-weight:800; padding:7px 12px; border-radius:12px; box-shadow:0 8px 20px rgba(255,90,95,0.35); }
+  .map-flip { position:absolute; top:14px; right:14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); color:#9AA5B1; font-size:10px; font-weight:700; padding:6px 11px; border-radius:10px; display:flex; gap:6px; align-items:center; }
+
+  /* Pain slider */
+  .pain-card { margin:16px 28px 0; background:#151A21; border:1px solid rgba(255,255,255,0.06); border-radius:22px; padding:18px 20px; }
+  .pain-head { display:flex; justify-content:space-between; align-items:center; }
+  .pain-label { font-size:13px; font-weight:700; color:#9AA5B1; }
+  .pain-num { font-size:30px; font-weight:900; color:#FF8A3D; letter-spacing:-1px; }
+  .pain-num span { font-size:13px; color:#7A8694; font-weight:600; }
+  .slider { margin-top:12px; height:10px; border-radius:10px; background:linear-gradient(90deg,#2EE6A8,#FFD23D,#FF8A3D,#FF5A5F); position:relative; }
+  .knob { position:absolute; left:64%; top:50%; transform:translate(-50%,-50%); width:26px; height:26px; border-radius:50%; background:#fff; border:4px solid #FF8A3D; box-shadow:0 4px 14px rgba(0,0,0,0.4); }
+  .slider-ends { display:flex; justify-content:space-between; margin-top:8px; font-size:10px; color:#7A8694; font-weight:600; }
+
+  /* Symptoms */
+  .chips { display:flex; flex-wrap:wrap; gap:10px; padding:14px 28px 0; }
+  .chip { padding:11px 16px; border-radius:16px; background:#151A21; border:1.5px solid rgba(255,255,255,0.06); font-size:12px; font-weight:700; color:#9AA5B1; display:flex; align-items:center; gap:7px; }
+  .chip i { font-size:11px; }
+  .chip.on { background:rgba(46,230,168,0.1); border-color:#2EE6A8; color:#2EE6A8; }
+
+  .cta { margin:24px 28px 0; height:58px; border-radius:20px; background:linear-gradient(135deg,#2EE6A8,#19B886); display:flex; align-items:center; justify-content:center; gap:10px; font-size:16px; font-weight:800; color:#0B0E13; box-shadow:0 12px 32px rgba(46,230,168,0.3); }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="nav">
+    <div class="nav-btn"><i class="fas fa-arrow-left"></i></div>
+    <div class="nav-title">New Assessment</div>
+    <div class="nav-btn"><i class="fas fa-xmark"></i></div>
+  </div>
+  <div class="progress-track"><div class="progress-fill"></div></div>
+
+  <div class="q-title">Where does it hurt?</div>
+  <div class="q-sub">Tap the spot on the body map.</div>
+
+  <div class="body-map">
+    <div class="map-flip"><i class="fas fa-rotate"></i> Back view</div>
+    <svg viewBox="0 0 200 400">
+      <!-- stylized athlete figure -->
+      <circle class="body-fill" cx="100" cy="34" r="22"/>
+      <rect class="body-fill" x="92" y="56" width="16" height="12" rx="5"/>
+      <path class="body-fill" d="M70 70 h60 a14 14 0 0 1 14 14 l-6 78 a12 12 0 0 1 -12 11 h-52 a12 12 0 0 1 -12 -11 l-6 -78 a14 14 0 0 1 14 -14 z"/>
+      <rect class="body-fill" x="44" y="74" width="18" height="92" rx="9"/>
+      <rect class="body-fill" x="138" y="74" width="18" height="92" rx="9"/>
+      <rect class="body-fill" x="42" y="168" width="16" height="40" rx="8"/>
+      <rect class="body-fill" x="142" y="168" width="16" height="40" rx="8"/>
+      <rect class="body-fill" x="74" y="176" width="23" height="120" rx="11"/>
+      <rect class="body-fill" x="103" y="176" width="23" height="120" rx="11"/>
+      <rect class="body-fill" x="76" y="298" width="19" height="64" rx="9"/>
+      <rect class="body-fill" x="105" y="298" width="19" height="64" rx="9"/>
+      <rect class="body-fill" x="72" y="360" width="26" height="14" rx="7"/>
+      <rect class="body-fill" x="102" y="360" width="26" height="14" rx="7"/>
+      <!-- hotspots -->
+      <circle class="hotspot" cx="62" cy="86" r="6"/>
+      <circle class="hotspot" cx="138" cy="86" r="6"/>
+      <circle class="hotspot" cx="53" cy="130" r="6"/>
+      <circle class="hotspot" cx="147" cy="130" r="6"/>
+      <circle class="hotspot" cx="85" cy="180" r="6"/>
+      <circle class="hotspot" cx="115" cy="180" r="6"/>
+      <circle class="hotspot" cx="86" cy="294" r="6"/>
+      <circle class="hotspot" cx="114" cy="294" r="6"/>
+      <circle class="hotspot" cx="86" cy="356" r="6"/>
+      <circle class="pulse" cx="114" cy="356" r="9"/>
+      <circle class="hotspot hit" cx="114" cy="356" r="9"/>
+    </svg>
+    <div class="map-tag">Right Ankle</div>
+  </div>
+
+  <div class="q-title" style="font-size:16px; padding-top:20px">Pain level</div>
+  <div class="pain-card">
+    <div class="pain-head">
+      <div class="pain-label">Right now it feels like…</div>
+      <div class="pain-num">6<span>/10</span></div>
+    </div>
+    <div class="slider"><div class="knob"></div></div>
+    <div class="slider-ends"><span>Mild</span><span>Severe</span></div>
+  </div>
+
+  <div class="q-title" style="font-size:16px; padding-top:20px">What happened?</div>
+  <div class="chips">
+    <div class="chip on"><i class="fas fa-person-falling"></i> Landed from a jump</div>
+    <div class="chip on"><i class="fas fa-volume-high"></i> Heard a pop</div>
+    <div class="chip on"><i class="fas fa-droplet"></i> Swelling</div>
+    <div class="chip"><i class="fas fa-arrows-left-right"></i> Twisted</div>
+    <div class="chip"><i class="fas fa-weight-hanging"></i> Can't bear weight</div>
+    <div class="chip"><i class="fas fa-snowflake"></i> Numbness</div>
+  </div>
+
+  <div class="cta"><i class="fas fa-wand-magic-sparkles" style="font-size:14px"></i> Get AI Assessment</div>
+</div>
+</body>
+</html>

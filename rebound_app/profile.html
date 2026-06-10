@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Rebound — Profile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0B0E13; color:#fff; scrollbar-width:none; }
+
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; background:#0B0E13; padding-bottom:110px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .profile-head { padding:14px 28px 0; display:flex; align-items:center; gap:16px; }
+  .avatar-wrap { position:relative; }
+  .avatar { width:76px; height:76px; border-radius:24px; object-fit:cover; border:2.5px solid #2EE6A8; }
+  .status-dot { position:absolute; bottom:-4px; right:-4px; background:#2EE6A8; color:#0B0E13; font-size:9px; font-weight:900; padding:4px 8px; border-radius:9px; }
+  .p-name { font-size:22px; font-weight:900; letter-spacing:-0.5px; }
+  .p-meta { font-size:12px; color:#7A8694; margin-top:3px; display:flex; align-items:center; gap:6px; }
+  .p-meta i { color:#FF8A3D; font-size:11px; }
+  .p-edit { margin-left:auto; width:40px; height:40px; border-radius:14px; background:#151A21; border:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; }
+  .p-edit i { font-size:13px; color:#9AA5B1; }
+
+  .stats { display:flex; gap:12px; padding:20px 28px 0; }
+  .stat { flex:1; background:#151A21; border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:16px 8px; text-align:center; }
+  .stat .v { font-size:26px; font-weight:900; letter-spacing:-1px; }
+  .stat .l { font-size:9px; font-weight:700; color:#7A8694; text-transform:uppercase; letter-spacing:0.5px; margin-top:4px; }
+
+  .sec-title { padding:24px 28px 12px; font-size:16px; font-weight:800; display:flex; justify-content:space-between; align-items:center; }
+  .sec-link { font-size:12px; color:#2EE6A8; font-weight:700; }
+
+  /* Injury history */
+  .hist { margin:0 28px; display:flex; flex-direction:column; gap:10px; }
+  .h-item { background:#151A21; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:14px 16px; display:flex; align-items:center; gap:13px; }
+  .h-ic { width:42px; height:42px; border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .h-ic i { font-size:16px; color:#fff; }
+  .h-name { font-size:13px; font-weight:800; }
+  .h-sub { font-size:11px; color:#7A8694; margin-top:2px; }
+  .h-state { margin-left:auto; font-size:9px; font-weight:800; padding:5px 10px; border-radius:9px; flex-shrink:0; }
+
+  /* Care team */
+  .care { margin:0 28px; background:#151A21; border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:16px; display:flex; align-items:center; gap:12px; }
+  .care-avatars { display:flex; }
+  .care-avatars img { width:38px; height:38px; border-radius:50%; object-fit:cover; border:2.5px solid #151A21; }
+  .care-avatars img + img { margin-left:-12px; }
+  .care-add { width:38px; height:38px; border-radius:50%; background:#222A35; border:2.5px solid #151A21; margin-left:-12px; display:flex; align-items:center; justify-content:center; font-size:11px; color:#2EE6A8; font-weight:800; }
+  .care b { font-size:13px; font-weight:800; display:block; }
+  .care p { font-size:10px; color:#7A8694; margin-top:2px; }
+  .care-chev { margin-left:auto; color:#5A6470; font-size:12px; }
+
+  /* Settings */
+  .set-list { margin:0 28px; background:#151A21; border:1px solid rgba(255,255,255,0.06); border-radius:22px; overflow:hidden; }
+  .set { display:flex; align-items:center; gap:13px; padding:15px 16px; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .set:last-child { border-bottom:none; }
+  .set-ic { width:36px; height:36px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .set-ic i { font-size:14px; color:#fff; }
+  .set-name { font-size:13px; font-weight:700; }
+  .set-end { margin-left:auto; display:flex; align-items:center; gap:8px; }
+  .set-val { font-size:11px; color:#7A8694; font-weight:600; }
+  .set-end i { color:#5A6470; font-size:11px; }
+  .toggle { width:42px; height:25px; border-radius:25px; background:#2EE6A8; position:relative; }
+  .toggle::after { content:''; position:absolute; top:3px; right:3px; width:19px; height:19px; border-radius:50%; background:#fff; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(11,14,19,0.92); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:52px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.35); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.35); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#2EE6A8; }
+  .tab-fab { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#2EE6A8,#19B886); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(46,230,168,0.4); }
+  .tab-fab i { font-size:22px; color:#0B0E13; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="profile-head">
+    <div class="avatar-wrap">
+      <img class="avatar" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&q=80" alt="">
+      <div class="status-dot">REHAB</div>
+    </div>
+    <div>
+      <div class="p-name">Marcus Reed</div>
+      <div class="p-meta"><i class="fas fa-basketball"></i> Basketball · Point Guard · Competitive</div>
+    </div>
+    <div class="p-edit"><i class="fas fa-pen"></i></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="v" style="color:#2EE6A8">3</div><div class="l">Recoveries</div></div>
+    <div class="stat"><div class="v" style="color:#4D9FFF">12</div><div class="l">Day Streak</div></div>
+    <div class="stat"><div class="v" style="color:#A78BFA">94%</div><div class="l">Plan Adherence</div></div>
+  </div>
+
+  <div class="sec-title">Injury history <span class="sec-link">View all</span></div>
+  <div class="hist">
+    <div class="h-item">
+      <div class="h-ic" style="background:linear-gradient(135deg,#FF8A3D,#F4511E)"><i class="fas fa-shoe-prints"></i></div>
+      <div><div class="h-name">Right Ankle Sprain · Grade II</div><div class="h-sub">May 30, 2026 · Day 12 of plan</div></div>
+      <div class="h-state" style="background:rgba(255,210,61,0.12); color:#FFD23D">ACTIVE</div>
+    </div>
+    <div class="h-item">
+      <div class="h-ic" style="background:linear-gradient(135deg,#2EE6A8,#19B886)"><i class="fas fa-hand-fist"></i></div>
+      <div><div class="h-name">Jumper's Knee (Patellar)</div><div class="h-sub">Jan 2026 · recovered in 5 weeks</div></div>
+      <div class="h-state" style="background:rgba(46,230,168,0.12); color:#2EE6A8">RECOVERED</div>
+    </div>
+    <div class="h-item">
+      <div class="h-ic" style="background:linear-gradient(135deg,#2EE6A8,#19B886)"><i class="fas fa-hand"></i></div>
+      <div><div class="h-name">Left Wrist Strain</div><div class="h-sub">Sep 2025 · recovered in 2 weeks</div></div>
+      <div class="h-state" style="background:rgba(46,230,168,0.12); color:#2EE6A8">RECOVERED</div>
+    </div>
+  </div>
+
+  <div class="sec-title">Care team</div>
+  <div class="care">
+    <div class="care-avatars">
+      <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&q=80" alt="">
+      <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&q=80" alt="">
+      <div class="care-add">+</div>
+    </div>
+    <div>
+      <b>Dr. Chen & Coach Daniels</b>
+      <p>Auto-share progress reports weekly</p>
+    </div>
+    <i class="fas fa-chevron-right care-chev"></i>
+  </div>
+
+  <div class="sec-title">Settings</div>
+  <div class="set-list">
+    <div class="set">
+      <div class="set-ic" style="background:linear-gradient(135deg,#FF5A5F,#C2383C)"><i class="fas fa-heart"></i></div>
+      <div class="set-name">Apple Health & Watch</div>
+      <div class="set-end"><span class="set-val">Connected</span><div class="toggle"></div></div>
+    </div>
+    <div class="set">
+      <div class="set-ic" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-bell"></i></div>
+      <div class="set-name">Rehab reminders</div>
+      <div class="set-end"><span class="set-val">8:00 AM · 6:00 PM</span><i class="fas fa-chevron-right"></i></div>
+    </div>
+    <div class="set">
+      <div class="set-ic" style="background:linear-gradient(135deg,#4D9FFF,#2563EB)"><i class="fas fa-shield-halved"></i></div>
+      <div class="set-name">Health data & privacy</div>
+      <div class="set-end"><i class="fas fa-chevron-right"></i></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-clipboard-list"></i><span>Plan</span></div>
+    <div class="tab-fab"><i class="fas fa-plus"></i></div>
+    <div class="tab-item"><i class="fas fa-chart-line"></i><span>Progress</span></div>
+    <div class="tab-item active"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>

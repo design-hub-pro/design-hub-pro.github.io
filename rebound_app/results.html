@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Rebound — AI Assessment</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0B0E13; color:#fff; scrollbar-width:none; }
+
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; background:#0B0E13; padding-bottom:40px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .nav { display:flex; align-items:center; justify-content:space-between; padding:10px 28px 4px; }
+  .nav-btn { width:40px; height:40px; border-radius:14px; background:#151A21; border:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; }
+  .nav-btn i { font-size:14px; color:#9AA5B1; }
+  .nav-title { font-size:15px; font-weight:800; }
+
+  .ai-badge { margin:14px auto 0; width:fit-content; display:flex; align-items:center; gap:7px; background:rgba(167,139,250,0.12); border:1px solid rgba(167,139,250,0.35); color:#A78BFA; padding:7px 14px; border-radius:14px; font-size:11px; font-weight:800; letter-spacing:0.5px; }
+
+  /* Severity gauge */
+  .gauge-card { margin:16px 28px 0; background:#151A21; border:1px solid rgba(255,255,255,0.06); border-radius:28px; padding:26px 24px 22px; text-align:center; position:relative; overflow:hidden; }
+  .gauge-card::before { content:''; position:absolute; top:-60px; left:50%; transform:translateX(-50%); width:260px; height:260px; border-radius:50%; background:radial-gradient(circle, rgba(255,138,61,0.1), transparent 70%); }
+  .gauge-wrap { position:relative; width:190px; height:110px; margin:0 auto; }
+  .gauge-wrap svg { width:190px; height:110px; }
+  .gauge-bg { fill:none; stroke:#222A35; stroke-width:16; stroke-linecap:round; }
+  .gauge-val { fill:none; stroke:url(#gaugeGrad); stroke-width:16; stroke-linecap:round; stroke-dasharray:262; stroke-dashoffset:105; }
+  .gauge-center { position:absolute; left:0; right:0; bottom:0; }
+  .gauge-grade { font-size:34px; font-weight:900; letter-spacing:-1px; color:#FF8A3D; }
+  .gauge-lbl { font-size:11px; font-weight:700; color:#7A8694; text-transform:uppercase; letter-spacing:1px; }
+  .diagnosis { margin-top:14px; font-size:20px; font-weight:900; letter-spacing:-0.4px; position:relative; }
+  .diag-sub { font-size:12px; color:#7A8694; margin-top:4px; position:relative; }
+  .gauge-stats { display:flex; gap:10px; margin-top:18px; position:relative; }
+  .g-stat { flex:1; background:rgba(255,255,255,0.04); border-radius:16px; padding:12px 6px; }
+  .g-stat .v { font-size:18px; font-weight:900; letter-spacing:-0.5px; }
+  .g-stat .l { font-size:9px; font-weight:700; color:#7A8694; text-transform:uppercase; letter-spacing:0.5px; margin-top:3px; }
+
+  .sec-title { padding:24px 28px 12px; font-size:16px; font-weight:800; letter-spacing:-0.3px; display:flex; justify-content:space-between; align-items:center; }
+
+  /* Condition probability list */
+  .cond-list { margin:0 28px; display:flex; flex-direction:column; gap:10px; }
+  .cond { background:#151A21; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:14px 16px; }
+  .cond-top { display:flex; justify-content:space-between; align-items:center; }
+  .cond-name { font-size:13px; font-weight:700; }
+  .cond-pct { font-size:15px; font-weight:900; color:#2EE6A8; }
+  .cond-bar { height:5px; background:#222A35; border-radius:5px; margin-top:9px; overflow:hidden; }
+  .cond-fill { height:100%; border-radius:5px; background:linear-gradient(90deg,#2EE6A8,#19B886); }
+  .cond.dim .cond-pct { color:#7A8694; }
+  .cond.dim .cond-fill { background:#3A4654; }
+
+  /* Red flag */
+  .redflag { margin:18px 28px 0; background:rgba(255,90,95,0.08); border:1px solid rgba(255,90,95,0.3); border-radius:20px; padding:16px; display:flex; gap:13px; align-items:flex-start; }
+  .redflag-icon { width:40px; height:40px; border-radius:13px; background:#FF5A5F; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .redflag-icon i { color:#fff; font-size:16px; }
+  .redflag b { font-size:13px; font-weight:800; color:#FF7B7F; display:block; }
+  .redflag p { font-size:11px; color:#B9909A; line-height:1.5; margin-top:3px; }
+  .redflag-cta { margin-top:8px; display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; color:#FF5A5F; }
+
+  .cta { margin:22px 28px 0; height:58px; border-radius:20px; background:linear-gradient(135deg,#2EE6A8,#19B886); display:flex; align-items:center; justify-content:center; gap:10px; font-size:16px; font-weight:800; color:#0B0E13; box-shadow:0 12px 32px rgba(46,230,168,0.3); }
+  .disclaimer { margin:14px 28px 0; font-size:9px; color:#5A6470; text-align:center; line-height:1.5; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="nav">
+    <div class="nav-btn"><i class="fas fa-arrow-left"></i></div>
+    <div class="nav-title">Initial Assessment</div>
+    <div class="nav-btn"><i class="fas fa-share-nodes"></i></div>
+  </div>
+
+  <div class="ai-badge"><i class="fas fa-wand-magic-sparkles"></i> AI ANALYSIS · BASKETBALL · RIGHT ANKLE</div>
+
+  <div class="gauge-card">
+    <div class="gauge-wrap">
+      <svg viewBox="0 0 200 115">
+        <defs>
+          <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#FFD23D"/><stop offset="100%" stop-color="#FF8A3D"/>
+          </linearGradient>
+        </defs>
+        <path class="gauge-bg" d="M 17 105 A 83 83 0 0 1 183 105"/>
+        <path class="gauge-val" d="M 17 105 A 83 83 0 0 1 183 105"/>
+      </svg>
+      <div class="gauge-center">
+        <div class="gauge-grade">Grade II</div>
+        <div class="gauge-lbl">Moderate</div>
+      </div>
+    </div>
+    <div class="diagnosis">Lateral Ankle Sprain</div>
+    <div class="diag-sub">Partial ligament tear (ATFL) — common on jump landings</div>
+    <div class="gauge-stats">
+      <div class="g-stat"><div class="v" style="color:#2EE6A8">3–6<span style="font-size:11px"> wks</span></div><div class="l">Est. Recovery</div></div>
+      <div class="g-stat"><div class="v" style="color:#A78BFA">86%</div><div class="l">AI Confidence</div></div>
+      <div class="g-stat"><div class="v" style="color:#4D9FFF">4</div><div class="l">Plan Phases</div></div>
+    </div>
+  </div>
+
+  <div class="sec-title">Likely conditions</div>
+  <div class="cond-list">
+    <div class="cond">
+      <div class="cond-top"><span class="cond-name">Lateral ankle sprain (Grade II)</span><span class="cond-pct">86%</span></div>
+      <div class="cond-bar"><div class="cond-fill" style="width:86%"></div></div>
+    </div>
+    <div class="cond dim">
+      <div class="cond-top"><span class="cond-name">High (syndesmotic) ankle sprain</span><span class="cond-pct">9%</span></div>
+      <div class="cond-bar"><div class="cond-fill" style="width:9%"></div></div>
+    </div>
+    <div class="cond dim">
+      <div class="cond-top"><span class="cond-name">Avulsion fracture</span><span class="cond-pct">5%</span></div>
+      <div class="cond-bar"><div class="cond-fill" style="width:5%"></div></div>
+    </div>
+  </div>
+
+  <div class="redflag">
+    <div class="redflag-icon"><i class="fas fa-triangle-exclamation"></i></div>
+    <div>
+      <b>When to see a doctor</b>
+      <p>If you can't take 4 steps, feel bone tenderness, or numbness spreads — get an X-ray within 24h.</p>
+      <div class="redflag-cta"><i class="fas fa-user-doctor"></i> Find sports medicine near me <i class="fas fa-chevron-right" style="font-size:9px"></i></div>
+    </div>
+  </div>
+
+  <div class="cta"><i class="fas fa-clipboard-list" style="font-size:15px"></i> Build My Recovery Plan</div>
+  <div class="disclaimer">Rebound provides educational guidance, not a medical diagnosis. Always consult a licensed professional for serious injuries.</div>
+</div>
+</body>
+</html>

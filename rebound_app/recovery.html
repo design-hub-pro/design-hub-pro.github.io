@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Rebound — Rehab Exercises</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0B0E13; color:#fff; scrollbar-width:none; }
+
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; background:#0B0E13; padding-bottom:110px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:10px 28px 0; display:flex; justify-content:space-between; align-items:center; }
+  .h-title { font-size:24px; font-weight:900; letter-spacing:-0.6px; }
+  .h-sub { font-size:12px; color:#7A8694; margin-top:2px; }
+
+  /* Session ring */
+  .ring-wrap { position:relative; width:64px; height:64px; }
+  .ring-wrap svg { transform:rotate(-90deg); }
+  .ring-bg { fill:none; stroke:#222A35; stroke-width:6; }
+  .ring-val { fill:none; stroke:#2EE6A8; stroke-width:6; stroke-linecap:round; stroke-dasharray:176; stroke-dashoffset:59; }
+  .ring-txt { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; color:#2EE6A8; }
+
+  /* Featured video */
+  .feature { margin:18px 28px 0; border-radius:26px; overflow:hidden; position:relative; height:210px; }
+  .feature img { width:100%; height:100%; object-fit:cover; }
+  .feature-ovl { position:absolute; inset:0; background:linear-gradient(180deg, rgba(11,14,19,0.1) 30%, rgba(11,14,19,0.92) 100%); }
+  .play-big { position:absolute; top:50%; left:50%; transform:translate(-50%,-60%); width:62px; height:62px; border-radius:50%; background:rgba(46,230,168,0.9); display:flex; align-items:center; justify-content:center; box-shadow:0 12px 36px rgba(46,230,168,0.4); }
+  .play-big i { font-size:22px; color:#0B0E13; margin-left:4px; }
+  .feature-meta { position:absolute; bottom:16px; left:18px; right:18px; }
+  .feature-tag { display:inline-flex; align-items:center; gap:6px; background:rgba(46,230,168,0.15); border:1px solid rgba(46,230,168,0.4); color:#2EE6A8; font-size:9px; font-weight:800; padding:5px 10px; border-radius:9px; letter-spacing:0.5px; }
+  .feature-title { font-size:18px; font-weight:900; margin-top:8px; letter-spacing:-0.3px; }
+  .feature-sub { font-size:11px; color:#9AA5B1; margin-top:3px; display:flex; gap:12px; }
+  .dur { position:absolute; top:14px; right:14px; background:rgba(0,0,0,0.65); backdrop-filter:blur(8px); padding:5px 10px; border-radius:9px; font-size:10px; font-weight:800; }
+
+  .sec-title { padding:22px 28px 12px; font-size:16px; font-weight:800; display:flex; justify-content:space-between; align-items:center; }
+  .sec-link { font-size:12px; color:#2EE6A8; font-weight:700; }
+
+  /* Exercise list */
+  .ex-list { margin:0 28px; display:flex; flex-direction:column; gap:12px; }
+  .ex { background:#151A21; border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:12px; display:flex; gap:13px; align-items:center; }
+  .ex-thumb { width:78px; height:64px; border-radius:14px; object-fit:cover; flex-shrink:0; position:relative; }
+  .ex-thumb-wrap { position:relative; flex-shrink:0; }
+  .ex-play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .ex-play div { width:26px; height:26px; border-radius:50%; background:rgba(0,0,0,0.55); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; }
+  .ex-play i { font-size:9px; color:#fff; margin-left:2px; }
+  .ex-dur { position:absolute; bottom:5px; right:5px; background:rgba(0,0,0,0.7); font-size:8px; font-weight:800; padding:2px 6px; border-radius:6px; }
+  .ex-name { font-size:13px; font-weight:800; }
+  .ex-sub { font-size:11px; color:#7A8694; margin-top:3px; }
+  .ex-diff { display:flex; gap:3px; margin-top:6px; }
+  .ex-diff span { width:14px; height:4px; border-radius:3px; background:#222A35; }
+  .ex-diff span.on { background:#2EE6A8; }
+  .ex-state { margin-left:auto; flex-shrink:0; }
+  .done-pill { width:28px; height:28px; border-radius:50%; background:#2EE6A8; display:flex; align-items:center; justify-content:center; }
+  .done-pill i { font-size:11px; color:#0B0E13; }
+  .todo-pill { width:28px; height:28px; border-radius:50%; border:2px dashed #3A4654; }
+
+  .coach-tip { margin:18px 28px 0; background:rgba(167,139,250,0.08); border:1px solid rgba(167,139,250,0.3); border-radius:20px; padding:16px; display:flex; gap:13px; }
+  .coach-ic { width:40px; height:40px; border-radius:13px; background:linear-gradient(135deg,#A78BFA,#7C3AED); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .coach-ic i { color:#fff; font-size:16px; }
+  .coach-tip b { font-size:12px; font-weight:800; color:#C4B5FD; display:block; }
+  .coach-tip p { font-size:11px; color:#9AA5B1; line-height:1.5; margin-top:3px; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(11,14,19,0.92); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:52px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.35); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.35); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#2EE6A8; }
+  .tab-fab { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#2EE6A8,#19B886); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(46,230,168,0.4); }
+  .tab-fab i { font-size:22px; color:#0B0E13; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="h-title">Today's Rehab</div>
+      <div class="h-sub">Phase 2 · Mobility & Range · 18 min total</div>
+    </div>
+    <div class="ring-wrap">
+      <svg width="64" height="64"><circle class="ring-bg" cx="32" cy="32" r="28"/><circle class="ring-val" cx="32" cy="32" r="28"/></svg>
+      <div class="ring-txt">4/6</div>
+    </div>
+  </div>
+
+  <div class="feature">
+    <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=900&q=80" alt="">
+    <div class="feature-ovl"></div>
+    <div class="dur"><i class="fas fa-clock" style="font-size:9px"></i> 4:30</div>
+    <div class="play-big"><i class="fas fa-play"></i></div>
+    <div class="feature-meta">
+      <div class="feature-tag"><i class="fas fa-fire"></i> UP NEXT</div>
+      <div class="feature-title">Resistance Band Eversion</div>
+      <div class="feature-sub"><span><i class="fas fa-layer-group" style="font-size:10px; color:#2EE6A8"></i> 3 × 12 reps</span><span><i class="fas fa-gauge-simple" style="font-size:10px; color:#2EE6A8"></i> Light band</span></div>
+    </div>
+  </div>
+
+  <div class="sec-title">Session queue <span class="sec-link">Reorder</span></div>
+  <div class="ex-list">
+    <div class="ex">
+      <div class="ex-thumb-wrap">
+        <img class="ex-thumb" src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=300&q=80" alt="">
+        <div class="ex-play"><div><i class="fas fa-play"></i></div></div>
+        <div class="ex-dur">2:10</div>
+      </div>
+      <div>
+        <div class="ex-name">Ankle Alphabet</div>
+        <div class="ex-sub">3 sets · trace A–Z slowly</div>
+        <div class="ex-diff"><span class="on"></span><span></span><span></span></div>
+      </div>
+      <div class="ex-state"><div class="done-pill"><i class="fas fa-check"></i></div></div>
+    </div>
+    <div class="ex">
+      <div class="ex-thumb-wrap">
+        <img class="ex-thumb" src="https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=300&q=80" alt="">
+        <div class="ex-play"><div><i class="fas fa-play"></i></div></div>
+        <div class="ex-dur">3:00</div>
+      </div>
+      <div>
+        <div class="ex-name">Towel Calf Stretch</div>
+        <div class="ex-sub">3 × 30 sec holds · gentle pull</div>
+        <div class="ex-diff"><span class="on"></span><span></span><span></span></div>
+      </div>
+      <div class="ex-state"><div class="done-pill"><i class="fas fa-check"></i></div></div>
+    </div>
+    <div class="ex">
+      <div class="ex-thumb-wrap">
+        <img class="ex-thumb" src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&q=80" alt="">
+        <div class="ex-play"><div><i class="fas fa-play"></i></div></div>
+        <div class="ex-dur">4:30</div>
+      </div>
+      <div>
+        <div class="ex-name">Band Eversion</div>
+        <div class="ex-sub">3 × 12 reps · light band</div>
+        <div class="ex-diff"><span class="on"></span><span class="on"></span><span></span></div>
+      </div>
+      <div class="ex-state"><div class="todo-pill"></div></div>
+    </div>
+    <div class="ex">
+      <div class="ex-thumb-wrap">
+        <img class="ex-thumb" src="https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=300&q=80" alt="">
+        <div class="ex-play"><div><i class="fas fa-play"></i></div></div>
+        <div class="ex-dur">5:00</div>
+      </div>
+      <div>
+        <div class="ex-name">Single-Leg Balance</div>
+        <div class="ex-sub">3 × 45 sec · eyes open, then closed</div>
+        <div class="ex-diff"><span class="on"></span><span class="on"></span><span class="on"></span></div>
+      </div>
+      <div class="ex-state"><div class="todo-pill"></div></div>
+    </div>
+  </div>
+
+  <div class="coach-tip">
+    <div class="coach-ic"><i class="fas fa-wand-magic-sparkles"></i></div>
+    <div>
+      <b>AI Coach tip</b>
+      <p>Your pain dropped 2 points this week — I added single-leg balance to prep your Phase 3 unlock. Stop any exercise that pushes pain above 4/10.</p>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item active"><i class="fas fa-clipboard-list"></i><span>Plan</span></div>
+    <div class="tab-fab"><i class="fas fa-plus"></i></div>
+    <div class="tab-item"><i class="fas fa-chart-line"></i><span>Progress</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>

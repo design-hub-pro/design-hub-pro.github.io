@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Rebound — Recovery Plan</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0B0E13; color:#fff; scrollbar-width:none; }
+
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; background:#0B0E13; padding-bottom:110px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:10px 28px 0; display:flex; justify-content:space-between; align-items:center; }
+  .h-title { font-size:24px; font-weight:900; letter-spacing:-0.6px; }
+  .h-sub { font-size:12px; color:#7A8694; margin-top:2px; }
+  .h-btn { width:42px; height:42px; border-radius:14px; background:#151A21; border:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; }
+  .h-btn i { color:#9AA5B1; font-size:15px; }
+
+  /* Phase timeline */
+  .phases { margin:18px 28px 0; display:flex; flex-direction:column; }
+  .phase { display:flex; gap:14px; position:relative; padding-bottom:18px; }
+  .phase-line { position:absolute; left:19px; top:42px; bottom:0; width:2px; background:#222A35; }
+  .phase.done .phase-line { background:#2EE6A8; }
+  .phase-dot { width:40px; height:40px; border-radius:14px; flex-shrink:0; display:flex; align-items:center; justify-content:center; z-index:1; }
+  .phase.done .phase-dot { background:rgba(46,230,168,0.15); border:1.5px solid #2EE6A8; }
+  .phase.done .phase-dot i { color:#2EE6A8; font-size:14px; }
+  .phase.now .phase-dot { background:linear-gradient(135deg,#2EE6A8,#19B886); box-shadow:0 8px 22px rgba(46,230,168,0.35); }
+  .phase.now .phase-dot i { color:#0B0E13; font-size:14px; }
+  .phase.next .phase-dot { background:#151A21; border:1.5px dashed #3A4654; }
+  .phase.next .phase-dot i { color:#5A6470; font-size:14px; }
+  .phase-card { flex:1; background:#151A21; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:14px 16px; }
+  .phase.now .phase-card { border-color:rgba(46,230,168,0.4); background:rgba(46,230,168,0.06); }
+  .phase-top { display:flex; justify-content:space-between; align-items:center; }
+  .phase-name { font-size:13px; font-weight:800; }
+  .phase-tag { font-size:9px; font-weight:800; padding:4px 9px; border-radius:8px; letter-spacing:0.5px; }
+  .tag-done { background:rgba(46,230,168,0.15); color:#2EE6A8; }
+  .tag-now { background:#2EE6A8; color:#0B0E13; }
+  .tag-next { background:rgba(255,255,255,0.06); color:#7A8694; }
+  .phase-desc { font-size:11px; color:#7A8694; margin-top:4px; line-height:1.45; }
+  .phase-meta { display:flex; gap:14px; margin-top:8px; }
+  .phase-meta span { font-size:10px; color:#9AA5B1; font-weight:600; display:flex; align-items:center; gap:5px; }
+  .phase-meta i { font-size:9px; color:#2EE6A8; }
+  .phase-prog { margin-top:10px; height:4px; background:#222A35; border-radius:4px; overflow:hidden; }
+  .phase-prog div { height:100%; background:#2EE6A8; border-radius:4px; }
+
+  .sec-title { padding:20px 28px 12px; font-size:16px; font-weight:800; display:flex; justify-content:space-between; align-items:center; }
+  .sec-link { font-size:12px; color:#2EE6A8; font-weight:700; }
+
+  /* Today protocol */
+  .protocol { margin:0 28px; display:flex; flex-direction:column; gap:10px; }
+  .task { background:#151A21; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:14px 16px; display:flex; align-items:center; gap:13px; }
+  .task-icon { width:42px; height:42px; border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .task-icon i { font-size:17px; color:#fff; }
+  .task-name { font-size:13px; font-weight:700; }
+  .task-sub { font-size:11px; color:#7A8694; margin-top:2px; }
+  .task-check { margin-left:auto; width:26px; height:26px; border-radius:50%; flex-shrink:0; }
+  .ck-on { background:#2EE6A8; display:flex; align-items:center; justify-content:center; }
+  .ck-on i { font-size:11px; color:#0B0E13; }
+  .ck-off { border:2px dashed #3A4654; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(11,14,19,0.92); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:52px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.35); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.35); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#2EE6A8; }
+  .tab-fab { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#2EE6A8,#19B886); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(46,230,168,0.4); }
+  .tab-fab i { font-size:22px; color:#0B0E13; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="h-title">Action Plan</div>
+      <div class="h-sub">Ankle Sprain · Grade II · Day 12 of ~28</div>
+    </div>
+    <div class="h-btn"><i class="fas fa-sliders"></i></div>
+  </div>
+
+  <div class="phases">
+    <div class="phase done">
+      <div class="phase-line"></div>
+      <div class="phase-dot"><i class="fas fa-check"></i></div>
+      <div class="phase-card">
+        <div class="phase-top"><span class="phase-name">Phase 1 · Protect & Rest</span><span class="phase-tag tag-done">DONE</span></div>
+        <div class="phase-meta"><span><i class="fas fa-calendar"></i> Days 1–5</span><span><i class="fas fa-snowflake"></i> RICE protocol</span></div>
+      </div>
+    </div>
+    <div class="phase now">
+      <div class="phase-line"></div>
+      <div class="phase-dot"><i class="fas fa-person-walking"></i></div>
+      <div class="phase-card">
+        <div class="phase-top"><span class="phase-name">Phase 2 · Mobility & Range</span><span class="phase-tag tag-now">CURRENT</span></div>
+        <div class="phase-desc">Restore full ankle range of motion, reduce stiffness, begin weight-bearing.</div>
+        <div class="phase-meta"><span><i class="fas fa-calendar"></i> Days 6–14</span><span><i class="fas fa-dumbbell"></i> 6 exercises/day</span></div>
+        <div class="phase-prog"><div style="width:70%"></div></div>
+      </div>
+    </div>
+    <div class="phase next">
+      <div class="phase-line"></div>
+      <div class="phase-dot"><i class="fas fa-dumbbell"></i></div>
+      <div class="phase-card">
+        <div class="phase-top"><span class="phase-name">Phase 3 · Strength & Balance</span><span class="phase-tag tag-next">UP NEXT</span></div>
+        <div class="phase-meta"><span><i class="fas fa-calendar"></i> Days 15–22</span><span><i class="fas fa-lock"></i> Unlocks at pain &lt; 3</span></div>
+      </div>
+    </div>
+    <div class="phase next">
+      <div class="phase-dot"><i class="fas fa-basketball"></i></div>
+      <div class="phase-card">
+        <div class="phase-top"><span class="phase-name">Phase 4 · Return to Play</span><span class="phase-tag tag-next">LOCKED</span></div>
+        <div class="phase-meta"><span><i class="fas fa-calendar"></i> Days 23–28</span><span><i class="fas fa-flag-checkered"></i> Sport drills + clearance test</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-title">Today's protocol <span class="sec-link">3 of 5 done</span></div>
+  <div class="protocol">
+    <div class="task">
+      <div class="task-icon" style="background:linear-gradient(135deg,#4D9FFF,#2563EB)"><i class="fas fa-snowflake"></i></div>
+      <div><div class="task-name">Ice & compression</div><div class="task-sub">15 min · after exercises</div></div>
+      <div class="task-check ck-on"><i class="fas fa-check"></i></div>
+    </div>
+    <div class="task">
+      <div class="task-icon" style="background:linear-gradient(135deg,#2EE6A8,#19B886)"><i class="fas fa-shoe-prints"></i></div>
+      <div><div class="task-name">Ankle alphabet + circles</div><div class="task-sub">3 sets · both directions</div></div>
+      <div class="task-check ck-on"><i class="fas fa-check"></i></div>
+    </div>
+    <div class="task">
+      <div class="task-icon" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-band-aid"></i></div>
+      <div><div class="task-name">Resistance band eversion</div><div class="task-sub">3 × 12 reps · light band</div></div>
+      <div class="task-check ck-off"></div>
+    </div>
+    <div class="task">
+      <div class="task-icon" style="background:linear-gradient(135deg,#FF8A3D,#F4511E)"><i class="fas fa-heart-pulse"></i></div>
+      <div><div class="task-name">Log pain & swelling</div><div class="task-sub">Evening check-in · 30 sec</div></div>
+      <div class="task-check ck-off"></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item active"><i class="fas fa-clipboard-list"></i><span>Plan</span></div>
+    <div class="tab-fab"><i class="fas fa-plus"></i></div>
+    <div class="tab-item"><i class="fas fa-chart-line"></i><span>Progress</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>
