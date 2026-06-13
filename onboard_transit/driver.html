@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OnBoard — Driver</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0D14; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:110px; background:#0A0D14; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:6px 28px 16px; display:flex; align-items:center; justify-content:space-between; }
+  .h-role { display:inline-flex; align-items:center; gap:7px; background:rgba(255,176,32,0.16); color:#FFB020; padding:5px 11px; border-radius:12px; font-size:10px; font-weight:800; letter-spacing:0.5px; }
+  .h-name { font-size:23px; font-weight:900; letter-spacing:-0.5px; margin-top:8px; }
+  .avatar { width:46px; height:46px; border-radius:15px; object-fit:cover; border:2px solid #FFB020; }
+
+  /* trip hero */
+  .trip { margin:0 28px; border-radius:28px; padding:22px; background:linear-gradient(150deg,#1A2030,#10141E); border:1px solid rgba(255,255,255,0.08); position:relative; overflow:hidden; }
+  .trip-top { display:flex; justify-content:space-between; align-items:center; }
+  .trip-route { font-size:18px; font-weight:900; }
+  .trip-sub { font-size:12px; color:#8B93A6; margin-top:2px; }
+  .trip-live { display:flex; align-items:center; gap:7px; background:rgba(46,230,166,0.16); color:#2EE6A6; padding:6px 12px; border-radius:14px; font-size:11px; font-weight:800; }
+  .live-dot { width:7px; height:7px; border-radius:50%; background:#2EE6A6; box-shadow:0 0 8px #2EE6A6; }
+  .trip-stats { display:flex; gap:10px; margin-top:20px; }
+  .ts { flex:1; background:rgba(255,255,255,0.04); border-radius:16px; padding:13px; text-align:center; }
+  .ts .v { font-size:22px; font-weight:900; letter-spacing:-0.5px; }
+  .ts .v.amber { color:#FFB020; }
+  .ts .v.mint { color:#2EE6A6; }
+  .ts .l { font-size:10px; color:#8B93A6; font-weight:600; margin-top:2px; }
+  .start-btn { margin-top:18px; width:100%; background:linear-gradient(135deg,#FFC53D,#FF9A1F); color:#0A0D14; border:none; border-radius:18px; padding:16px; font-size:15px; font-weight:900; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 10px 24px rgba(255,154,31,0.35); }
+
+  /* next stop */
+  .next { margin:18px 28px 0; display:flex; align-items:center; gap:14px; background:#141925; border:1px solid rgba(255,255,255,0.07); border-radius:20px; padding:15px 16px; }
+  .next-ic { width:50px; height:50px; border-radius:15px; background:linear-gradient(135deg,#3B9EFF,#1E6FE0); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .next-ic i { font-size:20px; color:#fff; }
+  .next-body { flex:1; }
+  .next-l { font-size:10px; color:#3B9EFF; font-weight:800; letter-spacing:0.6px; text-transform:uppercase; }
+  .next-t { font-size:15px; font-weight:800; margin-top:2px; }
+  .next-s { font-size:11px; color:#8B93A6; margin-top:1px; }
+  .next-eta { text-align:right; }
+  .next-eta .v { font-size:20px; font-weight:900; color:#FFB020; }
+  .next-eta .l { font-size:10px; color:#8B93A6; }
+
+  /* roster */
+  .sec-h { padding:24px 28px 13px; display:flex; justify-content:space-between; align-items:center; }
+  .sec-t { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+  .sec-pill { font-size:11px; font-weight:800; color:#2EE6A6; background:rgba(46,230,166,0.14); padding:5px 11px; border-radius:12px; }
+  .roster { padding:0 28px; }
+  .r-item { display:flex; align-items:center; gap:13px; padding:11px 0; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .r-item img { width:42px; height:42px; border-radius:13px; object-fit:cover; }
+  .r-info { flex:1; }
+  .r-name { font-size:14px; font-weight:700; }
+  .r-stop { font-size:11px; color:#8B93A6; margin-top:2px; }
+  .r-state { font-size:11px; font-weight:800; padding:5px 11px; border-radius:12px; display:flex; align-items:center; gap:6px; }
+  .r-state.on { background:rgba(46,230,166,0.14); color:#2EE6A6; }
+  .r-state.wait { background:rgba(255,176,32,0.14); color:#FFB020; }
+  .r-state.absent { background:rgba(255,255,255,0.06); color:#5C6478; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(10,13,20,0.9); backdrop-filter:blur(22px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:16px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:56px; }
+  .tab i { font-size:19px; color:rgba(255,255,255,0.32); }
+  .tab span { font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab.active i, .tab.active span { color:#FFB020; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="h-role"><i class="fas fa-id-card"></i> DRIVER MODE</div>
+      <div class="h-name">Hi, Marcus</div>
+    </div>
+    <img class="avatar" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&h=120&fit=crop" alt="">
+  </div>
+
+  <!-- TRIP -->
+  <div class="trip">
+    <div class="trip-top">
+      <div><div class="trip-route">Route 12 · Morning</div><div class="trip-sub">Bus #428 · Westfield High</div></div>
+      <div class="trip-live"><span class="live-dot"></span> ON TRIP</div>
+    </div>
+    <div class="trip-stats">
+      <div class="ts"><div class="v mint">18</div><div class="l">Aboard</div></div>
+      <div class="ts"><div class="v amber">6</div><div class="l">To pick up</div></div>
+      <div class="ts"><div class="v">3</div><div class="l">Stops left</div></div>
+    </div>
+    <button class="start-btn"><i class="fas fa-paper-plane"></i> Broadcasting live location</button>
+  </div>
+
+  <!-- NEXT STOP -->
+  <div class="next">
+    <div class="next-ic"><i class="fas fa-location-dot"></i></div>
+    <div class="next-body">
+      <div class="next-l">Next stop</div>
+      <div class="next-t">Oakridge & 5th Ave</div>
+      <div class="next-s">3 students waiting</div>
+    </div>
+    <div class="next-eta"><div class="v">4 min</div><div class="l">1.8 mi</div></div>
+  </div>
+
+  <!-- ROSTER -->
+  <div class="sec-h">
+    <div class="sec-t">Boarding roster</div>
+    <div class="sec-pill">18/24 checked in</div>
+  </div>
+  <div class="roster">
+    <div class="r-item">
+      <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop" alt="">
+      <div class="r-info"><div class="r-name">Maya Chen</div><div class="r-stop">Oakridge & 5th · iBeacon</div></div>
+      <div class="r-state on"><i class="fas fa-check"></i> Aboard</div>
+    </div>
+    <div class="r-item">
+      <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop" alt="">
+      <div class="r-info"><div class="r-name">Liam Walker</div><div class="r-stop">Lincoln St · QR scan</div></div>
+      <div class="r-state on"><i class="fas fa-check"></i> Aboard</div>
+    </div>
+    <div class="r-item">
+      <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" alt="">
+      <div class="r-info"><div class="r-name">Sofia Reyes</div><div class="r-stop">Oakridge & 5th · waiting</div></div>
+      <div class="r-state wait"><i class="fas fa-clock"></i> Next stop</div>
+    </div>
+    <div class="r-item">
+      <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop" alt="">
+      <div class="r-info"><div class="r-name">Emma Park</div><div class="r-stop">Maple Court · absent today</div></div>
+      <div class="r-state absent"><i class="fas fa-minus"></i> Excused</div>
+    </div>
+    <div class="r-item">
+      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" alt="">
+      <div class="r-info"><div class="r-name">Noah Kim</div><div class="r-stop">Lincoln St · iBeacon</div></div>
+      <div class="r-state on"><i class="fas fa-check"></i> Aboard</div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab active"><i class="fas fa-route"></i><span>Trip</span></div>
+    <div class="tab"><i class="fas fa-list-check"></i><span>Roster</span></div>
+    <div class="tab"><i class="fas fa-map"></i><span>Map</span></div>
+    <div class="tab"><i class="fas fa-user"></i><span>Me</span></div>
+  </div>
+</div>
+</body>
+</html>

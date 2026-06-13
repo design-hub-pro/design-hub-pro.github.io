@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OnBoard — Check-in</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0D14; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:40px; background:radial-gradient(140% 80% at 50% 0%, #16241C 0%, #0A0D14 55%); }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .topnav { padding:6px 28px 6px; display:flex; align-items:center; justify-content:space-between; }
+  .topnav .back { width:40px; height:40px; border-radius:13px; background:#141925; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.06); }
+  .topnav .back i { font-size:15px; color:#cbd2e0; }
+  .topnav .title { font-size:16px; font-weight:800; }
+  .topnav .sp { width:40px; }
+
+  /* success block */
+  .success { text-align:center; padding:26px 28px 6px; }
+  .check-ring { width:120px; height:120px; border-radius:50%; margin:0 auto; background:linear-gradient(135deg,#2EE6A6,#16B881); display:flex; align-items:center; justify-content:center; position:relative; box-shadow:0 14px 40px rgba(46,230,166,0.4); }
+  .check-ring i { font-size:54px; color:#0A0D14; }
+  .check-ring::before { content:''; position:absolute; inset:-12px; border-radius:50%; border:2px solid rgba(46,230,166,0.3); }
+  .success h1 { font-size:27px; font-weight:900; letter-spacing:-0.6px; margin-top:24px; }
+  .success p { font-size:14px; color:#8B93A6; margin-top:8px; line-height:1.5; }
+  .auto-tag { display:inline-flex; align-items:center; gap:8px; background:rgba(46,230,166,0.14); color:#2EE6A6; padding:8px 16px; border-radius:20px; font-size:12px; font-weight:800; margin-top:18px; letter-spacing:0.3px; }
+
+  /* card */
+  .card { margin:24px 28px 0; background:#141925; border:1px solid rgba(255,255,255,0.07); border-radius:24px; padding:20px; }
+  .card-head { display:flex; align-items:center; gap:13px; }
+  .ch-ic { width:50px; height:50px; border-radius:15px; background:linear-gradient(135deg,#FFC53D,#FF9A1F); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .ch-ic i { font-size:21px; color:#0A0D14; }
+  .ch-info .t { font-size:15px; font-weight:800; }
+  .ch-info .s { font-size:12px; color:#8B93A6; margin-top:2px; }
+
+  .detail { display:flex; justify-content:space-between; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .detail:last-child { border-bottom:none; padding-bottom:0; }
+  .detail .l { font-size:13px; color:#8B93A6; }
+  .detail .v { font-size:13px; font-weight:700; display:flex; align-items:center; gap:7px; }
+  .vdot { width:7px; height:7px; border-radius:50%; background:#2EE6A6; }
+
+  /* methods */
+  .methods { margin:24px 28px 0; }
+  .m-title { font-size:13px; font-weight:800; color:#8B93A6; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:13px; }
+  .method { display:flex; align-items:center; gap:14px; background:#141925; border:1px solid rgba(255,255,255,0.07); border-radius:20px; padding:15px 16px; margin-bottom:12px; }
+  .method.active { border-color:rgba(46,230,166,0.5); background:linear-gradient(120deg,rgba(46,230,166,0.08),#141925); }
+  .m-ic { width:46px; height:46px; border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .m-ic.beacon { background:rgba(59,158,255,0.16); color:#3B9EFF; }
+  .m-ic.qr { background:rgba(255,176,32,0.16); color:#FFB020; }
+  .m-ic i { font-size:20px; }
+  .m-body { flex:1; }
+  .m-name { font-size:14px; font-weight:800; }
+  .m-sub { font-size:11px; color:#8B93A6; margin-top:2px; }
+  .m-state { font-size:11px; font-weight:800; padding:5px 11px; border-radius:12px; }
+  .m-state.on { background:rgba(46,230,166,0.16); color:#2EE6A6; }
+  .m-state.off { background:rgba(255,255,255,0.07); color:#5C6478; }
+
+  .notice { margin:22px 28px 0; display:flex; gap:12px; background:rgba(59,158,255,0.08); border:1px solid rgba(59,158,255,0.2); border-radius:18px; padding:15px; }
+  .notice i { font-size:16px; color:#3B9EFF; margin-top:1px; }
+  .notice p { font-size:12px; color:#aeb6c6; line-height:1.5; }
+  .notice strong { color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="topnav">
+    <div class="back"><i class="fas fa-chevron-left"></i></div>
+    <div class="title">Boarding Check-in</div>
+    <div class="sp"></div>
+  </div>
+
+  <div class="success">
+    <div class="check-ring"><i class="fas fa-check"></i></div>
+    <h1>You're on board ✓</h1>
+    <p>Maya boarded Bus&nbsp;#428 safely.<br>Guardians have been notified automatically.</p>
+    <div class="auto-tag"><i class="fas fa-tower-broadcast"></i> Detected via iBeacon — no scan needed</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="ch-ic"><i class="fas fa-bus"></i></div>
+      <div class="ch-info">
+        <div class="t">Bus #428 · Route 12</div>
+        <div class="s">Morning · Westfield High</div>
+      </div>
+    </div>
+    <div style="margin-top:18px">
+      <div class="detail"><span class="l">Boarded at</span><span class="v">8:02 AM · Oakridge & 5th</span></div>
+      <div class="detail"><span class="l">Seat zone</span><span class="v">Front · Row 4</span></div>
+      <div class="detail"><span class="l">Status</span><span class="v"><span class="vdot"></span> Confirmed aboard</span></div>
+      <div class="detail"><span class="l">Guardian alert</span><span class="v"><span class="vdot"></span> Sent to 2 contacts</span></div>
+    </div>
+  </div>
+
+  <div class="methods">
+    <div class="m-title">Check-in methods</div>
+    <div class="method active">
+      <div class="m-ic beacon"><i class="fas fa-tower-broadcast"></i></div>
+      <div class="m-body">
+        <div class="m-name">iBeacon Auto-Detect</div>
+        <div class="m-sub">Hands-free · detects when you step aboard</div>
+      </div>
+      <div class="m-state on">ON</div>
+    </div>
+    <div class="method">
+      <div class="m-ic qr"><i class="fas fa-qrcode"></i></div>
+      <div class="m-body">
+        <div class="m-name">QR Code Backup</div>
+        <div class="m-sub">Scan the door code if beacon is offline</div>
+      </div>
+      <div class="m-state off">BACKUP</div>
+    </div>
+  </div>
+
+  <div class="notice">
+    <i class="fas fa-shield-halved"></i>
+    <p><strong>Privacy first.</strong> Location is only shared during your ride and only with linked guardians and the school. It's never sold or used for ads.</p>
+  </div>
+</div>
+</body>
+</html>
