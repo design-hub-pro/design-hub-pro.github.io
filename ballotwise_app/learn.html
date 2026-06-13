@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ballotwise — Election 101</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0B0E15; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:120px; background:#0B0E15; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .head { padding:6px 28px 4px; }
+  .head h1 { font-size:27px; font-weight:900; letter-spacing:-0.8px; }
+  .head p { font-size:13px; color:#8A93A8; margin-top:4px; }
+
+  /* progress */
+  .prog { margin:16px 28px 0; background:#141A28; border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:16px; }
+  .prog-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:11px; }
+  .prog-t { font-size:13px; font-weight:800; }
+  .prog-v { font-size:12px; font-weight:800; color:#2EE6A6; }
+  .prog-bar { height:9px; border-radius:6px; background:#0B0E15; overflow:hidden; }
+  .prog-bar i { display:block; height:100%; width:60%; background:linear-gradient(90deg,#2EE6A6,#16A38A); border-radius:6px; }
+
+  /* hero video */
+  .hero-v { margin:18px 28px 0; border-radius:24px; overflow:hidden; position:relative; height:190px; }
+  .hero-v img { width:100%; height:100%; object-fit:cover; }
+  .hero-v::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(11,14,21,0.1),rgba(11,14,21,0.85)); }
+  .play { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:56px; height:56px; border-radius:50%; background:rgba(255,255,255,0.92); display:flex; align-items:center; justify-content:center; z-index:2; }
+  .play i { color:#0B0E15; font-size:20px; margin-left:3px; }
+  .hero-v-info { position:absolute; bottom:14px; left:16px; right:16px; z-index:2; }
+  .hero-v-tag { font-size:10px; font-weight:800; color:#FF6B7E; letter-spacing:0.5px; }
+  .hero-v-t { font-size:16px; font-weight:800; margin-top:4px; }
+  .dur { position:absolute; top:13px; right:13px; z-index:2; background:rgba(11,14,21,0.8); padding:4px 9px; border-radius:8px; font-size:10px; font-weight:700; }
+
+  .sec-h { padding:24px 28px 12px; }
+  .sec-t { font-size:16px; font-weight:800; letter-spacing:-0.3px; }
+
+  /* module grid */
+  .mods { padding:0 28px; display:grid; grid-template-columns:repeat(2,1fr); gap:13px; }
+  .mod { background:#141A28; border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:16px; }
+  .mod-ic { width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center; margin-bottom:12px; }
+  .mod-ic i { font-size:18px; color:#fff; }
+  .mod-t { font-size:14px; font-weight:800; }
+  .mod-s { font-size:11px; color:#8A93A8; margin-top:3px; line-height:1.4; }
+  .mod-done { font-size:10px; font-weight:700; color:#2EE6A6; margin-top:9px; display:flex; align-items:center; gap:5px; }
+
+  /* key dates timeline */
+  .dates { padding:4px 28px 0; }
+  .dt { display:flex; gap:14px; }
+  .dt-rail { display:flex; flex-direction:column; align-items:center; }
+  .dt-node { width:13px; height:13px; border-radius:50%; border:3px solid #2A3242; background:#0B0E15; margin-top:4px; flex-shrink:0; }
+  .dt-line { width:2px; flex:1; background:#2A3242; }
+  .dt.done .dt-node { border-color:#2EE6A6; background:#2EE6A6; }
+  .dt.now .dt-node { border-color:#FF3D5E; background:#FF3D5E; box-shadow:0 0 0 5px rgba(255,61,94,0.18); }
+  .dt-body { flex:1; padding-bottom:18px; }
+  .dt-d { font-size:11px; font-weight:800; color:#FF6B7E; }
+  .dt-t { font-size:13.5px; font-weight:700; margin-top:2px; }
+  .dt-s { font-size:11px; color:#8A93A8; margin-top:2px; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(11,14,21,0.9); backdrop-filter:blur(22px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:14px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:50px; }
+  .tab i { font-size:19px; color:rgba(255,255,255,0.32); }
+  .tab span { font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab.active i, .tab.active span { color:#FF3D5E; }
+  .tab-c { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#FF5C72,#E11D48); display:flex; align-items:center; justify-content:center; margin-top:-12px; box-shadow:0 8px 22px rgba(225,29,72,0.45); }
+  .tab-c i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="head">
+    <h1>Election 101</h1>
+    <p>How Canadian elections actually work</p>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="prog">
+    <div class="prog-top"><div class="prog-t">Your learning path</div><div class="prog-v">3 of 5 done</div></div>
+    <div class="prog-bar"><i></i></div>
+  </div>
+
+  <!-- HERO VIDEO -->
+  <div class="hero-v">
+    <img src="https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=600&h=380&fit=crop" alt="">
+    <div class="dur">4:12</div>
+    <div class="play"><i class="fas fa-play"></i></div>
+    <div class="hero-v-info">
+      <div class="hero-v-tag">START HERE</div>
+      <div class="hero-v-t">How a vote becomes a seat</div>
+    </div>
+  </div>
+
+  <!-- MODULES -->
+  <div class="sec-h"><div class="sec-t">Learn the basics</div></div>
+  <div class="mods">
+    <div class="mod">
+      <div class="mod-ic" style="background:linear-gradient(135deg,#FF5C72,#E11D48)"><i class="fas fa-map-location-dot"></i></div>
+      <div class="mod-t">Ridings explained</div>
+      <div class="mod-s">What your district means</div>
+      <div class="mod-done"><i class="fas fa-circle-check"></i> Completed</div>
+    </div>
+    <div class="mod">
+      <div class="mod-ic" style="background:linear-gradient(135deg,#3B9EFF,#2563EB)"><i class="fas fa-people-group"></i></div>
+      <div class="mod-t">The parties</div>
+      <div class="mod-s">Who stands for what</div>
+      <div class="mod-done"><i class="fas fa-circle-check"></i> Completed</div>
+    </div>
+    <div class="mod">
+      <div class="mod-ic" style="background:linear-gradient(135deg,#2EE6A6,#16A38A)"><i class="fas fa-check-to-slot"></i></div>
+      <div class="mod-t">How to vote</div>
+      <div class="mod-s">ID, where & when</div>
+      <div class="mod-done"><i class="fas fa-circle-check"></i> Completed</div>
+    </div>
+    <div class="mod">
+      <div class="mod-ic" style="background:linear-gradient(135deg,#9b8cff,#6D4DFF)"><i class="fas fa-landmark-dome"></i></div>
+      <div class="mod-t">Parliament</div>
+      <div class="mod-s">How government forms</div>
+      <div class="mod-done" style="color:#5C6478"><i class="far fa-circle"></i> 4 min read</div>
+    </div>
+  </div>
+
+  <!-- KEY DATES -->
+  <div class="sec-h"><div class="sec-t">Key dates</div></div>
+  <div class="dates">
+    <div class="dt done">
+      <div class="dt-rail"><div class="dt-node"></div><div class="dt-line"></div></div>
+      <div class="dt-body"><div class="dt-d">JUN 1</div><div class="dt-t">Voter registration opens</div><div class="dt-s">Confirm or update your address</div></div>
+    </div>
+    <div class="dt now">
+      <div class="dt-rail"><div class="dt-node"></div><div class="dt-line"></div></div>
+      <div class="dt-body"><div class="dt-d">JUN 28 – JUL 1</div><div class="dt-t">Advance polls open</div><div class="dt-s">Vote early at your local station</div></div>
+    </div>
+    <div class="dt">
+      <div class="dt-rail"><div class="dt-node"></div></div>
+      <div class="dt-body"><div class="dt-d">JUL 6</div><div class="dt-t">Election day</div><div class="dt-s">Polls open 9:30 AM – 9:30 PM</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab"><i class="fas fa-house"></i><span>Home</span></div>
+  <div class="tab"><i class="fas fa-users"></i><span>Candidates</span></div>
+  <div class="tab-c"><i class="fas fa-square-poll-vertical"></i></div>
+  <div class="tab"><i class="fas fa-comments"></i><span>Ask</span></div>
+  <div class="tab"><i class="fas fa-lightbulb"></i><span>Insights</span></div>
+</div>
+</body>
+</html>
