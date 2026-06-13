@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EquiPose — Drills</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0C0F16; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:120px; background:#0C0F16; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:8px 28px 14px; }
+  .header h1 { font-size:25px; font-weight:900; letter-spacing:-0.6px; }
+  .header p { font-size:13px; color:#7d8698; margin-top:3px; }
+
+  /* category chips */
+  .cats { display:flex; gap:9px; padding:0 28px 4px; overflow-x:auto; }
+  .cat { white-space:nowrap; font-size:12px; font-weight:700; color:#9aa3b2; background:#161B26; border:1px solid rgba(255,255,255,0.06); padding:9px 15px; border-radius:13px; }
+  .cat.on { background:#F97316; color:#fff; border-color:#F97316; }
+
+  /* featured */
+  .featured { margin:18px 28px 0; height:210px; border-radius:24px; overflow:hidden; position:relative; }
+  .featured img { width:100%; height:100%; object-fit:cover; }
+  .featured::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(0,0,0,0.15),rgba(0,0,0,0.8)); }
+  .ft-play { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:54px; height:54px; border-radius:50%; background:rgba(255,255,255,0.2); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,0.6); z-index:2; }
+  .ft-play i { font-size:17px; margin-left:3px; }
+  .ft-tag { position:absolute; top:14px; left:14px; z-index:2; display:flex; align-items:center; gap:6px; background:rgba(249,115,22,0.9); padding:6px 12px; border-radius:12px; font-size:10.5px; font-weight:800; letter-spacing:0.4px; }
+  .ft-meta { position:absolute; bottom:14px; left:16px; right:16px; z-index:2; }
+  .ft-t { font-size:18px; font-weight:900; letter-spacing:-0.4px; }
+  .ft-s { font-size:11.5px; color:#cbd2e0; margin-top:3px; display:flex; gap:13px; }
+  .ft-s span { display:flex; align-items:center; gap:5px; }
+
+  .sec-h { padding:24px 28px 13px; display:flex; justify-content:space-between; align-items:center; }
+  .sec-t { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+  .sec-l { font-size:12px; color:#F97316; font-weight:700; }
+
+  /* drill list */
+  .list { padding:0 28px; display:flex; flex-direction:column; gap:12px; }
+  .dl { background:#161B26; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:12px; display:flex; align-items:center; gap:14px; }
+  .dl-img { width:80px; height:80px; border-radius:14px; object-fit:cover; flex-shrink:0; position:relative; }
+  .dl-wrap { position:relative; flex-shrink:0; }
+  .dl-play { position:absolute; bottom:7px; right:7px; width:24px; height:24px; border-radius:8px; background:rgba(12,15,22,0.7); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; }
+  .dl-play i { font-size:9px; color:#fff; margin-left:1px; }
+  .dl-cat { font-size:10px; font-weight:800; letter-spacing:0.4px; text-transform:uppercase; }
+  .dl-t { font-size:14.5px; font-weight:800; margin-top:4px; }
+  .dl-meta { display:flex; gap:13px; margin-top:7px; }
+  .dl-meta span { font-size:10.5px; color:#7d8698; font-weight:700; display:flex; align-items:center; gap:5px; }
+  .dl-meta i { font-size:10px; }
+  .dl-go { margin-left:auto; width:32px; height:32px; border-radius:10px; background:rgba(249,115,22,0.14); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .dl-go i { color:#F97316; font-size:12px; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(12,15,22,0.9); backdrop-filter:blur(22px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:14px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:50px; }
+  .tab i { font-size:19px; color:rgba(255,255,255,0.32); }
+  .tab span { font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab.active i, .tab.active span { color:#F97316; }
+  .tab-c { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#F59E0B,#F97316); display:flex; align-items:center; justify-content:center; margin-top:-12px; box-shadow:0 8px 22px rgba(249,115,22,0.45); }
+  .tab-c i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <h1>Drills</h1>
+    <p>Guided exercises matched to your form gaps</p>
+  </div>
+
+  <div class="cats">
+    <div class="cat on">For you</div>
+    <div class="cat">Seat</div>
+    <div class="cat">Balance</div>
+    <div class="cat">Hands</div>
+    <div class="cat">Legs</div>
+  </div>
+
+  <!-- featured -->
+  <div class="featured">
+    <img src="https://images.unsplash.com/photo-1511994298241-608e28f14fde?w=700&h=420&fit=crop" alt="">
+    <div class="ft-tag"><i class="fas fa-star"></i> RECOMMENDED FOR YOU</div>
+    <div class="ft-play"><i class="fas fa-play"></i></div>
+    <div class="ft-meta">
+      <div class="ft-t">Heels-down stability</div>
+      <div class="ft-s">
+        <span><i class="fas fa-clock"></i> 6 min</span>
+        <span><i class="fas fa-shoe-prints"></i> Leg & heel</span>
+        <span><i class="fas fa-signal"></i> Beginner</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- list -->
+  <div class="sec-h"><div class="sec-t">Build your seat</div><div class="sec-l">See all</div></div>
+  <div class="list">
+    <div class="dl">
+      <div class="dl-wrap">
+        <img class="dl-img" src="https://images.unsplash.com/photo-1598974357801-cbca100e65d3?w=200&h=200&fit=crop" alt="">
+        <div class="dl-play"><i class="fas fa-play"></i></div>
+      </div>
+      <div>
+        <div class="dl-cat" style="color:#2EE6A6">SEAT</div>
+        <div class="dl-t">Sitting trot, no stirrups</div>
+        <div class="dl-meta"><span><i class="fas fa-clock" style="color:#F97316"></i> 8 min</span><span><i class="fas fa-signal" style="color:#F97316"></i> Intermediate</span></div>
+      </div>
+      <div class="dl-go"><i class="fas fa-arrow-right"></i></div>
+    </div>
+    <div class="dl">
+      <div class="dl-wrap">
+        <img class="dl-img" src="https://images.unsplash.com/photo-1534773728080-33d31da27ae5?w=200&h=200&fit=crop" alt="">
+        <div class="dl-play"><i class="fas fa-play"></i></div>
+      </div>
+      <div>
+        <div class="dl-cat" style="color:#3B9EFF">BALANCE</div>
+        <div class="dl-t">Two-point hold at trot</div>
+        <div class="dl-meta"><span><i class="fas fa-clock" style="color:#F97316"></i> 5 min</span><span><i class="fas fa-signal" style="color:#F97316"></i> Beginner</span></div>
+      </div>
+      <div class="dl-go"><i class="fas fa-arrow-right"></i></div>
+    </div>
+    <div class="dl">
+      <div class="dl-wrap">
+        <img class="dl-img" src="https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=200&h=200&fit=crop" alt="">
+        <div class="dl-play"><i class="fas fa-play"></i></div>
+      </div>
+      <div>
+        <div class="dl-cat" style="color:#FFB020">HANDS</div>
+        <div class="dl-t">Quiet hands on the buckle</div>
+        <div class="dl-meta"><span><i class="fas fa-clock" style="color:#F97316"></i> 7 min</span><span><i class="fas fa-signal" style="color:#F97316"></i> Intermediate</span></div>
+      </div>
+      <div class="dl-go"><i class="fas fa-arrow-right"></i></div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab"><i class="fas fa-house"></i><span>Home</span></div>
+  <div class="tab"><i class="fas fa-chart-line"></i><span>Progress</span></div>
+  <div class="tab-c"><i class="fas fa-video"></i></div>
+  <div class="tab active"><i class="fas fa-graduation-cap"></i><span>Drills</span></div>
+  <div class="tab"><i class="fas fa-user"></i><span>Profile</span></div>
+</div>
+</body>
+</html>

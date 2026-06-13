@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EquiPose — Profile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0C0F16; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:120px; background:#0C0F16; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .nav { padding:6px 28px 0; display:flex; justify-content:flex-end; }
+  .nav-btn { width:40px; height:40px; border-radius:13px; background:#161B26; border:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; }
+  .nav-btn i { font-size:15px; color:#cbd2e0; }
+
+  /* profile head */
+  .phead { text-align:center; padding:8px 28px 0; }
+  .pavatar { width:96px; height:96px; border-radius:30px; object-fit:cover; margin:0 auto; border:3px solid #F97316; display:block; }
+  .pname { font-size:22px; font-weight:900; margin-top:14px; letter-spacing:-0.4px; }
+  .pmeta { font-size:12.5px; color:#7d8698; margin-top:4px; }
+  .pbadge { display:inline-flex; align-items:center; gap:7px; background:linear-gradient(135deg,rgba(249,115,22,0.16),rgba(245,158,11,0.05)); border:1px solid rgba(249,115,22,0.3); color:#FDBA74; padding:7px 15px; border-radius:20px; font-size:11.5px; font-weight:800; margin-top:13px; }
+
+  /* stat row */
+  .stats { display:flex; margin:22px 28px 0; background:#161B26; border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:18px 0; }
+  .st { flex:1; text-align:center; position:relative; }
+  .st:not(:last-child)::after { content:''; position:absolute; right:0; top:50%; transform:translateY(-50%); width:1px; height:32px; background:rgba(255,255,255,0.08); }
+  .st .v { font-size:24px; font-weight:900; letter-spacing:-1px; }
+  .st .l { font-size:10.5px; color:#7d8698; font-weight:700; margin-top:4px; }
+
+  /* my horse */
+  .horse { margin:16px 28px 0; background:#161B26; border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:15px; display:flex; align-items:center; gap:14px; }
+  .horse img { width:62px; height:62px; border-radius:16px; object-fit:cover; }
+  .horse-l { font-size:10px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; color:#7d8698; }
+  .horse-n { font-size:16px; font-weight:800; margin-top:3px; }
+  .horse-s { font-size:11.5px; color:#9aa3b2; margin-top:3px; }
+  .horse-go { margin-left:auto; width:32px; height:32px; border-radius:10px; background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; }
+  .horse-go i { color:#7d8698; font-size:12px; }
+
+  .sec-h { padding:24px 28px 13px; }
+  .sec-t { font-size:13px; font-weight:800; letter-spacing:0.6px; text-transform:uppercase; color:#7d8698; }
+
+  /* settings list */
+  .menu { margin:0 28px; background:#161B26; border:1px solid rgba(255,255,255,0.06); border-radius:20px; overflow:hidden; }
+  .mi { display:flex; align-items:center; gap:14px; padding:15px 16px; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .mi:last-child { border-bottom:none; }
+  .mi-ic { width:36px; height:36px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .mi-ic i { font-size:14px; color:#fff; }
+  .mi-t { font-size:14px; font-weight:700; }
+  .mi-r { margin-left:auto; font-size:12px; color:#7d8698; font-weight:600; display:flex; align-items:center; gap:9px; }
+  .mi-r i { font-size:12px; }
+  .toggle { width:42px; height:25px; border-radius:13px; background:#F97316; position:relative; }
+  .toggle::after { content:''; position:absolute; top:3px; right:3px; width:19px; height:19px; border-radius:50%; background:#fff; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(12,15,22,0.9); backdrop-filter:blur(22px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:14px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:50px; }
+  .tab i { font-size:19px; color:rgba(255,255,255,0.32); }
+  .tab span { font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab.active i, .tab.active span { color:#F97316; }
+  .tab-c { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#F59E0B,#F97316); display:flex; align-items:center; justify-content:center; margin-top:-12px; box-shadow:0 8px 22px rgba(249,115,22,0.45); }
+  .tab-c i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="nav"><div class="nav-btn"><i class="fas fa-gear"></i></div></div>
+
+  <div class="phead">
+    <img class="pavatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop" alt="">
+    <div class="pname">Emma Whitfield</div>
+    <div class="pmeta">Dressage · Riding 4 years</div>
+    <div class="pbadge"><i class="fas fa-medal"></i> Level 3 · Deep Seat</div>
+  </div>
+
+  <div class="stats">
+    <div class="st"><div class="v">12</div><div class="l">Rides</div></div>
+    <div class="st"><div class="v">83</div><div class="l">Avg score</div></div>
+    <div class="st"><div class="v">5</div><div class="l">Streak</div></div>
+    <div class="st"><div class="v">8</div><div class="l">Badges</div></div>
+  </div>
+
+  <!-- my horse -->
+  <div class="horse">
+    <img src="https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=160&h=160&fit=crop" alt="">
+    <div>
+      <div class="horse-l">My horse</div>
+      <div class="horse-n">Bailey</div>
+      <div class="horse-s">Warmblood · 9 yrs · 16.2hh</div>
+    </div>
+    <div class="horse-go"><i class="fas fa-chevron-right"></i></div>
+  </div>
+
+  <!-- preferences -->
+  <div class="sec-h"><div class="sec-t">Coaching</div></div>
+  <div class="menu">
+    <div class="mi">
+      <div class="mi-ic" style="background:linear-gradient(135deg,#F59E0B,#F97316)"><i class="fas fa-volume-high"></i></div>
+      <div class="mi-t">Live voice cues</div>
+      <div class="mi-r"><div class="toggle"></div></div>
+    </div>
+    <div class="mi">
+      <div class="mi-ic" style="background:linear-gradient(135deg,#16A38A,#0E7C68)"><i class="fas fa-bullseye"></i></div>
+      <div class="mi-t">Focus metric</div>
+      <div class="mi-r">Leg & heel <i class="fas fa-chevron-right"></i></div>
+    </div>
+    <div class="mi">
+      <div class="mi-ic" style="background:linear-gradient(135deg,#2563EB,#1E40AF)"><i class="fas fa-horse-head"></i></div>
+      <div class="mi-t">Discipline</div>
+      <div class="mi-r">Dressage <i class="fas fa-chevron-right"></i></div>
+    </div>
+  </div>
+
+  <div class="sec-h"><div class="sec-t">Account</div></div>
+  <div class="menu">
+    <div class="mi">
+      <div class="mi-ic" style="background:linear-gradient(135deg,#9b8cff,#6D4DFF)"><i class="fas fa-cloud-arrow-up"></i></div>
+      <div class="mi-t">Backup & sync</div>
+      <div class="mi-r">On <i class="fas fa-chevron-right"></i></div>
+    </div>
+    <div class="mi">
+      <div class="mi-ic" style="background:linear-gradient(135deg,#DC2626,#991B1B)"><i class="fas fa-crown"></i></div>
+      <div class="mi-t">EquiPose Pro</div>
+      <div class="mi-r">Active <i class="fas fa-chevron-right"></i></div>
+    </div>
+    <div class="mi">
+      <div class="mi-ic" style="background:rgba(255,255,255,0.08)"><i class="fas fa-circle-question"></i></div>
+      <div class="mi-t">Help & support</div>
+      <div class="mi-r"><i class="fas fa-chevron-right"></i></div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab"><i class="fas fa-house"></i><span>Home</span></div>
+  <div class="tab"><i class="fas fa-chart-line"></i><span>Progress</span></div>
+  <div class="tab-c"><i class="fas fa-video"></i></div>
+  <div class="tab"><i class="fas fa-graduation-cap"></i><span>Drills</span></div>
+  <div class="tab active"><i class="fas fa-user"></i><span>Profile</span></div>
+</div>
+</body>
+</html>

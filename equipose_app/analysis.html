@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EquiPose — Ride Analysis</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0C0F16; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:40px; background:#0C0F16; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .nav { padding:6px 28px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .nav-btn { width:40px; height:40px; border-radius:13px; background:#161B26; border:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; }
+  .nav-btn i { font-size:15px; color:#cbd2e0; }
+  .nav-title { font-size:16px; font-weight:800; }
+  .nav-sub { font-size:11px; color:#7d8698; text-align:center; margin-top:1px; }
+
+  /* video replay */
+  .replay { margin:0 28px; height:200px; border-radius:24px; overflow:hidden; position:relative; }
+  .replay img { width:100%; height:100%; object-fit:cover; }
+  .replay::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(0,0,0,0.2),rgba(0,0,0,0.7)); }
+  .replay-play { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:56px; height:56px; border-radius:50%; background:rgba(255,255,255,0.2); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,0.6); z-index:2; }
+  .replay-play i { font-size:18px; margin-left:3px; }
+  .replay-meta { position:absolute; bottom:14px; left:16px; right:16px; z-index:2; display:flex; align-items:center; justify-content:space-between; }
+  .replay-meta .l { font-size:12px; font-weight:700; }
+  .replay-tag { font-size:10px; font-weight:800; background:rgba(12,15,22,0.6); backdrop-filter:blur(6px); padding:5px 10px; border-radius:10px; }
+  .scrub { position:absolute; bottom:46px; left:16px; right:16px; z-index:2; height:4px; border-radius:3px; background:rgba(255,255,255,0.25); }
+  .scrub i { display:block; height:100%; width:42%; background:#F97316; border-radius:3px; }
+
+  /* overall score */
+  .overall { margin:18px 28px 0; background:linear-gradient(150deg,#161B26,#10141d); border:1px solid rgba(255,255,255,0.07); border-radius:24px; padding:20px; display:flex; align-items:center; gap:20px; }
+  .o-ring { width:96px; height:96px; position:relative; flex-shrink:0; }
+  .o-ring .n { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .o-ring .n b { font-size:30px; font-weight:900; line-height:1; }
+  .o-ring .n span { font-size:9px; color:#7d8698; font-weight:700; letter-spacing:0.4px; margin-top:2px; }
+  .o-info .o-t { font-size:17px; font-weight:900; }
+  .o-info .o-d { font-size:12px; color:#9aa3b2; margin-top:4px; line-height:1.45; }
+  .o-up { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; color:#2EE6A6; background:rgba(46,230,166,0.12); padding:5px 11px; border-radius:10px; margin-top:10px; }
+
+  .sec-h { padding:24px 28px 13px; }
+  .sec-t { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+
+  /* metric breakdown */
+  .breakdown { padding:0 28px; display:flex; flex-direction:column; gap:12px; }
+  .mb { background:#161B26; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:15px 16px; }
+  .mb-top { display:flex; align-items:center; gap:12px; }
+  .mb-ic { width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .mb-ic i { font-size:15px; color:#fff; }
+  .mb-name { font-size:14px; font-weight:800; }
+  .mb-tag { font-size:10.5px; font-weight:700; margin-top:1px; }
+  .mb-score { margin-left:auto; font-size:22px; font-weight:900; }
+  .mb-bar { height:7px; border-radius:6px; background:#0C0F16; margin-top:13px; overflow:hidden; }
+  .mb-bar i { display:block; height:100%; border-radius:6px; }
+
+  /* AI feedback */
+  .fb { margin:0 28px; background:linear-gradient(150deg,rgba(249,115,22,0.10),rgba(245,158,11,0.02)); border:1px solid rgba(249,115,22,0.2); border-radius:22px; padding:18px; }
+  .fb-h { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .fb-ic { width:34px; height:34px; border-radius:11px; background:linear-gradient(135deg,#F59E0B,#F97316); display:flex; align-items:center; justify-content:center; }
+  .fb-ic i { font-size:15px; color:#fff; }
+  .fb-h b { font-size:14px; font-weight:800; }
+  .fb-item { display:flex; gap:12px; padding:11px 0; border-top:1px solid rgba(255,255,255,0.07); }
+  .fb-item:first-of-type { border-top:none; padding-top:0; }
+  .fb-mark { width:22px; height:22px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+  .fb-mark i { font-size:10px; }
+  .fb-txt { font-size:13px; color:#d6dbe5; line-height:1.5; }
+  .fb-txt b { color:#fff; font-weight:700; }
+
+  /* moments timeline */
+  .moments { display:flex; gap:13px; padding:2px 28px 4px; overflow-x:auto; }
+  .mo { min-width:150px; max-width:150px; background:#161B26; border:1px solid rgba(255,255,255,0.06); border-radius:18px; overflow:hidden; }
+  .mo-img { height:90px; position:relative; }
+  .mo-img img { width:100%; height:100%; object-fit:cover; }
+  .mo-t { position:absolute; bottom:8px; left:8px; z-index:2; font-size:9.5px; font-weight:800; background:rgba(0,0,0,0.6); padding:3px 8px; border-radius:8px; }
+  .mo-flag { position:absolute; top:8px; right:8px; z-index:2; width:22px; height:22px; border-radius:7px; display:flex; align-items:center; justify-content:center; }
+  .mo-flag i { font-size:10px; color:#fff; }
+  .mo-body { padding:11px 12px 13px; }
+  .mo-n { font-size:12.5px; font-weight:800; }
+  .mo-s { font-size:10.5px; color:#7d8698; margin-top:3px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="nav">
+    <div class="nav-btn"><i class="fas fa-chevron-left"></i></div>
+    <div>
+      <div class="nav-title">Ride Analysis</div>
+      <div class="nav-sub">Today · Dressage · 14:20</div>
+    </div>
+    <div class="nav-btn"><i class="fas fa-share-nodes"></i></div>
+  </div>
+
+  <!-- video replay -->
+  <div class="replay">
+    <img src="https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=700&h=420&fit=crop" alt="">
+    <div class="replay-play"><i class="fas fa-play"></i></div>
+    <div class="scrub"><i></i></div>
+    <div class="replay-meta">
+      <div class="l">06:01 / 14:20</div>
+      <div class="replay-tag"><i class="fas fa-wand-magic-sparkles" style="color:#FBBF24"></i> Pose overlay on</div>
+    </div>
+  </div>
+
+  <!-- overall -->
+  <div class="overall">
+    <div class="o-ring">
+      <svg viewBox="0 0 96 96" width="96" height="96">
+        <circle cx="48" cy="48" r="40" fill="none" stroke="#0C0F16" stroke-width="9"/>
+        <circle cx="48" cy="48" r="40" fill="none" stroke="url(#g)" stroke-width="9" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="42.7" transform="rotate(-90 48 48)"/>
+        <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F59E0B"/><stop offset="1" stop-color="#F97316"/></linearGradient></defs>
+      </svg>
+      <div class="n"><b>83</b><span>OVERALL</span></div>
+    </div>
+    <div class="o-info">
+      <div class="o-t">Solid, balanced ride</div>
+      <div class="o-d">Your seat held deep through the sitting trot. Leg position is the next thing to lock in.</div>
+      <div class="o-up"><i class="fas fa-arrow-up"></i> +6 vs. last dressage ride</div>
+    </div>
+  </div>
+
+  <!-- breakdown -->
+  <div class="sec-h"><div class="sec-t">Form breakdown</div></div>
+  <div class="breakdown">
+    <div class="mb">
+      <div class="mb-top">
+        <div class="mb-ic" style="background:linear-gradient(135deg,#16A38A,#0E7C68)"><i class="fas fa-chair"></i></div>
+        <div><div class="mb-name">Seat & Posture</div><div class="mb-tag" style="color:#2EE6A6">Excellent · spine aligned</div></div>
+        <div class="mb-score" style="color:#2EE6A6">88</div>
+      </div>
+      <div class="mb-bar"><i style="width:88%;background:#2EE6A6"></i></div>
+    </div>
+    <div class="mb">
+      <div class="mb-top">
+        <div class="mb-ic" style="background:linear-gradient(135deg,#2563EB,#1E40AF)"><i class="fas fa-scale-balanced"></i></div>
+        <div><div class="mb-name">Balance</div><div class="mb-tag" style="color:#3B9EFF">Strong · centered over hips</div></div>
+        <div class="mb-score" style="color:#3B9EFF">84</div>
+      </div>
+      <div class="mb-bar"><i style="width:84%;background:#3B9EFF"></i></div>
+    </div>
+    <div class="mb">
+      <div class="mb-top">
+        <div class="mb-ic" style="background:linear-gradient(135deg,#D97706,#B45309)"><i class="fas fa-hand-back-fist"></i></div>
+        <div><div class="mb-name">Hands & Arms</div><div class="mb-tag" style="color:#FFB020">Improving · slight bounce</div></div>
+        <div class="mb-score" style="color:#FFB020">74</div>
+      </div>
+      <div class="mb-bar"><i style="width:74%;background:#FFB020"></i></div>
+    </div>
+    <div class="mb">
+      <div class="mb-top">
+        <div class="mb-ic" style="background:linear-gradient(135deg,#DC2626,#991B1B)"><i class="fas fa-shoe-prints"></i></div>
+        <div><div class="mb-name">Leg & Heel</div><div class="mb-tag" style="color:#FF4D5E">Focus · heel rising at trot</div></div>
+        <div class="mb-score" style="color:#FF4D5E">68</div>
+      </div>
+      <div class="mb-bar"><i style="width:68%;background:#FF4D5E"></i></div>
+    </div>
+  </div>
+
+  <!-- AI feedback -->
+  <div class="sec-h"><div class="sec-t">Coach notes</div></div>
+  <div class="fb">
+    <div class="fb-h"><div class="fb-ic"><i class="fas fa-wand-magic-sparkles"></i></div><b>EquiPose AI</b></div>
+    <div class="fb-item">
+      <div class="fb-mark" style="background:rgba(46,230,166,0.16)"><i class="fas fa-check" style="color:#2EE6A6"></i></div>
+      <div class="fb-txt"><b>Beautiful, quiet seat.</b> Your hips followed the horse's motion through 92% of the trot work.</div>
+    </div>
+    <div class="fb-item">
+      <div class="fb-mark" style="background:rgba(255,77,94,0.16)"><i class="fas fa-triangle-exclamation" style="color:#FF4D5E"></i></div>
+      <div class="fb-txt"><b>Heels rose 14 times.</b> Most often on the left rein — try weighting the stirrup down through the transitions.</div>
+    </div>
+    <div class="fb-item">
+      <div class="fb-mark" style="background:rgba(255,176,32,0.16)"><i class="fas fa-lightbulb" style="color:#FFB020"></i></div>
+      <div class="fb-txt"><b>Next drill:</b> Heels-down stability (6 min) to lengthen the leg and steady your lower body.</div>
+    </div>
+  </div>
+
+  <!-- key moments -->
+  <div class="sec-h"><div class="sec-t">Key moments</div></div>
+  <div class="moments">
+    <div class="mo">
+      <div class="mo-img">
+        <img src="https://images.unsplash.com/photo-1598974357801-cbca100e65d3?w=300&h=200&fit=crop" alt="">
+        <div class="mo-flag" style="background:#2EE6A6"><i class="fas fa-check"></i></div>
+        <div class="mo-t">02:14</div>
+      </div>
+      <div class="mo-body"><div class="mo-n">Best frame</div><div class="mo-s">Seat 96 · perfect line</div></div>
+    </div>
+    <div class="mo">
+      <div class="mo-img">
+        <img src="https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=300&h=200&fit=crop" alt="">
+        <div class="mo-flag" style="background:#FF4D5E"><i class="fas fa-triangle-exclamation"></i></div>
+        <div class="mo-t">06:48</div>
+      </div>
+      <div class="mo-body"><div class="mo-n">Heel rise</div><div class="mo-s">Legs 58 · left rein</div></div>
+    </div>
+    <div class="mo">
+      <div class="mo-img">
+        <img src="https://images.unsplash.com/photo-1534773728080-33d31da27ae5?w=300&h=200&fit=crop" alt="">
+        <div class="mo-flag" style="background:#FFB020"><i class="fas fa-hand-back-fist"></i></div>
+        <div class="mo-t">10:02</div>
+      </div>
+      <div class="mo-body"><div class="mo-n">Hand bounce</div><div class="mo-s">Hands 71 · canter</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

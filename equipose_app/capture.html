@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EquiPose — Live Capture</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#000; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow:hidden; background:#000; }
+
+  .cam { position:absolute; inset:0; z-index:1; }
+  .cam img { width:100%; height:100%; object-fit:cover; }
+  .cam::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(0,0,0,0.45) 0%,transparent 22%,transparent 55%,rgba(0,0,0,0.85) 100%); }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  /* top bar */
+  .topbar { position:absolute; top:62px; left:0; right:0; z-index:40; display:flex; align-items:center; justify-content:space-between; padding:0 22px; }
+  .rec { display:flex; align-items:center; gap:8px; background:rgba(0,0,0,0.5); backdrop-filter:blur(10px); padding:8px 14px; border-radius:18px; }
+  .rec-dot { width:9px; height:9px; border-radius:50%; background:#FF4D5E; animation:blink 1.2s infinite; }
+  @keyframes blink { 50%{opacity:0.3;} }
+  .rec b { font-size:13px; font-weight:800; letter-spacing:0.5px; }
+  .rec span { font-size:12px; color:#cbd2e0; font-weight:600; }
+  .tbtn { width:42px; height:42px; border-radius:14px; background:rgba(0,0,0,0.5); backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center; }
+  .tbtn i { font-size:16px; color:#fff; }
+
+  /* pose skeleton */
+  .skel { position:absolute; top:130px; left:50%; transform:translateX(-52%); z-index:20; width:260px; height:420px; }
+
+  /* live overall chip */
+  .live-score { position:absolute; top:120px; right:22px; z-index:30; width:74px; height:74px; border-radius:22px; background:rgba(0,0,0,0.55); backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,0.12); display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .live-score b { font-size:28px; font-weight:900; line-height:1; color:#2EE6A6; }
+  .live-score span { font-size:8px; font-weight:800; letter-spacing:0.6px; opacity:0.7; margin-top:3px; }
+
+  /* correction toast */
+  .toast { position:absolute; bottom:280px; left:22px; right:22px; z-index:35; background:rgba(220,38,38,0.92); backdrop-filter:blur(10px); border-radius:18px; padding:14px 16px; display:flex; align-items:center; gap:13px; box-shadow:0 14px 34px rgba(220,38,38,0.4); }
+  .toast-ic { width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .toast-ic i { font-size:16px; }
+  .toast-t { font-size:14px; font-weight:800; }
+  .toast-s { font-size:11.5px; opacity:0.9; margin-top:1px; }
+
+  /* metric strip */
+  .metrics { position:absolute; bottom:170px; left:0; right:0; z-index:30; display:flex; gap:10px; padding:0 22px; overflow-x:auto; }
+  .m { min-width:96px; background:rgba(0,0,0,0.5); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:12px; }
+  .m-top { display:flex; align-items:center; justify-content:space-between; }
+  .m-top i { font-size:13px; color:#cbd2e0; }
+  .m-dot { width:8px; height:8px; border-radius:50%; }
+  .m-v { font-size:22px; font-weight:900; margin-top:9px; line-height:1; }
+  .m-l { font-size:10px; color:#9aa3b2; font-weight:700; margin-top:4px; }
+
+  /* controls */
+  .controls { position:absolute; bottom:54px; left:0; right:0; z-index:40; display:flex; align-items:center; justify-content:center; gap:46px; }
+  .cbtn { width:52px; height:52px; border-radius:50%; background:rgba(255,255,255,0.14); backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.15); }
+  .cbtn i { font-size:19px; color:#fff; }
+  .shutter { width:78px; height:78px; border-radius:50%; background:rgba(255,77,94,0.25); display:flex; align-items:center; justify-content:center; border:3px solid #fff; }
+  .shutter-in { width:30px; height:30px; border-radius:9px; background:#FF4D5E; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="cam">
+    <img src="https://images.unsplash.com/photo-1567201080580-bb78d2dd5bc8?w=900&h=1400&fit=crop" alt="">
+  </div>
+
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="topbar">
+    <div class="rec"><span class="rec-dot"></span><b>REC</b><span>04:12</span></div>
+    <div class="tbtn"><i class="fas fa-bolt"></i></div>
+  </div>
+
+  <!-- live overall -->
+  <div class="live-score"><b>86</b><span>LIVE</span></div>
+
+  <!-- pose skeleton overlay -->
+  <svg class="skel" viewBox="0 0 260 420">
+    <g stroke="#2EE6A6" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.95">
+      <line x1="132" y1="78" x2="128" y2="190"/>
+      <line x1="132" y1="100" x2="92" y2="150"/>
+      <line x1="92" y1="150" x2="84" y2="205"/>
+      <line x1="132" y1="100" x2="172" y2="150"/>
+      <line x1="172" y1="150" x2="178" y2="205"/>
+      <line x1="128" y1="190" x2="108" y2="285"/>
+      <line x1="128" y1="190" x2="158" y2="285"/>
+    </g>
+    <!-- leg flagged red -->
+    <g stroke="#FF4D5E" stroke-width="3.5" fill="none" stroke-linecap="round">
+      <line x1="108" y1="285" x2="100" y2="370"/>
+      <line x1="158" y1="285" x2="168" y2="370"/>
+    </g>
+    <g fill="#FBBF24">
+      <circle cx="132" cy="64" r="13" fill="none" stroke="#FBBF24" stroke-width="3.5"/>
+      <circle cx="132" cy="100" r="5.5"/><circle cx="128" cy="190" r="5.5"/>
+      <circle cx="92" cy="150" r="5.5"/><circle cx="172" cy="150" r="5.5"/>
+      <circle cx="84" cy="205" r="5.5"/><circle cx="178" cy="205" r="5.5"/>
+      <circle cx="108" cy="285" r="5.5"/><circle cx="158" cy="285" r="5.5"/>
+    </g>
+    <g fill="#FF4D5E">
+      <circle cx="100" cy="370" r="6"/><circle cx="168" cy="370" r="6"/>
+    </g>
+    <!-- spine alignment guide -->
+    <line x1="132" y1="50" x2="128" y2="200" stroke="#fff" stroke-width="1" stroke-dasharray="4 5" opacity="0.5"/>
+  </svg>
+
+  <!-- correction toast -->
+  <div class="toast">
+    <div class="toast-ic"><i class="fas fa-shoe-prints"></i></div>
+    <div>
+      <div class="toast-t">Drop your heels</div>
+      <div class="toast-s">Left heel is rising — push weight down</div>
+    </div>
+  </div>
+
+  <!-- live metrics -->
+  <div class="metrics">
+    <div class="m">
+      <div class="m-top"><i class="fas fa-chair"></i><span class="m-dot" style="background:#2EE6A6"></span></div>
+      <div class="m-v">90</div><div class="m-l">Seat</div>
+    </div>
+    <div class="m">
+      <div class="m-top"><i class="fas fa-scale-balanced"></i><span class="m-dot" style="background:#2EE6A6"></span></div>
+      <div class="m-v">85</div><div class="m-l">Balance</div>
+    </div>
+    <div class="m">
+      <div class="m-top"><i class="fas fa-hand-back-fist"></i><span class="m-dot" style="background:#FFB020"></span></div>
+      <div class="m-v">78</div><div class="m-l">Hands</div>
+    </div>
+    <div class="m">
+      <div class="m-top"><i class="fas fa-shoe-prints"></i><span class="m-dot" style="background:#FF4D5E"></span></div>
+      <div class="m-v">64</div><div class="m-l">Legs</div>
+    </div>
+  </div>
+
+  <!-- controls -->
+  <div class="controls">
+    <div class="cbtn"><i class="fas fa-volume-high"></i></div>
+    <div class="shutter"><div class="shutter-in"></div></div>
+    <div class="cbtn"><i class="fas fa-camera-rotate"></i></div>
+  </div>
+</div>
+</body>
+</html>
