@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bushel — Shift Detail</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html,body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#F5F6F1; color:#14271B; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:140px; background:#F5F6F1; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; color:#fff; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  /* HERO IMG */
+  .hero-img { position:absolute; top:0; left:0; right:0; height:300px; overflow:hidden; }
+  .hero-img img { width:100%; height:100%; object-fit:cover; }
+  .hero-img::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(8,20,12,0.35) 0%,rgba(8,20,12,0) 40%,rgba(245,246,241,0) 65%,#F5F6F1 100%); }
+  .nav { position:absolute; top:64px; left:28px; right:28px; z-index:20; display:flex; justify-content:space-between; }
+  .nav-btn { width:42px; height:42px; border-radius:14px; background:rgba(255,255,255,0.92); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; box-shadow:0 6px 16px rgba(8,20,12,0.18); }
+  .nav-btn i { color:#14271B; font-size:16px; }
+  .hero-tag { position:absolute; top:200px; left:28px; z-index:15; background:#F43F5E; color:#fff; padding:7px 13px; border-radius:13px; font-size:11px; font-weight:800; display:flex; align-items:center; gap:7px; box-shadow:0 8px 18px rgba(244,63,94,0.4); }
+
+  .body { position:relative; z-index:10; margin-top:264px; padding:0 28px; }
+  .title { font-size:24px; font-weight:900; letter-spacing:-0.6px; }
+  .sub { font-size:13px; color:#7C8579; font-weight:600; margin-top:6px; display:flex; align-items:center; gap:7px; }
+
+  /* META ROW */
+  .meta { display:flex; gap:11px; margin-top:18px; }
+  .mcard { flex:1; background:#fff; border:1px solid #ECEDE6; border-radius:18px; padding:14px 12px; text-align:center; box-shadow:0 6px 16px rgba(20,39,27,0.04); }
+  .mcard i { font-size:16px; margin-bottom:8px; }
+  .mcard .v { font-size:13.5px; font-weight:900; }
+  .mcard .l { font-size:10px; color:#A6AFA4; font-weight:700; margin-top:2px; text-transform:uppercase; }
+
+  .sec-t { font-size:16px; font-weight:800; letter-spacing:-0.3px; margin:24px 0 12px; }
+
+  /* WHAT YOU'LL DO */
+  .todo { background:#fff; border:1px solid #ECEDE6; border-radius:20px; padding:6px 16px; box-shadow:0 6px 16px rgba(20,39,27,0.04); }
+  .titem { display:flex; align-items:center; gap:13px; padding:13px 0; border-bottom:1px solid #F1F3ED; }
+  .titem:last-child { border-bottom:none; }
+  .titem .ic { width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .titem .ic i { color:#fff; font-size:15px; }
+  .titem .tt { font-size:13.5px; font-weight:700; }
+  .titem .ts { font-size:11px; color:#7C8579; font-weight:600; margin-top:2px; }
+
+  /* REQUIREMENTS */
+  .reqs { display:flex; flex-wrap:wrap; gap:9px; }
+  .req { background:#fff; border:1px solid #ECEDE6; padding:9px 14px; border-radius:13px; font-size:12px; font-weight:700; color:#52605A; display:flex; align-items:center; gap:8px; }
+  .req i { color:#16A34A; font-size:12px; }
+
+  /* HOST */
+  .host { background:#fff; border:1px solid #ECEDE6; border-radius:20px; padding:14px; display:flex; align-items:center; gap:13px; box-shadow:0 6px 16px rgba(20,39,27,0.04); }
+  .host img { width:48px; height:48px; border-radius:14px; object-fit:cover; }
+  .host .hn { font-size:14px; font-weight:800; }
+  .host .hr { font-size:11.5px; color:#7C8579; font-weight:600; margin-top:3px; }
+  .host .msg { margin-left:auto; width:40px; height:40px; border-radius:13px; background:#E4F6EA; display:flex; align-items:center; justify-content:center; }
+  .host .msg i { color:#16A34A; font-size:15px; }
+
+  /* SLOTS */
+  .slots-card { background:linear-gradient(135deg,#0C3A1E,#14502A); border-radius:22px; padding:18px; color:#fff; margin-top:14px; }
+  .slots-top { display:flex; align-items:center; justify-content:space-between; }
+  .slots-top .l { font-size:12px; font-weight:700; opacity:0.8; }
+  .slots-top .v { font-size:13px; font-weight:900; color:#5BD978; }
+  .slots-bar { height:8px; border-radius:8px; background:rgba(255,255,255,0.16); margin:12px 0; overflow:hidden; }
+  .slots-bar i { display:block; height:100%; width:40%; border-radius:8px; background:linear-gradient(90deg,#5BD978,#A7F3C0); }
+  .slots-stack { display:flex; align-items:center; }
+  .slots-stack img { width:30px; height:30px; border-radius:50%; border:2px solid #14502A; object-fit:cover; margin-left:-8px; }
+  .slots-stack img:first-child { margin-left:0; }
+  .slots-stack span { font-size:11.5px; font-weight:700; opacity:0.85; margin-left:10px; }
+
+  /* CTA BAR */
+  .cta-bar { position:absolute; bottom:0; left:0; right:0; background:rgba(255,255,255,0.96); backdrop-filter:blur(22px); border-top:0.5px solid #E7E8E1; padding:16px 28px 30px; display:flex; gap:12px; align-items:center; z-index:60; }
+  .cta-cal { width:54px; height:54px; border-radius:17px; background:#F2F4EE; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .cta-cal i { color:#16A34A; font-size:18px; }
+  .cta-main { flex:1; height:54px; border-radius:17px; background:linear-gradient(135deg,#16A34A,#5BD978); color:#fff; font-size:15px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:9px; box-shadow:0 10px 24px rgba(22,163,74,0.4); }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="hero-img">
+    <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=700&h=500&fit=crop" alt="">
+  </div>
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+  <div class="nav">
+    <div class="nav-btn"><i class="fas fa-chevron-left"></i></div>
+    <div class="nav-btn"><i class="far fa-bookmark"></i></div>
+  </div>
+  <div class="hero-tag"><i class="fas fa-bolt"></i> Urgent · 12 spots left</div>
+
+  <div class="body">
+    <div class="title">Sorting &amp; Packing Line</div>
+    <div class="sub"><i class="fas fa-warehouse" style="color:#16A34A"></i> Second Harvest Food Bank · 0.8 mi</div>
+
+    <div class="meta">
+      <div class="mcard"><i class="fas fa-calendar-day" style="color:#16A34A"></i><div class="v">Sat Jun 20</div><div class="l">Date</div></div>
+      <div class="mcard"><i class="fas fa-clock" style="color:#F59E0B"></i><div class="v">9–12 AM</div><div class="l">3 hours</div></div>
+      <div class="mcard"><i class="fas fa-child-reaching" style="color:#0EA5E9"></i><div class="v">Age 8+</div><div class="l">Kids OK</div></div>
+    </div>
+
+    <div class="sec-t">What you'll do</div>
+    <div class="todo">
+      <div class="titem">
+        <div class="ic" style="background:linear-gradient(135deg,#16A34A,#4ADE80)"><i class="fas fa-carrot"></i></div>
+        <div><div class="tt">Sort donated produce</div><div class="ts">Check freshness &amp; group by type</div></div>
+      </div>
+      <div class="titem">
+        <div class="ic" style="background:linear-gradient(135deg,#F59E0B,#FBBF24)"><i class="fas fa-box-open"></i></div>
+        <div><div class="tt">Pack family food boxes</div><div class="ts">Fill boxes from the checklist</div></div>
+      </div>
+      <div class="titem">
+        <div class="ic" style="background:linear-gradient(135deg,#0EA5E9,#38BDF8)"><i class="fas fa-tags"></i></div>
+        <div><div class="tt">Label &amp; stack for pickup</div><div class="ts">Date-label and move to dock</div></div>
+      </div>
+    </div>
+
+    <div class="sec-t">Good to know</div>
+    <div class="reqs">
+      <div class="req"><i class="fas fa-shirt"></i> Closed-toe shoes</div>
+      <div class="req"><i class="fas fa-bottle-water"></i> Bring water</div>
+      <div class="req"><i class="fas fa-temperature-low"></i> Cool warehouse</div>
+      <div class="req"><i class="fas fa-square-parking"></i> Free parking</div>
+    </div>
+
+    <div class="sec-t">Your shift lead</div>
+    <div class="host">
+      <img src="https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=120&h=120&fit=crop" alt="">
+      <div>
+        <div class="hn">Priya Nair</div>
+        <div class="hr">Volunteer coordinator · 4 yrs</div>
+      </div>
+      <div class="msg"><i class="fas fa-comment"></i></div>
+    </div>
+
+    <div class="slots-card">
+      <div class="slots-top"><div class="l">Volunteers signed up</div><div class="v">8 / 20</div></div>
+      <div class="slots-bar"><i></i></div>
+      <div class="slots-stack">
+        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop" alt="">
+        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop" alt="">
+        <img src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=80&h=80&fit=crop" alt="">
+        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop" alt="">
+        <span>+4 neighbors going</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="cta-bar">
+  <div class="cta-cal"><i class="far fa-calendar-plus"></i></div>
+  <div class="cta-main">Sign up for this shift <i class="fas fa-arrow-right"></i></div>
+</div>
+</body>
+</html>

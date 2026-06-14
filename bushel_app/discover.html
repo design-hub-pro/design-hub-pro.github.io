@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bushel — Discover Banks</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html,body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#F5F6F1; color:#14271B; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:120px; background:#F5F6F1; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; color:#fff; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  /* MAP */
+  .map { position:absolute; top:0; left:0; right:0; height:360px; overflow:hidden; }
+  .map img { width:100%; height:100%; object-fit:cover; }
+  .map::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(8,20,12,0.45) 0%,rgba(8,20,12,0) 30%,rgba(245,246,241,0) 70%,#F5F6F1 100%); }
+
+  .search { position:absolute; top:64px; left:28px; right:28px; z-index:20; background:#fff; border-radius:18px; padding:14px 16px; display:flex; align-items:center; gap:12px; box-shadow:0 12px 30px rgba(8,20,12,0.22); }
+  .search i { color:#16A34A; font-size:15px; }
+  .search input { border:none; outline:none; flex:1; font-family:inherit; font-size:14px; font-weight:600; color:#14271B; background:transparent; }
+  .search input::placeholder { color:#A6AFA4; }
+  .search .filt { width:30px; height:30px; border-radius:10px; background:#F2F4EE; display:flex; align-items:center; justify-content:center; }
+  .search .filt i { color:#52605A; font-size:13px; }
+
+  /* PINS */
+  .pin { position:absolute; z-index:15; display:flex; flex-direction:column; align-items:center; }
+  .pin .dot { padding:8px 12px; border-radius:14px; color:#fff; font-size:11px; font-weight:800; box-shadow:0 8px 18px rgba(0,0,0,0.25); display:flex; align-items:center; gap:6px; white-space:nowrap; }
+  .pin .tip { width:10px; height:10px; transform:rotate(45deg); margin-top:-5px; }
+  .pin-1 { top:150px; left:64px; } .pin-1 .dot,.pin-1 .tip { background:#F43F5E; }
+  .pin-2 { top:120px; right:78px; } .pin-2 .dot,.pin-2 .tip { background:#16A34A; }
+  .pin-3 { top:215px; right:120px; } .pin-3 .dot,.pin-3 .tip { background:#F59E0B; }
+  .pin .me { width:20px; height:20px; border-radius:50%; background:#0EA5E9; border:3px solid #fff; box-shadow:0 0 0 6px rgba(14,165,233,0.25); }
+  .pin-me { top:250px; left:170px; }
+
+  /* SHEET */
+  .sheet { position:relative; z-index:10; margin-top:300px; background:#F5F6F1; border-radius:28px 28px 0 0; padding:8px 0 0; }
+  .grab { width:42px; height:5px; border-radius:5px; background:#D6DBD0; margin:10px auto 4px; }
+  .sheet-h { padding:6px 28px 10px; display:flex; align-items:center; justify-content:space-between; }
+  .sheet-h .t { font-size:18px; font-weight:900; letter-spacing:-0.4px; }
+  .sheet-h .c { font-size:12px; color:#7C8579; font-weight:700; }
+
+  .chips { display:flex; gap:9px; padding:2px 28px 14px; overflow-x:auto; }
+  .chip { white-space:nowrap; padding:9px 15px; border-radius:14px; font-size:12px; font-weight:800; background:#fff; border:1px solid #ECEDE6; color:#52605A; display:flex; align-items:center; gap:6px; }
+  .chip.active { background:#14271B; color:#fff; border-color:#14271B; }
+  .chip.active i { color:#5BD978; }
+
+  .banks { padding:0 28px; }
+  .card { background:#fff; border:1px solid #ECEDE6; border-radius:22px; padding:12px; display:flex; gap:14px; margin-bottom:13px; box-shadow:0 6px 18px rgba(20,39,27,0.05); }
+  .card img { width:88px; height:88px; border-radius:16px; object-fit:cover; flex-shrink:0; }
+  .card-b { flex:1; min-width:0; }
+  .card-top { display:flex; align-items:center; gap:8px; }
+  .card-t { font-size:15px; font-weight:800; letter-spacing:-0.2px; }
+  .sdot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .card-m { font-size:11.5px; color:#7C8579; font-weight:600; margin-top:5px; display:flex; align-items:center; gap:6px; }
+  .card-tags { display:flex; gap:7px; margin-top:9px; }
+  .ctag { font-size:9.5px; font-weight:800; padding:5px 9px; border-radius:9px; text-transform:uppercase; letter-spacing:0.3px; }
+  .ctag.red { background:#FEE7EC; color:#E11D48; }
+  .ctag.green { background:#E4F6EA; color:#16A34A; }
+  .ctag.amber { background:#FEF3E2; color:#D97706; }
+  .ctag.gray { background:#F2F4EE; color:#52605A; }
+  .card-go { width:34px; height:34px; border-radius:12px; background:#16A34A; display:flex; align-items:center; justify-content:center; align-self:center; flex-shrink:0; }
+  .card-go i { color:#fff; font-size:13px; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(255,255,255,0.92); backdrop-filter:blur(22px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:14px; border-top:0.5px solid #E7E8E1; }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:50px; }
+  .tab i { font-size:19px; color:#A6AFA4; }
+  .tab span { font-size:10px; color:#A6AFA4; font-weight:600; }
+  .tab.active i, .tab.active span { color:#16A34A; }
+  .tab-c { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#16A34A,#5BD978); display:flex; align-items:center; justify-content:center; margin-top:-12px; box-shadow:0 8px 22px rgba(22,163,74,0.45); }
+  .tab-c i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="map">
+    <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=600&h=600&fit=crop" alt="">
+  </div>
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="search">
+    <i class="fas fa-magnifying-glass"></i>
+    <input placeholder="Search food banks &amp; pantries">
+    <div class="filt"><i class="fas fa-sliders"></i></div>
+  </div>
+
+  <div class="pin pin-2"><div class="dot"><i class="fas fa-warehouse" style="font-size:9px"></i> Loaves</div><div class="tip"></div></div>
+  <div class="pin pin-1"><div class="dot"><i class="fas fa-circle" style="font-size:6px"></i> Needs help</div><div class="tip"></div></div>
+  <div class="pin pin-3"><div class="dot"><i class="fas fa-box" style="font-size:9px"></i> Pantry</div><div class="tip"></div></div>
+  <div class="pin pin-me"><div class="me"></div></div>
+
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheet-h"><div class="t">14 banks nearby</div><div class="c">within 5 mi</div></div>
+    <div class="chips">
+      <div class="chip active"><i class="fas fa-bolt"></i> Needs help</div>
+      <div class="chip">Open now</div>
+      <div class="chip">Donations</div>
+      <div class="chip">Family-friendly</div>
+    </div>
+
+    <div class="banks">
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=240&h=240&fit=crop" alt="">
+        <div class="card-b">
+          <div class="card-top"><div class="sdot" style="background:#16A34A"></div><div class="card-t">Second Harvest</div></div>
+          <div class="card-m"><i class="fas fa-location-dot"></i> 0.8 mi · Open till 7 PM</div>
+          <div class="card-tags"><span class="ctag red">12 shifts open</span><span class="ctag gray">★ 4.9</span></div>
+        </div>
+        <div class="card-go"><i class="fas fa-chevron-right"></i></div>
+      </div>
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=240&h=240&fit=crop" alt="">
+        <div class="card-b">
+          <div class="card-top"><div class="sdot" style="background:#16A34A"></div><div class="card-t">Loaves &amp; Fishes</div></div>
+          <div class="card-m"><i class="fas fa-location-dot"></i> 1.4 mi · Open now</div>
+          <div class="card-tags"><span class="ctag green">4 shifts open</span><span class="ctag gray">★ 4.8</span></div>
+        </div>
+        <div class="card-go"><i class="fas fa-chevron-right"></i></div>
+      </div>
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=240&h=240&fit=crop" alt="">
+        <div class="card-b">
+          <div class="card-top"><div class="sdot" style="background:#F59E0B"></div><div class="card-t">Sunnyvale Pantry</div></div>
+          <div class="card-m"><i class="fas fa-location-dot"></i> 2.1 mi · Closes 6 PM</div>
+          <div class="card-tags"><span class="ctag amber">Donations only</span><span class="ctag gray">★ 4.7</span></div>
+        </div>
+        <div class="card-go"><i class="fas fa-chevron-right"></i></div>
+      </div>
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1593113646773-028c64a8f1b8?w=240&h=240&fit=crop" alt="">
+        <div class="card-b">
+          <div class="card-top"><div class="sdot" style="background:#A6AFA4"></div><div class="card-t">Hope Community</div></div>
+          <div class="card-m"><i class="fas fa-location-dot"></i> 3.0 mi · Opens 9 AM</div>
+          <div class="card-tags"><span class="ctag green">Family-friendly</span><span class="ctag gray">★ 5.0</span></div>
+        </div>
+        <div class="card-go"><i class="fas fa-chevron-right"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab"><i class="fas fa-house"></i><span>Home</span></div>
+  <div class="tab active"><i class="fas fa-map-location-dot"></i><span>Banks</span></div>
+  <div class="tab"><div class="tab-c"><i class="fas fa-qrcode"></i></div></div>
+  <div class="tab"><i class="fas fa-calendar-days"></i><span>Shifts</span></div>
+  <div class="tab"><i class="fas fa-heart"></i><span>Community</span></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bushel — My Tasks</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html,body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#F5F6F1; color:#14271B; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:120px; background:#F5F6F1; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:8px 28px 4px; }
+  .header .t { font-size:26px; font-weight:900; letter-spacing:-0.8px; }
+  .header .sub { font-size:11.5px; color:#7C8579; font-weight:600; margin-top:2px; }
+
+  /* LIVE BANNER */
+  .live { margin:14px 28px 0; border-radius:24px; padding:18px; background:linear-gradient(135deg,#0C3A1E,#16A34A); color:#fff; position:relative; overflow:hidden; box-shadow:0 16px 36px rgba(22,163,74,0.3); }
+  .live::before { content:''; position:absolute; right:-30px; top:-40px; width:170px; height:170px; background:radial-gradient(circle,rgba(255,255,255,0.18),transparent 70%); }
+  .live-top { display:flex; align-items:center; gap:8px; position:relative; z-index:2; }
+  .live-dot { width:9px; height:9px; border-radius:50%; background:#5BD978; box-shadow:0 0 0 4px rgba(91,217,120,0.3); }
+  .live-tag { font-size:10.5px; font-weight:800; letter-spacing:0.6px; }
+  .live-role { font-size:21px; font-weight:900; margin-top:12px; letter-spacing:-0.4px; position:relative; z-index:2; }
+  .live-meta { font-size:12px; font-weight:600; opacity:0.9; margin-top:5px; position:relative; z-index:2; display:flex; align-items:center; gap:8px; }
+  .live-foot { display:flex; align-items:center; justify-content:space-between; margin-top:16px; position:relative; z-index:2; }
+  .live-station { background:rgba(255,255,255,0.16); padding:8px 13px; border-radius:13px; font-size:11.5px; font-weight:800; display:flex; align-items:center; gap:7px; }
+  .live-prog { font-size:13px; font-weight:900; }
+
+  /* PROGRESS RING ROW */
+  .prog-row { display:flex; gap:11px; padding:18px 28px 0; }
+  .pcard { flex:1; background:#fff; border:1px solid #ECEDE6; border-radius:18px; padding:15px 12px; text-align:center; box-shadow:0 6px 16px rgba(20,39,27,0.04); }
+  .pcard .v { font-size:26px; font-weight:900; letter-spacing:-1px; }
+  .pcard .l { font-size:10px; color:#A6AFA4; font-weight:700; margin-top:3px; text-transform:uppercase; }
+
+  .sec-h { padding:22px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .sec-t { font-size:16px; font-weight:800; letter-spacing:-0.3px; }
+  .sec-l { font-size:12px; color:#16A34A; font-weight:700; }
+
+  /* TASK CHECKLIST */
+  .tasks { padding:0 28px; }
+  .task { background:#fff; border:1px solid #ECEDE6; border-radius:20px; padding:15px; display:flex; align-items:center; gap:14px; margin-bottom:12px; box-shadow:0 6px 16px rgba(20,39,27,0.04); }
+  .check { width:26px; height:26px; border-radius:9px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .check.done { background:#16A34A; }
+  .check.done i { color:#fff; font-size:12px; }
+  .check.open { border:2px solid #DDE2D6; }
+  .task-b { flex:1; min-width:0; }
+  .task-t { font-size:14px; font-weight:800; }
+  .task.done .task-t { color:#A6AFA4; text-decoration:line-through; }
+  .task-m { font-size:11px; color:#7C8579; font-weight:600; margin-top:4px; display:flex; align-items:center; gap:8px; }
+  .task-pill { font-size:9.5px; font-weight:800; padding:5px 9px; border-radius:9px; flex-shrink:0; text-transform:uppercase; }
+  .pill-now { background:#FEF3E2; color:#D97706; }
+  .pill-next { background:#F2F4EE; color:#7C8579; }
+
+  /* TEAM */
+  .team { background:#fff; border:1px solid #ECEDE6; border-radius:20px; padding:16px; margin:0 28px; box-shadow:0 6px 16px rgba(20,39,27,0.04); }
+  .team-h { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .team-h .t { font-size:14px; font-weight:800; }
+  .team-h .c { font-size:11px; color:#7C8579; font-weight:700; }
+  .member { display:flex; align-items:center; gap:12px; padding:9px 0; }
+  .member img { width:40px; height:40px; border-radius:13px; object-fit:cover; }
+  .member .mn { font-size:13px; font-weight:700; }
+  .member .mr { font-size:10.5px; color:#7C8579; font-weight:600; margin-top:2px; }
+  .member .mstat { margin-left:auto; font-size:10px; font-weight:800; padding:5px 10px; border-radius:9px; }
+  .stat-active { background:#E4F6EA; color:#16A34A; }
+  .stat-break { background:#F2F4EE; color:#7C8579; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(255,255,255,0.92); backdrop-filter:blur(22px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:14px; border-top:0.5px solid #E7E8E1; }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:50px; }
+  .tab i { font-size:19px; color:#A6AFA4; }
+  .tab span { font-size:10px; color:#A6AFA4; font-weight:600; }
+  .tab.active i, .tab.active span { color:#16A34A; }
+  .tab-c { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#16A34A,#5BD978); display:flex; align-items:center; justify-content:center; margin-top:-12px; box-shadow:0 8px 22px rgba(22,163,74,0.45); }
+  .tab-c i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div class="t">My Tasks</div>
+    <div class="sub">You're checked in · keep it up 💪</div>
+  </div>
+
+  <!-- LIVE SHIFT -->
+  <div class="live">
+    <div class="live-top"><div class="live-dot"></div><div class="live-tag">LIVE SHIFT · 1h 12m IN</div></div>
+    <div class="live-role">Packing Station B</div>
+    <div class="live-meta"><i class="fas fa-warehouse"></i> Second Harvest · led by Priya</div>
+    <div class="live-foot">
+      <div class="live-station"><i class="fas fa-user-tag"></i> Your role: Packer</div>
+      <div class="live-prog">4 / 6 tasks</div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="prog-row">
+    <div class="pcard"><div class="v" style="color:#16A34A">82</div><div class="l">Boxes packed</div></div>
+    <div class="pcard"><div class="v" style="color:#F59E0B">246</div><div class="l">Meals today</div></div>
+    <div class="pcard"><div class="v" style="color:#0EA5E9">11</div><div class="l">Team online</div></div>
+  </div>
+
+  <!-- TASK LIST -->
+  <div class="sec-h"><div class="sec-t">Assigned to you</div><div class="sec-l">Refresh</div></div>
+  <div class="tasks">
+    <div class="task done">
+      <div class="check done"><i class="fas fa-check"></i></div>
+      <div class="task-b"><div class="task-t">Set up packing station</div><div class="task-m"><i class="fas fa-clock"></i> Done · 9:05 AM</div></div>
+    </div>
+    <div class="task done">
+      <div class="check done"><i class="fas fa-check"></i></div>
+      <div class="task-b"><div class="task-t">Pack 50 produce boxes</div><div class="task-m"><i class="fas fa-clock"></i> Done · 50 / 50</div></div>
+    </div>
+    <div class="task">
+      <div class="check open"></div>
+      <div class="task-b"><div class="task-t">Pack 40 pantry boxes</div><div class="task-m"><i class="fas fa-box"></i> In progress · 32 / 40</div></div>
+      <div class="task-pill pill-now">Now</div>
+    </div>
+    <div class="task">
+      <div class="check open"></div>
+      <div class="task-b"><div class="task-t">Label boxes for delivery</div><div class="task-m"><i class="fas fa-tags"></i> Up next · Zone 3</div></div>
+      <div class="task-pill pill-next">Next</div>
+    </div>
+    <div class="task">
+      <div class="check open"></div>
+      <div class="task-b"><div class="task-t">Move pallets to dock</div><div class="task-m"><i class="fas fa-dolly"></i> Up next · with Marcus</div></div>
+      <div class="task-pill pill-next">Next</div>
+    </div>
+  </div>
+
+  <!-- TEAM -->
+  <div class="sec-h"><div class="sec-t">Your team</div><div class="sec-l">Message all</div></div>
+  <div class="team">
+    <div class="team-h"><div class="t">Station B crew</div><div class="c">4 people</div></div>
+    <div class="member">
+      <img src="https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=80&h=80&fit=crop" alt="">
+      <div><div class="mn">Priya Nair</div><div class="mr">Shift lead</div></div>
+      <div class="mstat stat-active">Active</div>
+    </div>
+    <div class="member">
+      <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop" alt="">
+      <div><div class="mn">Marcus Lee</div><div class="mr">Labeler</div></div>
+      <div class="mstat stat-active">Active</div>
+    </div>
+    <div class="member">
+      <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop" alt="">
+      <div><div class="mn">Sara Kim</div><div class="mr">Packer</div></div>
+      <div class="mstat stat-break">On break</div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab"><i class="fas fa-house"></i><span>Home</span></div>
+  <div class="tab"><i class="fas fa-map-location-dot"></i><span>Banks</span></div>
+  <div class="tab"><div class="tab-c"><i class="fas fa-list-check"></i></div></div>
+  <div class="tab"><i class="fas fa-calendar-days"></i><span>Shifts</span></div>
+  <div class="tab"><i class="fas fa-heart"></i><span>Community</span></div>
+</div>
+</body>
+</html>

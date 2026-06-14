@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bushel — Shifts</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html,body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#F5F6F1; color:#14271B; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:120px; background:#F5F6F1; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:8px 28px 8px; display:flex; align-items:center; justify-content:space-between; }
+  .header .t { font-size:26px; font-weight:900; letter-spacing:-0.8px; }
+  .header .sub { font-size:11.5px; color:#7C8579; font-weight:600; margin-top:2px; }
+  .header-btn { width:42px; height:42px; border-radius:14px; background:#fff; border:1px solid #ECEDE6; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(20,39,27,0.05); }
+  .header-btn i { color:#16A34A; font-size:16px; }
+
+  /* TOGGLE */
+  .toggle { margin:10px 28px 0; background:#E9EBE3; border-radius:16px; padding:4px; display:flex; }
+  .toggle div { flex:1; text-align:center; padding:10px; border-radius:13px; font-size:13px; font-weight:800; color:#7C8579; }
+  .toggle div.active { background:#fff; color:#14271B; box-shadow:0 3px 10px rgba(20,39,27,0.08); }
+
+  /* WEEK STRIP */
+  .week { display:flex; gap:9px; padding:18px 28px 6px; overflow-x:auto; }
+  .day { min-width:50px; flex:1; text-align:center; padding:12px 0; border-radius:16px; background:#fff; border:1px solid #ECEDE6; }
+  .day .dn { font-size:10px; font-weight:700; color:#A6AFA4; text-transform:uppercase; }
+  .day .dd { font-size:17px; font-weight:900; margin-top:4px; }
+  .day .dt { width:5px; height:5px; border-radius:50%; background:#16A34A; margin:5px auto 0; }
+  .day.active { background:#16A34A; border-color:#16A34A; }
+  .day.active .dn, .day.active .dd { color:#fff; }
+  .day.active .dt { background:#fff; }
+
+  .sec-h { padding:20px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .sec-t { font-size:16px; font-weight:800; letter-spacing:-0.3px; }
+  .sec-l { font-size:12px; color:#16A34A; font-weight:700; }
+
+  /* SHIFT CARDS */
+  .shifts { padding:0 28px; }
+  .shift { background:#fff; border:1px solid #ECEDE6; border-radius:22px; padding:16px; margin-bottom:13px; box-shadow:0 6px 18px rgba(20,39,27,0.05); position:relative; overflow:hidden; }
+  .shift.urgent { border-color:#FBD0D9; }
+  .shift-strip { position:absolute; left:0; top:0; bottom:0; width:5px; }
+  .shift-top { display:flex; align-items:center; gap:12px; }
+  .shift-time { text-align:center; flex-shrink:0; width:62px; }
+  .shift-time .h { font-size:16px; font-weight:900; letter-spacing:-0.4px; }
+  .shift-time .ampm { font-size:10px; font-weight:700; color:#A6AFA4; }
+  .shift-div { width:1px; align-self:stretch; background:#EEF0EA; }
+  .shift-info { flex:1; min-width:0; }
+  .shift-role { font-size:15px; font-weight:800; }
+  .shift-bank { font-size:11.5px; color:#7C8579; font-weight:600; margin-top:4px; display:flex; align-items:center; gap:6px; }
+  .shift-badge { font-size:9.5px; font-weight:800; padding:5px 9px; border-radius:9px; text-transform:uppercase; flex-shrink:0; }
+  .badge-red { background:#FEE7EC; color:#E11D48; }
+  .badge-green { background:#E4F6EA; color:#16A34A; }
+  .shift-foot { display:flex; align-items:center; justify-content:space-between; margin-top:14px; padding-top:13px; border-top:1px solid #F1F3ED; }
+  .stack { display:flex; align-items:center; }
+  .stack img { width:28px; height:28px; border-radius:50%; border:2px solid #fff; object-fit:cover; margin-left:-8px; }
+  .stack img:first-child { margin-left:0; }
+  .stack .more { width:28px; height:28px; border-radius:50%; background:#EEF0EA; border:2px solid #fff; margin-left:-8px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:800; color:#52605A; }
+  .slots { font-size:11px; color:#7C8579; font-weight:700; margin-left:8px; }
+  .signup { font-size:12px; font-weight:800; padding:10px 18px; border-radius:14px; background:#16A34A; color:#fff; }
+  .signup.full { background:#F2F4EE; color:#A6AFA4; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(255,255,255,0.92); backdrop-filter:blur(22px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:14px; border-top:0.5px solid #E7E8E1; }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:50px; }
+  .tab i { font-size:19px; color:#A6AFA4; }
+  .tab span { font-size:10px; color:#A6AFA4; font-weight:600; }
+  .tab.active i, .tab.active span { color:#16A34A; }
+  .tab-c { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#16A34A,#5BD978); display:flex; align-items:center; justify-content:center; margin-top:-12px; box-shadow:0 8px 22px rgba(22,163,74,0.45); }
+  .tab-c i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="t">Shifts</div>
+      <div class="sub">June 2026 · find your slot</div>
+    </div>
+    <div class="header-btn"><i class="fas fa-filter"></i></div>
+  </div>
+
+  <div class="toggle">
+    <div class="active">Available</div>
+    <div>My shifts · 2</div>
+  </div>
+
+  <div class="week">
+    <div class="day"><div class="dn">Thu</div><div class="dd">18</div><div class="dt"></div></div>
+    <div class="day"><div class="dn">Fri</div><div class="dd">19</div></div>
+    <div class="day active"><div class="dn">Sat</div><div class="dd">20</div><div class="dt"></div></div>
+    <div class="day"><div class="dn">Sun</div><div class="dd">21</div><div class="dt"></div></div>
+    <div class="day"><div class="dn">Mon</div><div class="dd">22</div></div>
+  </div>
+
+  <div class="sec-h"><div class="sec-t">Saturday, Jun 20 · 5 shifts</div><div class="sec-l">Sort</div></div>
+  <div class="shifts">
+    <div class="shift urgent">
+      <div class="shift-strip" style="background:#F43F5E"></div>
+      <div class="shift-top">
+        <div class="shift-time"><div class="h">9:00</div><div class="ampm">AM · 3h</div></div>
+        <div class="shift-div"></div>
+        <div class="shift-info">
+          <div class="shift-role">Sorting &amp; Packing</div>
+          <div class="shift-bank"><i class="fas fa-warehouse"></i> Second Harvest Food Bank</div>
+        </div>
+        <div class="shift-badge badge-red">Urgent</div>
+      </div>
+      <div class="shift-foot">
+        <div class="stack">
+          <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop" alt="">
+          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop" alt="">
+          <img src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=80&h=80&fit=crop" alt="">
+          <div class="more">+5</div>
+          <div class="slots">8 / 20 filled</div>
+        </div>
+        <div class="signup">Sign up</div>
+      </div>
+    </div>
+
+    <div class="shift">
+      <div class="shift-strip" style="background:#16A34A"></div>
+      <div class="shift-top">
+        <div class="shift-time"><div class="h">10:30</div><div class="ampm">AM · 2h</div></div>
+        <div class="shift-div"></div>
+        <div class="shift-info">
+          <div class="shift-role">Front-desk welcome</div>
+          <div class="shift-bank"><i class="fas fa-warehouse"></i> Loaves &amp; Fishes</div>
+        </div>
+        <div class="shift-badge badge-green">Family</div>
+      </div>
+      <div class="shift-foot">
+        <div class="stack">
+          <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop" alt="">
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop" alt="">
+          <div class="more">+2</div>
+          <div class="slots">4 / 8 filled</div>
+        </div>
+        <div class="signup">Sign up</div>
+      </div>
+    </div>
+
+    <div class="shift">
+      <div class="shift-strip" style="background:#F59E0B"></div>
+      <div class="shift-top">
+        <div class="shift-time"><div class="h">2:00</div><div class="ampm">PM · 2h</div></div>
+        <div class="shift-div"></div>
+        <div class="shift-info">
+          <div class="shift-role">Delivery driving</div>
+          <div class="shift-bank"><i class="fas fa-warehouse"></i> Sunnyvale Pantry</div>
+        </div>
+        <div class="shift-badge badge-green">Full</div>
+      </div>
+      <div class="shift-foot">
+        <div class="stack">
+          <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=80&h=80&fit=crop" alt="">
+          <img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=80&h=80&fit=crop" alt="">
+          <div class="more">+4</div>
+          <div class="slots">6 / 6 filled</div>
+        </div>
+        <div class="signup full">Waitlist</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab"><i class="fas fa-house"></i><span>Home</span></div>
+  <div class="tab"><i class="fas fa-map-location-dot"></i><span>Banks</span></div>
+  <div class="tab"><div class="tab-c"><i class="fas fa-qrcode"></i></div></div>
+  <div class="tab active"><i class="fas fa-calendar-days"></i><span>Shifts</span></div>
+  <div class="tab"><i class="fas fa-heart"></i><span>Community</span></div>
+</div>
+</body>
+</html>
