@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Posa — Coach</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html,body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A1310; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:120px; background:#0A1310; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:8px 28px 6px; }
+  .header h1 { font-size:24px; font-weight:900; letter-spacing:-0.6px; }
+  .header p { font-size:12.5px; color:#7E9088; font-weight:600; margin-top:3px; }
+
+  /* HERO ROUTINE */
+  .hero { margin:14px 28px 0; border-radius:26px; overflow:hidden; position:relative; height:218px; }
+  .hero img { width:100%; height:100%; object-fit:cover; }
+  .hero::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(10,19,16,0.15) 20%,rgba(10,19,16,0.92)); }
+  .hero-tag { position:absolute; top:16px; left:16px; z-index:2; background:rgba(52,211,153,0.92); color:#06281E; padding:6px 12px; border-radius:14px; font-size:10px; font-weight:900; letter-spacing:0.5px; text-transform:uppercase; }
+  .hero-play { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:54px; height:54px; border-radius:50%; background:rgba(255,255,255,0.2); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; border:1.5px solid rgba(255,255,255,0.55); z-index:2; }
+  .hero-play i { font-size:18px; margin-left:3px; }
+  .hero-b { position:absolute; bottom:18px; left:18px; right:18px; z-index:2; }
+  .hero-b h2 { font-size:21px; font-weight:900; letter-spacing:-0.5px; }
+  .hero-meta { display:flex; gap:14px; margin-top:8px; font-size:11.5px; font-weight:700; color:#cfe0d8; }
+  .hero-meta span i { color:#5EEAD4; margin-right:5px; }
+
+  .sec-h { padding:24px 28px 13px; display:flex; justify-content:space-between; align-items:center; }
+  .sec-t { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+  .sec-l { font-size:12px; color:#34D399; font-weight:700; }
+
+  /* CHIPS */
+  .chips { display:flex; gap:9px; padding:0 28px 4px; overflow-x:auto; }
+  .chip { white-space:nowrap; background:#121E18; border:1px solid rgba(255,255,255,0.06); padding:9px 15px; border-radius:13px; font-size:12px; font-weight:700; color:#9fb0a8; }
+  .chip.on { background:#1E3A30; border-color:rgba(52,211,153,0.3); color:#34D399; }
+
+  /* SCROLL CARDS */
+  .scroll-x { display:flex; gap:14px; padding:2px 28px 4px; overflow-x:auto; }
+  .feat { min-width:172px; max-width:172px; border-radius:20px; overflow:hidden; position:relative; height:200px; }
+  .feat img { width:100%; height:100%; object-fit:cover; }
+  .feat::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(10,19,16,0.05) 30%,rgba(10,19,16,0.9)); }
+  .feat-play { position:absolute; top:46%; left:50%; transform:translate(-50%,-50%); width:42px; height:42px; border-radius:50%; background:rgba(255,255,255,0.18); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; border:1.5px solid rgba(255,255,255,0.5); z-index:2; }
+  .feat-play i { font-size:14px; margin-left:2px; }
+  .feat-dur { position:absolute; top:11px; right:11px; z-index:2; background:rgba(10,19,16,0.7); backdrop-filter:blur(6px); padding:4px 9px; border-radius:9px; font-size:10px; font-weight:800; }
+  .feat-b { position:absolute; bottom:13px; left:13px; right:13px; z-index:2; }
+  .feat-tag { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.4px; color:#5EEAD4; }
+  .feat-t { font-size:13.5px; font-weight:800; margin-top:3px; line-height:1.2; }
+
+  /* LIST */
+  .list { margin:0 28px; }
+  .li { display:flex; align-items:center; gap:14px; background:#121E18; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:12px; margin-bottom:11px; }
+  .li-th { width:62px; height:62px; border-radius:14px; object-fit:cover; flex-shrink:0; }
+  .li-tag { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.4px; color:#7E9088; }
+  .li-t { font-size:14px; font-weight:800; margin-top:2px; }
+  .li-m { font-size:11px; color:#7E9088; font-weight:600; margin-top:4px; }
+  .li-m i { color:#5EEAD4; margin-right:4px; }
+  .li-go { margin-left:auto; width:38px; height:38px; border-radius:12px; background:#1E3A30; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .li-go i { color:#34D399; font-size:13px; }
+  .li-done { margin-left:auto; width:38px; height:38px; border-radius:12px; background:rgba(52,211,153,0.14); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .li-done i { color:#34D399; font-size:14px; }
+
+  .tabbar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(10,19,16,0.88); backdrop-filter:blur(20px); border-top:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-around; padding:12px 14px 0; z-index:100; }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; color:#5A6B62; font-size:10px; font-weight:700; }
+  .tab.active { color:#34D399; }
+  .tab i { font-size:19px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar"><div class="time">9:41</div><div class="icons"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-three-quarters"></i></div></div>
+
+  <div class="header">
+    <h1>Coach</h1>
+    <p>Targeted stretches for your posture pattern</p>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <img src="https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=600&q=80" alt="">
+    <div class="hero-tag">Today's routine</div>
+    <div class="hero-play"><i class="fa-solid fa-play"></i></div>
+    <div class="hero-b">
+      <h2>Posture Reset</h2>
+      <div class="hero-meta">
+        <span><i class="fa-solid fa-clock"></i>8 min</span>
+        <span><i class="fa-solid fa-layer-group"></i>5 moves</span>
+        <span><i class="fa-solid fa-fire"></i>Upper back</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHIPS -->
+  <div class="sec-h"><div class="sec-t">For you</div><div class="sec-l">See all</div></div>
+  <div class="chips">
+    <div class="chip on">All</div>
+    <div class="chip">Neck</div>
+    <div class="chip">Shoulders</div>
+    <div class="chip">Lower back</div>
+    <div class="chip">Mobility</div>
+  </div>
+
+  <!-- SCROLL -->
+  <div class="scroll-x" style="margin-top:13px;">
+    <div class="feat">
+      <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80" alt="">
+      <div class="feat-play"><i class="fa-solid fa-play"></i></div>
+      <div class="feat-dur">4 min</div>
+      <div class="feat-b"><div class="feat-tag">Chest</div><div class="feat-t">Open the chest</div></div>
+    </div>
+    <div class="feat">
+      <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=80" alt="">
+      <div class="feat-play"><i class="fa-solid fa-play"></i></div>
+      <div class="feat-dur">3 min</div>
+      <div class="feat-b"><div class="feat-tag">Neck</div><div class="feat-t">Tension release</div></div>
+    </div>
+    <div class="feat">
+      <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80" alt="">
+      <div class="feat-play"><i class="fa-solid fa-play"></i></div>
+      <div class="feat-dur">6 min</div>
+      <div class="feat-b"><div class="feat-tag">Spine</div><div class="feat-t">Cat–cow flow</div></div>
+    </div>
+  </div>
+
+  <!-- LIST -->
+  <div class="sec-h"><div class="sec-t">Quick breaks</div></div>
+  <div class="list">
+    <div class="li">
+      <img class="li-th" src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=200&q=80" alt="">
+      <div>
+        <div class="li-tag">Shoulders</div>
+        <div class="li-t">Shoulder rolls</div>
+        <div class="li-m"><i class="fa-solid fa-clock"></i>2 min · Desk-friendly</div>
+      </div>
+      <div class="li-done"><i class="fa-solid fa-check"></i></div>
+    </div>
+    <div class="li">
+      <img class="li-th" src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=200&q=80" alt="">
+      <div>
+        <div class="li-tag">Lower back</div>
+        <div class="li-t">Seated twist</div>
+        <div class="li-m"><i class="fa-solid fa-clock"></i>3 min · Desk-friendly</div>
+      </div>
+      <div class="li-go"><i class="fa-solid fa-play"></i></div>
+    </div>
+    <div class="li">
+      <img class="li-th" src="https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=200&q=80" alt="">
+      <div>
+        <div class="li-tag">Mobility</div>
+        <div class="li-t">Wall angels</div>
+        <div class="li-m"><i class="fa-solid fa-clock"></i>4 min · Standing</div>
+      </div>
+      <div class="li-go"><i class="fa-solid fa-play"></i></div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab"><i class="fa-solid fa-house"></i><span>Today</span></div>
+    <div class="tab"><i class="fa-solid fa-wave-square"></i><span>Live</span></div>
+    <div class="tab"><i class="fa-solid fa-chart-simple"></i><span>Insights</span></div>
+    <div class="tab active"><i class="fa-solid fa-spa"></i><span>Coach</span></div>
+    <div class="tab"><i class="fa-solid fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>

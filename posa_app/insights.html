@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Posa — Insights</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html,body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A1310; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:120px; background:#0A1310; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:8px 28px 6px; display:flex; align-items:center; justify-content:space-between; }
+  .header h1 { font-size:24px; font-weight:900; letter-spacing:-0.6px; }
+  .seg { display:flex; background:#121E18; border:1px solid rgba(255,255,255,0.06); border-radius:13px; padding:3px; }
+  .seg span { font-size:11px; font-weight:800; padding:6px 12px; border-radius:10px; color:#7E9088; }
+  .seg span.on { background:#1E3A30; color:#34D399; }
+
+  /* SCORE CARD */
+  .score { margin:14px 28px 0; border-radius:26px; background:linear-gradient(150deg,#0F8C6B,#0EA5A4 70%,#5EEAD4 130%); padding:22px; position:relative; overflow:hidden; }
+  .score::before { content:''; position:absolute; right:-40px; top:-50px; width:180px; height:180px; background:radial-gradient(circle,rgba(255,255,255,0.25),transparent 70%); }
+  .score-l { font-size:11px; font-weight:800; letter-spacing:0.6px; opacity:0.9; position:relative; }
+  .score-v { font-size:52px; font-weight:900; letter-spacing:-2px; line-height:1; margin-top:6px; position:relative; }
+  .score-d { display:inline-flex; align-items:center; gap:6px; background:rgba(8,18,14,0.28); padding:6px 12px; border-radius:16px; font-size:12px; font-weight:800; margin-top:12px; position:relative; }
+
+  .card { margin:18px 28px 0; background:#121E18; border:1px solid rgba(255,255,255,0.06); border-radius:22px; padding:20px; }
+  .card-h { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+  .card-t { font-size:15px; font-weight:800; }
+  .card-s { font-size:11px; color:#7E9088; font-weight:700; }
+
+  /* WEEK BARS */
+  .bars { display:flex; align-items:flex-end; gap:9px; height:130px; }
+  .bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:9px; height:100%; justify-content:flex-end; }
+  .bar { width:100%; border-radius:7px 7px 0 0; background:linear-gradient(180deg,#34D399,#0EA5A4); }
+  .bar.dim { background:#1E2D26; }
+  .bar.today { background:linear-gradient(180deg,#A3E635,#34D399); }
+  .bar-x { font-size:10px; font-weight:700; color:#7E9088; }
+
+  /* DONUT split */
+  .split { display:flex; align-items:center; gap:22px; }
+  .donut { width:104px; height:104px; flex-shrink:0; position:relative; }
+  .donut-c { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .donut-v { font-size:24px; font-weight:900; letter-spacing:-1px; }
+  .donut-l { font-size:9px; font-weight:800; color:#7E9088; letter-spacing:0.5px; }
+  .legend { flex:1; display:flex; flex-direction:column; gap:13px; }
+  .leg { display:flex; align-items:center; gap:10px; }
+  .leg .d { width:11px; height:11px; border-radius:4px; }
+  .leg-t { font-size:12.5px; font-weight:700; flex:1; }
+  .leg-v { font-size:12.5px; font-weight:800; }
+
+  /* TIME ROWS */
+  .row { display:flex; align-items:center; gap:14px; padding:13px 0; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .row:last-child { border-bottom:none; }
+  .row-ic { width:42px; height:42px; border-radius:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .row-ic i { font-size:16px; color:#fff; }
+  .row-t { font-size:13.5px; font-weight:800; }
+  .row-s { font-size:11px; color:#7E9088; font-weight:600; margin-top:2px; }
+  .row-v { margin-left:auto; font-size:15px; font-weight:900; }
+
+  .sec-h { padding:26px 28px 0; }
+  .sec-t { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+
+  .tabbar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(10,19,16,0.88); backdrop-filter:blur(20px); border-top:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-around; padding:12px 14px 0; z-index:100; }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; color:#5A6B62; font-size:10px; font-weight:700; }
+  .tab.active { color:#34D399; }
+  .tab i { font-size:19px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar"><div class="time">9:41</div><div class="icons"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-three-quarters"></i></div></div>
+
+  <div class="header">
+    <h1>Insights</h1>
+    <div class="seg"><span>Day</span><span class="on">Week</span><span>Month</span></div>
+  </div>
+
+  <!-- SCORE -->
+  <div class="score">
+    <div class="score-l">AVG POSTURE SCORE · THIS WEEK</div>
+    <div class="score-v">88</div>
+    <div class="score-d"><i class="fa-solid fa-arrow-up"></i> 6 pts vs last week</div>
+  </div>
+
+  <!-- WEEK BARS -->
+  <div class="card">
+    <div class="card-h"><div class="card-t">Daily score</div><div class="card-s">Goal 85</div></div>
+    <div class="bars">
+      <div class="bar-col"><div class="bar" style="height:82%;"></div><div class="bar-x">M</div></div>
+      <div class="bar-col"><div class="bar" style="height:70%;"></div><div class="bar-x">T</div></div>
+      <div class="bar-col"><div class="bar" style="height:90%;"></div><div class="bar-x">W</div></div>
+      <div class="bar-col"><div class="bar" style="height:78%;"></div><div class="bar-x">T</div></div>
+      <div class="bar-col"><div class="bar" style="height:95%;"></div><div class="bar-x">F</div></div>
+      <div class="bar-col"><div class="bar dim" style="height:60%;"></div><div class="bar-x">S</div></div>
+      <div class="bar-col"><div class="bar today" style="height:92%;"></div><div class="bar-x">S</div></div>
+    </div>
+  </div>
+
+  <!-- SPLIT DONUT -->
+  <div class="card">
+    <div class="card-h"><div class="card-t">Time breakdown</div><div class="card-s">8h tracked</div></div>
+    <div class="split">
+      <div class="donut">
+        <svg width="104" height="104" style="transform:rotate(-90deg);">
+          <circle cx="52" cy="52" r="44" stroke="#1E2D26" stroke-width="14" fill="none"/>
+          <circle cx="52" cy="52" r="44" stroke="#34D399" stroke-width="14" fill="none" stroke-dasharray="276" stroke-dashoffset="66" stroke-linecap="round"/>
+          <circle cx="52" cy="52" r="44" stroke="#FBBF24" stroke-width="14" fill="none" stroke-dasharray="276" stroke-dashoffset="220" stroke-linecap="round"/>
+        </svg>
+        <div class="donut-c"><div class="donut-v">76%</div><div class="donut-l">UPRIGHT</div></div>
+      </div>
+      <div class="legend">
+        <div class="leg"><span class="d" style="background:#34D399;"></span><span class="leg-t">Upright</span><span class="leg-v">6h 05m</span></div>
+        <div class="leg"><span class="d" style="background:#FBBF24;"></span><span class="leg-t">Slight slouch</span><span class="leg-v">1h 22m</span></div>
+        <div class="leg"><span class="d" style="background:#FB7185;"></span><span class="leg-t">Heavy slouch</span><span class="leg-v">33m</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HIGHLIGHTS -->
+  <div class="sec-h"><div class="sec-t">Highlights</div></div>
+  <div class="card" style="margin-top:13px;">
+    <div class="row">
+      <div class="row-ic" style="background:linear-gradient(135deg,#10B981,#5EEAD4);"><i class="fa-solid fa-trophy"></i></div>
+      <div><div class="row-t">Best window</div><div class="row-s">9–11 AM · deep focus</div></div>
+      <div class="row-v" style="color:#34D399;">96</div>
+    </div>
+    <div class="row">
+      <div class="row-ic" style="background:linear-gradient(135deg,#FB7185,#F43F5E);"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <div><div class="row-t">Watch out</div><div class="row-s">After 3 PM · afternoon dip</div></div>
+      <div class="row-v" style="color:#FB7185;">71</div>
+    </div>
+    <div class="row">
+      <div class="row-ic" style="background:linear-gradient(135deg,#FBBF24,#F59E0B);"><i class="fa-solid fa-fire"></i></div>
+      <div><div class="row-t">Streak</div><div class="row-s">Days above goal</div></div>
+      <div class="row-v">12</div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab"><i class="fa-solid fa-house"></i><span>Today</span></div>
+    <div class="tab"><i class="fa-solid fa-wave-square"></i><span>Live</span></div>
+    <div class="tab active"><i class="fa-solid fa-chart-simple"></i><span>Insights</span></div>
+    <div class="tab"><i class="fa-solid fa-spa"></i><span>Coach</span></div>
+    <div class="tab"><i class="fa-solid fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>

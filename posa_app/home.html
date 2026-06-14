@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Posa — Today</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html,body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A1310; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:120px; background:#0A1310; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:8px 28px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .hi { font-size:12px; color:#7E9088; font-weight:600; }
+  .name { font-size:23px; font-weight:900; letter-spacing:-0.6px; margin-top:2px; }
+  .name span { background:linear-gradient(135deg,#34D399,#5EEAD4); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .header-right { display:flex; align-items:center; gap:12px; }
+  .bell { width:42px; height:42px; border-radius:14px; background:#121E18; display:flex; align-items:center; justify-content:center; position:relative; border:1px solid rgba(255,255,255,0.06); }
+  .bell i { font-size:16px; color:#cbd2cc; }
+  .bell-dot { position:absolute; top:11px; right:12px; width:8px; height:8px; border-radius:50%; background:#34D399; border:2px solid #121E18; }
+  .avatar { width:42px; height:42px; border-radius:14px; object-fit:cover; border:2px solid #10B981; }
+
+  /* HERO — live posture score */
+  .hero { margin:4px 28px 0; border-radius:30px; padding:24px; position:relative; overflow:hidden; background:linear-gradient(150deg,#0F8C6B 0%,#0EA5A4 55%,#5EEAD4 120%); }
+  .hero::before { content:''; position:absolute; right:-50px; top:-60px; width:220px; height:220px; background:radial-gradient(circle,rgba(255,255,255,0.28),transparent 70%); }
+  .hero-top { display:flex; justify-content:space-between; align-items:flex-start; position:relative; z-index:2; }
+  .hero-tag { display:inline-flex; align-items:center; gap:7px; background:rgba(8,18,14,0.32); padding:7px 13px; border-radius:18px; font-size:11px; font-weight:800; }
+  .hero-tag .pulse { width:8px; height:8px; border-radius:50%; background:#A3E635; box-shadow:0 0 0 0 rgba(163,230,53,0.7); animation:pulse 1.6s infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(163,230,53,0.6);} 70%{box-shadow:0 0 0 8px rgba(163,230,53,0);} 100%{box-shadow:0 0 0 0 rgba(163,230,53,0);} }
+  .hero-batt { display:flex; align-items:center; gap:6px; font-size:11px; font-weight:700; background:rgba(8,18,14,0.28); padding:7px 12px; border-radius:18px; }
+  .hero-body { display:flex; align-items:center; gap:20px; margin-top:18px; position:relative; z-index:2; }
+  .ring { width:108px; height:108px; flex-shrink:0; position:relative; }
+  .ring svg { transform:rotate(-90deg); }
+  .ring-c { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .ring-v { font-size:34px; font-weight:900; letter-spacing:-1.5px; line-height:1; }
+  .ring-l { font-size:9.5px; font-weight:800; letter-spacing:1px; opacity:0.85; margin-top:3px; }
+  .hero-info h2 { font-size:22px; font-weight:900; letter-spacing:-0.5px; }
+  .hero-info p { font-size:12.5px; font-weight:600; opacity:0.92; margin-top:5px; line-height:1.5; }
+  .hero-btn { margin-top:14px; background:#0A1310; color:#fff; font-size:13px; font-weight:800; padding:11px 18px; border-radius:15px; display:inline-flex; align-items:center; gap:8px; }
+  .hero-btn i { color:#5EEAD4; }
+
+  /* STATS */
+  .stats { display:flex; gap:11px; padding:18px 28px 0; }
+  .stat { flex:1; background:#121E18; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:15px 13px; }
+  .stat-ic { width:30px; height:30px; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:10px; }
+  .stat-ic i { font-size:13px; }
+  .stat-v { font-size:24px; font-weight:900; letter-spacing:-0.8px; }
+  .stat-v small { font-size:12px; opacity:0.55; font-weight:700; }
+  .stat-l { font-size:10px; color:#7E9088; font-weight:700; margin-top:3px; text-transform:uppercase; letter-spacing:0.3px; }
+
+  .sec-h { padding:26px 28px 13px; display:flex; justify-content:space-between; align-items:center; }
+  .sec-t { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+  .sec-l { font-size:12px; color:#34D399; font-weight:700; }
+
+  /* GOAL */
+  .goal { margin:0 28px; background:#121E18; border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:18px; }
+  .goal-top { display:flex; justify-content:space-between; align-items:center; }
+  .goal-t { font-size:14px; font-weight:800; }
+  .goal-n { font-size:13px; font-weight:800; }
+  .goal-n b { color:#34D399; }
+  .goal-bar { height:9px; border-radius:9px; background:#1E2D26; margin-top:13px; overflow:hidden; }
+  .goal-bar i { display:block; height:100%; width:74%; border-radius:9px; background:linear-gradient(90deg,#10B981,#5EEAD4); }
+  .goal-sub { font-size:11px; color:#7E9088; font-weight:600; margin-top:10px; }
+
+  /* STRETCH CARDS */
+  .scroll-x { display:flex; gap:14px; padding:2px 28px 4px; overflow-x:auto; }
+  .feat { min-width:200px; max-width:200px; border-radius:22px; overflow:hidden; position:relative; height:150px; }
+  .feat img { width:100%; height:100%; object-fit:cover; }
+  .feat::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(10,19,16,0.05) 25%,rgba(10,19,16,0.92)); }
+  .feat-play { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,0.18); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; border:1.5px solid rgba(255,255,255,0.5); z-index:2; }
+  .feat-play i { color:#fff; font-size:15px; margin-left:2px; }
+  .feat-dur { position:absolute; top:12px; right:12px; z-index:2; background:rgba(10,19,16,0.7); backdrop-filter:blur(6px); padding:4px 9px; border-radius:9px; font-size:10px; font-weight:800; }
+  .feat-b { position:absolute; bottom:13px; left:14px; right:14px; z-index:2; }
+  .feat-tag { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.4px; color:#5EEAD4; }
+  .feat-t { font-size:14px; font-weight:800; margin-top:3px; }
+
+  /* TIMELINE */
+  .tl { margin:0 28px; }
+  .tl-item { display:flex; align-items:center; gap:14px; background:#121E18; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:14px; margin-bottom:11px; }
+  .tl-ic { width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .tl-ic i { font-size:17px; color:#fff; }
+  .tl-t { font-size:13.5px; font-weight:800; }
+  .tl-s { font-size:11px; color:#7E9088; font-weight:600; margin-top:3px; }
+  .tl-time { margin-left:auto; font-size:11px; font-weight:800; color:#7E9088; flex-shrink:0; }
+
+  /* TAB BAR */
+  .tabbar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(10,19,16,0.88); backdrop-filter:blur(20px); border-top:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-around; padding:12px 14px 0; z-index:100; }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; color:#5A6B62; font-size:10px; font-weight:700; }
+  .tab.active { color:#34D399; }
+  .tab i { font-size:19px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar"><div class="time">9:41</div><div class="icons"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-three-quarters"></i></div></div>
+
+  <div class="header">
+    <div>
+      <div class="hi">Tuesday, June 14</div>
+      <div class="name">Hi, <span>Maya</span></div>
+    </div>
+    <div class="header-right">
+      <div class="bell"><i class="fa-regular fa-bell"></i><div class="bell-dot"></div></div>
+      <img class="avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&q=80" alt="">
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-top">
+      <div class="hero-tag"><span class="pulse"></span> LIVE · SITTING TALL</div>
+      <div class="hero-batt"><i class="fa-solid fa-microchip"></i> 84%</div>
+    </div>
+    <div class="hero-body">
+      <div class="ring">
+        <svg width="108" height="108">
+          <circle cx="54" cy="54" r="47" stroke="rgba(8,18,14,0.25)" stroke-width="9" fill="none"/>
+          <circle cx="54" cy="54" r="47" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="round" stroke-dasharray="295" stroke-dashoffset="27"/>
+        </svg>
+        <div class="ring-c"><div class="ring-v">92</div><div class="ring-l">SCORE</div></div>
+      </div>
+      <div class="hero-info">
+        <h2>Great posture</h2>
+        <p>Your spine has been<br>aligned for 38 min straight.</p>
+        <div class="hero-btn"><i class="fa-solid fa-wave-square"></i> View live</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-ic" style="background:rgba(52,211,153,0.14);"><i class="fa-solid fa-check" style="color:#34D399;"></i></div>
+      <div class="stat-v">4<small>h</small> 12<small>m</small></div>
+      <div class="stat-l">Upright</div>
+    </div>
+    <div class="stat">
+      <div class="stat-ic" style="background:rgba(251,113,133,0.14);"><i class="fa-solid fa-bell" style="color:#FB7185;"></i></div>
+      <div class="stat-v">7</div>
+      <div class="stat-l">Alerts</div>
+    </div>
+    <div class="stat">
+      <div class="stat-ic" style="background:rgba(94,234,212,0.14);"><i class="fa-solid fa-chair" style="color:#5EEAD4;"></i></div>
+      <div class="stat-v">6<small>h</small> 30<small>m</small></div>
+      <div class="stat-l">Sit time</div>
+    </div>
+  </div>
+
+  <!-- GOAL -->
+  <div class="sec-h"><div class="sec-t">Today's goal</div><div class="sec-l">74%</div></div>
+  <div class="goal">
+    <div class="goal-top">
+      <div class="goal-t">Stay upright 5h 30m</div>
+      <div class="goal-n"><b>4h 12m</b> / 5h 30m</div>
+    </div>
+    <div class="goal-bar"><i></i></div>
+    <div class="goal-sub"><i class="fa-solid fa-fire" style="color:#FBBF24;"></i> &nbsp;1h 18m to hit your goal — you're ahead of yesterday</div>
+  </div>
+
+  <!-- STRETCHES -->
+  <div class="sec-h"><div class="sec-t">Stretch breaks</div><div class="sec-l">See all</div></div>
+  <div class="scroll-x">
+    <div class="feat">
+      <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80" alt="">
+      <div class="feat-play"><i class="fa-solid fa-play"></i></div>
+      <div class="feat-dur">4 min</div>
+      <div class="feat-b"><div class="feat-tag">Posture reset</div><div class="feat-t">Open your chest</div></div>
+    </div>
+    <div class="feat">
+      <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=80" alt="">
+      <div class="feat-play"><i class="fa-solid fa-play"></i></div>
+      <div class="feat-dur">3 min</div>
+      <div class="feat-b"><div class="feat-tag">Neck relief</div><div class="feat-t">Release tension</div></div>
+    </div>
+    <div class="feat">
+      <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80" alt="">
+      <div class="feat-play"><i class="fa-solid fa-play"></i></div>
+      <div class="feat-dur">6 min</div>
+      <div class="feat-b"><div class="feat-tag">Mobility</div><div class="feat-t">Spine flow</div></div>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="sec-h"><div class="sec-t">Recent activity</div></div>
+  <div class="tl">
+    <div class="tl-item">
+      <div class="tl-ic" style="background:linear-gradient(135deg,#10B981,#5EEAD4);"><i class="fa-solid fa-arrow-trend-up"></i></div>
+      <div><div class="tl-t">Posture improved</div><div class="tl-s">Held upright for 38 min</div></div>
+      <div class="tl-time">9:03</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-ic" style="background:linear-gradient(135deg,#FB7185,#F43F5E);"><i class="fa-solid fa-arrow-trend-down"></i></div>
+      <div><div class="tl-t">Slouch detected</div><div class="tl-s">Gentle vibration sent</div></div>
+      <div class="tl-time">8:21</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-ic" style="background:linear-gradient(135deg,#FBBF24,#F59E0B);"><i class="fa-solid fa-mug-hot"></i></div>
+      <div><div class="tl-t">Stretch break taken</div><div class="tl-s">Neck relief · 3 min</div></div>
+      <div class="tl-time">7:45</div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab active"><i class="fa-solid fa-house"></i><span>Today</span></div>
+    <div class="tab"><i class="fa-solid fa-wave-square"></i><span>Live</span></div>
+    <div class="tab"><i class="fa-solid fa-chart-simple"></i><span>Insights</span></div>
+    <div class="tab"><i class="fa-solid fa-spa"></i><span>Coach</span></div>
+    <div class="tab"><i class="fa-solid fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>
