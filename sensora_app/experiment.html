@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sensora — Live Capture</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html,body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#070A12; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:30px; background:radial-gradient(120% 60% at 50% 0%,#10162A 0%,#070A12 60%); }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .nav { display:flex; align-items:center; justify-content:space-between; padding:6px 28px 0; }
+  .nav-btn { width:42px; height:42px; border-radius:14px; background:#141A28; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.06); }
+  .nav-btn i { font-size:15px; color:#cbd2e0; }
+  .nav-c { text-align:center; }
+  .nav-c .t { font-size:14.5px; font-weight:800; }
+  .nav-c .s { font-size:10.5px; color:#7B8398; font-weight:700; margin-top:2px; }
+
+  /* LIVE BADGE */
+  .live-row { display:flex; align-items:center; justify-content:center; gap:9px; margin-top:18px; }
+  .live { display:inline-flex; align-items:center; gap:7px; background:rgba(244,63,94,0.14); border:1px solid rgba(244,63,94,0.3); padding:6px 14px; border-radius:14px; font-size:11px; font-weight:800; letter-spacing:0.5px; color:#FB7185; }
+  .live .pulse { width:8px; height:8px; border-radius:50%; background:#F43F5E; animation:pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+  .sensor-chip { display:inline-flex; align-items:center; gap:7px; background:#141A28; border:1px solid rgba(255,255,255,0.06); padding:6px 13px; border-radius:14px; font-size:11px; font-weight:700; color:#c3cad8; }
+  .sensor-chip i { color:#6366F1; }
+
+  /* GRAPH */
+  .graph { margin:20px 24px 0; background:linear-gradient(180deg,#0E1422,#0B101C); border:1px solid rgba(255,255,255,0.07); border-radius:24px; padding:18px 16px 14px; position:relative; }
+  .graph-h { display:flex; align-items:center; justify-content:space-between; padding:0 6px 12px; }
+  .graph-h .yl { font-size:10px; color:#7B8398; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; }
+  .graph-h .pk { font-size:10.5px; font-weight:800; color:#22D3EE; display:flex; align-items:center; gap:5px; }
+  .plot { position:relative; height:150px; }
+  .plot svg { width:100%; height:100%; }
+  .grid-l { stroke:rgba(255,255,255,0.05); stroke-width:1; }
+  .axis-x { display:flex; justify-content:space-between; padding:8px 6px 0; }
+  .axis-x span { font-size:9px; color:#5a6478; font-weight:600; }
+
+  /* BIG READING */
+  .reading { margin:18px 24px 0; display:flex; gap:12px; }
+  .rd { flex:1; background:#0E1422; border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:16px; text-align:center; }
+  .rd.main { background:linear-gradient(150deg,rgba(99,102,241,0.22),rgba(34,211,238,0.12)); border-color:rgba(99,102,241,0.3); }
+  .rd-l { font-size:10px; color:#7B8398; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; }
+  .rd-v { font-size:34px; font-weight:900; letter-spacing:-1.5px; margin-top:6px; line-height:1; }
+  .rd-v small { font-size:14px; font-weight:700; opacity:0.6; }
+  .rd.main .rd-v { background:linear-gradient(135deg,#a5b4fc,#67e8f9); -webkit-background-clip:text; background-clip:text; color:transparent; }
+
+  .mini { margin:12px 24px 0; display:flex; gap:12px; }
+  .mn { flex:1; background:#0E1422; border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:13px; display:flex; align-items:center; gap:11px; }
+  .mn-ic { width:34px; height:34px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .mn-ic i { font-size:13px; color:#fff; }
+  .mn-v { font-size:16px; font-weight:900; letter-spacing:-0.5px; }
+  .mn-l { font-size:9.5px; color:#7B8398; font-weight:700; margin-top:1px; }
+
+  /* HINT */
+  .hint { margin:16px 24px 0; background:rgba(34,211,238,0.08); border:1px solid rgba(34,211,238,0.2); border-radius:16px; padding:13px 15px; display:flex; align-items:center; gap:11px; }
+  .hint i { color:#22D3EE; font-size:15px; }
+  .hint span { font-size:12px; font-weight:600; color:#bfeaf2; }
+
+  /* CONTROLS */
+  .controls { display:flex; align-items:center; justify-content:center; gap:34px; margin-top:22px; }
+  .ctrl-side { width:52px; height:52px; border-radius:18px; background:#141A28; border:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; justify-content:center; }
+  .ctrl-side i { font-size:17px; color:#9aa3b2; }
+  .ctrl-side .t { display:none; }
+  .rec { width:80px; height:80px; border-radius:50%; background:rgba(244,63,94,0.12); border:2px solid rgba(244,63,94,0.5); display:flex; align-items:center; justify-content:center; }
+  .rec-inner { width:30px; height:30px; border-radius:8px; background:#F43F5E; box-shadow:0 0 24px rgba(244,63,94,0.6); }
+  .ctrl-lbls { display:flex; justify-content:center; gap:34px; margin-top:9px; }
+  .ctrl-lbls span { width:52px; text-align:center; font-size:10px; color:#7B8398; font-weight:700; }
+  .ctrl-lbls .mid { width:80px; color:#FB7185; }
+  .timer { text-align:center; margin-top:18px; font-size:13px; font-weight:800; color:#cbd2e0; }
+  .timer .pts { color:#22D3EE; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="nav">
+    <div class="nav-btn"><i class="fas fa-chevron-left"></i></div>
+    <div class="nav-c"><div class="t">Simple Pendulum</div><div class="s">Step 3 of 5 · Recording</div></div>
+    <div class="nav-btn"><i class="fas fa-sliders"></i></div>
+  </div>
+
+  <div class="live-row">
+    <div class="live"><span class="pulse"></span> LIVE</div>
+    <div class="sensor-chip"><i class="fas fa-gauge-high"></i> Accelerometer · 100 Hz</div>
+  </div>
+
+  <!-- GRAPH -->
+  <div class="graph">
+    <div class="graph-h">
+      <div class="yl">Acceleration (m/s²)</div>
+      <div class="pk"><i class="fas fa-arrow-up"></i> Peak 4.21</div>
+    </div>
+    <div class="plot">
+      <svg viewBox="0 0 320 150" preserveAspectRatio="none">
+        <line class="grid-l" x1="0" y1="37.5" x2="320" y2="37.5"/>
+        <line class="grid-l" x1="0" y1="75" x2="320" y2="75"/>
+        <line class="grid-l" x1="0" y1="112.5" x2="320" y2="112.5"/>
+        <defs>
+          <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#22D3EE" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path d="M0,75 C13,75 13,30 27,30 C40,30 40,120 53,120 C67,120 67,40 80,40 C93,40 93,112 107,112 C120,112 120,46 133,46 C147,46 147,106 160,106 C173,106 173,52 187,52 C200,52 200,100 213,100 C227,100 227,58 240,58 C253,58 253,95 267,95 C280,95 280,64 293,64 C306,64 306,88 320,80 L320,150 L0,150 Z" fill="url(#g1)"/>
+        <path d="M0,75 C13,75 13,30 27,30 C40,30 40,120 53,120 C67,120 67,40 80,40 C93,40 93,112 107,112 C120,112 120,46 133,46 C147,46 147,106 160,106 C173,106 173,52 187,52 C200,52 200,100 213,100 C227,100 227,58 240,58 C253,58 253,95 267,95 C280,95 280,64 293,64 C306,64 306,88 320,80" fill="none" stroke="#22D3EE" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="320" cy="80" r="4.5" fill="#22D3EE"/>
+        <circle cx="320" cy="80" r="9" fill="#22D3EE" fill-opacity="0.25"/>
+      </svg>
+    </div>
+    <div class="axis-x"><span>0s</span><span>2s</span><span>4s</span><span>6s</span><span>8s</span></div>
+  </div>
+
+  <!-- READING -->
+  <div class="reading">
+    <div class="rd main">
+      <div class="rd-l">Avg Period T</div>
+      <div class="rd-v">1.42<small>s</small></div>
+    </div>
+    <div class="rd">
+      <div class="rd-l">Swings</div>
+      <div class="rd-v">14<small>/20</small></div>
+    </div>
+  </div>
+
+  <div class="mini">
+    <div class="mn">
+      <div class="mn-ic" style="background:linear-gradient(135deg,#6366F1,#818CF8)"><i class="fas fa-bolt"></i></div>
+      <div><div class="mn-v">3.84</div><div class="mn-l">Current a</div></div>
+    </div>
+    <div class="mn">
+      <div class="mn-ic" style="background:linear-gradient(135deg,#06B6D4,#22D3EE)"><i class="fas fa-database"></i></div>
+      <div><div class="mn-v">1,412</div><div class="mn-l">Data points</div></div>
+    </div>
+  </div>
+
+  <div class="hint">
+    <i class="fas fa-lightbulb"></i>
+    <span>Let the pendulum swing freely at a small angle for cleaner peaks.</span>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <div class="ctrl-side"><i class="fas fa-rotate-left"></i></div>
+    <div class="rec"><div class="rec-inner"></div></div>
+    <div class="ctrl-side"><i class="fas fa-check"></i></div>
+  </div>
+  <div class="ctrl-lbls"><span>Reset</span><span class="mid">Stop</span><span>Finish</span></div>
+  <div class="timer">00:18 · <span class="pts">14 peaks detected</span></div>
+</div>
+</body>
+</html>

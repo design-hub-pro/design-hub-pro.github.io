@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sensora — Profile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html,body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0E1A; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:120px; background:#0A0E1A; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .topbar { display:flex; align-items:center; justify-content:space-between; padding:6px 28px 0; }
+  .topbar .t { font-size:17px; font-weight:800; }
+  .ic-btn { width:42px; height:42px; border-radius:14px; background:#141A28; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.06); }
+  .ic-btn i { font-size:15px; color:#cbd2e0; }
+
+  /* PROFILE HEAD */
+  .phead { text-align:center; padding:18px 28px 0; }
+  .pavatar { width:92px; height:92px; border-radius:30px; object-fit:cover; margin:0 auto; border:3px solid #6366F1; display:block; }
+  .pname { font-size:23px; font-weight:900; letter-spacing:-0.6px; margin-top:14px; }
+  .pmeta { font-size:12.5px; color:#7B8398; font-weight:600; margin-top:4px; }
+  .plevel { display:inline-flex; align-items:center; gap:7px; background:linear-gradient(135deg,rgba(99,102,241,0.18),rgba(34,211,238,0.12)); border:1px solid rgba(99,102,241,0.3); padding:6px 14px; border-radius:14px; font-size:11.5px; font-weight:800; color:#a5b4fc; margin-top:12px; }
+  .plevel i { color:#FBBF24; }
+
+  /* XP BAR */
+  .xp { margin:18px 28px 0; background:#141A28; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:16px; }
+  .xp-h { display:flex; justify-content:space-between; align-items:center; }
+  .xp-h .l { font-size:12px; font-weight:800; }
+  .xp-h .v { font-size:11px; color:#7B8398; font-weight:700; }
+  .xp-bar { height:8px; border-radius:8px; background:rgba(255,255,255,0.08); margin-top:11px; overflow:hidden; }
+  .xp-bar i { display:block; height:100%; width:72%; background:linear-gradient(90deg,#6366F1,#22D3EE); border-radius:8px; }
+
+  /* STATS */
+  .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:11px; padding:14px 28px 0; }
+  .stat { background:#141A28; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:15px; display:flex; align-items:center; gap:13px; }
+  .stat-ic { width:42px; height:42px; border-radius:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .stat-ic i { font-size:16px; color:#fff; }
+  .stat-v { font-size:23px; font-weight:900; letter-spacing:-0.8px; }
+  .stat-l { font-size:10px; color:#7B8398; font-weight:700; margin-top:1px; }
+
+  .sec-t { font-size:16px; font-weight:800; letter-spacing:-0.3px; padding:24px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .sec-t .l { font-size:12px; color:#22D3EE; font-weight:700; }
+
+  /* BADGES */
+  .badges { display:flex; gap:12px; padding:0 28px; overflow-x:auto; }
+  .badge { min-width:92px; background:#141A28; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:15px 10px; text-align:center; }
+  .badge-ic { width:48px; height:48px; border-radius:16px; display:flex; align-items:center; justify-content:center; margin:0 auto 10px; }
+  .badge-ic i { font-size:20px; color:#fff; }
+  .badge-n { font-size:11px; font-weight:800; }
+  .badge.lock { opacity:0.4; }
+  .badge.lock .badge-ic { background:rgba(255,255,255,0.06) !important; }
+
+  /* MASTERY */
+  .mastery { padding:0 28px; }
+  .ms { margin-bottom:15px; }
+  .ms-h { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .ms-l { font-size:12.5px; font-weight:700; display:flex; align-items:center; gap:9px; }
+  .ms-l i { font-size:12px; }
+  .ms-v { font-size:11.5px; font-weight:800; color:#9aa3b2; }
+  .ms-bar { height:7px; border-radius:7px; background:rgba(255,255,255,0.07); overflow:hidden; }
+  .ms-bar i { display:block; height:100%; border-radius:7px; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(10,14,26,0.92); backdrop-filter:blur(22px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:14px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:50px; }
+  .tab i { font-size:19px; color:rgba(255,255,255,0.32); }
+  .tab span { font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab.active i, .tab.active span { color:#22D3EE; }
+  .tab-c { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#6366F1,#22D3EE); display:flex; align-items:center; justify-content:center; margin-top:-12px; box-shadow:0 8px 22px rgba(99,102,241,0.5); }
+  .tab-c i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="topbar">
+    <div class="t">Profile</div>
+    <div class="ic-btn"><i class="fas fa-gear"></i></div>
+  </div>
+
+  <div class="phead">
+    <img class="pavatar" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop" alt="">
+    <div class="pname">Maya Rivera</div>
+    <div class="pmeta">Lincoln High · Physics Period 3</div>
+    <div class="plevel"><i class="fas fa-atom"></i> Physics Explorer · Level 4</div>
+  </div>
+
+  <div class="xp">
+    <div class="xp-h"><div class="l">2,140 XP</div><div class="v">860 XP to Level 5</div></div>
+    <div class="xp-bar"><i></i></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-ic" style="background:linear-gradient(135deg,#6366F1,#818CF8)"><i class="fas fa-flask"></i></div>
+      <div><div class="stat-v">14</div><div class="stat-l">Labs completed</div></div>
+    </div>
+    <div class="stat">
+      <div class="stat-ic" style="background:linear-gradient(135deg,#06B6D4,#22D3EE)"><i class="fas fa-microchip"></i></div>
+      <div><div class="stat-v">5</div><div class="stat-l">Sensors used</div></div>
+    </div>
+    <div class="stat">
+      <div class="stat-ic" style="background:linear-gradient(135deg,#34D399,#10B981)"><i class="fas fa-bullseye"></i></div>
+      <div><div class="stat-v">92%</div><div class="stat-l">Avg accuracy</div></div>
+    </div>
+    <div class="stat">
+      <div class="stat-ic" style="background:linear-gradient(135deg,#F59E0B,#FBBF24)"><i class="fas fa-fire"></i></div>
+      <div><div class="stat-v">5</div><div class="stat-l">Day streak</div></div>
+    </div>
+  </div>
+
+  <!-- BADGES -->
+  <div class="sec-t">Achievements <span class="l">8 of 18</span></div>
+  <div class="badges">
+    <div class="badge"><div class="badge-ic" style="background:linear-gradient(135deg,#6366F1,#818CF8)"><i class="fas fa-apple-whole"></i></div><div class="badge-n">Newton</div></div>
+    <div class="badge"><div class="badge-ic" style="background:linear-gradient(135deg,#F59E0B,#FBBF24)"><i class="fas fa-wave-square"></i></div><div class="badge-n">Wave Rider</div></div>
+    <div class="badge"><div class="badge-ic" style="background:linear-gradient(135deg,#EC4899,#F472B6)"><i class="fas fa-magnet"></i></div><div class="badge-n">Field Mapper</div></div>
+    <div class="badge lock"><div class="badge-ic"><i class="fas fa-lock"></i></div><div class="badge-n">Optician</div></div>
+    <div class="badge lock"><div class="badge-ic"><i class="fas fa-lock"></i></div><div class="badge-n">Thermo</div></div>
+  </div>
+
+  <!-- MASTERY -->
+  <div class="sec-t">Topic Mastery</div>
+  <div class="mastery">
+    <div class="ms">
+      <div class="ms-h"><div class="ms-l"><i class="fas fa-atom" style="color:#6366F1"></i> Mechanics</div><div class="ms-v">85%</div></div>
+      <div class="ms-bar"><i style="width:85%;background:linear-gradient(90deg,#6366F1,#818CF8)"></i></div>
+    </div>
+    <div class="ms">
+      <div class="ms-h"><div class="ms-l"><i class="fas fa-wave-square" style="color:#F59E0B"></i> Waves &amp; Sound</div><div class="ms-v">62%</div></div>
+      <div class="ms-bar"><i style="width:62%;background:linear-gradient(90deg,#F59E0B,#FBBF24)"></i></div>
+    </div>
+    <div class="ms">
+      <div class="ms-h"><div class="ms-l"><i class="fas fa-magnet" style="color:#EC4899"></i> Electromagnetism</div><div class="ms-v">74%</div></div>
+      <div class="ms-bar"><i style="width:74%;background:linear-gradient(90deg,#EC4899,#F472B6)"></i></div>
+    </div>
+    <div class="ms">
+      <div class="ms-h"><div class="ms-l"><i class="fas fa-sun" style="color:#FACC15"></i> Optics</div><div class="ms-v">40%</div></div>
+      <div class="ms-bar"><i style="width:40%;background:linear-gradient(90deg,#FACC15,#FDE047)"></i></div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab"><i class="fas fa-house"></i><span>Home</span></div>
+  <div class="tab"><i class="fas fa-flask"></i><span>Labs</span></div>
+  <div class="tab"><div class="tab-c"><i class="fas fa-bolt"></i></div></div>
+  <div class="tab"><i class="fas fa-users"></i><span>Class</span></div>
+  <div class="tab active"><i class="fas fa-user"></i><span>Profile</span></div>
+</div>
+</body>
+</html>

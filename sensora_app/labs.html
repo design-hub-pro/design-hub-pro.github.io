@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sensora — Labs</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html,body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0E1A; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:120px; background:#0A0E1A; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .top { padding:8px 28px 6px; }
+  .top h1 { font-size:27px; font-weight:900; letter-spacing:-0.8px; }
+  .top p { font-size:12.5px; color:#7B8398; font-weight:600; margin-top:3px; }
+  .search { margin:14px 28px 0; height:48px; background:#141A28; border:1px solid rgba(255,255,255,0.06); border-radius:16px; display:flex; align-items:center; gap:11px; padding:0 16px; }
+  .search i { color:#7B8398; font-size:15px; }
+  .search span { color:#7B8398; font-size:14px; font-weight:500; }
+
+  .pills { display:flex; gap:9px; padding:16px 28px 4px; overflow-x:auto; }
+  .pill { white-space:nowrap; padding:9px 16px; border-radius:14px; font-size:12.5px; font-weight:700; background:#141A28; color:#9aa3b2; border:1px solid rgba(255,255,255,0.06); }
+  .pill.active { background:linear-gradient(135deg,#6366F1,#22D3EE); color:#fff; border-color:transparent; }
+
+  /* FEATURED big */
+  .big { margin:18px 28px 0; border-radius:24px; overflow:hidden; position:relative; height:185px; }
+  .big img { width:100%; height:100%; object-fit:cover; }
+  .big::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(10,14,26,0.15) 25%,rgba(10,14,26,0.94)); }
+  .big-tag { position:absolute; top:14px; left:14px; z-index:2; background:rgba(99,102,241,0.9); padding:5px 11px; border-radius:10px; font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; }
+  .big-new { position:absolute; top:14px; right:14px; z-index:2; background:rgba(34,211,238,0.16); color:#22D3EE; padding:5px 11px; border-radius:10px; font-size:9.5px; font-weight:800; }
+  .big-b { position:absolute; bottom:16px; left:18px; right:18px; z-index:2; }
+  .big-t { font-size:19px; font-weight:900; letter-spacing:-0.4px; }
+  .big-m { font-size:11.5px; color:#aeb6c6; font-weight:600; margin-top:5px; display:flex; align-items:center; gap:12px; }
+  .big-m span { display:flex; align-items:center; gap:5px; }
+
+  /* GRID */
+  .sec-h { padding:24px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .sec-t { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+  .sec-l { font-size:12px; color:#22D3EE; font-weight:700; }
+  .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:13px; padding:0 28px; }
+  .card { background:#141A28; border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:15px; }
+  .card-top { display:flex; align-items:flex-start; justify-content:space-between; }
+  .card-ic { width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center; }
+  .card-ic i { font-size:18px; color:#fff; }
+  .ring { width:38px; height:38px; position:relative; }
+  .ring-t { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:800; }
+  .card-t { font-size:14px; font-weight:800; margin-top:13px; letter-spacing:-0.2px; }
+  .card-sen { font-size:10.5px; color:#7B8398; font-weight:700; margin-top:5px; display:flex; align-items:center; gap:5px; }
+  .card-foot { display:flex; align-items:center; gap:8px; margin-top:12px; }
+  .chip { font-size:9.5px; font-weight:700; padding:4px 9px; border-radius:9px; background:rgba(255,255,255,0.06); color:#aeb6c6; display:flex; align-items:center; gap:4px; }
+  .chip.done { background:rgba(52,211,153,0.14); color:#34D399; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(10,14,26,0.92); backdrop-filter:blur(22px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:14px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:50px; }
+  .tab i { font-size:19px; color:rgba(255,255,255,0.32); }
+  .tab span { font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab.active i, .tab.active span { color:#22D3EE; }
+  .tab-c { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#6366F1,#22D3EE); display:flex; align-items:center; justify-content:center; margin-top:-12px; box-shadow:0 8px 22px rgba(99,102,241,0.5); }
+  .tab-c i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="top">
+    <h1>Lab Library</h1>
+    <p>32 sensor-powered experiments</p>
+  </div>
+  <div class="search"><i class="fas fa-magnifying-glass"></i><span>Search experiments, sensors…</span></div>
+
+  <div class="pills">
+    <div class="pill active">All</div>
+    <div class="pill">Mechanics</div>
+    <div class="pill">Waves</div>
+    <div class="pill">Optics</div>
+    <div class="pill">E &amp; M</div>
+    <div class="pill">Thermo</div>
+  </div>
+
+  <div class="big">
+    <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&h=400&fit=crop" alt="">
+    <div class="big-tag">Mechanics</div>
+    <div class="big-new">New</div>
+    <div class="big-b">
+      <div class="big-t">Free Fall — Measure g</div>
+      <div class="big-m">
+        <span><i class="fas fa-gauge-high"></i> Accelerometer</span>
+        <span><i class="fas fa-clock"></i> 12 min</span>
+        <span><i class="fas fa-signal"></i> Easy</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-h"><div class="sec-t">All Experiments</div><div class="sec-l">Sort</div></div>
+  <div class="grid">
+    <div class="card">
+      <div class="card-top">
+        <div class="card-ic" style="background:linear-gradient(135deg,#6366F1,#818CF8)"><i class="fas fa-stopwatch"></i></div>
+        <svg class="ring" viewBox="0 0 38 38"><circle cx="19" cy="19" r="15" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="4"/><circle cx="19" cy="19" r="15" fill="none" stroke="#6366F1" stroke-width="4" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="38" transform="rotate(-90 19 19)"/></svg>
+      </div>
+      <div class="card-t">Simple Pendulum</div>
+      <div class="card-sen"><i class="fas fa-gauge-high"></i> Accelerometer</div>
+      <div class="card-foot"><span class="chip"><i class="fas fa-clock"></i>25m</span><span class="chip">60%</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-ic" style="background:linear-gradient(135deg,#F59E0B,#FBBF24)"><i class="fas fa-wave-square"></i></div>
+        <svg class="ring" viewBox="0 0 38 38"><circle cx="19" cy="19" r="15" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="4"/><circle cx="19" cy="19" r="15" fill="none" stroke="#F59E0B" stroke-width="4" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="94" transform="rotate(-90 19 19)"/></svg>
+      </div>
+      <div class="card-t">Standing Waves</div>
+      <div class="card-sen"><i class="fas fa-microphone"></i> Microphone</div>
+      <div class="card-foot"><span class="chip"><i class="fas fa-clock"></i>20m</span><span class="chip">New</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-ic" style="background:linear-gradient(135deg,#EC4899,#F472B6)"><i class="fas fa-magnet"></i></div>
+        <svg class="ring" viewBox="0 0 38 38"><circle cx="19" cy="19" r="15" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="4"/><circle cx="19" cy="19" r="15" fill="none" stroke="#34D399" stroke-width="4" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="0" transform="rotate(-90 19 19)"/></svg>
+      </div>
+      <div class="card-t">Magnetic Field</div>
+      <div class="card-sen"><i class="fas fa-magnet"></i> Magnetometer</div>
+      <div class="card-foot"><span class="chip done"><i class="fas fa-check"></i>Done</span><span class="chip">96%</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-ic" style="background:linear-gradient(135deg,#FACC15,#FDE047)"><i class="fas fa-sun"></i></div>
+        <svg class="ring" viewBox="0 0 38 38"><circle cx="19" cy="19" r="15" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="4"/><circle cx="19" cy="19" r="15" fill="none" stroke="#FACC15" stroke-width="4" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="94" transform="rotate(-90 19 19)"/></svg>
+      </div>
+      <div class="card-t">Inverse Square</div>
+      <div class="card-sen"><i class="fas fa-sun"></i> Light sensor</div>
+      <div class="card-foot"><span class="chip"><i class="fas fa-clock"></i>15m</span><span class="chip">Easy</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-ic" style="background:linear-gradient(135deg,#06B6D4,#22D3EE)"><i class="fas fa-rotate"></i></div>
+        <svg class="ring" viewBox="0 0 38 38"><circle cx="19" cy="19" r="15" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="4"/><circle cx="19" cy="19" r="15" fill="none" stroke="#06B6D4" stroke-width="4" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="94" transform="rotate(-90 19 19)"/></svg>
+      </div>
+      <div class="card-t">Centripetal Force</div>
+      <div class="card-sen"><i class="fas fa-rotate"></i> Gyroscope</div>
+      <div class="card-foot"><span class="chip"><i class="fas fa-clock"></i>18m</span><span class="chip">Med</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-ic" style="background:linear-gradient(135deg,#14B8A6,#2DD4BF)"><i class="fas fa-mountain"></i></div>
+        <svg class="ring" viewBox="0 0 38 38"><circle cx="19" cy="19" r="15" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="4"/><circle cx="19" cy="19" r="15" fill="none" stroke="#14B8A6" stroke-width="4" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="94" transform="rotate(-90 19 19)"/></svg>
+      </div>
+      <div class="card-t">Pressure &amp; Altitude</div>
+      <div class="card-sen"><i class="fas fa-mountain"></i> Barometer</div>
+      <div class="card-foot"><span class="chip"><i class="fas fa-clock"></i>14m</span><span class="chip">Med</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab"><i class="fas fa-house"></i><span>Home</span></div>
+  <div class="tab active"><i class="fas fa-flask"></i><span>Labs</span></div>
+  <div class="tab"><div class="tab-c"><i class="fas fa-bolt"></i></div></div>
+  <div class="tab"><i class="fas fa-users"></i><span>Class</span></div>
+  <div class="tab"><i class="fas fa-user"></i><span>Profile</span></div>
+</div>
+</body>
+</html>

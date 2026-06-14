@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sensora — Teacher</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html,body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0E1A; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:120px; background:#0A0E1A; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:8px 28px 6px; display:flex; align-items:center; justify-content:space-between; }
+  .hi { font-size:12px; color:#7B8398; font-weight:600; display:flex; align-items:center; gap:7px; }
+  .mode { background:rgba(99,102,241,0.16); color:#a5b4fc; padding:3px 9px; border-radius:8px; font-size:9.5px; font-weight:800; letter-spacing:0.3px; }
+  .name { font-size:23px; font-weight:900; letter-spacing:-0.6px; margin-top:3px; }
+  .avatar { width:42px; height:42px; border-radius:14px; object-fit:cover; border:2px solid #6366F1; }
+
+  /* LIVE SESSION */
+  .live { margin:14px 28px 0; border-radius:24px; padding:20px; position:relative; overflow:hidden; background:linear-gradient(150deg,#6366F1 0%,#22D3EE 100%); }
+  .live::before { content:''; position:absolute; right:-40px; top:-50px; width:190px; height:190px; background:radial-gradient(circle,rgba(255,255,255,0.28),transparent 70%); }
+  .live-top { display:flex; align-items:center; justify-content:space-between; position:relative; z-index:2; }
+  .live-tag { display:inline-flex; align-items:center; gap:7px; background:rgba(10,14,26,0.3); padding:6px 12px; border-radius:14px; font-size:10.5px; font-weight:800; letter-spacing:0.4px; }
+  .live-tag .dot { width:8px; height:8px; border-radius:50%; background:#F43F5E; animation:pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+  .live-end { font-size:11px; font-weight:800; background:rgba(10,14,26,0.28); padding:7px 13px; border-radius:13px; }
+  .live-t { font-size:21px; font-weight:900; letter-spacing:-0.5px; margin-top:14px; position:relative; z-index:2; }
+  .live-s { font-size:12px; font-weight:600; opacity:0.9; margin-top:4px; position:relative; z-index:2; }
+  .live-foot { display:flex; align-items:center; gap:14px; margin-top:16px; position:relative; z-index:2; }
+  .avatars { display:flex; }
+  .avatars img { width:32px; height:32px; border-radius:50%; border:2px solid #4f56d9; object-fit:cover; margin-left:-9px; }
+  .avatars img:first-child { margin-left:0; }
+  .avatars .more { width:32px; height:32px; border-radius:50%; background:rgba(10,14,26,0.4); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; margin-left:-9px; border:2px solid #4f56d9; }
+  .live-active { font-size:12px; font-weight:700; }
+
+  /* STATS */
+  .stats { display:flex; gap:11px; padding:18px 28px 0; }
+  .stat { flex:1; background:#141A28; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:15px 12px; }
+  .stat-v { font-size:27px; font-weight:900; letter-spacing:-1px; }
+  .stat-v small { font-size:13px; opacity:0.55; }
+  .stat-l { font-size:10px; color:#7B8398; font-weight:700; margin-top:3px; text-transform:uppercase; letter-spacing:0.3px; }
+
+  .sec-h { padding:24px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .sec-t { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+  .sec-l { font-size:12px; color:#22D3EE; font-weight:700; }
+
+  /* STUDENT LIST */
+  .students { padding:0 28px; }
+  .st { background:#141A28; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:13px 15px; display:flex; align-items:center; gap:13px; margin-bottom:10px; }
+  .st img { width:42px; height:42px; border-radius:13px; object-fit:cover; }
+  .st-n { font-size:13.5px; font-weight:800; }
+  .st-s { font-size:10.5px; color:#7B8398; font-weight:600; margin-top:3px; display:flex; align-items:center; gap:6px; }
+  .st-dot { width:7px; height:7px; border-radius:50%; }
+  .st-right { margin-left:auto; text-align:right; }
+  .st-score { font-size:16px; font-weight:900; letter-spacing:-0.5px; }
+  .st-stat { font-size:9.5px; font-weight:800; padding:4px 9px; border-radius:9px; margin-top:0; }
+  .s-done { background:rgba(52,211,153,0.14); color:#34D399; }
+  .s-prog { background:rgba(245,158,11,0.14); color:#FBBF24; }
+  .s-none { background:rgba(255,255,255,0.06); color:#7B8398; }
+
+  /* CTA */
+  .assign-cta { margin:6px 28px 0; height:54px; border-radius:18px; background:linear-gradient(135deg,#6366F1,#22D3EE); display:flex; align-items:center; justify-content:center; gap:10px; font-size:14.5px; font-weight:800; box-shadow:0 12px 26px rgba(99,102,241,0.4); }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(10,14,26,0.92); backdrop-filter:blur(22px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:14px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:50px; }
+  .tab i { font-size:19px; color:rgba(255,255,255,0.32); }
+  .tab span { font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab.active i, .tab.active span { color:#22D3EE; }
+  .tab-c { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#6366F1,#22D3EE); display:flex; align-items:center; justify-content:center; margin-top:-12px; box-shadow:0 8px 22px rgba(99,102,241,0.5); }
+  .tab-c i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <div class="time">9:41</div>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="hi">Period 3 · 28 students <span class="mode">TEACHER MODE</span></div>
+      <div class="name">Mr. Chen</div>
+    </div>
+    <img class="avatar" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop" alt="">
+  </div>
+
+  <!-- LIVE SESSION -->
+  <div class="live">
+    <div class="live-top">
+      <div class="live-tag"><span class="dot"></span> LIVE SESSION</div>
+      <div class="live-end">End lab</div>
+    </div>
+    <div class="live-t">Simple Pendulum</div>
+    <div class="live-s">Measuring g · started 12 min ago</div>
+    <div class="live-foot">
+      <div class="avatars">
+        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop" alt="">
+        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop" alt="">
+        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop" alt="">
+        <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=80&h=80&fit=crop" alt="">
+        <div class="more">+19</div>
+      </div>
+      <div class="live-active">23 recording now</div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat"><div class="stat-v">22<small>/28</small></div><div class="stat-l">Submitted</div></div>
+    <div class="stat"><div class="stat-v">89<small>%</small></div><div class="stat-l">Avg score</div></div>
+    <div class="stat"><div class="stat-v">6</div><div class="stat-l">To review</div></div>
+  </div>
+
+  <!-- STUDENTS -->
+  <div class="sec-h"><div class="sec-t">Class Progress</div><div class="sec-l">View all</div></div>
+  <div class="students">
+    <div class="st">
+      <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=90&h=90&fit=crop" alt="">
+      <div>
+        <div class="st-n">Maya Rivera</div>
+        <div class="st-s"><span class="st-dot" style="background:#34D399"></span> Submitted · g = 9.78</div>
+      </div>
+      <div class="st-right"><div class="st-stat s-done">98%</div></div>
+    </div>
+    <div class="st">
+      <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=90&h=90&fit=crop" alt="">
+      <div>
+        <div class="st-n">Jordan Lee</div>
+        <div class="st-s"><span class="st-dot" style="background:#FBBF24"></span> Recording · Step 3 of 5</div>
+      </div>
+      <div class="st-right"><div class="st-stat s-prog">Live</div></div>
+    </div>
+    <div class="st">
+      <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=90&h=90&fit=crop" alt="">
+      <div>
+        <div class="st-n">Aisha Khan</div>
+        <div class="st-s"><span class="st-dot" style="background:#34D399"></span> Submitted · g = 9.83</div>
+      </div>
+      <div class="st-right"><div class="st-stat s-done">95%</div></div>
+    </div>
+    <div class="st">
+      <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=90&h=90&fit=crop" alt="">
+      <div>
+        <div class="st-n">Diego Santos</div>
+        <div class="st-s"><span class="st-dot" style="background:#FBBF24"></span> Recording · Step 2 of 5</div>
+      </div>
+      <div class="st-right"><div class="st-stat s-prog">Live</div></div>
+    </div>
+    <div class="st">
+      <img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=90&h=90&fit=crop" alt="">
+      <div>
+        <div class="st-n">Emma Wright</div>
+        <div class="st-s"><span class="st-dot" style="background:#5a6478"></span> Not started</div>
+      </div>
+      <div class="st-right"><div class="st-stat s-none">—</div></div>
+    </div>
+  </div>
+
+  <div class="sec-h"><div class="sec-t"></div></div>
+  <div class="assign-cta"><i class="fas fa-plus"></i> Assign a New Lab</div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab"><i class="fas fa-house"></i><span>Home</span></div>
+  <div class="tab"><i class="fas fa-flask"></i><span>Labs</span></div>
+  <div class="tab"><div class="tab-c"><i class="fas fa-plus"></i></div></div>
+  <div class="tab active"><i class="fas fa-users"></i><span>Class</span></div>
+  <div class="tab"><i class="fas fa-user"></i><span>Profile</span></div>
+</div>
+</body>
+</html>
