@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BRIDGE — Community</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html,body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#F6F2EC; color:#211A16; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:118px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:8px 28px 4px; display:flex; justify-content:space-between; align-items:flex-start; }
+  .h-sub { font-size:12px; color:#9A8F87; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+  .h-t { font-size:26px; font-weight:900; letter-spacing:-0.8px; margin-top:3px; }
+  .h-add { width:42px; height:42px; border-radius:14px; background:linear-gradient(135deg,#A4193D,#8C1515); display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px rgba(140,21,21,0.35); }
+  .h-add i { color:#fff; font-size:16px; }
+
+  /* global stat banner */
+  .gb { margin:14px 28px 0; background:linear-gradient(135deg,#211A16,#3A2E27); border-radius:20px; padding:16px 18px; display:flex; align-items:center; gap:16px; color:#fff; position:relative; overflow:hidden; }
+  .gb::after { content:'\f534'; font-family:'Font Awesome 6 Free'; font-weight:900; position:absolute; right:-8px; bottom:-14px; font-size:78px; color:rgba(255,255,255,0.05); }
+  .gb-v { font-size:32px; font-weight:900; letter-spacing:-1.2px; background:linear-gradient(120deg,#F59E0B,#EC4899 60%,#A78BFA); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .gb-l { font-size:11.5px; color:#C9BFB8; font-weight:600; line-height:1.4; }
+  .gb-l b { color:#fff; }
+
+  /* chips */
+  .chips { display:flex; gap:9px; padding:16px 28px 4px; overflow-x:auto; }
+  .chip { flex-shrink:0; padding:8px 15px; border-radius:30px; font-size:12px; font-weight:700; background:#fff; border:1px solid rgba(0,0,0,0.05); color:#6B6159; }
+  .chip.active { background:#8C1515; color:#fff; border-color:#8C1515; }
+
+  /* feed */
+  .feed { padding:8px 28px 0; }
+  .post { background:#fff; border:1px solid rgba(0,0,0,0.05); border-radius:22px; padding:15px; margin-bottom:14px; }
+  .post-h { display:flex; align-items:center; gap:11px; }
+  .post-av { width:42px; height:42px; border-radius:50%; object-fit:cover; }
+  .post-name { font-size:13.5px; font-weight:800; display:flex; align-items:center; gap:6px; }
+  .post-name .verif { color:#7C3AED; font-size:11px; }
+  .post-role { font-size:10.5px; color:#9A8F87; font-weight:600; margin-top:1px; }
+  .post-dot { margin-left:auto; color:#C9BFB8; }
+  .post-txt { font-size:13.5px; line-height:1.5; margin-top:12px; color:#3A312B; font-weight:500; }
+  .post-img { margin-top:12px; border-radius:16px; overflow:hidden; height:180px; position:relative; }
+  .post-img img { width:100%; height:100%; object-fit:cover; }
+  .post-tag { position:absolute; top:12px; left:12px; background:rgba(20,12,10,0.6); backdrop-filter:blur(6px); color:#fff; padding:5px 11px; border-radius:10px; font-size:10px; font-weight:800; }
+  .post-act { display:flex; gap:20px; margin-top:13px; align-items:center; }
+  .pa { display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; color:#6B6159; }
+  .pa i { font-size:15px; }
+  .pa.liked { color:#EC4899; }
+  .pa-faces { margin-left:auto; display:flex; }
+  .pa-faces img { width:22px; height:22px; border-radius:50%; border:2px solid #fff; object-fit:cover; margin-left:-7px; }
+
+  /* TAB BAR */
+  .tabbar { position:absolute; bottom:0; left:0; right:0; height:90px; background:rgba(246,242,236,0.92); backdrop-filter:blur(20px); border-top:1px solid rgba(0,0,0,0.06); display:flex; justify-content:space-around; padding:12px 12px 0; z-index:100; }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; color:#A99F97; font-size:10px; font-weight:700; }
+  .tab.active { color:#8C1515; }
+  .tab i { font-size:19px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar"><div class="time">9:41</div><div class="icons"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-three-quarters"></i></div></div>
+
+  <div class="header">
+    <div>
+      <div class="h-sub">The Neurodiversity Network</div>
+      <div class="h-t">Community</div>
+    </div>
+    <div class="h-add"><i class="fa-solid fa-pen"></i></div>
+  </div>
+
+  <div class="gb">
+    <div><div class="gb-v">38,500+</div></div>
+    <div class="gb-l"><b>members worldwide</b> across 12 cohorts — the world's largest neurodiversity community</div>
+  </div>
+
+  <div class="chips">
+    <div class="chip active">For you</div>
+    <div class="chip">Cohort 2026</div>
+    <div class="chip">Alumni</div>
+    <div class="chip">Parents</div>
+    <div class="chip">Events</div>
+  </div>
+
+  <div class="feed">
+    <div class="post">
+      <div class="post-h">
+        <img class="post-av" src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=100&q=80">
+        <div>
+          <div class="post-name">Dr. Lawrence Fung <i class="fa-solid fa-circle-check verif"></i></div>
+          <div class="post-role">Founder · SNP-BRIDGE</div>
+        </div>
+        <i class="fa-solid fa-ellipsis post-dot"></i>
+      </div>
+      <div class="post-txt">Every brain is built differently — and that difference is our greatest strength. Welcome, Cohort 2026. 💜</div>
+      <div class="post-img">
+        <img src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=600&q=80">
+        <div class="post-tag"><i class="fa-solid fa-graduation-cap"></i> Opening Day</div>
+      </div>
+      <div class="post-act">
+        <div class="pa liked"><i class="fa-solid fa-heart"></i> 1.2k</div>
+        <div class="pa"><i class="fa-regular fa-comment"></i> 184</div>
+        <div class="pa"><i class="fa-regular fa-bookmark"></i></div>
+        <div class="pa-faces"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60"><img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60"></div>
+      </div>
+    </div>
+
+    <div class="post">
+      <div class="post-h">
+        <img class="post-av" src="https://images.unsplash.com/photo-1488161628813-04466f872be2?w=100&q=80">
+        <div>
+          <div class="post-name">Marcus T.</div>
+          <div class="post-role">Participant · Cohort 2026</div>
+        </div>
+        <i class="fa-solid fa-ellipsis post-dot"></i>
+      </div>
+      <div class="post-txt">First time I've been in a room where stimming was just... normal. I finally feel seen. 🙌</div>
+      <div class="post-act">
+        <div class="pa liked"><i class="fa-solid fa-heart"></i> 642</div>
+        <div class="pa"><i class="fa-regular fa-comment"></i> 97</div>
+        <div class="pa"><i class="fa-regular fa-bookmark"></i></div>
+      </div>
+    </div>
+
+    <div class="post">
+      <div class="post-h">
+        <img class="post-av" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80">
+        <div>
+          <div class="post-name">Priya & family <i class="fa-solid fa-circle-check verif" style="color:#EC4899;"></i></div>
+          <div class="post-role">Parent · Cohort 2025</div>
+        </div>
+        <i class="fa-solid fa-ellipsis post-dot"></i>
+      </div>
+      <div class="post-txt">A year on, my daughter still video-calls her BRIDGE cohort every Sunday. This community is forever.</div>
+      <div class="post-img">
+        <img src="https://images.unsplash.com/photo-1529390079861-591de354faf5?w=600&q=80">
+        <div class="post-tag"><i class="fa-solid fa-heart"></i> Alumni reunion</div>
+      </div>
+      <div class="post-act">
+        <div class="pa liked"><i class="fa-solid fa-heart"></i> 938</div>
+        <div class="pa"><i class="fa-regular fa-comment"></i> 56</div>
+        <div class="pa"><i class="fa-regular fa-bookmark"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab"><i class="fa-solid fa-house"></i><span>Today</span></div>
+    <div class="tab"><i class="fa-solid fa-calendar-days"></i><span>Program</span></div>
+    <div class="tab active"><i class="fa-solid fa-infinity"></i><span>Community</span></div>
+    <div class="tab"><i class="fa-solid fa-lightbulb"></i><span>Projects</span></div>
+    <div class="tab"><i class="fa-solid fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>

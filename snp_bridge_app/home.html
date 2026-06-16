@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BRIDGE — Today</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html,body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#F6F2EC; color:#211A16; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:118px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:8px 28px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .hi { font-size:12px; color:#9A8F87; font-weight:600; }
+  .name { font-size:23px; font-weight:900; letter-spacing:-0.6px; margin-top:2px; }
+  .name span { background:linear-gradient(120deg,#7C3AED,#EC4899 60%,#F59E0B); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .header-right { display:flex; align-items:center; gap:12px; }
+  .bell { width:42px; height:42px; border-radius:14px; background:#fff; display:flex; align-items:center; justify-content:center; position:relative; border:1px solid rgba(0,0,0,0.05); }
+  .bell i { font-size:16px; color:#6B6159; }
+  .bell-dot { position:absolute; top:11px; right:12px; width:8px; height:8px; border-radius:50%; background:#8C1515; border:2px solid #fff; }
+  .avatar { width:42px; height:42px; border-radius:14px; object-fit:cover; border:2px solid #EC4899; }
+
+  /* HERO countdown */
+  .hero { margin:4px 28px 0; border-radius:28px; padding:22px; position:relative; overflow:hidden; background:linear-gradient(140deg,#7C3AED 0%,#A4193D 60%,#F59E0B 130%); color:#fff; }
+  .hero::before { content:''; position:absolute; right:-40px; top:-50px; width:200px; height:200px; background:radial-gradient(circle,rgba(255,255,255,0.25),transparent 70%); }
+  .hero-top { display:flex; justify-content:space-between; align-items:center; position:relative; z-index:2; }
+  .hero-tag { display:inline-flex; align-items:center; gap:7px; background:rgba(0,0,0,0.22); padding:7px 13px; border-radius:18px; font-size:11px; font-weight:800; }
+  .hero-tag .pulse { width:8px; height:8px; border-radius:50%; background:#A3E635; box-shadow:0 0 0 0 rgba(163,230,53,0.7); animation:pulse 1.6s infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(163,230,53,0.6);} 70%{box-shadow:0 0 0 8px rgba(163,230,53,0);} 100%{box-shadow:0 0 0 0 rgba(163,230,53,0);} }
+  .hero-loc { font-size:11px; font-weight:700; opacity:0.9; }
+  .hero h2 { font-size:21px; font-weight:900; letter-spacing:-0.5px; margin-top:16px; position:relative; z-index:2; }
+  .hero p { font-size:12.5px; font-weight:600; opacity:0.92; margin-top:4px; position:relative; z-index:2; }
+  .count { display:flex; gap:10px; margin-top:16px; position:relative; z-index:2; }
+  .cbox { flex:1; background:rgba(255,255,255,0.16); backdrop-filter:blur(6px); border-radius:15px; padding:11px 6px; text-align:center; }
+  .cbox .v { font-size:26px; font-weight:900; letter-spacing:-1px; }
+  .cbox .l { font-size:9.5px; font-weight:700; opacity:0.85; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px; }
+
+  /* STATS */
+  .stats { display:flex; gap:11px; padding:16px 28px 0; }
+  .stat { flex:1; background:#fff; border:1px solid rgba(0,0,0,0.05); border-radius:18px; padding:14px 12px; }
+  .stat-ic { width:30px; height:30px; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:9px; }
+  .stat-ic i { font-size:13px; }
+  .stat-v { font-size:23px; font-weight:900; letter-spacing:-0.8px; }
+  .stat-l { font-size:10px; color:#9A8F87; font-weight:700; margin-top:2px; text-transform:uppercase; letter-spacing:0.3px; }
+
+  .sec-h { padding:24px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .sec-t { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+  .sec-l { font-size:12px; color:#8C1515; font-weight:700; }
+
+  /* TODAY schedule */
+  .tl { margin:0 28px; }
+  .tl-item { display:flex; align-items:center; gap:14px; background:#fff; border:1px solid rgba(0,0,0,0.05); border-radius:18px; padding:13px 14px; margin-bottom:10px; }
+  .tl-item.now { border-color:#8C1515; background:#FCF6F2; }
+  .tl-ic { width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .tl-ic i { font-size:16px; color:#fff; }
+  .tl-t { font-size:13.5px; font-weight:800; }
+  .tl-s { font-size:11px; color:#9A8F87; font-weight:600; margin-top:2px; }
+  .tl-time { margin-left:auto; font-size:11px; font-weight:800; color:#9A8F87; flex-shrink:0; text-align:right; }
+  .tl-time .live { color:#8C1515; }
+
+  /* PROJECT progress */
+  .goal { margin:0 28px; background:#211A16; color:#fff; border-radius:22px; padding:18px; position:relative; overflow:hidden; }
+  .goal::after { content:'\f1ad'; font-family:'Font Awesome 6 Free'; font-weight:900; position:absolute; right:-10px; bottom:-18px; font-size:90px; color:rgba(255,255,255,0.05); }
+  .goal-tag { font-size:10px; font-weight:800; color:#FBBF24; letter-spacing:0.5px; text-transform:uppercase; }
+  .goal-t { font-size:16px; font-weight:800; margin-top:5px; }
+  .goal-n { font-size:12px; font-weight:700; color:#C9BFB8; margin-top:3px; }
+  .goal-n b { color:#A78BFA; }
+  .goal-bar { height:9px; border-radius:9px; background:rgba(255,255,255,0.12); margin-top:14px; overflow:hidden; }
+  .goal-bar i { display:block; height:100%; width:60%; border-radius:9px; background:linear-gradient(90deg,#7C3AED,#EC4899 60%,#F59E0B); }
+
+  /* COMMUNITY carousel */
+  .scroll-x { display:flex; gap:14px; padding:2px 28px 4px; overflow-x:auto; }
+  .feat { min-width:215px; max-width:215px; border-radius:22px; overflow:hidden; position:relative; height:155px; }
+  .feat img { width:100%; height:100%; object-fit:cover; }
+  .feat::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(20,12,10,0.05) 30%,rgba(20,12,10,0.9)); }
+  .feat-play { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,0.2); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; border:1.5px solid rgba(255,255,255,0.5); z-index:2; }
+  .feat-play i { color:#fff; font-size:15px; margin-left:2px; }
+  .feat-dur { position:absolute; top:12px; right:12px; z-index:2; background:rgba(20,12,10,0.65); backdrop-filter:blur(6px); padding:4px 9px; border-radius:9px; font-size:10px; font-weight:800; color:#fff; }
+  .feat-b { position:absolute; bottom:13px; left:14px; right:14px; z-index:2; color:#fff; }
+  .feat-tag { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.4px; color:#FBBF24; }
+  .feat-t { font-size:14px; font-weight:800; margin-top:3px; line-height:1.25; }
+
+  /* TAB BAR */
+  .tabbar { position:absolute; bottom:0; left:0; right:0; height:90px; background:rgba(246,242,236,0.92); backdrop-filter:blur(20px); border-top:1px solid rgba(0,0,0,0.06); display:flex; justify-content:space-around; padding:12px 12px 0; z-index:100; }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; color:#A99F97; font-size:10px; font-weight:700; }
+  .tab.active { color:#8C1515; }
+  .tab i { font-size:19px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar"><div class="time">9:41</div><div class="icons"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-three-quarters"></i></div></div>
+
+  <div class="header">
+    <div>
+      <div class="hi">Tuesday · Day 4 of 14</div>
+      <div class="name">Hi, <span>Jordan</span></div>
+    </div>
+    <div class="header-right">
+      <div class="bell"><i class="fa-regular fa-bell"></i><div class="bell-dot"></div></div>
+      <img class="avatar" src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=120&q=80" alt="">
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-top">
+      <div class="hero-tag"><span class="pulse"></span> PROGRAM LIVE</div>
+      <div class="hero-loc"><i class="fa-solid fa-location-dot"></i> Stanford Campus</div>
+    </div>
+    <h2>Strengths & Self-Advocacy</h2>
+    <p>This week's focus across your cohort</p>
+    <div class="count">
+      <div class="cbox"><div class="v">10</div><div class="l">Days left</div></div>
+      <div class="cbox"><div class="v">3</div><div class="l">Sessions today</div></div>
+      <div class="cbox"><div class="v">48</div><div class="l">In cohort</div></div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-ic" style="background:rgba(124,58,237,0.12);"><i class="fa-solid fa-fire" style="color:#7C3AED;"></i></div>
+      <div class="stat-v">4</div>
+      <div class="stat-l">Day streak</div>
+    </div>
+    <div class="stat">
+      <div class="stat-ic" style="background:rgba(236,72,153,0.12);"><i class="fa-solid fa-star" style="color:#EC4899;"></i></div>
+      <div class="stat-v">12</div>
+      <div class="stat-l">Strengths</div>
+    </div>
+    <div class="stat">
+      <div class="stat-ic" style="background:rgba(245,158,11,0.14);"><i class="fa-solid fa-award" style="color:#F59E0B;"></i></div>
+      <div class="stat-v">6</div>
+      <div class="stat-l">Badges</div>
+    </div>
+  </div>
+
+  <!-- PROJECT -->
+  <div class="sec-h"><div class="sec-t">Your advocacy project</div><div class="sec-l">Open</div></div>
+  <div class="goal">
+    <div class="goal-tag">Phase 2 · Build</div>
+    <div class="goal-t">Sensory-Friendly Classrooms</div>
+    <div class="goal-n"><b>3 of 5</b> milestones complete</div>
+    <div class="goal-bar"><i></i></div>
+  </div>
+
+  <!-- SCHEDULE -->
+  <div class="sec-h"><div class="sec-t">Today's schedule</div><div class="sec-l">Full day</div></div>
+  <div class="tl">
+    <div class="tl-item now">
+      <div class="tl-ic" style="background:linear-gradient(135deg,#7C3AED,#A78BFA);"><i class="fa-solid fa-comments"></i></div>
+      <div><div class="tl-t">Strengths Workshop</div><div class="tl-s">Dr. Fung · Building 420</div></div>
+      <div class="tl-time"><div class="live"><i class="fa-solid fa-circle" style="font-size:7px;"></i> Now</div></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-ic" style="background:linear-gradient(135deg,#EC4899,#F472B6);"><i class="fa-solid fa-microphone-lines"></i></div>
+      <div><div class="tl-t">Advocate Panel</div><div class="tl-s">Neurodivergent leaders</div></div>
+      <div class="tl-time">1:30 PM</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-ic" style="background:linear-gradient(135deg,#F59E0B,#FBBF24);"><i class="fa-solid fa-users-gear"></i></div>
+      <div><div class="tl-t">Project Lab</div><div class="tl-s">Cohort B · with Maya</div></div>
+      <div class="tl-time">3:00 PM</div>
+    </div>
+  </div>
+
+  <!-- COMMUNITY -->
+  <div class="sec-h"><div class="sec-t">From the community</div><div class="sec-l">See all</div></div>
+  <div class="scroll-x">
+    <div class="feat">
+      <img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?w=500&q=80" alt="">
+      <div class="feat-play"><i class="fa-solid fa-play"></i></div>
+      <div class="feat-dur">5 min</div>
+      <div class="feat-b"><div class="feat-tag">Alumni story</div><div class="feat-t">How BRIDGE changed my college path</div></div>
+    </div>
+    <div class="feat">
+      <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=500&q=80" alt="">
+      <div class="feat-play"><i class="fa-solid fa-play"></i></div>
+      <div class="feat-dur">3 min</div>
+      <div class="feat-b"><div class="feat-tag">Spotlight</div><div class="feat-t">Strengths-based learning, explained</div></div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab active"><i class="fa-solid fa-house"></i><span>Today</span></div>
+    <div class="tab"><i class="fa-solid fa-calendar-days"></i><span>Program</span></div>
+    <div class="tab"><i class="fa-solid fa-infinity"></i><span>Community</span></div>
+    <div class="tab"><i class="fa-solid fa-lightbulb"></i><span>Projects</span></div>
+    <div class="tab"><i class="fa-solid fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>
