@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tempo — Profile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0B12; color:#fff; scrollbar-width:none; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:110px; background:#0A0B12; }
+  .screen::before { content:''; position:absolute; top:0; left:0; right:0; height:340px; background:radial-gradient(120% 90% at 50% 0%, rgba(123,97,255,0.20), transparent 60%); pointer-events:none; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; } .status-bar .icons i { font-size:14px; }
+
+  /* Profile head */
+  .phead { padding:8px 28px 0; display:flex; align-items:center; gap:16px; position:relative; z-index:2; }
+  .pavatar { width:72px; height:72px; border-radius:22px; object-fit:cover; border:2px solid rgba(123,97,255,0.6); }
+  .pinfo h1 { font-size:22px; font-weight:900; letter-spacing:-0.5px; }
+  .pinfo p { font-size:12px; color:#8A8F9C; margin-top:3px; }
+  .pinfo .badge { display:inline-flex; align-items:center; gap:6px; margin-top:8px; font-size:10px; font-weight:800; color:#2DE2C5; background:rgba(45,226,197,0.12); padding:5px 11px; border-radius:10px; }
+
+  /* Streak stats */
+  .stats { margin:20px 28px 0; display:flex; gap:10px; position:relative; z-index:2; }
+  .stat { flex:1; background:#14161F; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:14px 10px; text-align:center; }
+  .stat .v { font-size:24px; font-weight:900; letter-spacing:-1px; }
+  .stat .l { font-size:10px; color:#8A8F9C; font-weight:600; margin-top:3px; }
+
+  /* Connected sources */
+  .section-title { padding:24px 28px 12px; font-size:16px; font-weight:800; letter-spacing:-0.3px; position:relative; z-index:2; }
+  .sources { padding:0 28px; display:flex; flex-direction:column; gap:10px; position:relative; z-index:2; }
+  .src { background:#14161F; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:14px 16px; display:flex; align-items:center; gap:13px; }
+  .src-ic { width:42px; height:42px; border-radius:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .src-ic i { font-size:18px; color:#fff; }
+  .src-info { flex:1; }
+  .src-name { font-size:14px; font-weight:700; }
+  .src-sub { font-size:11px; color:#8A8F9C; margin-top:2px; }
+  .src-dot { display:flex; align-items:center; gap:6px; font-size:11px; font-weight:700; }
+  .src-dot .d { width:8px; height:8px; border-radius:50%; }
+  .on { color:#2DE2C5; } .on .d { background:#2DE2C5; box-shadow:0 0 8px #2DE2C5; }
+  .off { color:#6B7280; } .off .d { background:#6B7280; }
+
+  /* Menu */
+  .menu { padding:0 28px; display:flex; flex-direction:column; gap:2px; position:relative; z-index:2; }
+  .mrow { display:flex; align-items:center; gap:14px; padding:15px 4px; border-bottom:0.5px solid rgba(255,255,255,0.05); }
+  .mrow i.lead { width:22px; text-align:center; font-size:15px; color:#9aa0ad; }
+  .mrow span { flex:1; font-size:14px; font-weight:600; }
+  .mrow i.chev { font-size:12px; color:#4b5563; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(13,14,20,0.9); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:14px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:56px; }
+  .tab-item i { font-size:20px; color:rgba(255,255,255,0.32); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#7B61FF; }
+  .tab-fab { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#7B61FF,#3DA9FF); display:flex; align-items:center; justify-content:center; margin-top:-16px; box-shadow:0 10px 26px rgba(123,97,255,0.5); }
+  .tab-fab i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="phead">
+    <img class="pavatar" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&q=80" alt="">
+    <div class="pinfo">
+      <h1>Maya Chen</h1>
+      <p>Grade 11 · Varsity Swim · 16 yrs</p>
+      <div class="badge"><i class="fas fa-fire"></i> 23-day check-in streak</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat"><div class="v" style="color:#2DE2C5">74</div><div class="l">Avg energy</div></div>
+    <div class="stat"><div class="v" style="color:#3DA9FF">7.1h</div><div class="l">Avg sleep</div></div>
+    <div class="stat"><div class="v" style="color:#7B61FF">92%</div><div class="l">Accuracy</div></div>
+  </div>
+
+  <!-- Data sources -->
+  <div class="section-title">Connected data sources</div>
+  <div class="sources">
+    <div class="src">
+      <div class="src-ic" style="background:linear-gradient(135deg,#6E7BFF,#3DA9FF)"><i class="fas fa-moon"></i></div>
+      <div class="src-info"><div class="src-name">Sleep tracking</div><div class="src-sub">Apple Health · Auto-sync</div></div>
+      <div class="src-dot on"><span class="d"></span>On</div>
+    </div>
+    <div class="src">
+      <div class="src-ic" style="background:linear-gradient(135deg,#FF6B7A,#FF9C4B)"><i class="fas fa-heart-pulse"></i></div>
+      <div class="src-info"><div class="src-name">Wearable · Apple Watch</div><div class="src-sub">Heart rate · Steps · Optional</div></div>
+      <div class="src-dot on"><span class="d"></span>On</div>
+    </div>
+    <div class="src">
+      <div class="src-ic" style="background:linear-gradient(135deg,#A06BFF,#7B61FF)"><i class="fas fa-mobile-screen"></i></div>
+      <div class="src-info"><div class="src-name">Screen Time</div><div class="src-sub">iOS Screen Time · Daily</div></div>
+      <div class="src-dot on"><span class="d"></span>On</div>
+    </div>
+    <div class="src">
+      <div class="src-ic" style="background:linear-gradient(135deg,#FFC24B,#FF9C4B)"><i class="fas fa-calendar-days"></i></div>
+      <div class="src-info"><div class="src-name">School &amp; homework</div><div class="src-sub">Google Classroom</div></div>
+      <div class="src-dot off"><span class="d"></span>Connect</div>
+    </div>
+  </div>
+
+  <!-- Menu -->
+  <div class="section-title">Settings</div>
+  <div class="menu">
+    <div class="mrow"><i class="fas fa-bullseye lead"></i><span>Goals &amp; targets</span><i class="fas fa-chevron-right chev"></i></div>
+    <div class="mrow"><i class="fas fa-bell lead"></i><span>Forecast alerts</span><i class="fas fa-chevron-right chev"></i></div>
+    <div class="mrow"><i class="fas fa-microchip lead"></i><span>Model &amp; data privacy</span><i class="fas fa-chevron-right chev"></i></div>
+    <div class="mrow"><i class="fas fa-circle-question lead"></i><span>Help &amp; support</span><i class="fas fa-chevron-right chev"></i></div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Today</span></div>
+    <div class="tab-item"><i class="fas fa-chart-line"></i><span>Forecast</span></div>
+    <div class="tab-item"><div class="tab-fab"><i class="fas fa-plus"></i></div></div>
+    <div class="tab-item"><i class="fas fa-lightbulb"></i><span>Insights</span></div>
+    <div class="tab-item active"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>
