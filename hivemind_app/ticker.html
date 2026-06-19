@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hivemind — Ticker</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0C14; color:#fff; scrollbar-width:none; }
+
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:40px; background:#0A0C14; }
+  .screen::before { content:''; position:absolute; top:0; left:0; right:0; height:360px; background:radial-gradient(110% 80% at 80% 0%, rgba(33,230,164,0.16), transparent 55%); pointer-events:none; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; } .status-bar .icons i { font-size:14px; }
+
+  .nav { padding:6px 28px 8px; display:flex; align-items:center; justify-content:space-between; position:relative; z-index:2; }
+  .nav-btn { width:40px; height:40px; border-radius:12px; background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; }
+  .nav-btn i { font-size:15px; color:#cfd2da; }
+
+  .thead { padding:8px 28px 0; position:relative; z-index:2; display:flex; align-items:center; gap:13px; }
+  .tlogo { width:50px; height:50px; border-radius:15px; background:linear-gradient(135deg,#76B900,#4d7a00); display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:900; }
+  .tname-tk { font-size:22px; font-weight:900; letter-spacing:-0.5px; }
+  .tname-full { font-size:12px; color:#8A8F9C; font-weight:500; }
+  .tprice-row { padding:18px 28px 0; display:flex; align-items:flex-end; gap:12px; position:relative; z-index:2; }
+  .tprice { font-size:36px; font-weight:900; letter-spacing:-1.5px; }
+  .tchg { margin-bottom:7px; font-size:14px; font-weight:800; color:#21E6A4; }
+
+  /* Prediction banner */
+  .predband { margin:18px 28px 0; background:linear-gradient(135deg,rgba(33,230,164,0.16),rgba(61,169,255,0.10)); border:1px solid rgba(33,230,164,0.25); border-radius:22px; padding:16px 18px; position:relative; z-index:2; display:flex; align-items:center; gap:14px; }
+  .predband-ic { width:46px; height:46px; border-radius:14px; background:linear-gradient(135deg,#21E6A4,#13b07d); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .predband-ic i { font-size:19px; color:#06241a; }
+  .predband-info { flex:1; }
+  .predband-label { font-size:10px; color:#21E6A4; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+  .predband-title { font-size:16px; font-weight:800; margin-top:3px; }
+  .predband-sub { font-size:11px; color:#9aa0ad; margin-top:2px; }
+  .predband-conf { text-align:center; flex-shrink:0; }
+  .predband-conf .n { font-size:20px; font-weight:900; color:#21E6A4; }
+  .predband-conf .l { font-size:9px; color:#8A8F9C; font-weight:700; text-transform:uppercase; }
+
+  /* Chart card */
+  .chartcard { margin:18px 28px 0; background:#12141D; border:1px solid rgba(255,255,255,0.06); border-radius:24px; padding:18px 16px 14px; }
+  .legend { display:flex; gap:16px; padding:0 6px 10px; }
+  .leg { display:flex; align-items:center; gap:6px; font-size:11px; color:#aab; font-weight:600; }
+  .leg .l { width:14px; height:3px; border-radius:3px; }
+  .chart-svg { width:100%; }
+  .ranges { display:flex; gap:8px; margin-top:12px; padding:0 4px; }
+  .range { flex:1; text-align:center; font-size:11px; font-weight:700; color:#8A8F9C; padding:7px 0; border-radius:10px; }
+  .range.active { background:rgba(255,61,119,0.16); color:#FF6B96; }
+
+  .section-title { padding:24px 28px 13px; font-size:16px; font-weight:800; letter-spacing:-0.3px; }
+
+  /* Platform breakdown */
+  .plats { padding:0 28px; display:flex; flex-direction:column; gap:10px; }
+  .prow { display:flex; align-items:center; gap:13px; background:#14161F; border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:13px 15px; }
+  .pic { width:38px; height:38px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:15px; color:#fff; flex-shrink:0; }
+  .pmid { flex:1; }
+  .pn { font-size:13px; font-weight:700; }
+  .pbar { height:5px; border-radius:5px; background:rgba(255,255,255,0.08); margin-top:7px; overflow:hidden; }
+  .pbar i { display:block; height:100%; border-radius:5px; }
+  .pmeta { text-align:right; flex-shrink:0; }
+  .pmentions { font-size:14px; font-weight:900; }
+  .ptrend { font-size:10px; font-weight:700; margin-top:2px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="nav">
+    <div class="nav-btn"><i class="fas fa-chevron-left"></i></div>
+    <div class="nav-btn"><i class="fas fa-star"></i></div>
+  </div>
+
+  <div class="thead">
+    <div class="tlogo">NV</div>
+    <div>
+      <div class="tname-tk">NVDA</div>
+      <div class="tname-full">Nvidia Corporation</div>
+    </div>
+  </div>
+  <div class="tprice-row">
+    <div class="tprice">$132.40</div>
+    <div class="tchg">+2.14 (1.6%)</div>
+  </div>
+
+  <!-- Prediction -->
+  <div class="predband">
+    <div class="predband-ic"><i class="fas fa-arrow-trend-up"></i></div>
+    <div class="predband-info">
+      <div class="predband-label">AI Forecast · 24h</div>
+      <div class="predband-title up" style="color:#21E6A4">Bullish · +4.2%</div>
+      <div class="predband-sub">Driven by a 3.1× surge in Reddit + TikTok mentions</div>
+    </div>
+    <div class="predband-conf">
+      <div class="n">89%</div>
+      <div class="l">Conf.</div>
+    </div>
+  </div>
+
+  <!-- Buzz vs price chart -->
+  <div class="chartcard">
+    <div class="legend">
+      <div class="leg"><span class="l" style="background:#3DA9FF"></span> Price</div>
+      <div class="leg"><span class="l" style="background:#FF3D77"></span> Social Buzz</div>
+      <div class="leg" style="margin-left:auto;color:#21E6A4"><i class="fas fa-circle" style="font-size:6px"></i> Forecast</div>
+    </div>
+    <svg class="chart-svg" height="170" viewBox="0 0 360 170" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3DA9FF" stop-opacity="0.28"/><stop offset="1" stop-color="#3DA9FF" stop-opacity="0"/></linearGradient>
+      </defs>
+      <!-- grid -->
+      <line x1="0" y1="42" x2="360" y2="42" stroke="rgba(255,255,255,0.05)"/>
+      <line x1="0" y1="85" x2="360" y2="85" stroke="rgba(255,255,255,0.05)"/>
+      <line x1="0" y1="128" x2="360" y2="128" stroke="rgba(255,255,255,0.05)"/>
+      <!-- buzz (leads price) -->
+      <path d="M0,120 C30,118 45,100 70,96 C95,92 110,70 135,58 C160,46 175,52 200,44 C225,36 240,30 255,30" fill="none" stroke="#FF3D77" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+      <!-- price area -->
+      <path d="M0,130 C30,128 50,124 75,122 C100,120 120,108 145,98 C170,88 190,92 215,82 C240,72 250,66 255,64 L255,170 L0,170 Z" fill="url(#pg)"/>
+      <path d="M0,130 C30,128 50,124 75,122 C100,120 120,108 145,98 C170,88 190,92 215,82 C240,72 250,66 255,64" fill="none" stroke="#3DA9FF" stroke-width="2.8" stroke-linecap="round"/>
+      <!-- forecast dashed -->
+      <path d="M255,64 C275,58 295,50 320,42 C335,37 350,32 360,28" fill="none" stroke="#21E6A4" stroke-width="2.8" stroke-linecap="round" stroke-dasharray="2 6"/>
+      <circle cx="255" cy="64" r="4" fill="#3DA9FF" stroke="#0A0C14" stroke-width="2"/>
+      <circle cx="360" cy="28" r="4.5" fill="#21E6A4"/>
+      <rect x="255" y="0" width="105" height="170" fill="rgba(33,230,164,0.05)"/>
+    </svg>
+    <div class="ranges">
+      <div class="range">1D</div>
+      <div class="range active">1W</div>
+      <div class="range">1M</div>
+      <div class="range">3M</div>
+      <div class="range">1Y</div>
+    </div>
+  </div>
+
+  <div class="section-title">Buzz by Platform</div>
+  <div class="plats">
+    <div class="prow">
+      <div class="pic" style="background:#FF4500"><i class="fab fa-reddit-alien"></i></div>
+      <div class="pmid">
+        <div class="pn">Reddit · r/wallstreetbets</div>
+        <div class="pbar"><i style="width:92%;background:#FF4500"></i></div>
+      </div>
+      <div class="pmeta"><div class="pmentions">18.2k</div><div class="ptrend" style="color:#21E6A4">▲ 214%</div></div>
+    </div>
+    <div class="prow">
+      <div class="pic" style="background:linear-gradient(135deg,#25F4EE,#FE2C55)"><i class="fab fa-tiktok"></i></div>
+      <div class="pmid">
+        <div class="pn">TikTok · #NVDA</div>
+        <div class="pbar"><i style="width:78%;background:#FE2C55"></i></div>
+      </div>
+      <div class="pmeta"><div class="pmentions">9.6k</div><div class="ptrend" style="color:#21E6A4">▲ 168%</div></div>
+    </div>
+    <div class="prow">
+      <div class="pic" style="background:#111;border:1px solid #333"><i class="fab fa-x-twitter"></i></div>
+      <div class="pmid">
+        <div class="pn">X · $NVDA cashtag</div>
+        <div class="pbar"><i style="width:64%;background:#888"></i></div>
+      </div>
+      <div class="pmeta"><div class="pmentions">7.1k</div><div class="ptrend" style="color:#21E6A4">▲ 52%</div></div>
+    </div>
+    <div class="prow">
+      <div class="pic" style="background:linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)"><i class="fab fa-instagram"></i></div>
+      <div class="pmid">
+        <div class="pn">Instagram · finance reels</div>
+        <div class="pbar"><i style="width:41%;background:#DD2A7B"></i></div>
+      </div>
+      <div class="pmeta"><div class="pmentions">3.4k</div><div class="ptrend" style="color:#FFB23E">▲ 12%</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

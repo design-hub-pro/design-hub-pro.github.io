@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hivemind — Predict Stocks from Social Buzz</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#fff; color:#0A0C14; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+
+  /* HERO */
+  .hero { position:relative; text-align:center; padding:84px 40px 70px; max-width:960px; margin:0 auto; overflow:hidden; }
+  .app-icon-large { width:84px; height:84px; border-radius:24px; background:linear-gradient(135deg,#FF3D77,#7B5CFF); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 14px 40px rgba(255,61,119,0.35); margin-bottom:28px; }
+  .app-icon-large i { font-size:38px; color:#fff; }
+  .hero-badge { display:inline-flex; align-items:center; gap:8px; background:#0A0C14; color:#FF8FB0; padding:9px 20px; border-radius:30px; font-size:12px; font-weight:700; margin-bottom:24px; letter-spacing:0.3px; }
+  .hero h1 { font-size:54px; font-weight:900; line-height:1.07; margin-bottom:22px; letter-spacing:-2px; }
+  .hero h1 span { background:linear-gradient(135deg,#FF3D77,#7B5CFF); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .hero-desc { font-size:19px; color:#555; max-width:680px; margin:0 auto; line-height:1.65; }
+  .hero-desc strong { color:#0A0C14; font-weight:700; }
+  .hero-meta { display:flex; gap:28px; justify-content:center; margin-top:34px; flex-wrap:wrap; }
+  .hero-meta div { display:flex; align-items:center; gap:8px; font-size:13px; color:#666; font-weight:600; }
+  .hero-meta i { color:#FF3D77; }
+
+  /* PROBLEM */
+  .problem { background:#0A0C14; padding:90px 40px; position:relative; overflow:hidden; }
+  .problem::before { content:''; position:absolute; top:-120px; left:50%; transform:translateX(-50%); width:700px; height:700px; border-radius:50%; background:radial-gradient(circle, rgba(255,61,119,0.08), transparent 70%); }
+  .inner { max-width:1100px; margin:0 auto; position:relative; z-index:1; }
+  .label { text-align:center; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:2px; margin-bottom:12px; }
+  .label.red { color:#FF6B7A; } .label.violet { color:#9B7CFF; } .label.teal { color:#21E6A4; }
+  .problem h2 { text-align:center; font-size:36px; font-weight:900; color:#fff; letter-spacing:-1px; margin-bottom:16px; line-height:1.15; }
+  .problem h2 span { color:#FF6B7A; }
+  .problem .sub { text-align:center; font-size:17px; color:rgba(255,255,255,0.55); max-width:720px; margin:0 auto 50px; line-height:1.7; }
+  .pstats { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+  .pstat { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:22px; padding:28px 20px; text-align:center; }
+  .pstat .n { font-size:38px; font-weight:900; color:#fff; letter-spacing:-1px; line-height:1; }
+  .pstat .n span { color:#FF6B7A; }
+  .pstat .d { font-size:12px; color:rgba(255,255,255,0.45); margin-top:8px; line-height:1.4; font-weight:500; }
+
+  /* SOLUTION */
+  .solution { padding:90px 40px; background:#FBF4F8; position:relative; overflow:hidden; }
+  .solution::before { content:''; position:absolute; bottom:-100px; right:-100px; width:500px; height:500px; border-radius:50%; background:radial-gradient(circle, rgba(123,92,255,0.12), transparent 70%); }
+  .solution h2 { text-align:center; font-size:36px; font-weight:900; letter-spacing:-1px; margin-bottom:16px; line-height:1.15; }
+  .solution h2 span { background:linear-gradient(135deg,#FF3D77,#7B5CFF); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .solution .sub { text-align:center; font-size:17px; color:#666; max-width:720px; margin:0 auto 50px; line-height:1.7; }
+  .pillars { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+  .pillar { background:#fff; border-radius:22px; padding:28px; border:1px solid rgba(0,0,0,0.06); box-shadow:0 4px 20px rgba(0,0,0,0.04); }
+  .pillar-ic { width:52px; height:52px; border-radius:16px; display:flex; align-items:center; justify-content:center; margin-bottom:16px; }
+  .pillar-ic i { font-size:22px; color:#fff; }
+  .pillar h4 { font-size:16px; font-weight:800; margin-bottom:6px; }
+  .pillar p { font-size:13px; color:#888; line-height:1.55; }
+
+  /* SCREENSHOTS */
+  .shots { max-width:1600px; margin:0 auto; padding:90px 40px 100px; background:#fff; }
+  .shots h2 { text-align:center; font-size:32px; font-weight:800; margin-bottom:12px; letter-spacing:-0.5px; }
+  .shots .sub { text-align:center; font-size:15px; color:#888; max-width:560px; margin:0 auto 50px; line-height:1.6; }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:40px; max-width:1540px; margin:0 auto; justify-items:center; }
+  .pw { display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .frame { width:460px; height:980px; border-radius:62px; background:#000; padding:12px; box-shadow:0 50px 100px -20px rgba(0,0,0,0.18), 0 30px 60px -30px rgba(0,0,0,0.22), inset 0 0 0 2px rgba(255,255,255,0.1); position:relative; }
+  .scr { width:100%; height:100%; border-radius:52px; overflow:hidden; background:#0A0C14; }
+  .scr iframe { width:100%; height:100%; border:none; border-radius:52px; }
+  .plabel { font-size:15px; font-weight:700; }
+  .psub { font-size:12px; color:#999; margin-top:4px; text-align:center; }
+
+  @media (max-width:1500px){ .grid{gap:30px} .frame{width:420px;height:895px;border-radius:56px;padding:11px} .scr,.scr iframe{border-radius:47px} }
+  @media (max-width:1380px){ .grid{gap:24px} .frame{width:380px;height:810px;border-radius:52px;padding:10px} .scr,.scr iframe{border-radius:44px} }
+  @media (max-width:1200px){ .frame{width:340px;height:724px;border-radius:48px;padding:9px} .scr,.scr iframe{border-radius:40px} }
+  @media (max-width:1050px){ .grid{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width:720px){ .grid{grid-template-columns:1fr} }
+
+  .footer { background:#0A0C14; padding:60px 40px; text-align:center; }
+  .footer .fi { width:56px; height:56px; border-radius:18px; background:linear-gradient(135deg,#FF3D77,#7B5CFF); display:inline-flex; align-items:center; justify-content:center; margin-bottom:18px; }
+  .footer .fi i { font-size:24px; color:#fff; }
+  .footer h3 { color:#fff; font-size:22px; font-weight:800; letter-spacing:-0.5px; }
+  .footer p { color:rgba(255,255,255,0.45); font-size:13px; margin-top:10px; }
+</style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="app-icon-large"><i class="fas fa-bolt"></i></div>
+    <div class="hero-badge"><i class="fas fa-fire"></i> Social Signal Trading Intelligence</div>
+    <h1>Trade the crowd<br><span>before it moves the price.</span></h1>
+    <p class="hero-desc">Hivemind scrapes millions of posts across Reddit, X, TikTok and Instagram, turns them into a live <strong>Social Buzz Index</strong>, then uses an ML model to <strong>forecast each stock's trend</strong>.</p>
+    <div class="hero-meta">
+      <div><i class="fas fa-satellite-dish"></i> 7.5M posts scanned daily</div>
+      <div><i class="fas fa-bullseye"></i> 83% direction accuracy</div>
+      <div><i class="fas fa-bolt"></i> Real-time buzz alerts</div>
+    </div>
+  </div>
+
+  <!-- PROBLEM -->
+  <div class="problem">
+    <div class="inner">
+      <div class="label red">The Problem</div>
+      <h2>Retail moves on social — <span>but you find out last</span></h2>
+      <p class="sub">By the time a stock is trending on the news, the crowd on Reddit and TikTok already moved it. The signal is public, fast, and impossible to read by hand.</p>
+      <div class="pstats">
+        <div class="pstat"><div class="n"><span>3 days</span></div><div class="d">avg lead of social buzz before a retail price spike</div></div>
+        <div class="pstat"><div class="n"><span>7.5M</span></div><div class="d">finance posts created every single day</div></div>
+        <div class="pstat"><div class="n"><span>61%</span></div><div class="d">of Gen-Z investors research stocks on social media</div></div>
+        <div class="pstat"><div class="n"><span>0</span></div><div class="d">consumer tools that turn that buzz into a forecast</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOLUTION -->
+  <div class="solution">
+    <div class="inner">
+      <div class="label violet">How Hivemind Works</div>
+      <h2>From social noise to a <span>price forecast.</span></h2>
+      <p class="sub">We listen everywhere the crowd talks, score the attention, and learn how that buzz maps to price for every ticker.</p>
+      <div class="pillars">
+        <div class="pillar">
+          <div class="pillar-ic" style="background:linear-gradient(135deg,#FF3D77,#FF7A4B)"><i class="fas fa-satellite-dish"></i></div>
+          <h4>1 · Scrape the crowd</h4>
+          <p>Continuously ingest posts, comments, hashtags and reels across Reddit, X, TikTok and Instagram — bot-filtered and de-duped.</p>
+        </div>
+        <div class="pillar">
+          <div class="pillar-ic" style="background:linear-gradient(135deg,#7B5CFF,#9B7CFF)"><i class="fas fa-gauge-high"></i></div>
+          <h4>2 · Build the Buzz Index</h4>
+          <p>Mention velocity, reach and sentiment fuse into one 0–100 Social Buzz Index per ticker, updated in real time.</p>
+        </div>
+        <div class="pillar">
+          <div class="pillar-ic" style="background:linear-gradient(135deg,#21E6A4,#13b07d)"><i class="fas fa-chart-line"></i></div>
+          <h4>3 · Predict the move</h4>
+          <p>A model trained on buzz-vs-price history forecasts each stock's 24h trend, with confidence and the drivers behind it.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREENSHOTS -->
+  <div class="shots">
+    <div class="label teal" style="text-align:center">The App</div>
+    <h2>Eight screens, built for fast decisions</h2>
+    <p class="sub">High-fidelity prototypes — designed to be glanced at the moment buzz spikes.</p>
+    <div class="grid">
+      <div class="pw"><div class="frame"><div class="scr"><iframe src="onboarding.html" scrolling="no"></iframe></div></div><div><div class="plabel">Onboarding</div><div class="psub">Listening across 4 platforms</div></div></div>
+      <div class="pw"><div class="frame"><div class="scr"><iframe src="home.html" scrolling="no"></iframe></div></div><div><div class="plabel">Dashboard</div><div class="psub">Buzz index, watchlist & forecasts</div></div></div>
+      <div class="pw"><div class="frame"><div class="scr"><iframe src="ticker.html" scrolling="no"></iframe></div></div><div><div class="plabel">Ticker Detail</div><div class="psub">Buzz-vs-price chart & prediction</div></div></div>
+      <div class="pw"><div class="frame"><div class="scr"><iframe src="discover.html" scrolling="no"></iframe></div></div><div><div class="plabel">Discover</div><div class="psub">Trending tickers & buzz movers</div></div></div>
+      <div class="pw"><div class="frame"><div class="scr"><iframe src="predict.html" scrolling="no"></iframe></div></div><div><div class="plabel">AI Forecast</div><div class="psub">24h projection & model drivers</div></div></div>
+      <div class="pw"><div class="frame"><div class="scr"><iframe src="sentiment.html" scrolling="no"></iframe></div></div><div><div class="plabel">Sentiment</div><div class="psub">Bull/bear split & top posts</div></div></div>
+      <div class="pw"><div class="frame"><div class="scr"><iframe src="signals.html" scrolling="no"></iframe></div></div><div><div class="plabel">Signals</div><div class="psub">Live buzz-spike & prediction alerts</div></div></div>
+      <div class="pw"><div class="frame"><div class="scr"><iframe src="profile.html" scrolling="no"></iframe></div></div><div><div class="plabel">Profile</div><div class="psub">Connected sources & accuracy</div></div></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="fi"><i class="fas fa-bolt"></i></div>
+    <h3>Hivemind</h3>
+    <p>Trade the crowd before it moves the price.</p>
+  </div>
+
+</body>
+</html>

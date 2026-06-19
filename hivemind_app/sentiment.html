@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hivemind — Sentiment</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0C14; color:#fff; scrollbar-width:none; }
+
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:40px; background:#0A0C14; }
+  .screen::before { content:''; position:absolute; top:0; left:0; right:0; height:300px; background:radial-gradient(110% 80% at 50% 0%, rgba(123,92,255,0.16), transparent 55%); pointer-events:none; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; } .status-bar .icons i { font-size:14px; }
+
+  .nav { padding:6px 28px 8px; display:flex; align-items:center; gap:13px; position:relative; z-index:2; }
+  .nav-btn { width:40px; height:40px; border-radius:12px; background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; }
+  .nav-btn i { font-size:15px; color:#cfd2da; }
+  .nav-title { font-size:17px; font-weight:800; }
+  .nav-title span { font-size:12px; color:#8A8F9C; font-weight:600; }
+
+  /* Sentiment gauge card */
+  .gauge-card { margin:10px 28px 0; background:linear-gradient(160deg,#171226,#12131C); border:1px solid rgba(255,255,255,0.08); border-radius:26px; padding:24px 22px; text-align:center; position:relative; z-index:2; }
+  .gauge { position:relative; width:200px; height:120px; margin:0 auto; }
+  .gauge-read { position:absolute; bottom:0; left:0; right:0; }
+  .gauge-score { font-size:42px; font-weight:900; letter-spacing:-2px; line-height:1; }
+  .gauge-state { font-size:13px; font-weight:800; color:#21E6A4; margin-top:4px; text-transform:uppercase; letter-spacing:0.5px; }
+  .gauge-sub { font-size:12px; color:#8A8F9C; margin-top:14px; line-height:1.5; }
+
+  /* bull/bear split */
+  .split { margin:16px 28px 0; display:flex; gap:12px; }
+  .scell { flex:1; background:#14161F; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:15px; }
+  .scell .stop { display:flex; align-items:center; gap:8px; }
+  .scell .stop i { font-size:13px; }
+  .scell .stop span { font-size:12px; font-weight:700; color:#aab; }
+  .scell .sval { font-size:30px; font-weight:900; letter-spacing:-1px; margin-top:8px; }
+  .scell .sbar { height:5px; border-radius:5px; background:rgba(255,255,255,0.08); margin-top:10px; overflow:hidden; }
+  .scell .sbar i { display:block; height:100%; border-radius:5px; }
+
+  .section-title { padding:24px 28px 13px; font-size:16px; font-weight:800; }
+  .section-title .s { font-size:11px; color:#8A8F9C; font-weight:500; }
+
+  /* top posts */
+  .posts { padding:0 28px; display:flex; flex-direction:column; gap:12px; }
+  .post { background:#14161F; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:15px; }
+  .ptop { display:flex; align-items:center; gap:11px; }
+  .pav { width:38px; height:38px; border-radius:11px; object-fit:cover; }
+  .pname { font-size:13px; font-weight:800; display:flex; align-items:center; gap:6px; }
+  .pname .vf { color:#3DA9FF; font-size:11px; }
+  .phandle { font-size:11px; color:#6b6f7c; font-weight:500; }
+  .psrc { margin-left:auto; width:28px; height:28px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:13px; color:#fff; }
+  .ptext { font-size:13px; color:#d4d7df; line-height:1.55; margin-top:11px; }
+  .ptext .tk { color:#FF6B96; font-weight:700; }
+  .pfoot { display:flex; align-items:center; gap:16px; margin-top:12px; }
+  .pfoot div { font-size:11px; color:#6b6f7c; font-weight:600; }
+  .pfoot i { margin-right:5px; }
+  .ptag { margin-left:auto; font-size:10px; font-weight:800; padding:4px 10px; border-radius:9px; text-transform:uppercase; letter-spacing:0.4px; }
+  .bull { background:rgba(33,230,164,0.14); color:#21E6A4; }
+  .bear { background:rgba(255,77,109,0.14); color:#FF4D6D; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="nav">
+    <div class="nav-btn"><i class="fas fa-chevron-left"></i></div>
+    <div class="nav-title">Sentiment <span>· NVDA</span></div>
+  </div>
+
+  <!-- Gauge -->
+  <div class="gauge-card">
+    <div class="gauge">
+      <svg width="200" height="120" viewBox="0 0 200 120">
+        <path d="M16,116 A84,84 0 0 1 184,116" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="16" stroke-linecap="round"/>
+        <path d="M16,116 A84,84 0 0 1 184,116" fill="none" stroke="url(#sg)" stroke-width="16" stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="58"/>
+        <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FF4D6D"/><stop offset="0.5" stop-color="#FFB23E"/><stop offset="1" stop-color="#21E6A4"/></linearGradient></defs>
+      </svg>
+      <div class="gauge-read">
+        <div class="gauge-score">+72</div>
+        <div class="gauge-state">Strongly Bullish</div>
+      </div>
+    </div>
+    <div class="gauge-sub">Net social sentiment across <strong style="color:#fff">38,210 posts</strong> in the last 24 hours. Up 18 points since yesterday.</div>
+  </div>
+
+  <!-- Split -->
+  <div class="split">
+    <div class="scell">
+      <div class="stop"><i class="fas fa-arrow-trend-up" style="color:#21E6A4"></i><span>Bullish</span></div>
+      <div class="sval up" style="color:#21E6A4">71%</div>
+      <div class="sbar"><i style="width:71%;background:#21E6A4"></i></div>
+    </div>
+    <div class="scell">
+      <div class="stop"><i class="fas fa-arrow-trend-down" style="color:#FF4D6D"></i><span>Bearish</span></div>
+      <div class="sval" style="color:#FF4D6D">29%</div>
+      <div class="sbar"><i style="width:29%;background:#FF4D6D"></i></div>
+    </div>
+  </div>
+
+  <!-- Top posts -->
+  <div class="section-title">Top Driving Posts <span class="s">· ranked by reach</span></div>
+  <div class="posts">
+    <div class="post">
+      <div class="ptop">
+        <img class="pav" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&q=80" alt="">
+        <div>
+          <div class="pname">Marcus Lee <i class="fas fa-circle-check vf"></i></div>
+          <div class="phandle">@marcustrades · 482k</div>
+        </div>
+        <div class="psrc" style="background:#111;border:1px solid #333"><i class="fab fa-x-twitter"></i></div>
+      </div>
+      <div class="ptext"><span class="tk">$NVDA</span> data-center demand is off the charts. This dip is a gift — loading more before earnings. 🚀</div>
+      <div class="pfoot">
+        <div><i class="fas fa-heart"></i>24.1k</div>
+        <div><i class="fas fa-retweet"></i>6.8k</div>
+        <span class="ptag bull">Bullish</span>
+      </div>
+    </div>
+
+    <div class="post">
+      <div class="ptop">
+        <img class="pav" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&q=80" alt="">
+        <div>
+          <div class="pname">CryptoKaty</div>
+          <div class="phandle">@katyfinance · 1.2M</div>
+        </div>
+        <div class="psrc" style="background:linear-gradient(135deg,#25F4EE,#FE2C55)"><i class="fab fa-tiktok"></i></div>
+      </div>
+      <div class="ptext">3 reasons <span class="tk">#NVDA</span> could run this week 👇 The whole AI cycle runs through one chip…</div>
+      <div class="pfoot">
+        <div><i class="fas fa-heart"></i>89k</div>
+        <div><i class="fas fa-comment"></i>4.2k</div>
+        <span class="ptag bull">Bullish</span>
+      </div>
+    </div>
+
+    <div class="post">
+      <div class="ptop">
+        <img class="pav" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&q=80" alt="">
+        <div>
+          <div class="pname">u/deep_value_dan</div>
+          <div class="phandle">r/wallstreetbets</div>
+        </div>
+        <div class="psrc" style="background:#FF4500"><i class="fab fa-reddit-alien"></i></div>
+      </div>
+      <div class="ptext">Valuation is stretched here. Taking profits — <span class="tk">$NVDA</span> priced for perfection and any miss tanks it.</div>
+      <div class="pfoot">
+        <div><i class="fas fa-arrow-up"></i>5.6k</div>
+        <div><i class="fas fa-comment"></i>1.9k</div>
+        <span class="ptag bear">Bearish</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

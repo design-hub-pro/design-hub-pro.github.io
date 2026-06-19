@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hivemind — Forecast</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0C14; color:#fff; scrollbar-width:none; }
+
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:40px; background:#0A0C14; }
+  .screen::before { content:''; position:absolute; top:0; left:0; right:0; height:340px; background:radial-gradient(110% 80% at 80% 0%, rgba(33,230,164,0.16), transparent 55%); pointer-events:none; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; } .status-bar .icons i { font-size:14px; }
+
+  .nav { padding:6px 28px 8px; display:flex; align-items:center; gap:13px; position:relative; z-index:2; }
+  .nav-btn { width:40px; height:40px; border-radius:12px; background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; }
+  .nav-btn i { font-size:15px; color:#cfd2da; }
+  .nav-title { font-size:17px; font-weight:800; }
+  .nav-title span { font-size:12px; color:#8A8F9C; font-weight:600; }
+
+  /* forecast hero */
+  .fhero { margin:8px 28px 0; background:linear-gradient(160deg,#13231d,#12131C); border:1px solid rgba(33,230,164,0.2); border-radius:26px; padding:22px; position:relative; z-index:2; overflow:hidden; }
+  .fhero::after { content:''; position:absolute; right:-30px; top:-30px; width:150px; height:150px; border-radius:50%; background:radial-gradient(circle,rgba(33,230,164,0.2),transparent 70%); }
+  .fhero-tag { display:inline-flex; align-items:center; gap:6px; background:rgba(33,230,164,0.14); color:#21E6A4; padding:6px 12px; border-radius:20px; font-size:10px; font-weight:800; letter-spacing:0.6px; text-transform:uppercase; }
+  .fhero-row { display:flex; align-items:flex-end; gap:14px; margin-top:16px; position:relative; z-index:2; }
+  .fhero-pct { font-size:48px; font-weight:900; letter-spacing:-2.5px; line-height:0.9; color:#21E6A4; }
+  .fhero-dir { margin-bottom:8px; font-size:13px; font-weight:800; color:#21E6A4; }
+  .fhero-meta { display:flex; gap:22px; margin-top:16px; position:relative; z-index:2; }
+  .fhero-meta div .v { font-size:16px; font-weight:900; }
+  .fhero-meta div .l { font-size:10px; color:#8A8F9C; font-weight:700; text-transform:uppercase; margin-top:2px; }
+
+  /* projection chart with band */
+  .chartcard { margin:18px 28px 0; background:#12141D; border:1px solid rgba(255,255,255,0.06); border-radius:24px; padding:18px 16px 14px; }
+  .chartcard .ctitle { font-size:13px; font-weight:700; color:#aab; padding:0 6px 6px; display:flex; justify-content:space-between; }
+  .chartcard .ctitle .now { color:#21E6A4; font-size:11px; }
+
+  .section-title { padding:24px 28px 13px; font-size:16px; font-weight:800; }
+  .section-title .s { font-size:11px; color:#8A8F9C; font-weight:500; }
+
+  /* feature drivers (SHAP style) */
+  .drivers { padding:0 28px; display:flex; flex-direction:column; gap:11px; }
+  .drow { background:#14161F; border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:14px 15px; }
+  .dtop { display:flex; align-items:center; gap:11px; }
+  .dic { width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:13px; color:#fff; flex-shrink:0; }
+  .dname { font-size:13px; font-weight:700; flex:1; }
+  .dweight { font-size:13px; font-weight:900; }
+  .dbar-wrap { display:flex; align-items:center; margin-top:11px; }
+  .dbar-axis { width:50%; display:flex; justify-content:flex-end; }
+  .dbar-axis.pos { justify-content:flex-start; }
+  .dbar { height:7px; border-radius:5px; }
+  .dmid { width:1px; height:16px; background:rgba(255,255,255,0.15); margin:0 1px; }
+
+  .disclaimer { margin:20px 28px 0; font-size:10px; color:#5a5f6c; text-align:center; line-height:1.5; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="nav">
+    <div class="nav-btn"><i class="fas fa-chevron-left"></i></div>
+    <div class="nav-title">AI Forecast <span>· NVDA</span></div>
+  </div>
+
+  <!-- Forecast hero -->
+  <div class="fhero">
+    <span class="fhero-tag"><i class="fas fa-wand-magic-sparkles"></i> Buzz-to-Price Model v4</span>
+    <div class="fhero-row">
+      <div class="fhero-pct">+4.2%</div>
+      <div class="fhero-dir"><i class="fas fa-arrow-trend-up"></i> Bullish · next 24h</div>
+    </div>
+    <div class="fhero-meta">
+      <div><div class="v">89%</div><div class="l">Confidence</div></div>
+      <div><div class="v">$138</div><div class="l">Target</div></div>
+      <div><div class="v">0.81</div><div class="l">Buzz-price corr.</div></div>
+    </div>
+  </div>
+
+  <!-- Projection with confidence band -->
+  <div class="chartcard">
+    <div class="ctitle"><span>Projected price · 24h</span><span class="now">● now $132.40</span></div>
+    <svg width="100%" height="160" viewBox="0 0 360 160" preserveAspectRatio="none">
+      <defs><linearGradient id="band" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#21E6A4" stop-opacity="0.22"/><stop offset="1" stop-color="#21E6A4" stop-opacity="0.02"/></linearGradient></defs>
+      <line x1="0" y1="40" x2="360" y2="40" stroke="rgba(255,255,255,0.05)"/>
+      <line x1="0" y1="80" x2="360" y2="80" stroke="rgba(255,255,255,0.05)"/>
+      <line x1="0" y1="120" x2="360" y2="120" stroke="rgba(255,255,255,0.05)"/>
+      <!-- history solid -->
+      <path d="M0,118 C25,114 45,110 70,104 C95,98 115,100 140,92" fill="none" stroke="#cfd2da" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- confidence band -->
+      <path d="M140,92 C175,82 210,70 250,52 C290,34 320,26 360,16 L360,52 C320,62 290,68 250,84 C210,98 175,104 140,108 Z" fill="url(#band)"/>
+      <!-- forecast center -->
+      <path d="M140,92 C175,80 210,66 250,48 C290,30 320,24 360,12" fill="none" stroke="#21E6A4" stroke-width="2.8" stroke-linecap="round" stroke-dasharray="2 5"/>
+      <circle cx="140" cy="92" r="4.5" fill="#21E6A4" stroke="#0A0C14" stroke-width="2"/>
+      <line x1="140" y1="0" x2="140" y2="160" stroke="rgba(33,230,164,0.25)" stroke-width="1" stroke-dasharray="3 3"/>
+    </svg>
+    <div style="display:flex;justify-content:space-between;padding:6px 6px 0;font-size:10px;color:#6b6f7c;font-weight:600">
+      <span>−18h</span><span>now</span><span>+6h</span><span>+24h</span>
+    </div>
+  </div>
+
+  <!-- Drivers -->
+  <div class="section-title">What's Driving It <span class="s">· model feature weights</span></div>
+  <div class="drivers">
+    <div class="drow">
+      <div class="dtop"><div class="dic" style="background:#FF4500"><i class="fab fa-reddit-alien"></i></div><div class="dname">Reddit mention velocity</div><div class="dweight up" style="color:#21E6A4">+0.34</div></div>
+      <div class="dbar-wrap"><div class="dbar-axis"></div><div class="dmid"></div><div class="dbar-axis pos"><div class="dbar" style="width:68%;background:#21E6A4"></div></div></div>
+    </div>
+    <div class="drow">
+      <div class="dtop"><div class="dic" style="background:linear-gradient(135deg,#25F4EE,#FE2C55)"><i class="fab fa-tiktok"></i></div><div class="dname">TikTok creator reach</div><div class="dweight" style="color:#21E6A4">+0.21</div></div>
+      <div class="dbar-wrap"><div class="dbar-axis"></div><div class="dmid"></div><div class="dbar-axis pos"><div class="dbar" style="width:44%;background:#21E6A4"></div></div></div>
+    </div>
+    <div class="drow">
+      <div class="dtop"><div class="dic" style="background:linear-gradient(135deg,#7B5CFF,#5b6bff)"><i class="fas fa-face-smile"></i></div><div class="dname">Net positive sentiment</div><div class="dweight" style="color:#21E6A4">+0.18</div></div>
+      <div class="dbar-wrap"><div class="dbar-axis"></div><div class="dmid"></div><div class="dbar-axis pos"><div class="dbar" style="width:36%;background:#21E6A4"></div></div></div>
+    </div>
+    <div class="drow">
+      <div class="dtop"><div class="dic" style="background:#111;border:1px solid #333"><i class="fab fa-x-twitter"></i></div><div class="dname">X bot-filtered volume</div><div class="dweight down" style="color:#FF4D6D">−0.09</div></div>
+      <div class="dbar-wrap"><div class="dbar-axis"><div class="dbar" style="width:18%;background:#FF4D6D"></div></div><div class="dmid"></div><div class="dbar-axis pos"></div></div>
+    </div>
+  </div>
+
+  <div class="disclaimer">Forecasts are model estimates from social-signal data, not financial advice. Past accuracy does not guarantee future results.</div>
+</div>
+</body>
+</html>
