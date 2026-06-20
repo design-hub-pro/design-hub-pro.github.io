@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Waste by the Numbers — Survey</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#F2F5EF; color:#14241B; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:110px; }
+
+  .dynamic-island { width:120px; height:36px; background:#0A0A0A; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .topbar { padding:6px 28px 0; display:flex; align-items:center; justify-content:space-between; }
+  .back { width:38px; height:38px; border-radius:13px; background:#fff; border:1px solid #E3EAE2; display:flex; align-items:center; justify-content:center; }
+  .back i { font-size:14px; }
+  .topbar .skip { font-size:12px; font-weight:700; color:#7A8C82; }
+
+  .progress-wrap { padding:18px 28px 6px; }
+  .progress-meta { display:flex; justify-content:space-between; font-size:11px; font-weight:700; color:#7A8C82; margin-bottom:8px; }
+  .progress-meta b { color:#0E9F6E; }
+  .progress-track { height:8px; background:#E3EAE2; border-radius:5px; overflow:hidden; }
+  .progress-fill { height:100%; width:60%; background:linear-gradient(90deg,#0E9F6E,#34D399); border-radius:5px; }
+
+  .q-head { padding:18px 28px 4px; }
+  .q-num { font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#0E9F6E; }
+  .q-title { font-size:23px; font-weight:900; letter-spacing:-0.6px; margin-top:5px; line-height:1.2; }
+  .q-help { font-size:12.5px; color:#7A8C82; margin-top:8px; line-height:1.5; }
+  .q-help i { color:#F59E0B; }
+
+  /* Food choice grid */
+  .food-grid { padding:18px 28px 0; display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .food-card { position:relative; border-radius:20px; overflow:hidden; height:128px; }
+  .food-card img { width:100%; height:100%; object-fit:cover; }
+  .food-grad { position:absolute; inset:0; background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.75)); }
+  .food-name { position:absolute; bottom:12px; left:13px; font-size:14px; font-weight:800; color:#fff; }
+  .food-check { position:absolute; top:10px; right:10px; width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,0.25); backdrop-filter:blur(6px); border:1.5px solid rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; }
+  .food-card.sel { box-shadow:0 0 0 3px #0E9F6E; }
+  .food-card.sel .food-check { background:#0E9F6E; border-color:#0E9F6E; }
+  .food-card.sel .food-check i { font-size:12px; color:#fff; }
+  .food-card:not(.sel) .food-check i { display:none; }
+
+  /* Portion slider */
+  .slider-card { margin:18px 28px 0; background:#fff; border:1px solid #E3EAE2; border-radius:22px; padding:18px; }
+  .slider-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .slider-label { font-size:13px; font-weight:800; }
+  .slider-val { font-size:12px; font-weight:800; color:#0E9F6E; background:#E7F6EF; padding:5px 12px; border-radius:9px; }
+  .slider-track { height:8px; background:#E3EAE2; border-radius:5px; position:relative; }
+  .slider-fill { height:100%; width:50%; background:linear-gradient(90deg,#0E9F6E,#34D399); border-radius:5px; }
+  .slider-knob { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:24px; height:24px; border-radius:50%; background:#fff; border:3px solid #0E9F6E; box-shadow:0 3px 8px rgba(14,159,110,0.3); }
+  .slider-ends { display:flex; justify-content:space-between; font-size:10.5px; color:#7A8C82; font-weight:600; margin-top:10px; }
+
+  /* Chips */
+  .chip-wrap { padding:16px 28px 0; display:flex; flex-wrap:wrap; gap:10px; }
+  .chip { padding:10px 16px; border-radius:14px; font-size:13px; font-weight:700; background:#fff; border:1px solid #E3EAE2; color:#445; }
+  .chip.sel { background:#0F291E; color:#fff; border-color:#0F291E; }
+  .chip.sel i { color:#BEF264; margin-right:5px; }
+  .chip:not(.sel) i { display:none; }
+
+  .footer { position:absolute; bottom:0; left:0; right:0; padding:16px 28px calc(16px + env(safe-area-inset-bottom)); background:linear-gradient(180deg,rgba(242,245,239,0),#F2F5EF 30%); }
+  .submit-btn { width:100%; border:none; border-radius:18px; padding:17px; font-size:15px; font-weight:800; font-family:inherit; background:linear-gradient(135deg,#0E9F6E,#065F46); color:#fff; display:flex; align-items:center; justify-content:center; gap:9px; box-shadow:0 10px 24px rgba(14,159,110,0.3); }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="topbar">
+    <div class="back"><i class="fas fa-arrow-left"></i></div>
+    <div class="skip">Skip</div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-meta"><span>Weekly Menu Survey</span><span><b>Q3</b> of 5</span></div>
+    <div class="progress-track"><div class="progress-fill"></div></div>
+  </div>
+
+  <div class="q-head">
+    <div class="q-num">This Week's Picks</div>
+    <div class="q-title">Which lunches will you actually eat?</div>
+    <div class="q-help"><i class="fas fa-circle-info"></i> Your answers tell the kitchen how much to prep — less guesswork, less waste.</div>
+  </div>
+
+  <div class="food-grid">
+    <div class="food-card sel">
+      <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80">
+      <div class="food-grad"></div>
+      <div class="food-check"><i class="fas fa-check"></i></div>
+      <div class="food-name">Veggie Burger</div>
+    </div>
+    <div class="food-card sel">
+      <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=80">
+      <div class="food-grad"></div>
+      <div class="food-check"><i class="fas fa-check"></i></div>
+      <div class="food-name">Cheese Pizza</div>
+    </div>
+    <div class="food-card">
+      <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=80">
+      <div class="food-grad"></div>
+      <div class="food-check"><i class="fas fa-check"></i></div>
+      <div class="food-name">Garden Salad</div>
+    </div>
+    <div class="food-card sel">
+      <img src="https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400&q=80">
+      <div class="food-grad"></div>
+      <div class="food-check"><i class="fas fa-check"></i></div>
+      <div class="food-name">Chicken Tacos</div>
+    </div>
+  </div>
+
+  <div class="slider-card">
+    <div class="slider-top">
+      <div class="slider-label">How big a portion do you finish?</div>
+      <div class="slider-val">Just right</div>
+    </div>
+    <div class="slider-track">
+      <div class="slider-fill"></div>
+      <div class="slider-knob"></div>
+    </div>
+    <div class="slider-ends"><span>Half plate</span><span>Full plate</span><span>Seconds</span></div>
+  </div>
+
+  <div class="chip-wrap">
+    <div class="chip sel"><i class="fas fa-check"></i>Vegetarian</div>
+    <div class="chip"><i class="fas fa-check"></i>Halal</div>
+    <div class="chip sel"><i class="fas fa-check"></i>No dairy</div>
+    <div class="chip"><i class="fas fa-check"></i>Gluten-free</div>
+    <div class="chip"><i class="fas fa-check"></i>Nut allergy</div>
+  </div>
+
+  <div class="footer">
+    <button class="submit-btn">Next question <i class="fas fa-arrow-right"></i></button>
+  </div>
+</div>
+</body>
+</html>

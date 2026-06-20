@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Waste by the Numbers — Insights</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#F2F5EF; color:#14241B; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:108px; }
+
+  .dynamic-island { width:120px; height:36px; background:#0A0A0A; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:8px 28px 14px; }
+  .page-eyebrow { font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#0E9F6E; }
+  .page-title { font-size:26px; font-weight:900; letter-spacing:-0.8px; margin-top:3px; }
+  .seg { margin:0 28px 16px; background:#fff; border:1px solid #E3EAE2; border-radius:14px; padding:4px; display:flex; }
+  .seg div { flex:1; text-align:center; font-size:12px; font-weight:700; padding:8px; border-radius:10px; color:#7A8C82; }
+  .seg div.active { background:#0F291E; color:#fff; }
+
+  .card { margin:0 28px 16px; background:#fff; border:1px solid #E3EAE2; border-radius:24px; padding:20px; box-shadow:0 6px 18px rgba(20,36,27,0.04); }
+  .card-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
+  .card-title { font-size:15px; font-weight:800; }
+  .card-sub { font-size:11.5px; color:#7A8C82; margin-top:2px; }
+  .card-tag { font-size:10px; font-weight:800; padding:5px 10px; border-radius:9px; }
+
+  /* AI prediction banner */
+  .predict { margin:0 28px 16px; background:linear-gradient(140deg,#0F291E,#065F46); border-radius:24px; padding:20px; color:#fff; position:relative; overflow:hidden; }
+  .predict::before { content:''; position:absolute; right:-30px; top:-30px; width:140px; height:140px; background:radial-gradient(circle,rgba(190,242,100,0.22),transparent 70%); }
+  .predict-head { display:flex; align-items:center; gap:9px; margin-bottom:12px; position:relative; z-index:2; }
+  .predict-ico { width:34px; height:34px; border-radius:12px; background:rgba(190,242,100,0.18); display:flex; align-items:center; justify-content:center; }
+  .predict-ico i { color:#BEF264; font-size:15px; }
+  .predict-label { font-size:11px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; opacity:0.8; }
+  .predict-model { font-size:9px; opacity:0.55; margin-top:1px; }
+  .predict-body { font-size:14px; font-weight:600; line-height:1.5; position:relative; z-index:2; }
+  .predict-body b { color:#BEF264; }
+  .predict-foot { margin-top:14px; display:flex; gap:8px; position:relative; z-index:2; }
+  .predict-chip { background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.14); padding:6px 11px; border-radius:11px; font-size:10.5px; font-weight:700; }
+
+  .legend { display:flex; gap:16px; margin-top:14px; }
+  .legend-item { display:flex; align-items:center; gap:6px; font-size:11px; color:#7A8C82; font-weight:600; }
+  .legend-dot { width:9px; height:9px; border-radius:3px; }
+
+  /* Top wasted list */
+  .rank-row { display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid #F0F2EE; }
+  .rank-row:last-child { border-bottom:none; }
+  .rank-img { width:46px; height:46px; border-radius:14px; object-fit:cover; }
+  .rank-info { flex:1; }
+  .rank-name { font-size:13.5px; font-weight:700; }
+  .rank-bar { height:6px; background:#F0F2EE; border-radius:4px; margin-top:6px; overflow:hidden; width:100%; }
+  .rank-bar > div { height:100%; border-radius:4px; }
+  .rank-val { text-align:right; }
+  .rank-lb { font-size:14px; font-weight:800; }
+  .rank-trend { font-size:10px; font-weight:700; margin-top:1px; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(255,255,255,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid #E3EAE2; }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:54px; }
+  .tab-item i { font-size:19px; color:#A6B3AB; }
+  .tab-item span { font-size:10px; color:#A6B3AB; font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#0E9F6E; }
+  .tab-scan-btn { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#BEF264,#65A30D); display:flex; align-items:center; justify-content:center; margin-top:-16px; box-shadow:0 10px 24px rgba(101,163,13,0.4); }
+  .tab-scan-btn i { font-size:22px; color:#1A2E05; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div class="page-eyebrow">Waste Intelligence</div>
+    <div class="page-title">Patterns &amp; Predictions</div>
+  </div>
+
+  <div class="seg">
+    <div>Week</div>
+    <div class="active">Month</div>
+    <div>Term</div>
+  </div>
+
+  <div class="predict">
+    <div class="predict-head">
+      <div class="predict-ico"><i class="fas fa-wand-magic-sparkles"></i></div>
+      <div>
+        <div class="predict-label">AI Forecast</div>
+        <div class="predict-model">Trained on 11,400 logged trays</div>
+      </div>
+    </div>
+    <div class="predict-body">Thursday's <b>taco bar</b> is predicted to waste <b>~28 lb</b> of lettuce &amp; rice. Cutting prep by <b>15%</b> could save <b>$210</b> this week.</div>
+    <div class="predict-foot">
+      <div class="predict-chip"><i class="fas fa-bullseye" style="color:#BEF264"></i> 91% accuracy</div>
+      <div class="predict-chip"><i class="fas fa-calendar" style="color:#BEF264"></i> 5-day horizon</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="card-title">Waste Trend vs. Forecast</div>
+        <div class="card-sub">Pounds tossed per day — model projects ↓</div>
+      </div>
+      <div class="card-tag" style="background:#E7F6EF;color:#0E9F6E">↓ 23%</div>
+    </div>
+    <canvas id="trendChart" height="150"></canvas>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:#0E9F6E"></span> Actual</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#BEF264"></span> Predicted</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#E5E7EB"></span> Baseline</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="card-title">Waste by Day of Week</div>
+        <div class="card-sub">Fridays spike — pizza day overproduction</div>
+      </div>
+    </div>
+    <canvas id="dayChart" height="140"></canvas>
+  </div>
+
+  <div class="card">
+    <div class="card-head" style="margin-bottom:12px">
+      <div>
+        <div class="card-title">Top Wasted Items</div>
+        <div class="card-sub">Ranked by cost this month</div>
+      </div>
+    </div>
+    <div class="rank-row">
+      <img class="rank-img" src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=200&q=80">
+      <div class="rank-info">
+        <div class="rank-name">Garden Salad</div>
+        <div class="rank-bar"><div style="width:92%;background:linear-gradient(90deg,#DC2626,#F87171)"></div></div>
+      </div>
+      <div class="rank-val"><div class="rank-lb">124 lb</div><div class="rank-trend" style="color:#DC2626">▲ 8%</div></div>
+    </div>
+    <div class="rank-row">
+      <img class="rank-img" src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=200&q=80">
+      <div class="rank-info">
+        <div class="rank-name">White Rice</div>
+        <div class="rank-bar"><div style="width:74%;background:linear-gradient(90deg,#F59E0B,#FBBF24)"></div></div>
+      </div>
+      <div class="rank-val"><div class="rank-lb">98 lb</div><div class="rank-trend" style="color:#DC2626">▲ 3%</div></div>
+    </div>
+    <div class="rank-row">
+      <img class="rank-img" src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=200&q=80">
+      <div class="rank-info">
+        <div class="rank-name">Steamed Broccoli</div>
+        <div class="rank-bar"><div style="width:58%;background:linear-gradient(90deg,#0E9F6E,#34D399)"></div></div>
+      </div>
+      <div class="rank-val"><div class="rank-lb">71 lb</div><div class="rank-trend" style="color:#0E9F6E">▼ 12%</div></div>
+    </div>
+    <div class="rank-row">
+      <img class="rank-img" src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200&q=80">
+      <div class="rank-info">
+        <div class="rank-name">Dinner Rolls</div>
+        <div class="rank-bar"><div style="width:44%;background:linear-gradient(90deg,#0E9F6E,#34D399)"></div></div>
+      </div>
+      <div class="rank-val"><div class="rank-lb">52 lb</div><div class="rank-trend" style="color:#0E9F6E">▼ 6%</div></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item active"><i class="fas fa-chart-line"></i><span>Insights</span></div>
+    <div class="tab-item"><button class="tab-scan-btn"><i class="fas fa-camera"></i></button></div>
+    <div class="tab-item"><i class="fas fa-leaf"></i><span>Learn</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+
+<script>
+  const gridC = '#F0F2EE';
+  new Chart(document.getElementById('trendChart'), {
+    type:'line',
+    data:{ labels:['W1','W2','W3','W4','W5','W6'],
+      datasets:[
+        {label:'Actual',data:[58,52,49,41,38,null],borderColor:'#0E9F6E',backgroundColor:'rgba(14,159,110,0.10)',fill:true,tension:.4,borderWidth:3,pointRadius:0},
+        {label:'Predicted',data:[null,null,null,null,38,31],borderColor:'#84CC16',borderDash:[5,4],fill:false,tension:.4,borderWidth:3,pointRadius:0},
+        {label:'Baseline',data:[60,60,60,60,60,60],borderColor:'#E5E7EB',fill:false,borderWidth:2,pointRadius:0}
+      ]},
+    options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+' lb',font:{size:10}},grid:{color:gridC}},x:{grid:{display:false},ticks:{font:{size:10}}}},maintainAspectRatio:false}
+  });
+  new Chart(document.getElementById('dayChart'), {
+    type:'bar',
+    data:{ labels:['Mon','Tue','Wed','Thu','Fri'],
+      datasets:[{data:[34,28,31,26,47],backgroundColor:['#0E9F6E','#0E9F6E','#0E9F6E','#0E9F6E','#F59E0B'],borderRadius:8,barThickness:30}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+' lb',font:{size:10}},grid:{color:gridC}},x:{grid:{display:false},ticks:{font:{size:11,weight:'600'}}}},maintainAspectRatio:false}
+  });
+</script>
+</body>
+</html>

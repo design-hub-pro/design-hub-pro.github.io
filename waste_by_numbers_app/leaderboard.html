@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Waste by the Numbers — Leaderboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#F2F5EF; color:#14241B; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:108px; }
+
+  .dynamic-island { width:120px; height:36px; background:#0A0A0A; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; color:#fff; position:relative; z-index:5; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .hero-bg { position:absolute; top:0; left:0; right:0; height:340px; background:linear-gradient(160deg,#0F291E 0%,#065F46 100%); border-radius:0 0 36px 36px; overflow:hidden; }
+  .hero-bg::before { content:''; position:absolute; right:-40px; top:-20px; width:200px; height:200px; background:radial-gradient(circle,rgba(190,242,100,0.2),transparent 70%); }
+
+  .header { padding:6px 28px 10px; position:relative; z-index:5; color:#fff; }
+  .page-eyebrow { font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#BEF264; }
+  .page-title { font-size:25px; font-weight:900; letter-spacing:-0.7px; margin-top:3px; }
+  .seg { margin:12px 0 0; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.14); border-radius:14px; padding:4px; display:flex; }
+  .seg div { flex:1; text-align:center; font-size:12px; font-weight:700; padding:8px; border-radius:10px; color:rgba(255,255,255,0.7); }
+  .seg div.active { background:#BEF264; color:#1A2E05; }
+
+  /* Podium */
+  .podium { position:relative; z-index:5; display:flex; justify-content:center; align-items:flex-end; gap:14px; padding:22px 28px 8px; }
+  .pod { text-align:center; }
+  .pod-av { border-radius:50%; object-fit:cover; border:3px solid; }
+  .pod.first .pod-av { width:72px; height:72px; border-color:#FBBF24; }
+  .pod.second .pod-av, .pod.third .pod-av { width:58px; height:58px; }
+  .pod.second .pod-av { border-color:#CBD5E1; }
+  .pod.third .pod-av { border-color:#D6A878; }
+  .pod-crown { font-size:18px; color:#FBBF24; margin-bottom:4px; }
+  .pod-name { font-size:12px; font-weight:800; color:#fff; margin-top:8px; }
+  .pod-room { font-size:10px; color:rgba(255,255,255,0.6); }
+  .pod-score { font-size:13px; font-weight:900; color:#BEF264; margin-top:4px; }
+  .pod-rankbadge { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; margin:6px auto 0; }
+  .pod.first .pod-rankbadge { background:#FBBF24; color:#78350F; }
+  .pod.second .pod-rankbadge { background:#CBD5E1; color:#334155; }
+  .pod.third .pod-rankbadge { background:#D6A878; color:#5b3a18; }
+
+  /* List */
+  .list { margin:14px 28px 0; background:#fff; border:1px solid #E3EAE2; border-radius:24px; padding:8px 16px; box-shadow:0 8px 22px rgba(20,36,27,0.05); position:relative; z-index:5; }
+  .row { display:flex; align-items:center; gap:12px; padding:13px 0; border-bottom:1px solid #F0F2EE; }
+  .row:last-child { border-bottom:none; }
+  .row-rank { width:24px; text-align:center; font-size:14px; font-weight:800; color:#7A8C82; }
+  .row-av { width:40px; height:40px; border-radius:13px; object-fit:cover; }
+  .row-info { flex:1; }
+  .row-name { font-size:13.5px; font-weight:700; }
+  .row-meta { font-size:11px; color:#7A8C82; margin-top:1px; }
+  .row-score { text-align:right; }
+  .row-pts { font-size:14px; font-weight:800; }
+  .row-trend { font-size:10px; font-weight:700; }
+  .row.you { background:#E7F6EF; margin:0 -16px; padding:13px 16px; border-radius:16px; border:none; }
+  .row.you .row-name { color:#065F46; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(255,255,255,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid #E3EAE2; }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:54px; }
+  .tab-item i { font-size:19px; color:#A6B3AB; }
+  .tab-item span { font-size:10px; color:#A6B3AB; font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#0E9F6E; }
+  .tab-scan-btn { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#BEF264,#65A30D); display:flex; align-items:center; justify-content:center; margin-top:-16px; box-shadow:0 10px 24px rgba(101,163,13,0.4); }
+  .tab-scan-btn i { font-size:22px; color:#1A2E05; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="hero-bg"></div>
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div class="page-eyebrow">Lincoln High · Spring Challenge</div>
+    <div class="page-title">Class Leaderboard</div>
+    <div class="seg">
+      <div class="active">Homerooms</div>
+      <div>Students</div>
+    </div>
+  </div>
+
+  <div class="podium">
+    <div class="pod second">
+      <img class="pod-av" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&q=80">
+      <div class="pod-name">Room 118</div>
+      <div class="pod-room">Ms. Patel</div>
+      <div class="pod-score">−41%</div>
+      <div class="pod-rankbadge">2</div>
+    </div>
+    <div class="pod first">
+      <div class="pod-crown"><i class="fas fa-crown"></i></div>
+      <img class="pod-av" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=160&q=80">
+      <div class="pod-name">Room 204</div>
+      <div class="pod-room">Mr. Reyes</div>
+      <div class="pod-score">−58%</div>
+      <div class="pod-rankbadge">1</div>
+    </div>
+    <div class="pod third">
+      <img class="pod-av" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=160&q=80">
+      <div class="pod-name">Room 309</div>
+      <div class="pod-room">Ms. Cho</div>
+      <div class="pod-score">−37%</div>
+      <div class="pod-rankbadge">3</div>
+    </div>
+  </div>
+
+  <div class="list">
+    <div class="row">
+      <div class="row-rank">4</div>
+      <img class="row-av" src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=120&q=80">
+      <div class="row-info"><div class="row-name">Room 212 · Ms. Bell</div><div class="row-meta">31 lb saved · 84 scans</div></div>
+      <div class="row-score"><div class="row-pts">−33%</div><div class="row-trend" style="color:#0E9F6E">▲ 2</div></div>
+    </div>
+    <div class="row">
+      <div class="row-rank">5</div>
+      <img class="row-av" src="https://images.unsplash.com/photo-1497032205916-ac775f0649ae?w=120&q=80">
+      <div class="row-info"><div class="row-name">Room 101 · Mr. Diaz</div><div class="row-meta">28 lb saved · 76 scans</div></div>
+      <div class="row-score"><div class="row-pts">−29%</div><div class="row-trend" style="color:#DC2626">▼ 1</div></div>
+    </div>
+    <div class="row you">
+      <div class="row-rank" style="color:#0E9F6E">6</div>
+      <img class="row-av" src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=120&q=80">
+      <div class="row-info"><div class="row-name">Room 226 · Your Class</div><div class="row-meta">26 lb saved · 71 scans</div></div>
+      <div class="row-score"><div class="row-pts" style="color:#065F46">−27%</div><div class="row-trend" style="color:#0E9F6E">▲ 4</div></div>
+    </div>
+    <div class="row">
+      <div class="row-rank">7</div>
+      <img class="row-av" src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=120&q=80">
+      <div class="row-info"><div class="row-name">Room 145 · Ms. Wong</div><div class="row-meta">22 lb saved · 64 scans</div></div>
+      <div class="row-score"><div class="row-pts">−24%</div><div class="row-trend" style="color:#7A8C82">—</div></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-chart-line"></i><span>Insights</span></div>
+    <div class="tab-item"><button class="tab-scan-btn"><i class="fas fa-camera"></i></button></div>
+    <div class="tab-item"><i class="fas fa-leaf"></i><span>Learn</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>
