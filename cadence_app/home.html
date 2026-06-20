@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cadence — Today</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#F4F3FA; color:#1A1633; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:112px; }
+
+  .dynamic-island { width:120px; height:36px; background:#0A0A0A; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:8px 28px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .greeting-label { font-size:12.5px; color:#8B86A8; font-weight:600; }
+  .greeting-name { font-size:24px; font-weight:800; letter-spacing:-0.5px; margin-top:2px; }
+  .avatar-wrap { position:relative; }
+  .avatar { width:44px; height:44px; border-radius:14px; object-fit:cover; border:2px solid #8B5CF6; }
+  .avatar-dot { position:absolute; bottom:-2px; right:-2px; width:14px; height:14px; border-radius:50%; background:#34D399; border:2.5px solid #F4F3FA; }
+
+  /* Brain brief hero */
+  .brief { margin:0 28px; border-radius:28px; padding:22px; color:#fff; position:relative; overflow:hidden; background:linear-gradient(150deg,#2A1E5C 0%,#15122E 100%); }
+  .brief::before { content:''; position:absolute; right:-50px; top:-50px; width:200px; height:200px; background:radial-gradient(circle, rgba(167,139,250,0.4), transparent 70%); }
+  .brief::after { content:''; position:absolute; left:-40px; bottom:-60px; width:170px; height:170px; background:radial-gradient(circle, rgba(251,113,133,0.28), transparent 70%); }
+  .brief-top { display:flex; align-items:center; gap:8px; position:relative; z-index:2; }
+  .brief-chip { font-size:10px; font-weight:800; letter-spacing:0.6px; text-transform:uppercase; background:rgba(255,255,255,0.14); padding:5px 11px; border-radius:9px; display:inline-flex; align-items:center; gap:6px; }
+  .brief-chip i { color:#A78BFA; }
+  .brief-headline { font-size:18px; font-weight:800; line-height:1.35; margin-top:14px; position:relative; z-index:2; letter-spacing:-0.3px; }
+  .brief-headline span { color:#C4B5FD; }
+  .brief-stats { display:flex; gap:10px; margin-top:18px; position:relative; z-index:2; }
+  .brief-stat { flex:1; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); border-radius:15px; padding:11px 12px; }
+  .brief-stat .v { font-size:18px; font-weight:900; letter-spacing:-0.5px; }
+  .brief-stat .v small { font-size:11px; font-weight:700; opacity:0.6; }
+  .brief-stat .l { font-size:9.5px; opacity:0.7; font-weight:600; margin-top:2px; display:flex; align-items:center; gap:4px; }
+  .brief-stat .l .pulse { width:6px; height:6px; border-radius:50%; }
+
+  /* Focus capacity bar */
+  .capacity { margin-top:16px; position:relative; z-index:2; }
+  .cap-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:7px; }
+  .cap-top .t { font-size:11px; font-weight:700; opacity:0.85; }
+  .cap-top .p { font-size:11px; font-weight:800; color:#C4B5FD; }
+  .cap-track { height:8px; background:rgba(255,255,255,0.12); border-radius:6px; overflow:hidden; }
+  .cap-fill { height:100%; width:82%; border-radius:6px; background:linear-gradient(90deg,#A78BFA,#FB7185); }
+
+  /* Next up CTA */
+  .nextup { margin:18px 28px 0; background:#fff; border:1px solid #ECEAF4; border-radius:24px; padding:16px; display:flex; align-items:center; gap:14px; box-shadow:0 8px 22px rgba(26,22,51,0.05); }
+  .nextup-ic { width:54px; height:54px; border-radius:17px; background:linear-gradient(135deg,#8B5CF6,#5B21B6); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 8px 18px rgba(124,58,237,0.32); }
+  .nextup-ic i { font-size:22px; color:#fff; }
+  .nextup-info { flex:1; }
+  .nextup-lbl { font-size:10px; font-weight:800; color:#8B5CF6; letter-spacing:0.6px; text-transform:uppercase; }
+  .nextup-title { font-size:15px; font-weight:800; margin-top:3px; letter-spacing:-0.2px; }
+  .nextup-meta { font-size:11.5px; color:#8B86A8; margin-top:2px; display:flex; align-items:center; gap:6px; }
+  .nextup-go { width:46px; height:46px; border-radius:15px; background:#15122E; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .nextup-go i { color:#fff; font-size:15px; }
+
+  .section-header { padding:24px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .section-title { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+  .section-link { font-size:12px; color:#8B5CF6; font-weight:700; }
+
+  /* Timeline */
+  .timeline { padding:0 28px; }
+  .tl-item { display:flex; gap:14px; }
+  .tl-rail { display:flex; flex-direction:column; align-items:center; width:46px; flex-shrink:0; }
+  .tl-time { font-size:11px; font-weight:800; color:#1A1633; }
+  .tl-ampm { font-size:8.5px; font-weight:700; color:#8B86A8; margin-top:-1px; }
+  .tl-line { width:2px; flex:1; background:#E6E3F2; margin:6px 0; }
+  .tl-card { flex:1; border-radius:18px; padding:14px 15px; margin-bottom:14px; position:relative; overflow:hidden; }
+  .tl-card .row { display:flex; align-items:center; gap:10px; }
+  .tl-dot { width:34px; height:34px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .tl-dot i { font-size:14px; color:#fff; }
+  .tl-name { font-size:13.5px; font-weight:800; letter-spacing:-0.2px; }
+  .tl-sub { font-size:11px; color:#8B86A8; margin-top:2px; }
+  .tl-tag { margin-left:auto; font-size:9px; font-weight:800; padding:4px 9px; border-radius:8px; letter-spacing:0.3px; }
+
+  .tl-focus { background:#fff; border:1px solid #ECEAF4; box-shadow:0 4px 14px rgba(26,22,51,0.04); }
+  .tl-focus .tl-dot { background:linear-gradient(135deg,#8B5CF6,#5B21B6); }
+  .tl-focus .tl-tag { background:#EDE9FE; color:#6D28D9; }
+  .tl-review { background:#fff; border:1px solid #ECEAF4; box-shadow:0 4px 14px rgba(26,22,51,0.04); }
+  .tl-review .tl-dot { background:linear-gradient(135deg,#34D399,#059669); }
+  .tl-review .tl-tag { background:#D1FAE5; color:#047857; }
+  .tl-break { background:#FFF4F2; border:1px dashed #FBCFC9; }
+  .tl-break .tl-dot { background:linear-gradient(135deg,#FB7185,#E11D48); }
+  .tl-break .tl-tag { background:#FFE4E0; color:#E11D48; }
+
+  /* Deadlines */
+  .dl-scroll { display:flex; gap:13px; padding:0 28px; overflow-x:auto; }
+  .dl-card { min-width:158px; border-radius:20px; padding:15px; color:#fff; position:relative; overflow:hidden; }
+  .dl-card.c1 { background:linear-gradient(150deg,#F43F5E,#9F1239); }
+  .dl-card.c2 { background:linear-gradient(150deg,#8B5CF6,#5B21B6); }
+  .dl-card.c3 { background:linear-gradient(150deg,#0EA5E9,#0369A1); }
+  .dl-course { font-size:10px; font-weight:800; opacity:0.8; letter-spacing:0.4px; text-transform:uppercase; }
+  .dl-name { font-size:14px; font-weight:800; margin-top:8px; line-height:1.3; }
+  .dl-foot { display:flex; align-items:center; justify-content:space-between; margin-top:16px; }
+  .dl-due { font-size:11px; font-weight:700; opacity:0.85; }
+  .dl-count { font-size:20px; font-weight:900; letter-spacing:-0.5px; }
+  .dl-count small { font-size:10px; font-weight:700; opacity:0.7; }
+
+  /* Tab bar */
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(255,255,255,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid #ECEAF4; }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:54px; }
+  .tab-item i { font-size:19px; color:#B5AFCB; }
+  .tab-item span { font-size:9.5px; color:#B5AFCB; font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#8B5CF6; }
+  .tab-focus-btn { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#8B5CF6,#5B21B6); display:flex; align-items:center; justify-content:center; margin-top:-18px; box-shadow:0 12px 26px rgba(124,58,237,0.45); }
+  .tab-focus-btn i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="greeting-label">Tuesday, June 20</div>
+      <div class="greeting-name">Good morning, Ava ✦</div>
+    </div>
+    <div class="avatar-wrap">
+      <img class="avatar" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&q=80">
+      <span class="avatar-dot"></span>
+    </div>
+  </div>
+
+  <!-- Brain brief -->
+  <div class="brief">
+    <div class="brief-top">
+      <span class="brief-chip"><i class="fas fa-brain"></i> Your Brain Today</span>
+    </div>
+    <div class="brief-headline">You slept <span>well</span> — focus peaks <span>10am–1pm</span>. I front-loaded your hardest work there.</div>
+    <div class="brief-stats">
+      <div class="brief-stat">
+        <div class="v">7<small>h</small> 40<small>m</small></div>
+        <div class="l"><span class="pulse" style="background:#34D399"></span>Sleep · deep</div>
+      </div>
+      <div class="brief-stat">
+        <div class="v">Calm</div>
+        <div class="l"><span class="pulse" style="background:#A78BFA"></span>Mood · steady</div>
+      </div>
+      <div class="brief-stat">
+        <div class="v">High</div>
+        <div class="l"><span class="pulse" style="background:#FB7185"></span>Energy · AM</div>
+      </div>
+    </div>
+    <div class="capacity">
+      <div class="cap-top"><span class="t">Predicted focus capacity</span><span class="p">82%</span></div>
+      <div class="cap-track"><div class="cap-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- Next up -->
+  <div class="nextup">
+    <div class="nextup-ic"><i class="fas fa-bolt"></i></div>
+    <div class="nextup-info">
+      <div class="nextup-lbl">Next focus block · in 25 min</div>
+      <div class="nextup-title">AP Bio — Cell Respiration</div>
+      <div class="nextup-meta"><i class="fas fa-stopwatch" style="font-size:10px"></i> 2 × 25 min Pomodoro · peak window</div>
+    </div>
+    <div class="nextup-go"><i class="fas fa-play"></i></div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="section-header">
+    <div class="section-title">Today's Plan</div>
+    <div class="section-link">Full schedule</div>
+  </div>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-rail"><div class="tl-time">10:00</div><div class="tl-ampm">AM</div><div class="tl-line"></div></div>
+      <div class="tl-card tl-focus">
+        <div class="row">
+          <div class="tl-dot"><i class="fas fa-flask"></i></div>
+          <div><div class="tl-name">AP Bio · Cell Respiration</div><div class="tl-sub">Deep focus · hardest task first</div></div>
+          <div class="tl-tag">FOCUS</div>
+        </div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-rail"><div class="tl-time">11:30</div><div class="tl-ampm">AM</div><div class="tl-line"></div></div>
+      <div class="tl-card tl-break">
+        <div class="row">
+          <div class="tl-dot"><i class="fas fa-mug-hot"></i></div>
+          <div><div class="tl-name">Recharge break</div><div class="tl-sub">Walk + water · resets attention</div></div>
+          <div class="tl-tag">REST</div>
+        </div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-rail"><div class="tl-time">12:00</div><div class="tl-ampm">PM</div><div class="tl-line"></div></div>
+      <div class="tl-card tl-review">
+        <div class="row">
+          <div class="tl-dot"><i class="fas fa-rotate"></i></div>
+          <div><div class="tl-name">Spanish · 12 due reviews</div><div class="tl-sub">Spaced recall before they fade</div></div>
+          <div class="tl-tag">RECALL</div>
+        </div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-rail"><div class="tl-time">3:30</div><div class="tl-ampm">PM</div></div>
+      <div class="tl-card tl-focus">
+        <div class="row">
+          <div class="tl-dot" style="background:linear-gradient(135deg,#F59E0B,#B45309) !important"><i class="fas fa-pen-nib"></i></div>
+          <div><div class="tl-name">English essay · outline</div><div class="tl-sub">Lighter task · afternoon dip</div></div>
+          <div class="tl-tag" style="background:#FEF3C7;color:#B45309">DRAFT</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deadlines -->
+  <div class="section-header">
+    <div class="section-title">Upcoming Deadlines</div>
+    <div class="section-link">All</div>
+  </div>
+  <div class="dl-scroll">
+    <div class="dl-card c1">
+      <div class="dl-course">AP Biology</div>
+      <div class="dl-name">Respiration Lab Report</div>
+      <div class="dl-foot"><div class="dl-due">Thu</div><div class="dl-count">2<small>d</small></div></div>
+    </div>
+    <div class="dl-card c2">
+      <div class="dl-course">English Lit</div>
+      <div class="dl-name">Gatsby Essay Draft</div>
+      <div class="dl-foot"><div class="dl-due">Mon</div><div class="dl-count">6<small>d</small></div></div>
+    </div>
+    <div class="dl-card c3">
+      <div class="dl-course">Calculus</div>
+      <div class="dl-name">Problem Set 9</div>
+      <div class="dl-foot"><div class="dl-due">Jun 30</div><div class="dl-count">10<small>d</small></div></div>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <div class="tab-item active"><i class="fas fa-house"></i><span>Today</span></div>
+    <div class="tab-item"><i class="fas fa-calendar-week"></i><span>Schedule</span></div>
+    <div class="tab-item"><button class="tab-focus-btn"><i class="fas fa-bolt"></i></button></div>
+    <div class="tab-item"><i class="fas fa-rotate"></i><span>Recall</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>

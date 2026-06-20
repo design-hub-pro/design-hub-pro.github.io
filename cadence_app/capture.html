@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cadence — Capture</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#F4F3FA; color:#1A1633; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:40px; }
+
+  .dynamic-island { width:120px; height:36px; background:#0A0A0A; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; color:#fff; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  /* Scanner header on dark */
+  .scan-top { background:#15122E; padding-bottom:18px; border-radius:0 0 30px 30px; position:relative; overflow:hidden; }
+  .scan-top::before { content:''; position:absolute; right:-40px; top:20px; width:200px; height:200px; background:radial-gradient(circle, rgba(139,92,246,0.35), transparent 70%); }
+  .stop-head { display:flex; align-items:center; justify-content:space-between; padding:0 28px 14px; position:relative; z-index:2; color:#fff; }
+  .stop-head .back { width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.12); display:flex; align-items:center; justify-content:center; }
+  .stop-head .back i { font-size:15px; }
+  .stop-head .ttl { font-size:15px; font-weight:800; }
+  .stop-head .dots { width:38px; text-align:center; }
+
+  .viewfinder { margin:0 28px; position:relative; border-radius:22px; overflow:hidden; aspect-ratio:1/1.12; }
+  .viewfinder img { width:100%; height:100%; object-fit:cover; }
+  .vf-overlay { position:absolute; inset:0; background:linear-gradient(180deg, rgba(21,18,46,0.15), rgba(21,18,46,0.55)); }
+  .vf-corner { position:absolute; width:34px; height:34px; border:3px solid #A78BFA; }
+  .vf-corner.tl { top:14px; left:14px; border-right:none; border-bottom:none; border-radius:10px 0 0 0; }
+  .vf-corner.tr { top:14px; right:14px; border-left:none; border-bottom:none; border-radius:0 10px 0 0; }
+  .vf-corner.bl { bottom:14px; left:14px; border-right:none; border-top:none; border-radius:0 0 0 10px; }
+  .vf-corner.br { bottom:14px; right:14px; border-left:none; border-top:none; border-radius:0 0 10px 0; }
+  .scan-line { position:absolute; left:14px; right:14px; top:42%; height:3px; background:linear-gradient(90deg,transparent,#A78BFA,transparent); box-shadow:0 0 16px #A78BFA; }
+  .vf-badge { position:absolute; bottom:14px; left:14px; right:14px; display:flex; align-items:center; gap:8px; background:rgba(167,139,250,0.92); backdrop-filter:blur(8px); padding:9px 13px; border-radius:13px; color:#fff; }
+  .vf-badge i { font-size:14px; }
+  .vf-badge b { font-size:12.5px; font-weight:700; }
+
+  .modes { display:flex; gap:8px; justify-content:center; padding:14px 28px 0; position:relative; z-index:2; }
+  .mode { font-size:11px; font-weight:700; color:rgba(255,255,255,0.55); padding:7px 14px; border-radius:20px; }
+  .mode.on { background:rgba(255,255,255,0.16); color:#fff; }
+
+  /* Extracted */
+  .ex-head { padding:22px 28px 12px; display:flex; align-items:center; justify-content:space-between; }
+  .ex-title { font-size:18px; font-weight:800; letter-spacing:-0.3px; }
+  .ex-title span { color:#8B5CF6; }
+  .ex-count { font-size:11px; font-weight:800; color:#6D28D9; background:#EDE9FE; padding:5px 11px; border-radius:20px; }
+
+  .ex-source { margin:0 28px 6px; font-size:11.5px; color:#8B86A8; display:flex; align-items:center; gap:7px; }
+  .ex-source i { color:#8B5CF6; }
+
+  .todos { padding:10px 28px 0; display:flex; flex-direction:column; gap:12px; }
+  .todo { background:#fff; border:1px solid #ECEAF4; border-radius:18px; padding:14px; box-shadow:0 4px 14px rgba(26,22,51,0.04); display:flex; gap:12px; }
+  .todo-check { width:24px; height:24px; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; margin-top:1px; }
+  .todo-check.on { background:linear-gradient(135deg,#8B5CF6,#5B21B6); }
+  .todo-check.on i { color:#fff; font-size:12px; }
+  .todo-check.off { border:2px solid #D9D4EA; }
+  .todo-body { flex:1; }
+  .todo-name { font-size:14px; font-weight:800; letter-spacing:-0.2px; }
+  .todo-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .ttag { font-size:9.5px; font-weight:700; padding:4px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:4px; }
+  .ttag.course { background:#EDE9FE; color:#6D28D9; }
+  .ttag.due { background:#FFE4E0; color:#E11D48; }
+  .ttag.est { background:#F1F0F8; color:#6B6685; }
+  .ttag.split { background:#D1FAE5; color:#047857; }
+
+  .ai-note { margin:16px 28px 0; background:linear-gradient(135deg,#EDE9FE,#F4F3FA); border:1px solid #E0DAF5; border-radius:18px; padding:14px; display:flex; gap:11px; }
+  .ai-note-ic { width:34px; height:34px; border-radius:11px; background:linear-gradient(135deg,#8B5CF6,#5B21B6); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .ai-note-ic i { color:#fff; font-size:14px; }
+  .ai-note p { font-size:11.5px; color:#5A5475; line-height:1.5; }
+  .ai-note p b { color:#1A1633; }
+
+  .add-btn { margin:18px 28px 0; height:54px; border-radius:17px; background:linear-gradient(135deg,#8B5CF6,#5B21B6); color:#fff; display:flex; align-items:center; justify-content:center; gap:9px; font-size:15px; font-weight:800; box-shadow:0 12px 26px rgba(124,58,237,0.4); }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="scan-top">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+    </div>
+    <div class="stop-head">
+      <div class="back"><i class="fas fa-chevron-left"></i></div>
+      <div class="ttl">Capture Note</div>
+      <div class="dots"><i class="fas fa-bolt" style="color:#A78BFA"></i></div>
+    </div>
+
+    <div class="viewfinder">
+      <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=700&q=80">
+      <div class="vf-overlay"></div>
+      <div class="vf-corner tl"></div><div class="vf-corner tr"></div>
+      <div class="vf-corner bl"></div><div class="vf-corner br"></div>
+      <div class="scan-line"></div>
+      <div class="vf-badge"><i class="fas fa-wand-magic-sparkles"></i><b>Reading handout… found 4 assignments</b></div>
+    </div>
+
+    <div class="modes">
+      <div class="mode on">Photo</div>
+      <div class="mode">Syllabus PDF</div>
+      <div class="mode">Type it</div>
+    </div>
+  </div>
+
+  <!-- Extracted -->
+  <div class="ex-head">
+    <div class="ex-title">AI found <span>4 to-dos</span></div>
+    <div class="ex-count">Review &amp; add</div>
+  </div>
+  <div class="ex-source"><i class="fas fa-file-lines"></i> From: "AP Bio — Unit 6 Handout" · Ms. Reyes</div>
+
+  <div class="todos">
+    <div class="todo">
+      <div class="todo-check on"><i class="fas fa-check"></i></div>
+      <div class="todo-body">
+        <div class="todo-name">Read Ch. 9 & annotate (pp. 142–161)</div>
+        <div class="todo-tags">
+          <span class="ttag course"><i class="fas fa-flask"></i> AP Bio</span>
+          <span class="ttag due"><i class="fas fa-calendar"></i> Due Thu</span>
+          <span class="ttag est"><i class="far fa-clock"></i> ~50 min</span>
+        </div>
+      </div>
+    </div>
+    <div class="todo">
+      <div class="todo-check on"><i class="fas fa-check"></i></div>
+      <div class="todo-body">
+        <div class="todo-name">Respiration Lab Report</div>
+        <div class="todo-tags">
+          <span class="ttag course"><i class="fas fa-flask"></i> AP Bio</span>
+          <span class="ttag due"><i class="fas fa-calendar"></i> Due Thu</span>
+          <span class="ttag split"><i class="fas fa-layer-group"></i> Split into 3 sessions</span>
+        </div>
+      </div>
+    </div>
+    <div class="todo">
+      <div class="todo-check on"><i class="fas fa-check"></i></div>
+      <div class="todo-body">
+        <div class="todo-name">Vocab quiz — 15 terms</div>
+        <div class="todo-tags">
+          <span class="ttag course"><i class="fas fa-flask"></i> AP Bio</span>
+          <span class="ttag due"><i class="fas fa-calendar"></i> Fri</span>
+          <span class="ttag est"><i class="fas fa-rotate"></i> Spaced reviews</span>
+        </div>
+      </div>
+    </div>
+    <div class="todo">
+      <div class="todo-check off"></div>
+      <div class="todo-body">
+        <div class="todo-name">Optional: extra-credit diagram</div>
+        <div class="todo-tags">
+          <span class="ttag course"><i class="fas fa-flask"></i> AP Bio</span>
+          <span class="ttag est"><i class="far fa-star"></i> No deadline</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ai-note">
+    <div class="ai-note-ic"><i class="fas fa-brain"></i></div>
+    <p><b>I'll auto-schedule these</b> across your free time before Thursday — hardest items in your morning peak, the lab split into 3 short sessions, and vocab into spaced reviews.</p>
+  </div>
+
+  <div class="add-btn"><i class="fas fa-calendar-plus"></i> Add 3 to my schedule</div>
+</div>
+</body>
+</html>

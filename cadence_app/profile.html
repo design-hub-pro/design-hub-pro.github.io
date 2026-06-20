@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cadence — Profile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#F4F3FA; color:#1A1633; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:112px; }
+
+  .dynamic-island { width:120px; height:36px; background:#0A0A0A; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; color:#fff; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  /* Profile header on dark */
+  .phead { background:linear-gradient(160deg,#2A1E5C,#15122E); padding-bottom:54px; border-radius:0 0 32px 32px; position:relative; overflow:hidden; }
+  .phead::before { content:''; position:absolute; right:-50px; top:0; width:200px; height:200px; background:radial-gradient(circle, rgba(167,139,250,0.4), transparent 70%); }
+  .phead::after { content:''; position:absolute; left:-40px; bottom:0; width:160px; height:160px; background:radial-gradient(circle, rgba(251,113,133,0.25), transparent 70%); }
+  .ph-top { display:flex; justify-content:space-between; padding:0 28px; position:relative; z-index:2; }
+  .ph-top .ic { width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.12); display:flex; align-items:center; justify-content:center; color:#fff; }
+  .ph-top .ic i { font-size:15px; }
+  .ph-user { display:flex; align-items:center; gap:14px; padding:16px 28px 0; position:relative; z-index:2; }
+  .ph-avatar { width:68px; height:68px; border-radius:22px; object-fit:cover; border:2.5px solid rgba(167,139,250,0.7); }
+  .ph-name { font-size:20px; font-weight:800; color:#fff; letter-spacing:-0.4px; }
+  .ph-sub { font-size:12px; color:rgba(255,255,255,0.6); margin-top:3px; }
+  .ph-streak { display:inline-flex; align-items:center; gap:6px; background:rgba(251,113,133,0.2); border:1px solid rgba(251,113,133,0.35); color:#FDA4AF; font-size:11px; font-weight:800; padding:5px 11px; border-radius:20px; margin-top:8px; }
+
+  /* Stat cards floating */
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:11px; margin:-40px 28px 0; position:relative; z-index:10; }
+  .stat { background:#fff; border:1px solid #ECEAF4; border-radius:18px; padding:14px 10px; text-align:center; box-shadow:0 8px 22px rgba(26,22,51,0.06); }
+  .stat .ic { width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; margin:0 auto 9px; }
+  .stat .ic i { font-size:13px; color:#fff; }
+  .stat .v { font-size:22px; font-weight:900; letter-spacing:-0.5px; }
+  .stat .l { font-size:9.5px; color:#8B86A8; font-weight:600; margin-top:2px; }
+
+  .sec { padding:24px 28px 12px; }
+  .sec .t { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+
+  /* Sleep vs focus chart */
+  .insight { margin:0 28px; background:#fff; border:1px solid #ECEAF4; border-radius:22px; padding:18px; box-shadow:0 4px 14px rgba(26,22,51,0.04); }
+  .ins-top { display:flex; justify-content:space-between; align-items:center; }
+  .ins-t { font-size:13.5px; font-weight:800; }
+  .ins-legend { display:flex; gap:12px; }
+  .ins-legend span { font-size:9.5px; font-weight:700; color:#8B86A8; display:flex; align-items:center; gap:5px; }
+  .ins-legend .d { width:8px; height:8px; border-radius:50%; }
+  .chart { margin-top:16px; height:120px; display:flex; align-items:flex-end; gap:10px; }
+  .bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end; }
+  .bars { width:100%; display:flex; gap:4px; align-items:flex-end; height:100px; justify-content:center; }
+  .bar { width:9px; border-radius:5px; }
+  .bar.sleep { background:linear-gradient(180deg,#A78BFA,#6D28D9); }
+  .bar.focus { background:linear-gradient(180deg,#34D399,#059669); }
+  .bar-col .day { font-size:9px; font-weight:700; color:#8B86A8; }
+  .ins-note { margin-top:14px; background:#F4F3FA; border-radius:13px; padding:11px 13px; font-size:11.5px; color:#5A5475; line-height:1.5; display:flex; gap:9px; }
+  .ins-note i { color:#8B5CF6; font-size:13px; margin-top:1px; }
+  .ins-note b { color:#1A1633; }
+
+  /* Badges */
+  .badges { display:flex; gap:12px; padding:0 28px; overflow-x:auto; }
+  .badge { min-width:104px; background:#fff; border:1px solid #ECEAF4; border-radius:18px; padding:16px 12px; text-align:center; box-shadow:0 4px 14px rgba(26,22,51,0.04); }
+  .badge .bic { width:48px; height:48px; border-radius:15px; display:flex; align-items:center; justify-content:center; margin:0 auto 10px; }
+  .badge .bic i { font-size:21px; color:#fff; }
+  .badge .bn { font-size:11.5px; font-weight:800; }
+  .badge .bd { font-size:9.5px; color:#8B86A8; margin-top:2px; }
+  .badge.locked { opacity:0.5; }
+  .badge.locked .bic { background:#E6E3F2 !important; }
+  .badge.locked .bic i { color:#B5AFCB; }
+
+  /* Settings rows */
+  .settings { margin:0 28px; background:#fff; border:1px solid #ECEAF4; border-radius:20px; overflow:hidden; box-shadow:0 4px 14px rgba(26,22,51,0.04); }
+  .srow { display:flex; align-items:center; gap:13px; padding:14px 16px; border-bottom:1px solid #F1F0F8; }
+  .srow:last-child { border-bottom:none; }
+  .srow .si { width:34px; height:34px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .srow .si i { font-size:14px; color:#fff; }
+  .srow .sn { font-size:13.5px; font-weight:700; flex:1; }
+  .srow .sv { font-size:11.5px; color:#8B86A8; }
+  .srow .chev { color:#C9C3DD; font-size:13px; }
+
+  /* Tab bar */
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(255,255,255,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid #ECEAF4; }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:54px; }
+  .tab-item i { font-size:19px; color:#B5AFCB; }
+  .tab-item span { font-size:9.5px; color:#B5AFCB; font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#8B5CF6; }
+  .tab-focus-btn { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#8B5CF6,#5B21B6); display:flex; align-items:center; justify-content:center; margin-top:-18px; box-shadow:0 12px 26px rgba(124,58,237,0.45); }
+  .tab-focus-btn i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="phead">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+    </div>
+    <div class="ph-top">
+      <div class="ic"><i class="fas fa-share-nodes"></i></div>
+      <div class="ic"><i class="fas fa-gear"></i></div>
+    </div>
+    <div class="ph-user">
+      <img class="ph-avatar" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&q=80">
+      <div>
+        <div class="ph-name">Ava Chen</div>
+        <div class="ph-sub">Junior · Lincoln High · 6 classes synced</div>
+        <div class="ph-streak"><i class="fas fa-fire"></i> 18-day focus streak</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="ic" style="background:linear-gradient(135deg,#8B5CF6,#5B21B6)"><i class="fas fa-clock"></i></div>
+      <div class="v">42<span style="font-size:13px">h</span></div>
+      <div class="l">Focus this mo.</div>
+    </div>
+    <div class="stat">
+      <div class="ic" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-brain"></i></div>
+      <div class="v">87%</div>
+      <div class="l">Retention</div>
+    </div>
+    <div class="stat">
+      <div class="ic" style="background:linear-gradient(135deg,#FB7185,#E11D48)"><i class="fas fa-circle-check"></i></div>
+      <div class="v">96%</div>
+      <div class="l">On-time work</div>
+    </div>
+  </div>
+
+  <!-- Sleep vs focus -->
+  <div class="sec"><div class="t">Sleep → Focus</div></div>
+  <div class="insight">
+    <div class="ins-top">
+      <div class="ins-t">Last 7 days</div>
+      <div class="ins-legend">
+        <span><span class="d" style="background:#8B5CF6"></span>Sleep</span>
+        <span><span class="d" style="background:#34D399"></span>Focus</span>
+      </div>
+    </div>
+    <div class="chart">
+      <div class="bar-col"><div class="bars"><div class="bar sleep" style="height:55%"></div><div class="bar focus" style="height:48%"></div></div><div class="day">M</div></div>
+      <div class="bar-col"><div class="bars"><div class="bar sleep" style="height:78%"></div><div class="bar focus" style="height:72%"></div></div><div class="day">T</div></div>
+      <div class="bar-col"><div class="bars"><div class="bar sleep" style="height:40%"></div><div class="bar focus" style="height:35%"></div></div><div class="day">W</div></div>
+      <div class="bar-col"><div class="bars"><div class="bar sleep" style="height:88%"></div><div class="bar focus" style="height:84%"></div></div><div class="day">T</div></div>
+      <div class="bar-col"><div class="bars"><div class="bar sleep" style="height:62%"></div><div class="bar focus" style="height:58%"></div></div><div class="day">F</div></div>
+      <div class="bar-col"><div class="bars"><div class="bar sleep" style="height:92%"></div><div class="bar focus" style="height:90%"></div></div><div class="day">S</div></div>
+      <div class="bar-col"><div class="bars"><div class="bar sleep" style="height:84%"></div><div class="bar focus" style="height:80%"></div></div><div class="day">S</div></div>
+    </div>
+    <div class="ins-note"><i class="fas fa-lightbulb"></i><div>When you sleep <b>7.5h+</b>, your focus output jumps <b>34%</b>. Cadence now protects your bedtime on big-deadline weeks.</div></div>
+  </div>
+
+  <!-- Badges -->
+  <div class="sec"><div class="t">Achievements</div></div>
+  <div class="badges">
+    <div class="badge">
+      <div class="bic" style="background:linear-gradient(135deg,#FB7185,#E11D48)"><i class="fas fa-fire"></i></div>
+      <div class="bn">On Fire</div><div class="bd">18-day streak</div>
+    </div>
+    <div class="badge">
+      <div class="bic" style="background:linear-gradient(135deg,#8B5CF6,#5B21B6)"><i class="fas fa-moon"></i></div>
+      <div class="bn">Well Rested</div><div class="bd">7 nights 7h+</div>
+    </div>
+    <div class="badge">
+      <div class="bic" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-bullseye"></i></div>
+      <div class="bn">Sharp Recall</div><div class="bd">500 reviews</div>
+    </div>
+    <div class="badge locked">
+      <div class="bic"><i class="fas fa-crown"></i></div>
+      <div class="bn">Deadline Boss</div><div class="bd">Locked</div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="sec"><div class="t">Settings</div></div>
+  <div class="settings">
+    <div class="srow">
+      <div class="si" style="background:linear-gradient(135deg,#8B5CF6,#5B21B6)"><i class="fas fa-graduation-cap"></i></div>
+      <div class="sn">My Classes</div><div class="sv">6 synced</div><i class="fas fa-chevron-right chev"></i>
+    </div>
+    <div class="srow">
+      <div class="si" style="background:linear-gradient(135deg,#FB7185,#E11D48)"><i class="fas fa-heart-pulse"></i></div>
+      <div class="sn">Health & Sleep</div><div class="sv">Apple Health</div><i class="fas fa-chevron-right chev"></i>
+    </div>
+    <div class="srow">
+      <div class="si" style="background:linear-gradient(135deg,#0EA5E9,#0369A1)"><i class="fas fa-stopwatch"></i></div>
+      <div class="sn">Pomodoro Settings</div><div class="sv">25 / 5 min</div><i class="fas fa-chevron-right chev"></i>
+    </div>
+    <div class="srow">
+      <div class="si" style="background:linear-gradient(135deg,#34D399,#059669)"><i class="fas fa-bell"></i></div>
+      <div class="sn">Smart Reminders</div><div class="sv">On</div><i class="fas fa-chevron-right chev"></i>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Today</span></div>
+    <div class="tab-item"><i class="fas fa-calendar-week"></i><span>Schedule</span></div>
+    <div class="tab-item"><button class="tab-focus-btn"><i class="fas fa-bolt"></i></button></div>
+    <div class="tab-item"><i class="fas fa-rotate"></i><span>Recall</span></div>
+    <div class="tab-item active"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>

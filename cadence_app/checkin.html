@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cadence — Check-in</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#15122E; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:36px; }
+  .glow { position:absolute; top:-60px; left:-40px; width:240px; height:240px; border-radius:50%; background:radial-gradient(circle, rgba(139,92,246,0.4), transparent 70%); }
+  .glow2 { position:absolute; top:200px; right:-60px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle, rgba(251,113,133,0.25), transparent 70%); }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .head { padding:6px 28px 0; position:relative; z-index:10; display:flex; align-items:center; justify-content:space-between; }
+  .head .x { width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; }
+  .head .x i { font-size:15px; }
+  .head .step { font-size:11px; font-weight:700; color:rgba(255,255,255,0.55); }
+
+  .intro { padding:18px 28px 4px; position:relative; z-index:10; }
+  .intro h1 { font-size:26px; font-weight:900; letter-spacing:-0.8px; line-height:1.15; }
+  .intro h1 span { color:#C4B5FD; }
+  .intro p { font-size:13px; color:rgba(255,255,255,0.55); margin-top:8px; line-height:1.5; }
+
+  .card { margin:18px 28px 0; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:22px; padding:18px; position:relative; z-index:10; }
+  .card-lbl { font-size:11px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; color:rgba(255,255,255,0.5); display:flex; align-items:center; gap:7px; }
+  .card-lbl i { color:#A78BFA; }
+
+  /* Sleep duration */
+  .sleep-val { font-size:36px; font-weight:900; letter-spacing:-1px; margin-top:12px; }
+  .sleep-val small { font-size:16px; font-weight:700; opacity:0.55; }
+  .sleep-meta { font-size:11.5px; color:rgba(255,255,255,0.5); margin-top:2px; }
+  .slider { margin-top:16px; height:8px; background:rgba(255,255,255,0.12); border-radius:6px; position:relative; }
+  .slider-fill { position:absolute; left:0; top:0; bottom:0; width:72%; border-radius:6px; background:linear-gradient(90deg,#A78BFA,#FB7185); }
+  .slider-knob { position:absolute; top:50%; left:72%; transform:translate(-50%,-50%); width:24px; height:24px; border-radius:50%; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.3); }
+  .slider-scale { display:flex; justify-content:space-between; margin-top:9px; }
+  .slider-scale span { font-size:9px; font-weight:600; color:rgba(255,255,255,0.4); }
+
+  /* Quality emojis */
+  .faces { display:flex; gap:9px; margin-top:14px; }
+  .face { flex:1; aspect-ratio:1/1; border-radius:16px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; }
+  .face .e { font-size:22px; }
+  .face .l { font-size:8.5px; font-weight:700; color:rgba(255,255,255,0.55); }
+  .face.sel { background:linear-gradient(135deg,rgba(167,139,250,0.35),rgba(124,58,237,0.25)); border-color:#A78BFA; }
+  .face.sel .l { color:#fff; }
+
+  /* Mood chips */
+  .chips { display:flex; flex-wrap:wrap; gap:9px; margin-top:14px; }
+  .chip { font-size:12px; font-weight:700; padding:9px 14px; border-radius:14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.7); display:flex; align-items:center; gap:7px; }
+  .chip i { font-size:11px; }
+  .chip.sel { background:linear-gradient(135deg,rgba(251,113,133,0.3),rgba(225,29,72,0.2)); border-color:#FB7185; color:#fff; }
+  .chip.sel.calm { background:linear-gradient(135deg,rgba(52,211,153,0.3),rgba(5,150,105,0.2)); border-color:#34D399; }
+
+  /* AI preview */
+  .preview { margin:18px 28px 0; background:linear-gradient(135deg,rgba(167,139,250,0.18),rgba(255,255,255,0.04)); border:1px solid rgba(167,139,250,0.4); border-radius:20px; padding:16px; position:relative; z-index:10; display:flex; gap:12px; }
+  .preview-ic { width:38px; height:38px; border-radius:12px; background:linear-gradient(135deg,#8B5CF6,#5B21B6); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .preview-ic i { font-size:16px; }
+  .preview b { font-size:12.5px; font-weight:800; }
+  .preview p { font-size:11.5px; color:rgba(255,255,255,0.6); line-height:1.5; margin-top:3px; }
+
+  .save { margin:20px 28px 0; height:56px; border-radius:18px; background:linear-gradient(135deg,#A78BFA,#6D28D9); display:flex; align-items:center; justify-content:center; gap:9px; font-size:16px; font-weight:800; box-shadow:0 14px 32px rgba(124,58,237,0.45); position:relative; z-index:10; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="glow"></div>
+  <div class="glow2"></div>
+
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="head">
+    <div class="x"><i class="fas fa-chevron-left"></i></div>
+    <div class="step">Morning check-in</div>
+    <div class="x"><i class="fas fa-moon" style="color:#A78BFA"></i></div>
+  </div>
+
+  <div class="intro">
+    <h1>How did you<br><span>sleep & feel?</span></h1>
+    <p>Takes 15 seconds. Your answers reshape today's plan — better rest means harder tasks land earlier.</p>
+  </div>
+
+  <!-- Sleep duration -->
+  <div class="card">
+    <div class="card-lbl"><i class="fas fa-bed"></i> Hours slept</div>
+    <div class="sleep-val">7<small>h</small> 40<small>m</small></div>
+    <div class="sleep-meta">11:20 PM → 7:00 AM · Apple Health</div>
+    <div class="slider">
+      <div class="slider-fill"></div>
+      <div class="slider-knob"></div>
+    </div>
+    <div class="slider-scale"><span>3h</span><span>5h</span><span>7h</span><span>9h</span><span>11h</span></div>
+  </div>
+
+  <!-- Sleep quality -->
+  <div class="card">
+    <div class="card-lbl"><i class="fas fa-star"></i> Sleep quality</div>
+    <div class="faces">
+      <div class="face"><span class="e">😴</span><span class="l">Rough</span></div>
+      <div class="face"><span class="e">😕</span><span class="l">Light</span></div>
+      <div class="face"><span class="e">🙂</span><span class="l">Okay</span></div>
+      <div class="face sel"><span class="e">😌</span><span class="l">Good</span></div>
+      <div class="face"><span class="e">🤩</span><span class="l">Deep</span></div>
+    </div>
+  </div>
+
+  <!-- Mood -->
+  <div class="card">
+    <div class="card-lbl"><i class="fas fa-heart"></i> How you feel right now</div>
+    <div class="chips">
+      <div class="chip sel calm"><i class="fas fa-leaf"></i> Calm</div>
+      <div class="chip sel"><i class="fas fa-bolt"></i> Energized</div>
+      <div class="chip"><i class="fas fa-cloud"></i> Foggy</div>
+      <div class="chip"><i class="fas fa-fire"></i> Stressed</div>
+      <div class="chip"><i class="fas fa-face-tired"></i> Tired</div>
+      <div class="chip"><i class="fas fa-bullseye"></i> Motivated</div>
+    </div>
+  </div>
+
+  <!-- Preview -->
+  <div class="preview">
+    <div class="preview-ic"><i class="fas fa-wand-magic-sparkles"></i></div>
+    <div>
+      <b>Cadence will adjust your day</b>
+      <p>Solid rest + calm mood → I'll keep your hard AP Bio block at 10 AM and add one extra recall session.</p>
+    </div>
+  </div>
+
+  <div class="save"><i class="fas fa-check"></i> Save & optimize my day</div>
+</div>
+</body>
+</html>

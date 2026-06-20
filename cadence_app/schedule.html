@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cadence — Schedule</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#F4F3FA; color:#1A1633; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:112px; }
+
+  .dynamic-island { width:120px; height:36px; background:#0A0A0A; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .head { padding:8px 28px 6px; display:flex; align-items:center; justify-content:space-between; }
+  .head .t { font-size:24px; font-weight:800; letter-spacing:-0.5px; }
+  .head .opt { display:flex; align-items:center; gap:6px; font-size:11px; font-weight:800; color:#6D28D9; background:#EDE9FE; padding:7px 12px; border-radius:20px; }
+  .head .opt i { font-size:11px; }
+
+  /* Week strip */
+  .week { display:flex; gap:8px; padding:14px 28px 4px; overflow-x:auto; }
+  .day { min-width:46px; text-align:center; padding:11px 0; border-radius:16px; background:#fff; border:1px solid #ECEAF4; }
+  .day .dn { font-size:10px; font-weight:700; color:#8B86A8; }
+  .day .dd { font-size:16px; font-weight:800; margin-top:4px; }
+  .day .load { width:5px; height:5px; border-radius:50%; margin:6px auto 0; }
+  .day.active { background:linear-gradient(150deg,#8B5CF6,#5B21B6); border-color:transparent; }
+  .day.active .dn, .day.active .dd { color:#fff; }
+
+  /* Energy curve banner */
+  .energy { margin:16px 28px 0; background:#15122E; border-radius:22px; padding:16px 18px; color:#fff; position:relative; overflow:hidden; }
+  .energy::before { content:''; position:absolute; right:-30px; top:-30px; width:140px; height:140px; background:radial-gradient(circle, rgba(167,139,250,0.35), transparent 70%); }
+  .energy-top { display:flex; justify-content:space-between; align-items:center; position:relative; z-index:2; }
+  .energy-top .l { font-size:12px; font-weight:800; }
+  .energy-top .r { font-size:10px; font-weight:700; opacity:0.6; }
+  .curve { margin-top:12px; height:54px; position:relative; }
+  .curve svg { width:100%; height:100%; display:block; }
+  .curve-labels { display:flex; justify-content:space-between; margin-top:4px; }
+  .curve-labels span { font-size:8.5px; font-weight:600; opacity:0.5; }
+  .peak-tag { position:absolute; top:-4px; left:30%; font-size:8.5px; font-weight:800; color:#15122E; background:#A78BFA; padding:2px 7px; border-radius:7px; }
+
+  /* Day timeline */
+  .sec { padding:22px 28px 10px; font-size:13px; font-weight:800; color:#8B86A8; letter-spacing:0.3px; text-transform:uppercase; }
+
+  .grid { padding:0 28px; }
+  .slot { display:flex; gap:12px; margin-bottom:4px; }
+  .slot-time { width:42px; flex-shrink:0; font-size:10.5px; font-weight:700; color:#8B86A8; padding-top:2px; text-align:right; }
+  .slot-body { flex:1; padding-bottom:10px; }
+  .block { border-radius:16px; padding:13px 14px; position:relative; overflow:hidden; }
+  .block .bt { display:flex; align-items:center; gap:9px; }
+  .block .bic { width:30px; height:30px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .block .bic i { font-size:13px; color:#fff; }
+  .block .bn { font-size:13px; font-weight:800; letter-spacing:-0.2px; }
+  .block .bs { font-size:10.5px; color:#8B86A8; margin-top:1px; }
+  .block .btag { margin-left:auto; font-size:8.5px; font-weight:800; padding:3px 8px; border-radius:7px; }
+  .block.focus { background:#fff; border:1px solid #ECEAF4; box-shadow:0 4px 14px rgba(26,22,51,0.04); }
+  .block.focus .bic { background:linear-gradient(135deg,#8B5CF6,#5B21B6); }
+  .block.focus .btag { background:#EDE9FE; color:#6D28D9; }
+  .block.peak { border-left:3px solid #A78BFA; }
+  .block.recall { background:#fff; border:1px solid #ECEAF4; box-shadow:0 4px 14px rgba(26,22,51,0.04); }
+  .block.recall .bic { background:linear-gradient(135deg,#34D399,#059669); }
+  .block.recall .btag { background:#D1FAE5; color:#047857; }
+  .block.break { background:#FFF4F2; border:1px dashed #FBCFC9; }
+  .block.break .bic { background:linear-gradient(135deg,#FB7185,#E11D48); }
+  .block.break .btag { background:#FFE4E0; color:#E11D48; }
+  .block.class { background:#F1F0F8; }
+  .block.class .bic { background:#B5AFCB; }
+  .block.class .btag { background:#E6E3F2; color:#6B6685; }
+
+  /* Tab bar */
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(255,255,255,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid #ECEAF4; }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:54px; }
+  .tab-item i { font-size:19px; color:#B5AFCB; }
+  .tab-item span { font-size:9.5px; color:#B5AFCB; font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#8B5CF6; }
+  .tab-focus-btn { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#8B5CF6,#5B21B6); display:flex; align-items:center; justify-content:center; margin-top:-18px; box-shadow:0 12px 26px rgba(124,58,237,0.45); }
+  .tab-focus-btn i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="head">
+    <div class="t">Schedule</div>
+    <div class="opt"><i class="fas fa-wand-magic-sparkles"></i> Auto-optimized</div>
+  </div>
+
+  <div class="week">
+    <div class="day"><div class="dn">MON</div><div class="dd">19</div><div class="load" style="background:#34D399"></div></div>
+    <div class="day active"><div class="dn">TUE</div><div class="dd">20</div><div class="load" style="background:#fff"></div></div>
+    <div class="day"><div class="dn">WED</div><div class="dd">21</div><div class="load" style="background:#F59E0B"></div></div>
+    <div class="day"><div class="dn">THU</div><div class="dd">22</div><div class="load" style="background:#F43F5E"></div></div>
+    <div class="day"><div class="dn">FRI</div><div class="dd">23</div><div class="load" style="background:#F59E0B"></div></div>
+    <div class="day"><div class="dn">SAT</div><div class="dd">24</div><div class="load" style="background:#34D399"></div></div>
+    <div class="day"><div class="dn">SUN</div><div class="dd">25</div><div class="load" style="background:#34D399"></div></div>
+  </div>
+
+  <!-- Energy curve -->
+  <div class="energy">
+    <div class="energy-top">
+      <div class="l"><i class="fas fa-bolt" style="color:#A78BFA"></i> Your focus curve · today</div>
+      <div class="r">based on sleep + mood</div>
+    </div>
+    <div class="curve">
+      <span class="peak-tag">PEAK</span>
+      <svg viewBox="0 0 300 54" preserveAspectRatio="none">
+        <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#A78BFA" stop-opacity="0.5"/><stop offset="100%" stop-color="#A78BFA" stop-opacity="0"/>
+        </linearGradient></defs>
+        <path d="M0,40 C40,38 60,12 100,10 C140,8 150,20 180,28 C210,36 230,22 260,18 C280,15 290,30 300,34 L300,54 L0,54 Z" fill="url(#g)"/>
+        <path d="M0,40 C40,38 60,12 100,10 C140,8 150,20 180,28 C210,36 230,22 260,18 C280,15 290,30 300,34" fill="none" stroke="#C4B5FD" stroke-width="2.5"/>
+      </svg>
+    </div>
+    <div class="curve-labels"><span>8AM</span><span>11AM</span><span>2PM</span><span>5PM</span><span>8PM</span></div>
+  </div>
+
+  <div class="sec">Tuesday · 4 focus blocks</div>
+  <div class="grid">
+    <div class="slot">
+      <div class="slot-time">10:00</div>
+      <div class="slot-body">
+        <div class="block focus peak">
+          <div class="bt"><div class="bic"><i class="fas fa-flask"></i></div>
+            <div><div class="bn">AP Bio · Cell Respiration</div><div class="bs">2 × 25 min · hardest first</div></div>
+            <div class="btag">PEAK</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slot">
+      <div class="slot-time">11:30</div>
+      <div class="slot-body">
+        <div class="block break">
+          <div class="bt"><div class="bic"><i class="fas fa-mug-hot"></i></div>
+            <div><div class="bn">Recharge break</div><div class="bs">Walk · resets attention</div></div>
+            <div class="btag">REST</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slot">
+      <div class="slot-time">12:00</div>
+      <div class="slot-body">
+        <div class="block recall">
+          <div class="bt"><div class="bic"><i class="fas fa-rotate"></i></div>
+            <div><div class="bn">Spanish · 12 reviews</div><div class="bs">Spaced recall · due today</div></div>
+            <div class="btag">RECALL</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slot">
+      <div class="slot-time">1:30</div>
+      <div class="slot-body">
+        <div class="block class">
+          <div class="bt"><div class="bic"><i class="fas fa-chalkboard-user"></i></div>
+            <div><div class="bn">Calculus · Period 5</div><div class="bs">Room 214 · synced from class</div></div>
+            <div class="btag">CLASS</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slot">
+      <div class="slot-time">3:30</div>
+      <div class="slot-body">
+        <div class="block focus">
+          <div class="bt"><div class="bic" style="background:linear-gradient(135deg,#F59E0B,#B45309)"><i class="fas fa-pen-nib"></i></div>
+            <div><div class="bn">English essay · outline</div><div class="bs">Lighter task · afternoon dip</div></div>
+            <div class="btag" style="background:#FEF3C7;color:#B45309">DRAFT</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Today</span></div>
+    <div class="tab-item active"><i class="fas fa-calendar-week"></i><span>Schedule</span></div>
+    <div class="tab-item"><button class="tab-focus-btn"><i class="fas fa-bolt"></i></button></div>
+    <div class="tab-item"><i class="fas fa-rotate"></i><span>Recall</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Profile</span></div>
+  </div>
+</div>
+</body>
+</html>
