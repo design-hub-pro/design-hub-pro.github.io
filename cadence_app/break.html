@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cadence — Break</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; background:#1B0F26; color:#fff; padding-bottom:36px; }
+  .glow { position:absolute; top:-40px; right:-60px; width:280px; height:280px; border-radius:50%; background:radial-gradient(circle, rgba(251,113,133,0.4), transparent 70%); }
+  .glow2 { position:absolute; top:260px; left:-70px; width:240px; height:240px; border-radius:50%; background:radial-gradient(circle, rgba(167,139,250,0.32), transparent 70%); }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .head { padding:6px 28px 0; position:relative; z-index:10; display:flex; align-items:center; justify-content:space-between; }
+  .head .x { width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; }
+  .head .x i { font-size:15px; }
+  .head .chip { font-size:11px; font-weight:800; background:rgba(251,113,133,0.18); border:1px solid rgba(251,113,133,0.3); color:#FDA4AF; padding:7px 14px; border-radius:20px; display:flex; align-items:center; gap:7px; }
+
+  .intro { padding:18px 28px 0; position:relative; z-index:10; }
+  .intro .lbl { font-size:11px; font-weight:700; color:rgba(255,255,255,0.5); letter-spacing:0.6px; text-transform:uppercase; }
+  .intro h1 { font-size:28px; font-weight:900; letter-spacing:-0.8px; line-height:1.12; margin-top:6px; }
+  .intro h1 span { background:linear-gradient(120deg,#FDA4AF,#C4B5FD); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .break-timer { font-size:13px; color:rgba(255,255,255,0.55); margin-top:8px; display:flex; align-items:center; gap:7px; }
+  .break-timer b { color:#FDA4AF; font-weight:800; }
+
+  /* Now playing */
+  .np { margin:20px 28px 0; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:24px; padding:16px; position:relative; z-index:10; }
+  .np-top { display:flex; align-items:center; gap:14px; }
+  .np-art { width:64px; height:64px; border-radius:16px; object-fit:cover; flex-shrink:0; box-shadow:0 8px 20px rgba(0,0,0,0.4); }
+  .np-info { flex:1; }
+  .np-tag { font-size:9.5px; font-weight:800; color:#FDA4AF; letter-spacing:0.5px; text-transform:uppercase; }
+  .np-title { font-size:15px; font-weight:800; margin-top:3px; letter-spacing:-0.2px; }
+  .np-artist { font-size:11.5px; color:rgba(255,255,255,0.5); margin-top:1px; }
+  .np-fav { width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; }
+  .np-fav i { font-size:14px; color:#FDA4AF; }
+  /* waveform */
+  .wave { display:flex; align-items:center; gap:3px; height:34px; margin-top:16px; }
+  .wave span { flex:1; border-radius:3px; background:linear-gradient(180deg,#FDA4AF,#A78BFA); }
+  .np-controls { display:flex; align-items:center; justify-content:center; gap:26px; margin-top:14px; }
+  .np-controls .c { font-size:18px; color:rgba(255,255,255,0.8); }
+  .np-play { width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#FB7185,#E11D48); display:flex; align-items:center; justify-content:center; box-shadow:0 12px 28px rgba(225,29,72,0.45); }
+  .np-play i { font-size:20px; color:#fff; }
+
+  /* Sing it out */
+  .sing { margin:18px 28px 0; border-radius:24px; padding:18px; position:relative; z-index:10; overflow:hidden; background:linear-gradient(140deg,#7C3AED,#5B21B6); }
+  .sing::before { content:''; position:absolute; right:-30px; bottom:-30px; width:140px; height:140px; background:radial-gradient(circle, rgba(253,164,175,0.4), transparent 70%); }
+  .sing-top { display:flex; align-items:center; gap:10px; position:relative; z-index:2; }
+  .sing-ic { width:40px; height:40px; border-radius:13px; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; }
+  .sing-ic i { font-size:18px; }
+  .sing-top b { font-size:15px; font-weight:800; }
+  .sing-top .s { font-size:11px; color:rgba(255,255,255,0.7); margin-top:1px; }
+  .sing-live { margin-left:auto; font-size:9.5px; font-weight:800; background:rgba(255,255,255,0.2); padding:4px 9px; border-radius:8px; display:flex; align-items:center; gap:5px; }
+  .sing-live .d { width:6px; height:6px; border-radius:50%; background:#34D399; }
+  .lyrics { margin-top:16px; position:relative; z-index:2; }
+  .lyrics .line { font-size:13px; color:rgba(255,255,255,0.45); margin-bottom:7px; font-weight:600; }
+  .lyrics .line.now { font-size:17px; color:#fff; font-weight:800; letter-spacing:-0.3px; }
+  .mic { margin-top:16px; display:flex; align-items:center; gap:12px; position:relative; z-index:2; }
+  .mic-btn { width:48px; height:48px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .mic-btn i { font-size:18px; color:#E11D48; }
+  .mic-wave { flex:1; display:flex; align-items:center; gap:2.5px; height:30px; }
+  .mic-wave span { flex:1; border-radius:2px; background:rgba(255,255,255,0.85); }
+  .mic-score { font-size:11px; font-weight:800; }
+  .mic-score b { font-size:16px; }
+
+  /* Mood playlists */
+  .sec { padding:24px 28px 12px; position:relative; z-index:10; display:flex; justify-content:space-between; align-items:center; }
+  .sec .t { font-size:16px; font-weight:800; letter-spacing:-0.3px; }
+  .sec .l { font-size:11.5px; color:#C4B5FD; font-weight:700; }
+  .pl-scroll { display:flex; gap:13px; padding:0 28px; overflow-x:auto; position:relative; z-index:10; }
+  .pl { min-width:150px; border-radius:20px; overflow:hidden; position:relative; }
+  .pl img { width:100%; height:170px; object-fit:cover; }
+  .pl-ov { position:absolute; inset:0; background:linear-gradient(180deg, transparent 30%, rgba(27,15,38,0.9)); }
+  .pl-body { position:absolute; left:13px; right:13px; bottom:12px; }
+  .pl-name { font-size:13.5px; font-weight:800; }
+  .pl-meta { font-size:10px; color:rgba(255,255,255,0.6); margin-top:2px; display:flex; align-items:center; gap:5px; }
+  .pl-badge { position:absolute; top:11px; left:11px; font-size:9px; font-weight:800; padding:4px 9px; border-radius:8px; backdrop-filter:blur(6px); }
+  .pl-play { position:absolute; top:11px; right:11px; width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.92); display:flex; align-items:center; justify-content:center; }
+  .pl-play i { font-size:11px; color:#1B0F26; }
+
+  /* Why it works */
+  .why { margin:20px 28px 0; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:18px; padding:14px; display:flex; gap:11px; position:relative; z-index:10; }
+  .why-ic { width:36px; height:36px; border-radius:12px; background:linear-gradient(135deg,#FB7185,#E11D48); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .why-ic i { font-size:15px; }
+  .why p { font-size:11.5px; color:rgba(255,255,255,0.62); line-height:1.5; }
+  .why p b { color:#fff; }
+
+  .resume { margin:18px 28px 0; height:54px; border-radius:17px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.16); display:flex; align-items:center; justify-content:center; gap:9px; font-size:14.5px; font-weight:800; position:relative; z-index:10; }
+  .resume i { color:#FDA4AF; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="glow"></div>
+  <div class="glow2"></div>
+
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="head">
+    <div class="x"><i class="fas fa-chevron-down"></i></div>
+    <div class="chip"><i class="fas fa-mug-hot"></i> Recharge break</div>
+    <div class="x"><i class="fas fa-ellipsis"></i></div>
+  </div>
+
+  <div class="intro">
+    <div class="lbl">Between Pomodoros</div>
+    <h1>Reset with a<br><span>song.</span></h1>
+    <div class="break-timer"><i class="fas fa-hourglass-half" style="font-size:11px"></i> Break ends in <b>3:48</b> · then back to AP Bio</div>
+  </div>
+
+  <!-- Now playing -->
+  <div class="np">
+    <div class="np-top">
+      <img class="np-art" src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80">
+      <div class="np-info">
+        <div class="np-tag">Now playing · Lofi reset</div>
+        <div class="np-title">Soft Static</div>
+        <div class="np-artist">Mellow Hours</div>
+      </div>
+      <div class="np-fav"><i class="fas fa-heart"></i></div>
+    </div>
+    <div class="wave">
+      <span style="height:30%"></span><span style="height:55%"></span><span style="height:80%"></span><span style="height:45%"></span><span style="height:95%"></span><span style="height:60%"></span><span style="height:38%"></span><span style="height:72%"></span><span style="height:50%"></span><span style="height:88%"></span><span style="height:42%"></span><span style="height:66%"></span><span style="height:30%"></span><span style="height:78%"></span><span style="height:52%"></span><span style="height:90%"></span><span style="height:40%"></span><span style="height:62%"></span><span style="height:34%"></span><span style="height:70%"></span>
+    </div>
+    <div class="np-controls">
+      <i class="fas fa-backward-step c"></i>
+      <div class="np-play"><i class="fas fa-pause"></i></div>
+      <i class="fas fa-forward-step c"></i>
+    </div>
+  </div>
+
+  <!-- Sing it out -->
+  <div class="sing">
+    <div class="sing-top">
+      <div class="sing-ic"><i class="fas fa-microphone-lines"></i></div>
+      <div>
+        <b>Sing it out</b>
+        <div class="s">Karaoke mode · belt one out to recharge</div>
+      </div>
+      <div class="sing-live"><span class="d"></span>LIVE</div>
+    </div>
+    <div class="lyrics">
+      <div class="line">I've been keeping all my focus in</div>
+      <div class="line now">♪ so let it go, let it breathe again ♪</div>
+      <div class="line">three more minutes, then we're back...</div>
+    </div>
+    <div class="mic">
+      <div class="mic-btn"><i class="fas fa-microphone"></i></div>
+      <div class="mic-wave">
+        <span style="height:40%"></span><span style="height:70%"></span><span style="height:100%"></span><span style="height:55%"></span><span style="height:85%"></span><span style="height:35%"></span><span style="height:90%"></span><span style="height:60%"></span><span style="height:45%"></span><span style="height:78%"></span><span style="height:50%"></span><span style="height:95%"></span><span style="height:40%"></span><span style="height:68%"></span>
+      </div>
+      <div class="mic-score">Pitch<br><b>92%</b></div>
+    </div>
+  </div>
+
+  <!-- Mood playlists -->
+  <div class="sec"><div class="t">Matched to your mood</div><div class="l">All</div></div>
+  <div class="pl-scroll">
+    <div class="pl">
+      <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80">
+      <div class="pl-ov"></div>
+      <div class="pl-badge" style="background:rgba(52,211,153,0.85);color:#04231a">CALM</div>
+      <div class="pl-play"><i class="fas fa-play"></i></div>
+      <div class="pl-body"><div class="pl-name">Lofi Reset</div><div class="pl-meta"><i class="fas fa-music" style="font-size:8px"></i> 5 min · instrumental</div></div>
+    </div>
+    <div class="pl">
+      <img src="https://images.unsplash.com/photo-1516223725307-6f76b9ec8742?w=400&q=80">
+      <div class="pl-ov"></div>
+      <div class="pl-badge" style="background:rgba(251,113,133,0.85);color:#fff">SING</div>
+      <div class="pl-play"><i class="fas fa-play"></i></div>
+      <div class="pl-body"><div class="pl-name">Belt It Out</div><div class="pl-meta"><i class="fas fa-microphone" style="font-size:8px"></i> Karaoke hits</div></div>
+    </div>
+    <div class="pl">
+      <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=400&q=80">
+      <div class="pl-ov"></div>
+      <div class="pl-badge" style="background:rgba(167,139,250,0.85);color:#1a0f2e">ENERGY</div>
+      <div class="pl-play"><i class="fas fa-play"></i></div>
+      <div class="pl-body"><div class="pl-name">Pick-Me-Up</div><div class="pl-meta"><i class="fas fa-bolt" style="font-size:8px"></i> 5 min · upbeat</div></div>
+    </div>
+  </div>
+
+  <!-- Why it works -->
+  <div class="why">
+    <div class="why-ic"><i class="fas fa-brain"></i></div>
+    <p><b>Singing lowers cortisol and resets attention.</b> A short music break between Pomodoros helps your brain consolidate what you just studied — you'll come back sharper.</p>
+  </div>
+
+  <div class="resume"><i class="fas fa-play"></i> Skip break · back to focus</div>
+</div>
+</body>
+</html>
