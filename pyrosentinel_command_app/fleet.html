@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sentinel Command — Fleet</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#080B10; color:#E8EDF2; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:108px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .head { padding:4px 28px 14px; display:flex; justify-content:space-between; align-items:center; }
+  .head .a { font-size:11px; color:#8A95A3; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; }
+  .head .b { font-size:24px; font-weight:900; letter-spacing:-0.6px; margin-top:2px; }
+  .add { width:42px; height:42px; border-radius:13px; background:#141A22; border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; }
+  .add i { color:#FB923C; font-size:16px; }
+
+  /* summary */
+  .summary { display:flex; gap:11px; padding:0 28px; }
+  .sm { flex:1; background:#121821; border:1px solid rgba(255,255,255,0.07); border-radius:17px; padding:14px; }
+  .sm .v { font-size:24px; font-weight:900; letter-spacing:-0.6px; }
+  .sm .l { font-size:9.5px; color:#8A95A3; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; margin-top:4px; }
+
+  .sec-head { padding:22px 28px 12px; }
+  .sec-title { font-size:16px; font-weight:800; letter-spacing:-0.3px; }
+
+  /* drone card */
+  .drone { margin:0 28px 14px; background:#121821; border:1px solid rgba(255,255,255,0.07); border-radius:22px; overflow:hidden; }
+  .dr-top { display:flex; align-items:center; gap:13px; padding:16px; }
+  .dr-img { width:58px; height:58px; border-radius:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .dr-img i { font-size:24px; color:#fff; }
+  .dr-info { flex:1; }
+  .dr-name { font-size:16px; font-weight:900; letter-spacing:-0.3px; }
+  .dr-role { font-size:11px; color:#8A95A3; font-weight:600; margin-top:2px; }
+  .dr-state { font-size:10px; font-weight:800; padding:6px 11px; border-radius:9px; display:flex; align-items:center; gap:6px; }
+  .dr-state .d { width:6px; height:6px; border-radius:50%; }
+
+  .dr-stats { display:flex; padding:0 16px 16px; gap:0; }
+  .ds { flex:1; text-align:center; position:relative; }
+  .ds:not(:last-child)::after { content:''; position:absolute; right:0; top:6px; bottom:6px; width:1px; background:rgba(255,255,255,0.07); }
+  .ds .v { font-size:15px; font-weight:900; letter-spacing:-0.3px; }
+  .ds .v.green { color:#4ADE80; } .ds .v.amber { color:#FB923C; } .ds .v.blue { color:#38BDF8; }
+  .ds .l { font-size:8.5px; color:#7C8794; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; margin-top:3px; }
+
+  .dr-bar { padding:0 16px 16px; }
+  .bar-top { display:flex; justify-content:space-between; font-size:10px; font-weight:700; color:#8A95A3; margin-bottom:6px; }
+  .bar-track { height:7px; background:rgba(255,255,255,0.08); border-radius:5px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:5px; }
+
+  .dr-actions { display:flex; border-top:1px solid rgba(255,255,255,0.06); }
+  .da { flex:1; padding:13px; text-align:center; font-size:12px; font-weight:700; color:#C7D0DA; }
+  .da:not(:last-child) { border-right:1px solid rgba(255,255,255,0.06); }
+  .da i { margin-right:6px; }
+  .da.primary { color:#FB923C; }
+
+  /* charging drone */
+  .charge { margin:0 28px; background:#101620; border:1px dashed rgba(255,255,255,0.12); border-radius:18px; padding:14px 16px; display:flex; align-items:center; gap:13px; }
+  .charge-ic { width:46px; height:46px; border-radius:14px; background:rgba(56,189,248,0.12); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .charge-ic i { font-size:18px; color:#38BDF8; }
+  .charge-info { flex:1; }
+  .charge-name { font-size:14px; font-weight:800; }
+  .charge-meta { font-size:11px; color:#8A95A3; margin-top:2px; }
+  .charge-pct { font-size:15px; font-weight:900; color:#38BDF8; }
+
+  /* Tab bar */
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(11,15,20,0.96); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.07); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:52px; }
+  .tab-item i { font-size:18px; color:#5C6675; }
+  .tab-item span { font-size:9.5px; color:#5C6675; font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#FB923C; }
+  .tab-fire { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#FB923C,#EA580C); display:flex; align-items:center; justify-content:center; margin-top:-16px; box-shadow:0 12px 26px rgba(234,88,12,0.5); }
+  .tab-fire i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="head">
+    <div>
+      <div class="a">3 drones · 2 deployed</div>
+      <div class="b">Drone Fleet</div>
+    </div>
+    <div class="add"><i class="fas fa-plus"></i></div>
+  </div>
+
+  <!-- summary -->
+  <div class="summary">
+    <div class="sm"><div class="v" style="color:#4ADE80">2</div><div class="l">In Air</div></div>
+    <div class="sm"><div class="v" style="color:#38BDF8">1</div><div class="l">Charging</div></div>
+    <div class="sm"><div class="v" style="color:#FB923C">6</div><div class="l">Balls Left</div></div>
+  </div>
+
+  <div class="sec-head"><div class="sec-title">Active Drones</div></div>
+
+  <!-- Scout -->
+  <div class="drone">
+    <div class="dr-top">
+      <div class="dr-img" style="background:linear-gradient(135deg,#38BDF8,#0284C7)"><i class="fas fa-eye"></i></div>
+      <div class="dr-info">
+        <div class="dr-name">Scout-01</div>
+        <div class="dr-role">Monitoring · thermal + 4K camera</div>
+      </div>
+      <div class="dr-state" style="background:rgba(74,222,128,0.15);color:#4ADE80"><span class="d" style="background:#4ADE80"></span> TRACKING</div>
+    </div>
+    <div class="dr-stats">
+      <div class="ds"><div class="v blue">320m</div><div class="l">Altitude</div></div>
+      <div class="ds"><div class="v">18kph</div><div class="l">Speed</div></div>
+      <div class="ds"><div class="v green">98%</div><div class="l">Signal</div></div>
+      <div class="ds"><div class="v">22m</div><div class="l">Flight</div></div>
+    </div>
+    <div class="dr-bar">
+      <div class="bar-top"><span>Battery · ~26 min left</span><span style="color:#4ADE80">87%</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:87%;background:linear-gradient(90deg,#22C55E,#4ADE80)"></div></div>
+    </div>
+    <div class="dr-actions">
+      <div class="da primary"><i class="fas fa-video"></i>Live Feed</div>
+      <div class="da"><i class="fas fa-location-arrow"></i>Reposition</div>
+      <div class="da"><i class="fas fa-house"></i>Return</div>
+    </div>
+  </div>
+
+  <!-- Suppressor -->
+  <div class="drone">
+    <div class="dr-top">
+      <div class="dr-img" style="background:linear-gradient(135deg,#FB923C,#EA580C)"><i class="fas fa-fire"></i></div>
+      <div class="dr-info">
+        <div class="dr-name">Suppressor-02</div>
+        <div class="dr-role">Suppression · fire-ball dropper</div>
+      </div>
+      <div class="dr-state" style="background:rgba(251,146,60,0.15);color:#FB923C"><span class="d" style="background:#FB923C"></span> ARMED</div>
+    </div>
+    <div class="dr-stats">
+      <div class="ds"><div class="v amber">6/8</div><div class="l">Fire Balls</div></div>
+      <div class="ds"><div class="v">38m</div><div class="l">To Target</div></div>
+      <div class="ds"><div class="v green">95%</div><div class="l">Signal</div></div>
+      <div class="ds"><div class="v">14m</div><div class="l">Flight</div></div>
+    </div>
+    <div class="dr-bar">
+      <div class="bar-top"><span>Battery · ~18 min left</span><span style="color:#FBBF24">71%</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:71%;background:linear-gradient(90deg,#F59E0B,#FBBF24)"></div></div>
+    </div>
+    <div class="dr-actions">
+      <div class="da primary"><i class="fas fa-fire"></i>Suppress</div>
+      <div class="da"><i class="fas fa-crosshairs"></i>Retarget</div>
+      <div class="da"><i class="fas fa-house"></i>Return</div>
+    </div>
+  </div>
+
+  <!-- charging -->
+  <div class="sec-head" style="padding-top:6px"><div class="sec-title">Standby</div></div>
+  <div class="charge">
+    <div class="charge-ic"><i class="fas fa-bolt"></i></div>
+    <div class="charge-info">
+      <div class="charge-name">Suppressor-03</div>
+      <div class="charge-meta">Charging at base · ready in 12 min</div>
+    </div>
+    <div class="charge-pct">64%</div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-gauge-high"></i><span>Command</span></div>
+    <div class="tab-item"><i class="fas fa-video"></i><span>Feed</span></div>
+    <div class="tab-item"><div class="tab-fire"><i class="fas fa-fire"></i></div></div>
+    <div class="tab-item"><i class="fas fa-map-location-dot"></i><span>Map</span></div>
+    <div class="tab-item active"><i class="fas fa-drone"></i><span>Fleet</span></div>
+  </div>
+</div>
+</body>
+</html>

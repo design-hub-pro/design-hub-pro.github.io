@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sentinel Command — Evacuation</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#080F0C; color:#E8EDF2; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:108px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .head { padding:4px 28px 14px; }
+  .head .a { font-size:11px; color:#4ADE80; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; display:flex; align-items:center; gap:7px; }
+  .head .b { font-size:24px; font-weight:900; letter-spacing:-0.6px; margin-top:4px; }
+
+  /* status hero */
+  .hero { margin:0 28px; background:linear-gradient(135deg,#0E2419,#0C1A14); border:1px solid rgba(74,222,128,0.22); border-radius:24px; padding:20px; position:relative; overflow:hidden; }
+  .hero::before { content:''; position:absolute; right:-50px; top:-50px; width:180px; height:180px; background:radial-gradient(circle, rgba(74,222,128,0.18), transparent 70%); }
+  .hero-top { display:flex; align-items:center; gap:9px; position:relative; z-index:2; }
+  .hero-chip { font-size:10px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; background:rgba(74,222,128,0.16); color:#4ADE80; padding:6px 11px; border-radius:9px; }
+  .hero-headline { font-size:17px; font-weight:800; line-height:1.4; margin-top:14px; position:relative; z-index:2; }
+  .hero-headline span { color:#4ADE80; }
+  .hero-grid { display:flex; gap:11px; margin-top:18px; position:relative; z-index:2; }
+  .hg { flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:15px; padding:13px; }
+  .hg .v { font-size:26px; font-weight:900; letter-spacing:-0.8px; line-height:1; }
+  .hg .l { font-size:9.5px; color:#9AA5B1; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; margin-top:6px; }
+
+  .sec-head { padding:24px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .sec-title { font-size:16px; font-weight:800; letter-spacing:-0.3px; }
+  .sec-link { font-size:12px; color:#4ADE80; font-weight:700; }
+
+  /* zones */
+  .zones { padding:0 28px; display:flex; flex-direction:column; gap:11px; }
+  .zone { display:flex; align-items:center; gap:13px; background:#101A15; border:1px solid rgba(255,255,255,0.06); border-radius:17px; padding:14px; }
+  .zone-ic { width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .zone-ic i { font-size:17px; color:#fff; }
+  .zone-info { flex:1; }
+  .zone-name { font-size:14px; font-weight:800; }
+  .zone-meta { font-size:11px; color:#8A95A3; font-weight:600; margin-top:3px; display:flex; align-items:center; gap:6px; }
+  .zone-prog { width:64px; }
+  .zone-pct { font-size:13px; font-weight:900; text-align:right; }
+  .zone-track { height:5px; background:rgba(255,255,255,0.1); border-radius:4px; margin-top:5px; overflow:hidden; }
+  .zone-fill { height:100%; border-radius:4px; }
+  .zone-stat { font-size:9px; font-weight:800; padding:4px 8px; border-radius:7px; }
+
+  /* broadcast */
+  .broadcast { margin:8px 28px 0; background:linear-gradient(135deg,#13201A,#101820); border:1px solid rgba(56,189,248,0.25); border-radius:20px; padding:16px; }
+  .bc-top { display:flex; align-items:center; gap:12px; }
+  .bc-ic { width:48px; height:48px; border-radius:15px; background:linear-gradient(135deg,#38BDF8,#0284C7); display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative; }
+  .bc-ic i { font-size:20px; color:#fff; }
+  .bc-ring { position:absolute; inset:-5px; border-radius:18px; border:2px solid #38BDF8; opacity:0.5; animation:expand 1.8s infinite; }
+  @keyframes expand { 0%{transform:scale(0.85);opacity:0.6;} 100%{transform:scale(1.25);opacity:0;} }
+  .bc-info { flex:1; }
+  .bc-lbl { font-size:10px; font-weight:800; color:#38BDF8; letter-spacing:0.4px; text-transform:uppercase; }
+  .bc-title { font-size:14px; font-weight:800; margin-top:3px; }
+  .bc-sub { font-size:11px; color:#8A95A3; margin-top:2px; }
+  .bc-toggle { width:50px; height:30px; border-radius:16px; background:#38BDF8; position:relative; flex-shrink:0; }
+  .bc-toggle::after { content:''; position:absolute; top:3px; right:3px; width:24px; height:24px; border-radius:50%; background:#fff; }
+
+  .btns { display:flex; gap:11px; padding:18px 28px 0; }
+  .btn { flex:1; height:52px; border-radius:16px; display:flex; align-items:center; justify-content:center; gap:9px; font-size:13.5px; font-weight:800; }
+  .btn.green { background:linear-gradient(135deg,#22C55E,#16A34A); box-shadow:0 10px 24px rgba(22,163,74,0.35); }
+  .btn.outline { background:#101A15; border:1px solid rgba(255,255,255,0.1); color:#C7D0DA; }
+
+  /* Tab bar */
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(11,15,20,0.96); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.07); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:52px; }
+  .tab-item i { font-size:18px; color:#5C6675; }
+  .tab-item span { font-size:9.5px; color:#5C6675; font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#FB923C; }
+  .tab-fire { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#FB923C,#EA580C); display:flex; align-items:center; justify-content:center; margin-top:-16px; box-shadow:0 12px 26px rgba(234,88,12,0.5); }
+  .tab-fire i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="head">
+    <div class="a"><i class="fas fa-person-running"></i> Evacuation Support</div>
+    <div class="b">Get Everyone Safe</div>
+  </div>
+
+  <!-- hero -->
+  <div class="hero">
+    <div class="hero-top"><span class="hero-chip">Scout-01 Spotting</span></div>
+    <div class="hero-headline">Scout detected <span>42 people</span> across 3 zones — <span>2 routes</span> open and broadcasting.</div>
+    <div class="hero-grid">
+      <div class="hg"><div class="v" style="color:#4ADE80">28</div><div class="l">Evacuated</div></div>
+      <div class="hg"><div class="v" style="color:#FBBF24">14</div><div class="l">In Transit</div></div>
+      <div class="hg"><div class="v" style="color:#F87171">0</div><div class="l">Stranded</div></div>
+    </div>
+  </div>
+
+  <!-- zones -->
+  <div class="sec-head">
+    <div class="sec-title">Evacuation Zones</div>
+    <div class="sec-link">Map view</div>
+  </div>
+  <div class="zones">
+    <div class="zone">
+      <div class="zone-ic" style="background:linear-gradient(135deg,#22C55E,#16A34A)"><i class="fas fa-house-circle-check"></i></div>
+      <div class="zone-info">
+        <div class="zone-name">Pine Hollow</div>
+        <div class="zone-meta"><span class="zone-stat" style="background:rgba(74,222,128,0.15);color:#4ADE80">CLEAR</span> 18 of 18 out</div>
+      </div>
+      <div class="zone-prog">
+        <div class="zone-pct" style="color:#4ADE80">100%</div>
+        <div class="zone-track"><div class="zone-fill" style="width:100%;background:#22C55E"></div></div>
+      </div>
+    </div>
+    <div class="zone">
+      <div class="zone-ic" style="background:linear-gradient(135deg,#FBBF24,#D97706)"><i class="fas fa-person-walking-arrow-right"></i></div>
+      <div class="zone-info">
+        <div class="zone-name">Cedar Ridge</div>
+        <div class="zone-meta"><span class="zone-stat" style="background:rgba(251,191,36,0.15);color:#FBBF24">ACTIVE</span> 10 of 16 out</div>
+      </div>
+      <div class="zone-prog">
+        <div class="zone-pct" style="color:#FBBF24">62%</div>
+        <div class="zone-track"><div class="zone-fill" style="width:62%;background:#FBBF24"></div></div>
+      </div>
+    </div>
+    <div class="zone">
+      <div class="zone-ic" style="background:linear-gradient(135deg,#F87171,#DC2626)"><i class="fas fa-triangle-exclamation"></i></div>
+      <div class="zone-info">
+        <div class="zone-name">Lakeview Camp</div>
+        <div class="zone-meta"><span class="zone-stat" style="background:rgba(248,113,113,0.15);color:#F87171">URGENT</span> 0 of 8 out</div>
+      </div>
+      <div class="zone-prog">
+        <div class="zone-pct" style="color:#F87171">0%</div>
+        <div class="zone-track"><div class="zone-fill" style="width:5%;background:#F87171"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- broadcast -->
+  <div class="sec-head"><div class="sec-title">Scout Broadcast</div></div>
+  <div class="broadcast">
+    <div class="bc-top">
+      <div class="bc-ic"><span class="bc-ring"></span><i class="fas fa-bullhorn"></i></div>
+      <div class="bc-info">
+        <div class="bc-lbl">Loudspeaker · ON AIR</div>
+        <div class="bc-title">"Evacuate via Route B"</div>
+        <div class="bc-sub">Looping over Cedar Ridge · audible 400m</div>
+      </div>
+      <div class="bc-toggle"></div>
+    </div>
+  </div>
+
+  <!-- buttons -->
+  <div class="btns">
+    <div class="btn green"><i class="fas fa-route"></i> Open Route C</div>
+    <div class="btn outline"><i class="fas fa-headset"></i> Alert 911</div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-gauge-high"></i><span>Command</span></div>
+    <div class="tab-item"><i class="fas fa-video"></i><span>Feed</span></div>
+    <div class="tab-item"><div class="tab-fire"><i class="fas fa-fire"></i></div></div>
+    <div class="tab-item"><i class="fas fa-map-location-dot"></i><span>Map</span></div>
+    <div class="tab-item"><i class="fas fa-drone"></i><span>Fleet</span></div>
+  </div>
+</div>
+</body>
+</html>

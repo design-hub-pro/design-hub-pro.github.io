@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sentinel Command — Tactical Map</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A1410; color:#E8EDF2; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow:hidden; }
+
+  /* Map base */
+  .map { position:absolute; inset:0; background:#0C1712; }
+  .map img { width:100%; height:100%; object-fit:cover; opacity:0.55; }
+  .map::after { content:''; position:absolute; inset:0; background:radial-gradient(circle at 60% 42%, rgba(234,88,12,0.18), transparent 45%), linear-gradient(180deg, rgba(8,14,11,0.5), rgba(8,14,11,0.2) 30%, rgba(8,14,11,0.85)); }
+
+  /* topo grid */
+  .grid { position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.04) 1px,transparent 1px); background-size:54px 54px; z-index:1; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .topbar { position:absolute; top:62px; left:28px; right:28px; z-index:40; display:flex; justify-content:space-between; align-items:center; }
+  .map-title { display:flex; align-items:center; gap:10px; }
+  .mt-ic { width:40px; height:40px; border-radius:13px; background:rgba(12,23,18,0.7); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; }
+  .mt-ic i { color:#FB923C; font-size:16px; }
+  .mt-txt .a { font-size:14px; font-weight:800; }
+  .mt-txt .b { font-size:10px; color:#9AA5B1; font-weight:600; margin-top:1px; }
+  .map-tools { display:flex; flex-direction:column; gap:9px; }
+  .tool { width:40px; height:40px; border-radius:12px; background:rgba(12,23,18,0.7); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; }
+  .tool i { color:#C7D0DA; font-size:14px; }
+
+  /* fire perimeter + markers overlay */
+  .overlay { position:absolute; inset:0; z-index:5; }
+  .perimeter { position:absolute; top:24%; left:30%; width:46%; height:34%; border:2px dashed rgba(248,113,113,0.7); border-radius:48% 52% 60% 40%/50% 46% 54% 50%; background:radial-gradient(circle, rgba(234,88,12,0.28), rgba(234,88,12,0.05) 70%); }
+  .perimeter-lbl { position:absolute; top:20%; left:62%; background:rgba(239,68,68,0.92); padding:4px 9px; border-radius:8px; font-size:9px; font-weight:800; letter-spacing:0.3px; z-index:6; }
+
+  .marker { position:absolute; z-index:7; transform:translate(-50%,-50%); }
+  .pin { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid rgba(8,14,11,0.6); box-shadow:0 4px 12px rgba(0,0,0,0.5); }
+  .pin i { font-size:13px; color:#fff; }
+  .ring { position:absolute; inset:-7px; border-radius:50%; border:2px solid currentColor; opacity:0.6; animation:expand 2s infinite; }
+  @keyframes expand { 0%{transform:scale(0.7);opacity:0.7;} 100%{transform:scale(1.5);opacity:0;} }
+  .mk-lbl { position:absolute; top:38px; left:50%; transform:translateX(-50%); white-space:nowrap; background:rgba(12,23,18,0.85); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,0.12); padding:3px 8px; border-radius:7px; font-size:9px; font-weight:700; }
+
+  /* scan path */
+  .path { position:absolute; inset:0; z-index:4; }
+
+  /* legend */
+  .legend { position:absolute; left:28px; bottom:332px; z-index:30; background:rgba(12,23,18,0.78); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:11px 13px; display:flex; flex-direction:column; gap:8px; }
+  .lg { display:flex; align-items:center; gap:8px; font-size:10.5px; font-weight:600; color:#C7D0DA; }
+  .lg .s { width:9px; height:9px; border-radius:50%; }
+
+  /* bottom sheet */
+  .sheet { position:absolute; left:0; right:0; bottom:0; z-index:35; background:#0E1A14; border-top-left-radius:30px; border-top-right-radius:30px; border-top:1px solid rgba(255,255,255,0.08); padding:14px 24px 104px; box-shadow:0 -20px 40px rgba(0,0,0,0.4); }
+  .grab { width:38px; height:5px; border-radius:3px; background:rgba(255,255,255,0.18); margin:0 auto 14px; }
+  .sheet-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:13px; }
+  .sheet-title { font-size:16px; font-weight:800; letter-spacing:-0.3px; }
+  .sheet-sub { font-size:11px; color:#8A95A3; font-weight:600; margin-top:2px; }
+  .sheet-badge { background:rgba(248,113,113,0.15); color:#F87171; font-size:10px; font-weight:800; padding:6px 11px; border-radius:9px; }
+
+  .hotspots { display:flex; flex-direction:column; gap:9px; }
+  .hs-row { display:flex; align-items:center; gap:12px; background:#13211A; border:1px solid rgba(255,255,255,0.06); border-radius:15px; padding:11px 13px; }
+  .hs-ic { width:36px; height:36px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .hs-ic i { font-size:14px; color:#fff; }
+  .hs-info { flex:1; }
+  .hs-name { font-size:13px; font-weight:800; }
+  .hs-meta { font-size:10.5px; color:#8A95A3; font-weight:600; margin-top:2px; }
+  .hs-act { font-size:11px; font-weight:800; padding:8px 13px; border-radius:11px; }
+
+  /* Tab bar */
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(11,15,20,0.96); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.07); z-index:60; }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:52px; }
+  .tab-item i { font-size:18px; color:#5C6675; }
+  .tab-item span { font-size:9.5px; color:#5C6675; font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#FB923C; }
+  .tab-fire { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#FB923C,#EA580C); display:flex; align-items:center; justify-content:center; margin-top:-16px; box-shadow:0 12px 26px rgba(234,88,12,0.5); }
+  .tab-fire i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="map"><img src="https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=900&q=80" alt=""></div>
+  <div class="grid"></div>
+
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="topbar">
+    <div class="map-title">
+      <div class="mt-ic"><i class="fas fa-map-location-dot"></i></div>
+      <div class="mt-txt"><div class="a">Tactical Map</div><div class="b">Ridge Canyon · live</div></div>
+    </div>
+    <div class="map-tools">
+      <div class="tool"><i class="fas fa-layer-group"></i></div>
+      <div class="tool"><i class="fas fa-location-crosshairs"></i></div>
+      <div class="tool"><i class="fas fa-fire-flame-simple" style="color:#FB923C"></i></div>
+    </div>
+  </div>
+
+  <!-- overlay -->
+  <div class="overlay">
+    <!-- scout scan path -->
+    <svg class="path" viewBox="0 0 400 800" preserveAspectRatio="none">
+      <path d="M120,200 C200,160 280,260 250,360 C220,440 150,420 180,520" fill="none" stroke="rgba(56,189,248,0.55)" stroke-width="2" stroke-dasharray="6 7"/>
+    </svg>
+
+    <div class="perimeter"></div>
+    <div class="perimeter-lbl">FIRE PERIMETER</div>
+
+    <!-- Scout drone -->
+    <div class="marker" style="top:30%; left:33%; color:#38BDF8;">
+      <div class="pin" style="background:linear-gradient(135deg,#38BDF8,#0284C7)"><span class="ring"></span><i class="fas fa-eye"></i></div>
+      <div class="mk-lbl">Scout-01</div>
+    </div>
+    <!-- Suppressor drone -->
+    <div class="marker" style="top:62%; left:58%; color:#FB923C;">
+      <div class="pin" style="background:linear-gradient(135deg,#FB923C,#EA580C)"><span class="ring"></span><i class="fas fa-fire"></i></div>
+      <div class="mk-lbl">Suppressor-02</div>
+    </div>
+    <!-- Hotspots -->
+    <div class="marker" style="top:38%; left:52%;">
+      <div class="pin" style="background:#DC2626; width:26px; height:26px;"><i class="fas fa-fire" style="font-size:10px"></i></div>
+      <div class="mk-lbl" style="background:rgba(220,38,38,0.85)">H-3</div>
+    </div>
+    <div class="marker" style="top:46%; left:42%;">
+      <div class="pin" style="background:#EA580C; width:24px; height:24px;"><i class="fas fa-fire" style="font-size:9px"></i></div>
+    </div>
+    <!-- Evac zone -->
+    <div class="marker" style="top:74%; left:32%;">
+      <div class="pin" style="background:#16A34A; width:28px; height:28px;"><i class="fas fa-person-shelter" style="font-size:11px"></i></div>
+      <div class="mk-lbl" style="background:rgba(22,163,74,0.85)">Evac Point B</div>
+    </div>
+  </div>
+
+  <!-- legend -->
+  <div class="legend">
+    <div class="lg"><span class="s" style="background:#38BDF8"></span> Scout drone</div>
+    <div class="lg"><span class="s" style="background:#FB923C"></span> Suppressor</div>
+    <div class="lg"><span class="s" style="background:#DC2626"></span> Active hotspot</div>
+    <div class="lg"><span class="s" style="background:#16A34A"></span> Safe / evac</div>
+  </div>
+
+  <!-- bottom sheet -->
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheet-head">
+      <div>
+        <div class="sheet-title">Detected Hotspots</div>
+        <div class="sheet-sub">Scout-01 thermal scan · updated 12s ago</div>
+      </div>
+      <div class="sheet-badge">3 ACTIVE</div>
+    </div>
+    <div class="hotspots">
+      <div class="hs-row">
+        <div class="hs-ic" style="background:linear-gradient(135deg,#DC2626,#991B1B)"><i class="fas fa-fire"></i></div>
+        <div class="hs-info">
+          <div class="hs-name">Hotspot H-3 · 640°F</div>
+          <div class="hs-meta">Grid 7-C · spreading to treeline</div>
+        </div>
+        <div class="hs-act" style="background:#FB923C;color:#1A130A">Suppress</div>
+      </div>
+      <div class="hs-row">
+        <div class="hs-ic" style="background:linear-gradient(135deg,#EA580C,#C2410C)"><i class="fas fa-fire"></i></div>
+        <div class="hs-info">
+          <div class="hs-name">Hotspot H-4 · 480°F</div>
+          <div class="hs-meta">Grid 6-B · contained edge</div>
+        </div>
+        <div class="hs-act" style="background:rgba(255,255,255,0.08);color:#C7D0DA">Queue</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-gauge-high"></i><span>Command</span></div>
+    <div class="tab-item"><i class="fas fa-video"></i><span>Feed</span></div>
+    <div class="tab-item"><div class="tab-fire"><i class="fas fa-fire"></i></div></div>
+    <div class="tab-item active"><i class="fas fa-map-location-dot"></i><span>Map</span></div>
+    <div class="tab-item"><i class="fas fa-drone"></i><span>Fleet</span></div>
+  </div>
+</div>
+</body>
+</html>

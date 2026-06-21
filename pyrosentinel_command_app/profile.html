@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sentinel Command — Profile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#080B10; color:#E8EDF2; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:108px; }
+  .screen::before { content:''; position:absolute; top:0; left:0; right:0; height:230px; background:linear-gradient(180deg, rgba(234,88,12,0.18), transparent); z-index:0; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .head { padding:6px 28px 0; display:flex; justify-content:space-between; align-items:center; position:relative; z-index:2; }
+  .head .b { font-size:24px; font-weight:900; letter-spacing:-0.6px; }
+  .gear { width:42px; height:42px; border-radius:13px; background:#141A22; border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; }
+  .gear i { color:#C7D0DA; font-size:16px; }
+
+  /* identity */
+  .id { padding:20px 28px 0; display:flex; align-items:center; gap:15px; position:relative; z-index:2; }
+  .id-av { position:relative; }
+  .id-av img { width:78px; height:78px; border-radius:24px; object-fit:cover; border:2.5px solid #FB923C; }
+  .id-av .badge { position:absolute; bottom:-4px; right:-4px; width:28px; height:28px; border-radius:10px; background:#22C55E; border:3px solid #080B10; display:flex; align-items:center; justify-content:center; }
+  .id-av .badge i { font-size:11px; color:#fff; }
+  .id-info { flex:1; }
+  .id-name { font-size:20px; font-weight:900; letter-spacing:-0.4px; }
+  .id-role { font-size:12.5px; color:#FB923C; font-weight:700; margin-top:3px; }
+  .id-org { font-size:11px; color:#8A95A3; font-weight:600; margin-top:3px; display:flex; align-items:center; gap:6px; }
+
+  /* stats */
+  .stats { display:flex; gap:11px; padding:22px 28px 0; position:relative; z-index:2; }
+  .st { flex:1; background:#121821; border:1px solid rgba(255,255,255,0.07); border-radius:18px; padding:15px 12px; text-align:center; }
+  .st .v { font-size:24px; font-weight:900; letter-spacing:-0.6px; }
+  .st .l { font-size:9px; color:#8A95A3; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; margin-top:5px; line-height:1.3; }
+
+  /* certifications */
+  .sec-head { padding:24px 28px 12px; }
+  .sec-title { font-size:13px; font-weight:800; color:#7C8794; text-transform:uppercase; letter-spacing:0.5px; }
+  .certs { padding:0 28px; display:flex; gap:10px; overflow-x:auto; }
+  .cert { min-width:130px; background:#121821; border:1px solid rgba(255,255,255,0.07); border-radius:16px; padding:14px; }
+  .cert-ic { width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:11px; }
+  .cert-ic i { font-size:15px; color:#fff; }
+  .cert-name { font-size:12.5px; font-weight:800; }
+  .cert-meta { font-size:10px; color:#8A95A3; font-weight:600; margin-top:3px; }
+
+  /* settings */
+  .menu { margin:0 28px; background:#121821; border:1px solid rgba(255,255,255,0.07); border-radius:20px; overflow:hidden; }
+  .mi { display:flex; align-items:center; gap:14px; padding:15px 16px; }
+  .mi:not(:last-child) { border-bottom:1px solid rgba(255,255,255,0.05); }
+  .mi-ic { width:36px; height:36px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .mi-ic i { font-size:14px; color:#fff; }
+  .mi-label { flex:1; font-size:14px; font-weight:700; }
+  .mi-val { font-size:12px; color:#8A95A3; font-weight:600; }
+  .mi-chev { color:#5C6675; font-size:13px; }
+  .toggle { width:46px; height:28px; border-radius:15px; background:#22C55E; position:relative; }
+  .toggle::after { content:''; position:absolute; top:3px; right:3px; width:22px; height:22px; border-radius:50%; background:#fff; }
+
+  .signout { margin:18px 28px 0; height:52px; border-radius:16px; background:#181016; border:1px solid rgba(248,113,113,0.25); display:flex; align-items:center; justify-content:center; gap:9px; font-size:14px; font-weight:800; color:#F87171; }
+
+  /* Tab bar */
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(11,15,20,0.96); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.07); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:52px; }
+  .tab-item i { font-size:18px; color:#5C6675; }
+  .tab-item span { font-size:9.5px; color:#5C6675; font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#FB923C; }
+  .tab-fire { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#FB923C,#EA580C); display:flex; align-items:center; justify-content:center; margin-top:-16px; box-shadow:0 12px 26px rgba(234,88,12,0.5); }
+  .tab-fire i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="head">
+    <div class="b">Profile</div>
+    <div class="gear"><i class="fas fa-gear"></i></div>
+  </div>
+
+  <!-- identity -->
+  <div class="id">
+    <div class="id-av">
+      <img src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200&q=80">
+      <div class="badge"><i class="fas fa-check"></i></div>
+    </div>
+    <div class="id-info">
+      <div class="id-name">Cpt. Marcus Reed</div>
+      <div class="id-role">Incident Commander</div>
+      <div class="id-org"><i class="fas fa-shield-halved" style="font-size:10px"></i> Sierra Wildfire Unit 14</div>
+    </div>
+  </div>
+
+  <!-- stats -->
+  <div class="stats">
+    <div class="st"><div class="v" style="color:#FB923C">37</div><div class="l">Fires<br>Suppressed</div></div>
+    <div class="st"><div class="v" style="color:#22C55E">214</div><div class="l">People<br>Guided</div></div>
+    <div class="st"><div class="v" style="color:#38BDF8">52</div><div class="l">Missions<br>Flown</div></div>
+  </div>
+
+  <!-- certifications -->
+  <div class="sec-head"><div class="sec-title">Certifications</div></div>
+  <div class="certs">
+    <div class="cert">
+      <div class="cert-ic" style="background:linear-gradient(135deg,#FB923C,#EA580C)"><i class="fas fa-fire-flame-curved"></i></div>
+      <div class="cert-name">Wildland Cmd</div>
+      <div class="cert-meta">Level III · active</div>
+    </div>
+    <div class="cert">
+      <div class="cert-ic" style="background:linear-gradient(135deg,#38BDF8,#0284C7)"><i class="fas fa-drone"></i></div>
+      <div class="cert-name">UAS Pilot</div>
+      <div class="cert-meta">FAA Part 107</div>
+    </div>
+    <div class="cert">
+      <div class="cert-ic" style="background:linear-gradient(135deg,#22C55E,#16A34A)"><i class="fas fa-kit-medical"></i></div>
+      <div class="cert-name">Field Rescue</div>
+      <div class="cert-meta">Certified</div>
+    </div>
+  </div>
+
+  <!-- settings -->
+  <div class="sec-head"><div class="sec-title">Preferences</div></div>
+  <div class="menu">
+    <div class="mi">
+      <div class="mi-ic" style="background:linear-gradient(135deg,#F87171,#DC2626)"><i class="fas fa-bell"></i></div>
+      <div class="mi-label">Critical Alerts</div>
+      <div class="toggle"></div>
+    </div>
+    <div class="mi">
+      <div class="mi-ic" style="background:linear-gradient(135deg,#FB923C,#EA580C)"><i class="fas fa-hand-pointer"></i></div>
+      <div class="mi-label">Auto-Suppress Mode</div>
+      <div class="mi-val">Confirm first</div>
+      <i class="fas fa-chevron-right mi-chev"></i>
+    </div>
+    <div class="mi">
+      <div class="mi-ic" style="background:linear-gradient(135deg,#38BDF8,#0284C7)"><i class="fas fa-tower-broadcast"></i></div>
+      <div class="mi-label">Connected Units</div>
+      <div class="mi-val">3 drones</div>
+      <i class="fas fa-chevron-right mi-chev"></i>
+    </div>
+    <div class="mi">
+      <div class="mi-ic" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-file-shield"></i></div>
+      <div class="mi-label">Mission Logs</div>
+      <i class="fas fa-chevron-right mi-chev"></i>
+    </div>
+  </div>
+
+  <div class="signout"><i class="fas fa-right-from-bracket"></i> Sign Out</div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-gauge-high"></i><span>Command</span></div>
+    <div class="tab-item"><i class="fas fa-video"></i><span>Feed</span></div>
+    <div class="tab-item"><div class="tab-fire"><i class="fas fa-fire"></i></div></div>
+    <div class="tab-item"><i class="fas fa-map-location-dot"></i><span>Map</span></div>
+    <div class="tab-item"><i class="fas fa-drone"></i><span>Fleet</span></div>
+  </div>
+</div>
+</body>
+</html>

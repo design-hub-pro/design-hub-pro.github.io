@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sentinel Command — Command</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#080B10; color:#E8EDF2; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:108px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .header { padding:6px 28px 12px; display:flex; align-items:center; justify-content:space-between; }
+  .h-label { font-size:11px; color:#8A95A3; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; }
+  .h-title { font-size:23px; font-weight:900; letter-spacing:-0.6px; margin-top:2px; }
+  .h-right { display:flex; align-items:center; gap:12px; }
+  .bell { width:42px; height:42px; border-radius:13px; background:#141A22; border:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; justify-content:center; position:relative; }
+  .bell i { font-size:16px; color:#C7D0DA; }
+  .bell .dot { position:absolute; top:9px; right:10px; width:8px; height:8px; border-radius:50%; background:#EF4444; border:2px solid #080B10; }
+  .avatar { width:42px; height:42px; border-radius:13px; object-fit:cover; border:2px solid #FB923C; }
+
+  /* Active incident hero */
+  .hero { margin:4px 28px 0; border-radius:26px; overflow:hidden; position:relative; height:212px; }
+  .hero img { width:100%; height:100%; object-fit:cover; }
+  .hero::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(8,11,16,0.15) 0%, rgba(8,11,16,0.4) 45%, rgba(8,11,16,0.94) 100%); }
+  .hero-top { position:absolute; top:14px; left:14px; right:14px; z-index:2; display:flex; justify-content:space-between; align-items:flex-start; }
+  .hero-chip { display:inline-flex; align-items:center; gap:7px; background:rgba(239,68,68,0.9); padding:6px 12px; border-radius:11px; font-size:10.5px; font-weight:800; letter-spacing:0.4px; text-transform:uppercase; }
+  .hero-chip .live { width:6px; height:6px; border-radius:50%; background:#fff; animation:blink 1.3s infinite; }
+  @keyframes blink { 50%{opacity:0.25;} }
+  .hero-wind { background:rgba(8,11,16,0.55); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.12); padding:7px 11px; border-radius:11px; font-size:11px; font-weight:700; display:flex; align-items:center; gap:6px; }
+  .hero-wind i { color:#38BDF8; font-size:11px; }
+  .hero-body { position:absolute; left:18px; right:18px; bottom:16px; z-index:2; }
+  .hero-name { font-size:20px; font-weight:900; letter-spacing:-0.4px; }
+  .hero-loc { font-size:12px; color:#C7D0DA; font-weight:600; margin-top:3px; display:flex; align-items:center; gap:6px; }
+  .hero-stats { display:flex; gap:18px; margin-top:14px; }
+  .hs { }
+  .hs .v { font-size:22px; font-weight:900; letter-spacing:-0.6px; line-height:1; }
+  .hs .v small { font-size:11px; font-weight:700; opacity:0.7; }
+  .hs .l { font-size:9.5px; color:#9AA5B1; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; margin-top:5px; }
+  .hs .v.amber { color:#FB923C; } .hs .v.red { color:#F87171; } .hs .v.green { color:#4ADE80; }
+
+  /* Fleet status row */
+  .fleet-row { display:flex; gap:12px; padding:18px 28px 0; }
+  .fcard { flex:1; background:#121821; border:1px solid rgba(255,255,255,0.07); border-radius:20px; padding:14px; }
+  .fcard-top { display:flex; align-items:center; gap:9px; }
+  .fcard-ic { width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .fcard-ic i { font-size:16px; color:#fff; }
+  .fcard-name { font-size:13px; font-weight:800; letter-spacing:-0.2px; }
+  .fcard-state { font-size:10px; font-weight:700; margin-top:1px; display:flex; align-items:center; gap:5px; }
+  .fcard-state .d { width:6px; height:6px; border-radius:50%; }
+  .fcard-bars { display:flex; gap:13px; margin-top:13px; }
+  .fb .v { font-size:14px; font-weight:800; }
+  .fb .l { font-size:8.5px; color:#8A95A3; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; margin-top:1px; }
+
+  /* primary action */
+  .next { margin:18px 28px 0; background:linear-gradient(135deg,#1A222D,#141A22); border:1px solid rgba(251,146,60,0.3); border-radius:22px; padding:16px; display:flex; align-items:center; gap:14px; }
+  .next-ic { width:52px; height:52px; border-radius:16px; background:linear-gradient(135deg,#FB923C,#EA580C); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 8px 20px rgba(234,88,12,0.4); }
+  .next-ic i { font-size:21px; color:#fff; }
+  .next-info { flex:1; }
+  .next-lbl { font-size:10px; font-weight:800; color:#FB923C; letter-spacing:0.5px; text-transform:uppercase; }
+  .next-title { font-size:15px; font-weight:800; margin-top:3px; letter-spacing:-0.2px; }
+  .next-meta { font-size:11.5px; color:#8A95A3; margin-top:2px; }
+  .next-go { width:46px; height:46px; border-radius:15px; background:#FB923C; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .next-go i { color:#fff; font-size:15px; }
+
+  .sec-head { padding:24px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .sec-title { font-size:16px; font-weight:800; letter-spacing:-0.3px; }
+  .sec-link { font-size:12px; color:#FB923C; font-weight:700; }
+
+  /* activity feed */
+  .feed { padding:0 28px; display:flex; flex-direction:column; gap:11px; }
+  .ev { display:flex; gap:13px; background:#121821; border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:13px 14px; align-items:center; }
+  .ev-ic { width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .ev-ic i { font-size:15px; }
+  .ev-body { flex:1; }
+  .ev-title { font-size:13px; font-weight:700; letter-spacing:-0.1px; }
+  .ev-title b { font-weight:800; }
+  .ev-time { font-size:10.5px; color:#7C8794; font-weight:600; margin-top:2px; }
+  .ev-tag { font-size:8.5px; font-weight:800; padding:4px 8px; border-radius:7px; letter-spacing:0.3px; }
+
+  /* Tab bar */
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(11,15,20,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.07); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:52px; }
+  .tab-item i { font-size:18px; color:#5C6675; }
+  .tab-item span { font-size:9.5px; color:#5C6675; font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#FB923C; }
+  .tab-fire { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#FB923C,#EA580C); display:flex; align-items:center; justify-content:center; margin-top:-16px; box-shadow:0 12px 26px rgba(234,88,12,0.5); }
+  .tab-fire i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="h-label">Incident Command · Online</div>
+      <div class="h-title">Command Center</div>
+    </div>
+    <div class="h-right">
+      <div class="bell"><i class="fas fa-bell"></i><span class="dot"></span></div>
+      <img class="avatar" src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200&q=80">
+    </div>
+  </div>
+
+  <!-- Active incident -->
+  <div class="hero">
+    <img src="https://images.unsplash.com/photo-1602491453631-e2a5ad90a131?w=900&q=80" alt="">
+    <div class="hero-top">
+      <div class="hero-chip"><span class="live"></span> Active Fire</div>
+      <div class="hero-wind"><i class="fas fa-wind"></i> 14 mph NE</div>
+    </div>
+    <div class="hero-body">
+      <div class="hero-name">Ridge Canyon Incident</div>
+      <div class="hero-loc"><i class="fas fa-location-dot" style="font-size:10px"></i> Sector 7 · Sierra National Forest</div>
+      <div class="hero-stats">
+        <div class="hs"><div class="v amber">8.2<small> ac</small></div><div class="l">Burn Area</div></div>
+        <div class="hs"><div class="v green">34<small>%</small></div><div class="l">Contained</div></div>
+        <div class="hs"><div class="v red">3</div><div class="l">Hotspots</div></div>
+        <div class="hs"><div class="v">2</div><div class="l">Drones Up</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fleet status -->
+  <div class="fleet-row">
+    <div class="fcard">
+      <div class="fcard-top">
+        <div class="fcard-ic" style="background:linear-gradient(135deg,#38BDF8,#0284C7)"><i class="fas fa-eye"></i></div>
+        <div>
+          <div class="fcard-name">Scout-01</div>
+          <div class="fcard-state" style="color:#4ADE80"><span class="d" style="background:#4ADE80"></span> Tracking fire</div>
+        </div>
+      </div>
+      <div class="fcard-bars">
+        <div class="fb"><div class="v">87%</div><div class="l">Battery</div></div>
+        <div class="fb"><div class="v">320<span style="font-size:9px">m</span></div><div class="l">Altitude</div></div>
+      </div>
+    </div>
+    <div class="fcard">
+      <div class="fcard-top">
+        <div class="fcard-ic" style="background:linear-gradient(135deg,#FB923C,#EA580C)"><i class="fas fa-fire"></i></div>
+        <div>
+          <div class="fcard-name">Suppressor-02</div>
+          <div class="fcard-state" style="color:#FB923C"><span class="d" style="background:#FB923C"></span> Armed · ready</div>
+        </div>
+      </div>
+      <div class="fcard-bars">
+        <div class="fb"><div class="v">71%</div><div class="l">Battery</div></div>
+        <div class="fb"><div class="v">6/8</div><div class="l">Fire Balls</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Next action -->
+  <div class="next">
+    <div class="next-ic"><i class="fas fa-crosshairs"></i></div>
+    <div class="next-info">
+      <div class="next-lbl">AI Recommends · High Priority</div>
+      <div class="next-title">Suppress Hotspot H-3</div>
+      <div class="next-meta">Spreading toward treeline · 2 fire balls advised</div>
+    </div>
+    <div class="next-go"><i class="fas fa-chevron-right"></i></div>
+  </div>
+
+  <!-- Live activity -->
+  <div class="sec-head">
+    <div class="sec-title">Live Activity</div>
+    <div class="sec-link">View all</div>
+  </div>
+  <div class="feed">
+    <div class="ev">
+      <div class="ev-ic" style="background:rgba(248,113,113,0.15)"><i class="fas fa-fire" style="color:#F87171"></i></div>
+      <div class="ev-body">
+        <div class="ev-title"><b>New hotspot</b> detected by Scout-01</div>
+        <div class="ev-time">Grid 7-C · 1 min ago</div>
+      </div>
+      <span class="ev-tag" style="background:rgba(248,113,113,0.15);color:#F87171">URGENT</span>
+    </div>
+    <div class="ev">
+      <div class="ev-ic" style="background:rgba(74,222,128,0.15)"><i class="fas fa-check" style="color:#4ADE80"></i></div>
+      <div class="ev-body">
+        <div class="ev-title"><b>Hotspot H-2</b> suppressed successfully</div>
+        <div class="ev-time">Suppressor-02 · 4 min ago</div>
+      </div>
+      <span class="ev-tag" style="background:rgba(74,222,128,0.15);color:#4ADE80">DONE</span>
+    </div>
+    <div class="ev">
+      <div class="ev-ic" style="background:rgba(56,189,248,0.15)"><i class="fas fa-person-running" style="color:#38BDF8"></i></div>
+      <div class="ev-body">
+        <div class="ev-title"><b>Evac route B</b> opened for Pine Hollow</div>
+        <div class="ev-time">Scout broadcast · 9 min ago</div>
+      </div>
+      <span class="ev-tag" style="background:rgba(56,189,248,0.15);color:#38BDF8">EVAC</span>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <div class="tab-item active"><i class="fas fa-gauge-high"></i><span>Command</span></div>
+    <div class="tab-item"><i class="fas fa-video"></i><span>Feed</span></div>
+    <div class="tab-item"><div class="tab-fire"><i class="fas fa-fire"></i></div></div>
+    <div class="tab-item"><i class="fas fa-map-location-dot"></i><span>Map</span></div>
+    <div class="tab-item"><i class="fas fa-drone"></i><span>Fleet</span></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sentinel Command — Suppress</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0B0907; color:#E8EDF2; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:108px; }
+  .screen::before { content:''; position:absolute; top:0; left:0; right:0; height:340px; background:radial-gradient(circle at 50% -10%, rgba(234,88,12,0.25), transparent 60%); z-index:0; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .head { padding:4px 28px 16px; position:relative; z-index:2; }
+  .head .a { font-size:11px; color:#FB923C; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; display:flex; align-items:center; gap:7px; }
+  .head .b { font-size:24px; font-weight:900; letter-spacing:-0.6px; margin-top:4px; }
+
+  /* target card */
+  .target { margin:0 28px; border-radius:24px; overflow:hidden; position:relative; height:178px; border:1px solid rgba(248,113,113,0.3); z-index:2; }
+  .target img { width:100%; height:100%; object-fit:cover; }
+  .target::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(11,9,7,0.2), rgba(11,9,7,0.88)); }
+  .tg-cross { position:absolute; top:52px; left:50%; transform:translate(-50%,-50%); width:84px; height:84px; border:2px solid rgba(248,113,113,0.85); border-radius:50%; z-index:3; display:flex; align-items:center; justify-content:center; box-shadow:0 0 24px rgba(248,113,113,0.5); }
+  .tg-cross::before, .tg-cross::after { content:''; position:absolute; background:rgba(248,113,113,0.85); }
+  .tg-cross::before { width:2px; height:30px; }
+  .tg-cross::after { height:2px; width:30px; }
+  .tg-cross i { font-size:18px; color:#F87171; opacity:0.9; }
+  .tg-top { position:absolute; top:13px; left:13px; z-index:4; background:rgba(239,68,68,0.9); padding:5px 10px; border-radius:9px; font-size:10px; font-weight:800; letter-spacing:0.3px; }
+  .tg-body { position:absolute; left:16px; right:16px; bottom:13px; z-index:4; display:flex; justify-content:space-between; align-items:flex-end; }
+  .tg-name { font-size:18px; font-weight:900; }
+  .tg-meta { font-size:11px; color:#C7D0DA; font-weight:600; margin-top:3px; }
+  .tg-temp { text-align:right; }
+  .tg-temp .v { font-size:24px; font-weight:900; color:#FB923C; letter-spacing:-0.6px; }
+  .tg-temp .l { font-size:9px; color:#9AA5B1; font-weight:700; text-transform:uppercase; }
+
+  /* drop params */
+  .params { display:flex; gap:11px; padding:16px 28px 0; position:relative; z-index:2; }
+  .param { flex:1; background:#16110D; border:1px solid rgba(255,255,255,0.07); border-radius:17px; padding:13px; text-align:center; }
+  .param i { font-size:15px; color:#FB923C; }
+  .param .v { font-size:16px; font-weight:900; margin-top:7px; letter-spacing:-0.3px; }
+  .param .l { font-size:9px; color:#8A95A3; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; margin-top:2px; }
+
+  /* payload */
+  .payload { margin:18px 28px 0; background:#16110D; border:1px solid rgba(255,255,255,0.07); border-radius:20px; padding:16px; position:relative; z-index:2; }
+  .pl-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:13px; }
+  .pl-title { font-size:14px; font-weight:800; display:flex; align-items:center; gap:8px; }
+  .pl-title i { color:#FB923C; }
+  .pl-count { font-size:11px; font-weight:800; color:#8A95A3; }
+  .pl-count b { color:#FB923C; }
+  .balls { display:flex; gap:9px; }
+  .ball { flex:1; aspect-ratio:1; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+  .ball.full { background:radial-gradient(circle at 35% 30%, #FDBA74, #EA580C); box-shadow:0 4px 12px rgba(234,88,12,0.4); }
+  .ball.full i { font-size:14px; color:#fff; }
+  .ball.use { background:radial-gradient(circle at 35% 30%, #FCA5A5, #DC2626); border:2px solid #F87171; box-shadow:0 0 16px rgba(248,113,113,0.6); }
+  .ball.use i { font-size:14px; color:#fff; }
+  .ball.empty { background:rgba(255,255,255,0.05); border:1.5px dashed rgba(255,255,255,0.12); }
+  .ball.empty i { font-size:12px; color:rgba(255,255,255,0.18); }
+  .pl-note { font-size:11px; color:#8A95A3; font-weight:600; margin-top:12px; display:flex; align-items:center; gap:7px; }
+  .pl-note i { color:#FBBF24; }
+
+  /* deploy */
+  .deploy { margin:20px 28px 0; position:relative; z-index:2; }
+  .deploy-btn { height:64px; border-radius:20px; background:linear-gradient(135deg,#EF4444,#B91C1C); display:flex; align-items:center; justify-content:center; gap:12px; font-size:17px; font-weight:900; letter-spacing:0.2px; box-shadow:0 16px 38px rgba(220,38,38,0.5); position:relative; overflow:hidden; }
+  .deploy-btn i { font-size:19px; }
+  .deploy-hint { text-align:center; font-size:11px; color:#8A95A3; font-weight:600; margin-top:12px; display:flex; align-items:center; justify-content:center; gap:7px; }
+  .deploy-hint i { color:#4ADE80; }
+
+  /* Tab bar */
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(11,15,20,0.96); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.07); z-index:60; }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:52px; }
+  .tab-item i { font-size:18px; color:#5C6675; }
+  .tab-item span { font-size:9.5px; color:#5C6675; font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#FB923C; }
+  .tab-fire { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#FB923C,#EA580C); display:flex; align-items:center; justify-content:center; margin-top:-16px; box-shadow:0 12px 26px rgba(234,88,12,0.5); border:2px solid rgba(255,255,255,0.12); }
+  .tab-fire i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="head">
+    <div class="a"><i class="fas fa-crosshairs"></i> Suppression Control</div>
+    <div class="b">Deploy Fire Balls</div>
+  </div>
+
+  <!-- target -->
+  <div class="target">
+    <img src="https://images.unsplash.com/photo-1486754735734-325b5831c3ad?w=900&q=80" alt="">
+    <div class="tg-top">🎯 TARGET LOCKED</div>
+    <div class="tg-cross"><i class="fas fa-fire"></i></div>
+    <div class="tg-body">
+      <div>
+        <div class="tg-name">Hotspot H-3</div>
+        <div class="tg-meta">Grid 7-C · 38m from Suppressor-02</div>
+      </div>
+      <div class="tg-temp"><div class="v">640°</div><div class="l">Surface</div></div>
+    </div>
+  </div>
+
+  <!-- params -->
+  <div class="params">
+    <div class="param"><i class="fas fa-ruler-vertical"></i><div class="v">42m</div><div class="l">Drop Alt</div></div>
+    <div class="param"><i class="fas fa-wind"></i><div class="v">14mph</div><div class="l">Wind Adj</div></div>
+    <div class="param"><i class="fas fa-bullseye"></i><div class="v">96%</div><div class="l">Accuracy</div></div>
+  </div>
+
+  <!-- payload -->
+  <div class="payload">
+    <div class="pl-head">
+      <div class="pl-title"><i class="fas fa-circle-dot"></i> Fire-Ball Payload</div>
+      <div class="pl-count"><b>6</b> / 8 loaded</div>
+    </div>
+    <div class="balls">
+      <div class="ball use"><i class="fas fa-fire-extinguisher"></i></div>
+      <div class="ball use"><i class="fas fa-fire-extinguisher"></i></div>
+      <div class="ball full"><i class="fas fa-circle"></i></div>
+      <div class="ball full"><i class="fas fa-circle"></i></div>
+      <div class="ball full"><i class="fas fa-circle"></i></div>
+      <div class="ball full"><i class="fas fa-circle"></i></div>
+      <div class="ball empty"><i class="fas fa-circle"></i></div>
+      <div class="ball empty"><i class="fas fa-circle"></i></div>
+    </div>
+    <div class="pl-note"><i class="fas fa-wand-magic-sparkles"></i> AI advises <b style="color:#FB923C;margin:0 3px">2 balls</b> for full knockdown</div>
+  </div>
+
+  <!-- deploy -->
+  <div class="deploy">
+    <div class="deploy-btn"><i class="fas fa-fire"></i> SLIDE TO DEPLOY</div>
+    <div class="deploy-hint"><i class="fas fa-shield-halved"></i> Airspace clear · no civilians in drop zone</div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-gauge-high"></i><span>Command</span></div>
+    <div class="tab-item"><i class="fas fa-video"></i><span>Feed</span></div>
+    <div class="tab-item active"><div class="tab-fire"><i class="fas fa-fire"></i></div></div>
+    <div class="tab-item"><i class="fas fa-map-location-dot"></i><span>Map</span></div>
+    <div class="tab-item"><i class="fas fa-drone"></i><span>Fleet</span></div>
+  </div>
+</div>
+</body>
+</html>

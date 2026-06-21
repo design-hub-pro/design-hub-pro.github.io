@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sentinel Command — Scout Feed</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#050708; color:#E8EDF2; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:104px; background:#050708; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .head { padding:4px 28px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .head-l .a { font-size:11px; color:#8A95A3; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; }
+  .head-l .b { font-size:22px; font-weight:900; letter-spacing:-0.5px; margin-top:2px; }
+  .rec { display:inline-flex; align-items:center; gap:7px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:8px 13px; border-radius:12px; font-size:11px; font-weight:800; color:#F87171; }
+  .rec .d { width:8px; height:8px; border-radius:50%; background:#EF4444; animation:blink 1.2s infinite; }
+  @keyframes blink { 50%{opacity:0.3;} }
+
+  /* live feed */
+  .feed-wrap { margin:0 28px; border-radius:24px; overflow:hidden; position:relative; height:420px; border:1px solid rgba(255,255,255,0.08); }
+  .feed-wrap img { width:100%; height:100%; object-fit:cover; }
+  .feed-tint { position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.35), transparent 22%, transparent 70%, rgba(0,0,0,0.6)); }
+
+  /* HUD top */
+  .hud-top { position:absolute; top:13px; left:14px; right:14px; display:flex; justify-content:space-between; align-items:flex-start; z-index:5; }
+  .hud-chip { background:rgba(5,7,8,0.6); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.14); padding:6px 11px; border-radius:10px; font-size:10px; font-weight:800; letter-spacing:0.3px; display:flex; align-items:center; gap:6px; }
+  .hud-chip i { font-size:10px; color:#38BDF8; }
+  .hud-stack { display:flex; flex-direction:column; gap:7px; align-items:flex-end; }
+
+  /* corner brackets */
+  .bracket { position:absolute; width:26px; height:26px; border:2px solid rgba(255,255,255,0.5); z-index:4; }
+  .bracket.tl { top:50px; left:24px; border-right:none; border-bottom:none; }
+  .bracket.tr { top:50px; right:24px; border-left:none; border-bottom:none; }
+  .bracket.bl { bottom:110px; left:24px; border-right:none; border-top:none; }
+  .bracket.br { bottom:110px; right:24px; border-left:none; border-top:none; }
+
+  /* detection boxes */
+  .det { position:absolute; border:2px solid #F87171; border-radius:6px; z-index:6; box-shadow:0 0 16px rgba(248,113,113,0.5); }
+  .det-lbl { position:absolute; top:-22px; left:-2px; background:#EF4444; padding:3px 8px; border-radius:6px 6px 6px 0; font-size:9px; font-weight:800; white-space:nowrap; }
+  .det2 { position:absolute; border:2px solid #FBBF24; border-radius:6px; z-index:6; box-shadow:0 0 14px rgba(251,191,36,0.4); }
+  .det2-lbl { position:absolute; top:-22px; left:-2px; background:#F59E0B; color:#1A130A; padding:3px 8px; border-radius:6px 6px 6px 0; font-size:9px; font-weight:800; white-space:nowrap; }
+
+  /* HUD bottom telemetry */
+  .hud-bottom { position:absolute; left:14px; right:14px; bottom:13px; z-index:5; display:flex; justify-content:space-between; gap:8px; }
+  .tele { flex:1; background:rgba(5,7,8,0.55); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:9px 10px; text-align:center; }
+  .tele .v { font-size:14px; font-weight:900; letter-spacing:-0.3px; }
+  .tele .l { font-size:8px; color:#9AA5B1; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; margin-top:2px; }
+
+  /* view mode toggle */
+  .modes { display:flex; gap:9px; padding:18px 28px 0; }
+  .mode { flex:1; background:#10161C; border:1px solid rgba(255,255,255,0.07); border-radius:14px; padding:11px; text-align:center; }
+  .mode.active { background:rgba(56,189,248,0.14); border-color:rgba(56,189,248,0.4); }
+  .mode i { font-size:16px; color:#8A95A3; }
+  .mode.active i { color:#38BDF8; }
+  .mode span { display:block; font-size:10px; font-weight:700; margin-top:5px; color:#8A95A3; }
+  .mode.active span { color:#38BDF8; }
+
+  /* AI insight */
+  .insight { margin:16px 28px 0; background:linear-gradient(135deg,#13201A,#101820); border:1px solid rgba(251,146,60,0.25); border-radius:20px; padding:15px; display:flex; gap:13px; align-items:center; }
+  .ins-ic { width:46px; height:46px; border-radius:14px; background:linear-gradient(135deg,#FB923C,#EA580C); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .ins-ic i { font-size:19px; color:#fff; }
+  .ins-body { flex:1; }
+  .ins-lbl { font-size:10px; font-weight:800; color:#FB923C; letter-spacing:0.4px; text-transform:uppercase; }
+  .ins-txt { font-size:13px; font-weight:600; line-height:1.45; margin-top:4px; color:#D7DEE6; }
+  .ins-txt b { font-weight:800; color:#fff; }
+
+  .send { margin:14px 28px 0; height:54px; border-radius:18px; background:linear-gradient(135deg,#FB923C,#EA580C); display:flex; align-items:center; justify-content:center; gap:10px; font-size:15px; font-weight:800; box-shadow:0 12px 28px rgba(234,88,12,0.4); }
+
+  /* Tab bar */
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(11,15,20,0.96); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.07); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:52px; }
+  .tab-item i { font-size:18px; color:#5C6675; }
+  .tab-item span { font-size:9.5px; color:#5C6675; font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#FB923C; }
+  .tab-fire { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#FB923C,#EA580C); display:flex; align-items:center; justify-content:center; margin-top:-16px; box-shadow:0 12px 26px rgba(234,88,12,0.5); }
+  .tab-fire i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="head">
+    <div class="head-l">
+      <div class="a">Scout-01 · Live Camera</div>
+      <div class="b">Scout Feed</div>
+    </div>
+    <div class="rec"><span class="d"></span> LIVE</div>
+  </div>
+
+  <!-- live feed -->
+  <div class="feed-wrap">
+    <img src="https://images.unsplash.com/photo-1601625195400-7a3f5b2c0e1e?w=900&q=80" onerror="this.src='https://images.unsplash.com/photo-1602491453631-e2a5ad90a131?w=900&q=80'" alt="">
+    <div class="feed-tint"></div>
+
+    <div class="hud-top">
+      <div class="hud-chip"><i class="fas fa-video"></i> CAM 4K · 30FPS</div>
+      <div class="hud-stack">
+        <div class="hud-chip"><i class="fas fa-satellite-dish" style="color:#4ADE80"></i> SIGNAL 98%</div>
+        <div class="hud-chip"><i class="fas fa-location-dot" style="color:#FB923C"></i> 37.21, -119.4</div>
+      </div>
+    </div>
+
+    <div class="bracket tl"></div><div class="bracket tr"></div>
+    <div class="bracket bl"></div><div class="bracket br"></div>
+
+    <!-- detections -->
+    <div class="det" style="top:160px; left:120px; width:120px; height:96px;">
+      <div class="det-lbl"><i class="fas fa-fire" style="font-size:8px"></i> FIRE · 97%</div>
+    </div>
+    <div class="det2" style="top:250px; left:60px; width:74px; height:60px;">
+      <div class="det2-lbl">HOTSPOT · 88%</div>
+    </div>
+
+    <div class="hud-bottom">
+      <div class="tele"><div class="v">320<small style="font-size:9px">m</small></div><div class="l">Altitude</div></div>
+      <div class="tele"><div class="v">18<small style="font-size:9px">kph</small></div><div class="l">Speed</div></div>
+      <div class="tele"><div class="v" style="color:#FB923C">640°</div><div class="l">Peak Temp</div></div>
+      <div class="tele"><div class="v" style="color:#4ADE80">87%</div><div class="l">Battery</div></div>
+    </div>
+  </div>
+
+  <!-- view modes -->
+  <div class="modes">
+    <div class="mode active"><i class="fas fa-camera"></i><span>Visual</span></div>
+    <div class="mode"><i class="fas fa-temperature-high"></i><span>Thermal</span></div>
+    <div class="mode"><i class="fas fa-layer-group"></i><span>Overlay</span></div>
+    <div class="mode"><i class="fas fa-expand"></i><span>Wide</span></div>
+  </div>
+
+  <!-- AI insight -->
+  <div class="insight">
+    <div class="ins-ic"><i class="fas fa-brain"></i></div>
+    <div class="ins-body">
+      <div class="ins-lbl">AI Detection</div>
+      <div class="ins-txt">Active flame front detected at <b>640°F</b>, spreading NE toward treeline. Coordinates locked for <b>Suppressor-02</b>.</div>
+    </div>
+  </div>
+
+  <!-- send target -->
+  <div class="send"><i class="fas fa-paper-plane"></i> Send Target to Suppressor</div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-gauge-high"></i><span>Command</span></div>
+    <div class="tab-item active"><i class="fas fa-video"></i><span>Feed</span></div>
+    <div class="tab-item"><div class="tab-fire"><i class="fas fa-fire"></i></div></div>
+    <div class="tab-item"><i class="fas fa-map-location-dot"></i><span>Map</span></div>
+    <div class="tab-item"><i class="fas fa-drone"></i><span>Fleet</span></div>
+  </div>
+</div>
+</body>
+</html>

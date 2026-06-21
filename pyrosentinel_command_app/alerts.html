@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sentinel Command — Alerts</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#080B10; color:#E8EDF2; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:108px; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:7px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .head { padding:4px 28px 14px; display:flex; justify-content:space-between; align-items:center; }
+  .head .a { font-size:11px; color:#8A95A3; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; }
+  .head .b { font-size:24px; font-weight:900; letter-spacing:-0.6px; margin-top:2px; }
+  .clear { font-size:12px; color:#FB923C; font-weight:700; }
+
+  /* filter chips */
+  .chips { display:flex; gap:9px; padding:0 28px 4px; overflow-x:auto; }
+  .chip { white-space:nowrap; padding:8px 15px; border-radius:12px; font-size:12px; font-weight:700; background:#141A22; border:1px solid rgba(255,255,255,0.07); color:#8A95A3; }
+  .chip.active { background:#FB923C; color:#1A130A; border-color:transparent; }
+
+  .day { padding:20px 28px 10px; font-size:11px; font-weight:800; color:#7C8794; letter-spacing:0.4px; text-transform:uppercase; }
+
+  .list { padding:0 28px; display:flex; flex-direction:column; gap:11px; }
+  .alert { display:flex; gap:13px; background:#121821; border:1px solid rgba(255,255,255,0.06); border-radius:17px; padding:14px; position:relative; }
+  .alert.urgent { border-color:rgba(248,113,113,0.3); background:linear-gradient(135deg,#1B1012,#121821); }
+  .al-ic { width:42px; height:42px; border-radius:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .al-ic i { font-size:16px; color:#fff; }
+  .al-body { flex:1; }
+  .al-top { display:flex; align-items:center; gap:8px; }
+  .al-title { font-size:13.5px; font-weight:800; letter-spacing:-0.2px; }
+  .al-tag { font-size:8px; font-weight:800; padding:3px 7px; border-radius:6px; letter-spacing:0.3px; }
+  .al-desc { font-size:11.5px; color:#9AA5B1; font-weight:500; line-height:1.45; margin-top:4px; }
+  .al-time { font-size:10px; color:#7C8794; font-weight:600; margin-top:6px; display:flex; align-items:center; gap:6px; }
+  .al-unread { position:absolute; top:16px; right:16px; width:8px; height:8px; border-radius:50%; background:#FB923C; }
+
+  /* Tab bar */
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(11,15,20,0.96); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.07); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:52px; }
+  .tab-item i { font-size:18px; color:#5C6675; }
+  .tab-item span { font-size:9.5px; color:#5C6675; font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#FB923C; }
+  .tab-fire { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,#FB923C,#EA580C); display:flex; align-items:center; justify-content:center; margin-top:-16px; box-shadow:0 12px 26px rgba(234,88,12,0.5); }
+  .tab-fire i { font-size:22px; color:#fff; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="head">
+    <div>
+      <div class="a">Ridge Canyon Incident</div>
+      <div class="b">Alerts</div>
+    </div>
+    <div class="clear">Mark all read</div>
+  </div>
+
+  <div class="chips">
+    <div class="chip active">All</div>
+    <div class="chip">Fire</div>
+    <div class="chip">Suppress</div>
+    <div class="chip">Evac</div>
+    <div class="chip">System</div>
+  </div>
+
+  <div class="day">Now</div>
+  <div class="list">
+    <div class="alert urgent">
+      <div class="al-ic" style="background:linear-gradient(135deg,#F87171,#DC2626)"><i class="fas fa-fire"></i></div>
+      <div class="al-body">
+        <div class="al-top"><span class="al-title">New hotspot detected</span><span class="al-tag" style="background:rgba(248,113,113,0.18);color:#F87171">URGENT</span></div>
+        <div class="al-desc">Scout-01 flagged a 640°F flame front at Grid 7-C spreading toward the treeline.</div>
+        <div class="al-time"><i class="fas fa-clock" style="font-size:9px"></i> Just now · 1 min ago</div>
+      </div>
+      <span class="al-unread"></span>
+    </div>
+    <div class="alert">
+      <div class="al-ic" style="background:linear-gradient(135deg,#FBBF24,#D97706)"><i class="fas fa-battery-quarter"></i></div>
+      <div class="al-body">
+        <div class="al-top"><span class="al-title">Suppressor-02 battery low</span><span class="al-tag" style="background:rgba(251,191,36,0.18);color:#FBBF24">WARN</span></div>
+        <div class="al-desc">71% remaining — ~18 min flight time. Plan return or hand-off to Suppressor-03.</div>
+        <div class="al-time"><i class="fas fa-clock" style="font-size:9px"></i> 3 min ago</div>
+      </div>
+      <span class="al-unread"></span>
+    </div>
+  </div>
+
+  <div class="day">Earlier today</div>
+  <div class="list">
+    <div class="alert">
+      <div class="al-ic" style="background:linear-gradient(135deg,#22C55E,#16A34A)"><i class="fas fa-check"></i></div>
+      <div class="al-body">
+        <div class="al-top"><span class="al-title">Hotspot H-2 suppressed</span><span class="al-tag" style="background:rgba(74,222,128,0.18);color:#4ADE80">DONE</span></div>
+        <div class="al-desc">2 fire balls deployed by Suppressor-02 · temperature dropped to 180°F.</div>
+        <div class="al-time"><i class="fas fa-clock" style="font-size:9px"></i> 4 min ago</div>
+      </div>
+    </div>
+    <div class="alert">
+      <div class="al-ic" style="background:linear-gradient(135deg,#38BDF8,#0284C7)"><i class="fas fa-person-running"></i></div>
+      <div class="al-body">
+        <div class="al-top"><span class="al-title">Evac route B opened</span><span class="al-tag" style="background:rgba(56,189,248,0.18);color:#38BDF8">EVAC</span></div>
+        <div class="al-desc">Scout broadcast loudspeaker guidance to Pine Hollow — 18 residents cleared.</div>
+        <div class="al-time"><i class="fas fa-clock" style="font-size:9px"></i> 9 min ago</div>
+      </div>
+    </div>
+    <div class="alert">
+      <div class="al-ic" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-rocket"></i></div>
+      <div class="al-body">
+        <div class="al-top"><span class="al-title">Drones launched</span><span class="al-tag" style="background:rgba(167,139,250,0.18);color:#A78BFA">SYSTEM</span></div>
+        <div class="al-desc">Scout-01 and Suppressor-02 deployed to Ridge Canyon Incident.</div>
+        <div class="al-time"><i class="fas fa-clock" style="font-size:9px"></i> 24 min ago</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-gauge-high"></i><span>Command</span></div>
+    <div class="tab-item"><i class="fas fa-video"></i><span>Feed</span></div>
+    <div class="tab-item"><div class="tab-fire"><i class="fas fa-fire"></i></div></div>
+    <div class="tab-item"><i class="fas fa-map-location-dot"></i><span>Map</span></div>
+    <div class="tab-item"><i class="fas fa-drone"></i><span>Fleet</span></div>
+  </div>
+</div>
+</body>
+</html>
