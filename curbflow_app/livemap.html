@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CurbFlow — Live Map</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}*::-webkit-scrollbar{display:none}
+html,body{width:100%;height:100%}
+body{font-family:'Inter',sans-serif;background:#0B1B2B;color:#0B1B2B;-webkit-font-smoothing:antialiased;scrollbar-width:none;overflow:hidden}
+.display{font-family:'Space Grotesk',sans-serif}
+.screen{position:relative;width:100%;height:100%;overflow:hidden}
+.statusbar{height:59px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:relative;z-index:30;color:#fff}
+.statusbar .time{font-size:16px;font-weight:700}.statusbar .icons{display:flex;gap:7px;font-size:15px}
+.island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:122px;height:35px;background:#000;border-radius:20px;z-index:40}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:90px;background:rgba(255,255,255,.95);backdrop-filter:blur(18px);border-top:1px solid #E3EAE8;display:flex;align-items:flex-start;justify-content:space-around;padding:12px 14px 0;z-index:50}
+.tab{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#9AB0AC;width:56px}
+.tab i{font-size:19px}.tab.active{color:#0D9488}
+.fab{width:58px;height:58px;border-radius:20px;background:linear-gradient(135deg,#10B981,#0D9488);display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;box-shadow:0 10px 22px rgba(13,148,136,.42);margin-top:-16px}
+.pulse{animation:pulse 1.8s infinite}@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}70%{box-shadow:0 0 0 14px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+.flow{stroke-dasharray:6 7;animation:dash 1s linear infinite}@keyframes dash{to{stroke-dashoffset:-26}}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="island"></div>
+
+  <!-- Map base -->
+  <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1782622465966-image-1.png" class="absolute inset-0 w-full h-full object-cover">
+  <div class="absolute inset-0 bg-[#0B1B2B]/25"></div>
+
+  <!-- Route congestion overlay -->
+  <svg class="absolute inset-0 w-full h-full" viewBox="0 0 400 860" preserveAspectRatio="none">
+    <!-- congested segment (red) -->
+    <path d="M40,250 C120,250 180,300 200,380" fill="none" stroke="#EF4444" stroke-width="11" stroke-linecap="round" opacity="0.9"/>
+    <path d="M40,250 C120,250 180,300 200,380" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" class="flow" opacity="0.85"/>
+    <!-- moderate (amber) -->
+    <path d="M200,380 C230,460 300,470 360,500" fill="none" stroke="#F59E0B" stroke-width="11" stroke-linecap="round" opacity="0.9"/>
+    <path d="M200,380 C230,460 300,470 360,500" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" class="flow" opacity="0.85"/>
+    <!-- flowing (green) -->
+    <path d="M200,380 C150,470 100,520 60,640" fill="none" stroke="#10B981" stroke-width="11" stroke-linecap="round" opacity="0.9"/>
+    <path d="M200,380 C150,470 100,520 60,640" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" class="flow" opacity="0.85"/>
+  </svg>
+
+  <!-- School marker -->
+  <div class="absolute" style="top:40%;left:46%">
+    <div class="w-12 h-12 rounded-2xl bg-white shadow-lg flex items-center justify-center border-2 border-teal-500"><i class="fas fa-school text-teal-600 text-lg"></i></div>
+  </div>
+  <!-- Hotspot markers -->
+  <div class="absolute pulse w-7 h-7 rounded-full bg-red-500 border-2 border-white shadow flex items-center justify-center" style="top:27%;left:11%"><span class="text-white text-[11px] font-bold">38</span></div>
+  <div class="absolute w-7 h-7 rounded-full bg-amber-500 border-2 border-white shadow flex items-center justify-center" style="top:56%;left:84%"><span class="text-white text-[11px] font-bold">14</span></div>
+
+  <div class="statusbar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <!-- Top bar -->
+  <div class="absolute top-[68px] left-0 right-0 px-7 z-20 flex items-center justify-between">
+    <div class="bg-[#0B1B2B]/70 backdrop-blur rounded-2xl px-4 py-2.5 border border-white/10">
+      <p class="text-white/60 text-[10px] font-semibold">LIVE ZONE MONITOR</p>
+      <p class="text-white text-[14px] font-bold">Lincoln Elementary · AM</p>
+    </div>
+    <div class="flex items-center gap-1.5 bg-red-500 rounded-full px-3 py-2 shadow">
+      <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+      <span class="text-white text-[11px] font-bold">LIVE</span>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="absolute top-[140px] right-7 z-20 bg-[#0B1B2B]/70 backdrop-blur rounded-xl px-3 py-2.5 border border-white/10 space-y-1.5">
+    <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span><span class="text-white text-[10px] font-semibold">Congested</span></div>
+    <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span><span class="text-white text-[10px] font-semibold">Moderate</span></div>
+    <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span class="text-white text-[10px] font-semibold">Flowing</span></div>
+  </div>
+
+  <!-- Bottom sheet -->
+  <div class="absolute left-0 right-0 bottom-[90px] z-30 bg-white rounded-t-[28px] shadow-2xl" style="max-height:50%">
+    <div class="w-10 h-1 bg-slate-200 rounded-full mx-auto mt-3 mb-3"></div>
+    <div class="px-7 pb-4 overflow-y-auto" style="max-height:330px">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h3 class="display text-[19px] font-700">2 active hotspots</h3>
+          <p class="text-[12px] text-slate-400 font-medium">Updated 12s ago · 64 vehicles tracked</p>
+        </div>
+        <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center"><i class="fas fa-gauge-high text-amber-500"></i></div>
+      </div>
+
+      <a href="zone-detail.html" class="flex items-center gap-3 bg-red-50/60 border border-red-100 rounded-2xl p-3.5 mb-2.5">
+        <div class="w-11 h-11 rounded-xl bg-red-500 flex items-center justify-center shrink-0"><i class="fas fa-car-burst text-white"></i></div>
+        <div class="flex-1">
+          <p class="text-[14px] font-bold">Maple St. & Drop-off Loop</p>
+          <p class="text-[11.5px] text-slate-500 font-medium">38 cars queued · 6:20 avg wait</p>
+        </div>
+        <div class="text-right"><p class="text-red-500 text-[13px] font-bold">High</p><i class="fas fa-chevron-right text-slate-300 text-xs"></i></div>
+      </a>
+
+      <a href="zone-detail.html" class="flex items-center gap-3 bg-amber-50/60 border border-amber-100 rounded-2xl p-3.5 mb-2.5">
+        <div class="w-11 h-11 rounded-xl bg-amber-500 flex items-center justify-center shrink-0"><i class="fas fa-bus text-white"></i></div>
+        <div class="flex-1">
+          <p class="text-[14px] font-bold">Bus bay merge · 2nd Ave</p>
+          <p class="text-[11.5px] text-slate-500 font-medium">14 cars · buses crossing flow</p>
+        </div>
+        <div class="text-right"><p class="text-amber-500 text-[13px] font-bold">Med</p><i class="fas fa-chevron-right text-slate-300 text-xs"></i></div>
+      </a>
+
+      <a href="recommendation-detail.html" class="flex items-center justify-center gap-2 mt-3 text-teal-600 font-bold text-[13.5px] py-2">
+        <i class="fas fa-wand-magic-sparkles"></i> Get a fix plan for these
+      </a>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tabbar">
+    <a href="home.html" class="tab"><i class="fas fa-house"></i>Home</a>
+    <a href="analytics.html" class="tab"><i class="fas fa-chart-column"></i>Analytics</a>
+    <a href="livemap.html" class="flex flex-col items-center"><div class="fab"><i class="fas fa-wave-square"></i></div></a>
+    <a href="recommendations.html" class="tab"><i class="fas fa-wand-magic-sparkles"></i>Plans</a>
+    <a href="profile.html" class="tab"><i class="fas fa-user"></i>Me</a>
+  </div>
+</div>
+</body>
+</html>
