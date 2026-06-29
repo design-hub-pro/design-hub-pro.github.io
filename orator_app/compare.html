@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orator - Compare</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #F3F2FB; width: 100%; height: 100%; overflow-x: hidden; scrollbar-width: none; color: #191534; }
+
+  .status-bar { width: 100%; height: 59px; padding: 0 28px 10px; display: flex; justify-content: space-between; align-items: flex-end; background: #F3F2FB; position: sticky; top: 0; z-index: 100; }
+  .status-time { font-size: 16px; font-weight: 600; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 22px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 130px; }
+
+  .nav { display: flex; align-items: center; justify-content: space-between; margin-top: 2px; }
+  .nav-btn { width: 40px; height: 40px; border-radius: 13px; background: #fff; display: flex; align-items: center; justify-content: center; color: #191534; font-size: 16px; box-shadow: 0 4px 12px rgba(25,21,52,0.05); }
+  .nav-title { font-size: 16px; font-weight: 800; }
+
+  /* Versus header */
+  .vs { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
+  .vs-card { flex: 1; background: #fff; border-radius: 22px; padding: 16px 14px; text-align: center; box-shadow: 0 6px 18px rgba(25,21,52,0.05); }
+  .vs-card img { width: 56px; height: 56px; border-radius: 18px; object-fit: cover; margin: 0 auto 10px; display: block; }
+  .vs-name { font-size: 13px; font-weight: 800; }
+  .vs-role { font-size: 11px; color: #847FA6; margin-top: 2px; }
+  .vs-score { font-size: 26px; font-weight: 900; margin-top: 8px; }
+  .vs-you .vs-score { color: #7B5BF0; }
+  .vs-model .vs-score { color: #FFB13C; }
+  .vs-mid { width: 42px; height: 42px; border-radius: 50%; background: #191534; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
+  .vs-avatar-ph { width: 56px; height: 56px; border-radius: 18px; background: linear-gradient(135deg,#7B5BF0,#A24BE8); display: flex; align-items: center; justify-content: center; color:#fff; font-size: 22px; margin: 0 auto 10px; }
+
+  /* Radar */
+  .panel { background: #fff; border-radius: 24px; padding: 18px; margin-top: 16px; box-shadow: 0 6px 18px rgba(25,21,52,0.05); }
+  .panel-title { font-size: 15px; font-weight: 800; }
+  .radar-wrap { display: flex; justify-content: center; margin-top: 8px; }
+  .radar-legend { display: flex; gap: 18px; justify-content: center; margin-top: 6px; }
+  .radar-legend div { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #847FA6; }
+  .dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* Comparison rows */
+  .crow { margin-top: 16px; }
+  .crow:first-child { margin-top: 4px; }
+  .crow-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .crow-name { font-size: 13px; font-weight: 700; }
+  .crow-vals { font-size: 12px; font-weight: 700; }
+  .crow-vals .you { color: #7B5BF0; }
+  .crow-vals .mod { color: #FFB13C; }
+  .ctrack { height: 8px; border-radius: 6px; background: #ECE8FA; position: relative; }
+  .cfill-you { position: absolute; left: 0; top: 0; height: 100%; border-radius: 6px; background: linear-gradient(90deg,#7B5BF0,#A24BE8); }
+  .cmark-mod { position: absolute; top: -3px; width: 4px; height: 14px; border-radius: 3px; background: #FFB13C; }
+
+  .insight { margin-top: 16px; background: linear-gradient(135deg,#191534,#2D2456); border-radius: 22px; padding: 18px; color: #fff; display: flex; gap: 14px; align-items: flex-start; }
+  .insight i { color: #19D3C5; font-size: 20px; margin-top: 2px; }
+  .insight-t { font-size: 14px; font-weight: 800; }
+  .insight-d { font-size: 12px; color: #C7C0EA; margin-top: 4px; line-height: 1.5; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(255,255,255,0.94); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 0.5px solid rgba(0,0,0,0.06); display: flex; justify-content: space-around; align-items: flex-start; padding: 11px 10px 0; z-index: 100; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #ADA8C9; flex: 1; }
+  .tab-item.active { color: #7B5BF0; }
+  .tab-item i { font-size: 21px; }
+  .tab-fab { width: 56px; height: 56px; border-radius: 19px; background: linear-gradient(135deg,#7B5BF0,#A24BE8); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; margin-top: -16px; box-shadow: 0 10px 22px rgba(123,91,240,0.45); }
+  .tab-fab-lbl { font-size: 10px; font-weight: 700; color: #7B5BF0; margin-top: 3px; }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="content">
+  <div class="nav">
+    <div class="nav-btn"><i class="fas fa-chevron-left"></i></div>
+    <div class="nav-title">You vs. Model</div>
+    <div class="nav-btn"><i class="fas fa-rotate"></i></div>
+  </div>
+
+  <div class="vs">
+    <div class="vs-card vs-you">
+      <div class="vs-avatar-ph"><i class="fas fa-user"></i></div>
+      <div class="vs-name">You</div>
+      <div class="vs-role">Investor Pitch v3</div>
+      <div class="vs-score">82</div>
+    </div>
+    <div class="vs-mid">VS</div>
+    <div class="vs-card vs-model">
+      <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=200&q=80" alt="">
+      <div class="vs-name">Brené Brown</div>
+      <div class="vs-role">TED · Vulnerability</div>
+      <div class="vs-score">94</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Acoustic Fingerprint</div>
+    <div class="radar-wrap">
+      <svg width="280" height="240" viewBox="0 0 280 240">
+        <!-- grid pentagons -->
+        <g fill="none" stroke="#ECE8FA" stroke-width="1.5">
+          <polygon points="140,30 235,98 199,206 81,206 45,98"/>
+          <polygon points="140,57 209,107 183,186 97,186 71,107"/>
+          <polygon points="140,84 182,116 166,166 114,166 98,116"/>
+          <polygon points="140,111 156,125 150,146 130,146 124,125"/>
+        </g>
+        <g stroke="#ECE8FA" stroke-width="1.5">
+          <line x1="140" y1="138" x2="140" y2="30"/>
+          <line x1="140" y1="138" x2="235" y2="98"/>
+          <line x1="140" y1="138" x2="199" y2="206"/>
+          <line x1="140" y1="138" x2="81" y2="206"/>
+          <line x1="140" y1="138" x2="45" y2="98"/>
+        </g>
+        <!-- model polygon (gold) -->
+        <polygon points="140,36 228,101 192,198 88,200 52,100" fill="rgba(255,177,60,0.18)" stroke="#FFB13C" stroke-width="2.5"/>
+        <!-- you polygon (violet) -->
+        <polygon points="140,52 210,108 178,188 100,182 70,112" fill="rgba(123,91,240,0.22)" stroke="#7B5BF0" stroke-width="2.5"/>
+        <!-- labels -->
+        <text x="140" y="22" text-anchor="middle" font-size="10" font-weight="700" fill="#847FA6">Pitch</text>
+        <text x="252" y="100" text-anchor="middle" font-size="10" font-weight="700" fill="#847FA6">Pace</text>
+        <text x="206" y="222" text-anchor="middle" font-size="10" font-weight="700" fill="#847FA6">Pauses</text>
+        <text x="74" y="222" text-anchor="middle" font-size="10" font-weight="700" fill="#847FA6">Energy</text>
+        <text x="28" y="100" text-anchor="middle" font-size="10" font-weight="700" fill="#847FA6">Emotion</text>
+      </svg>
+    </div>
+    <div class="radar-legend">
+      <div><span class="dot" style="background:#7B5BF0;"></span> You</div>
+      <div><span class="dot" style="background:#FFB13C;"></span> Model</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Side by Side</div>
+    <div style="margin-top:14px;">
+      <div class="crow">
+        <div class="crow-head"><span class="crow-name">Pitch Variation</span><span class="crow-vals"><span class="you">±84</span> · <span class="mod">±96 Hz</span></span></div>
+        <div class="ctrack"><div class="cfill-you" style="width:74%;"></div><div class="cmark-mod" style="left:88%;"></div></div>
+      </div>
+      <div class="crow">
+        <div class="crow-head"><span class="crow-name">Speaking Rate</span><span class="crow-vals"><span class="you">138</span> · <span class="mod">131 wpm</span></span></div>
+        <div class="ctrack"><div class="cfill-you" style="width:84%;"></div><div class="cmark-mod" style="left:80%;"></div></div>
+      </div>
+      <div class="crow">
+        <div class="crow-head"><span class="crow-name">Power Pauses</span><span class="crow-vals"><span class="you">11</span> · <span class="mod">17</span></span></div>
+        <div class="ctrack"><div class="cfill-you" style="width:65%;"></div><div class="cmark-mod" style="left:92%;"></div></div>
+      </div>
+      <div class="crow">
+        <div class="crow-head"><span class="crow-name">Loudness Range</span><span class="crow-vals"><span class="you">12</span> · <span class="mod">19 dB</span></span></div>
+        <div class="ctrack"><div class="cfill-you" style="width:58%;"></div><div class="cmark-mod" style="left:90%;"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <i class="fas fa-wand-magic-sparkles"></i>
+    <div>
+      <div class="insight-t">Closest gap: dynamics</div>
+      <div class="insight-d">Brené pushes 60% wider loudness swings to mark key ideas. Add 2–3 louder emphasis moments to lift your score by ~8 points.</div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item"><i class="fas fa-house"></i><span>Today</span></div>
+  <div class="tab-item active"><i class="fas fa-compact-disc"></i><span>Library</span></div>
+  <div class="tab-item"><div class="tab-fab"><i class="fas fa-microphone"></i></div><span class="tab-fab-lbl">Record</span></div>
+  <div class="tab-item"><i class="fas fa-dumbbell"></i><span>Drills</span></div>
+  <div class="tab-item"><i class="fas fa-chart-line"></i><span>Progress</span></div>
+</div>
+
+</body>
+</html>

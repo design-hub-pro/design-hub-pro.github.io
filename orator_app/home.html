@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orator - Today</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #F3F2FB; width: 100%; height: 100%; overflow-x: hidden; scrollbar-width: none; color: #191534; }
+
+  .status-bar { width: 100%; height: 59px; padding: 0 28px 10px; display: flex; justify-content: space-between; align-items: flex-end; background: #F3F2FB; position: sticky; top: 0; z-index: 100; }
+  .status-time { font-size: 16px; font-weight: 600; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 22px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 130px; }
+
+  .greeting { margin-top: 6px; display: flex; justify-content: space-between; align-items: center; }
+  .greeting-sub { font-size: 13px; color: #847FA6; font-weight: 600; }
+  .greeting-main { font-size: 27px; font-weight: 800; margin-top: 2px; }
+  .greeting-avatar { width: 48px; height: 48px; border-radius: 16px; object-fit: cover; border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+  .score-card { margin-top: 18px; border-radius: 28px; padding: 22px; color: #fff; background: linear-gradient(135deg,#7B5BF0,#A24BE8); box-shadow: 0 18px 40px rgba(123,91,240,0.35); position: relative; overflow: hidden; }
+  .score-card .wave-bg { position: absolute; right: -10px; bottom: -16px; opacity: 0.16; font-size: 150px; }
+  .score-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .score-label { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; opacity: 0.85; }
+  .score-delta { background: rgba(255,255,255,0.22); padding: 5px 11px; border-radius: 12px; font-size: 12px; font-weight: 700; }
+  .score-num { font-size: 64px; font-weight: 900; line-height: 1; margin-top: 10px; }
+  .score-num span { font-size: 22px; font-weight: 700; opacity: 0.7; }
+  .score-tag { font-size: 13px; font-weight: 600; opacity: 0.92; margin-top: 4px; }
+  .mini-metrics { display: flex; gap: 10px; margin-top: 18px; }
+  .mini-metric { flex: 1; background: rgba(255,255,255,0.16); border-radius: 16px; padding: 11px 12px; }
+  .mini-metric .mv { font-size: 19px; font-weight: 800; }
+  .mini-metric .ml { font-size: 10px; font-weight: 600; opacity: 0.85; margin-top: 2px; }
+
+  .section-head { display: flex; justify-content: space-between; align-items: center; margin-top: 26px; margin-bottom: 13px; }
+  .section-title { font-size: 18px; font-weight: 800; }
+  .section-link { font-size: 13px; color: #7B5BF0; font-weight: 700; }
+
+  .drill-card { background: #fff; border-radius: 22px; padding: 16px; display: flex; align-items: center; gap: 14px; box-shadow: 0 6px 18px rgba(25,21,52,0.05); }
+  .drill-icon { width: 54px; height: 54px; border-radius: 17px; background: linear-gradient(135deg,#19D3C5,#13A89D); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; flex-shrink: 0; }
+  .drill-name { font-size: 15px; font-weight: 800; }
+  .drill-meta { font-size: 12px; color: #847FA6; margin-top: 2px; }
+  .drill-go { margin-left: auto; width: 40px; height: 40px; border-radius: 13px; background: #F3F2FB; display: flex; align-items: center; justify-content: center; color: #7B5BF0; }
+
+  .rec { background: #fff; border-radius: 18px; padding: 13px 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 13px; box-shadow: 0 4px 14px rgba(25,21,52,0.04); }
+  .rec-wave { width: 50px; height: 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 2px; flex-shrink: 0; background: #F1EEFF; }
+  .rec-wave span { width: 3px; border-radius: 3px; background: #7B5BF0; }
+  .rec-name { font-size: 14px; font-weight: 700; }
+  .rec-meta { font-size: 12px; color: #847FA6; margin-top: 2px; }
+  .rec-score { margin-left: auto; text-align: center; }
+  .rec-score .rs { font-size: 19px; font-weight: 900; color: #191534; }
+  .rec-score .rsl { font-size: 9px; color: #847FA6; font-weight: 600; }
+
+  .feat { margin-top: 4px; border-radius: 24px; overflow: hidden; position: relative; height: 168px; box-shadow: 0 14px 30px rgba(25,21,52,0.18); }
+  .feat img { width: 100%; height: 100%; object-fit: cover; }
+  .feat-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,12,42,0.05) 25%, rgba(20,12,42,0.9)); }
+  .feat-tag { position: absolute; top: 14px; left: 14px; background: rgba(255,177,60,0.95); color: #4A2D00; font-size: 11px; font-weight: 800; padding: 5px 11px; border-radius: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .feat-info { position: absolute; left: 16px; right: 16px; bottom: 15px; color: #fff; }
+  .feat-name { font-size: 19px; font-weight: 800; }
+  .feat-sub { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+  .feat-play { position: absolute; right: 16px; bottom: 16px; width: 46px; height: 46px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; color: #7B5BF0; font-size: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.25); }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(255,255,255,0.94); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 0.5px solid rgba(0,0,0,0.06); display: flex; justify-content: space-around; align-items: flex-start; padding: 11px 10px 0; z-index: 100; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #ADA8C9; flex: 1; }
+  .tab-item.active { color: #7B5BF0; }
+  .tab-item i { font-size: 21px; }
+  .tab-fab { width: 56px; height: 56px; border-radius: 19px; background: linear-gradient(135deg,#7B5BF0,#A24BE8); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; margin-top: -16px; box-shadow: 0 10px 22px rgba(123,91,240,0.45); }
+  .tab-fab-lbl { font-size: 10px; font-weight: 700; color: #7B5BF0; margin-top: 3px; }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="content">
+  <div class="greeting">
+    <div>
+      <div class="greeting-sub">7-day streak · keep it up 🔥</div>
+      <div class="greeting-main">Hi, Daniel</div>
+    </div>
+    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80" class="greeting-avatar" alt="">
+  </div>
+
+  <div class="score-card">
+    <i class="fas fa-wave-square wave-bg"></i>
+    <div class="score-top">
+      <div class="score-label">Your Orator Score</div>
+      <div class="score-delta"><i class="fas fa-arrow-up"></i> +6 this week</div>
+    </div>
+    <div class="score-num">82<span>/100</span></div>
+    <div class="score-tag">Persuasive range — closing in on TED-level delivery</div>
+    <div class="mini-metrics">
+      <div class="mini-metric"><div class="mv">138</div><div class="ml">words / min</div></div>
+      <div class="mini-metric"><div class="mv">±84 Hz</div><div class="ml">pitch range</div></div>
+      <div class="mini-metric"><div class="mv">11</div><div class="ml">power pauses</div></div>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <div class="section-title">Today's Drill</div>
+    <span class="section-link">All drills</span>
+  </div>
+  <div class="drill-card">
+    <div class="drill-icon"><i class="fas fa-arrows-left-right-to-line"></i></div>
+    <div>
+      <div class="drill-name">The Dramatic Pause</div>
+      <div class="drill-meta">Master 2-sec rhetorical pauses · 4 min</div>
+    </div>
+    <div class="drill-go"><i class="fas fa-play"></i></div>
+  </div>
+
+  <div class="section-head">
+    <div class="section-title">Recent Recordings</div>
+    <span class="section-link">See all</span>
+  </div>
+
+  <div class="rec">
+    <div class="rec-wave"><span style="height:14px"></span><span style="height:28px"></span><span style="height:20px"></span><span style="height:32px"></span><span style="height:16px"></span></div>
+    <div>
+      <div class="rec-name">Investor Pitch v3</div>
+      <div class="rec-meta">2:41 · today, 9:02 AM</div>
+    </div>
+    <div class="rec-score"><div class="rs">82</div><div class="rsl">SCORE</div></div>
+  </div>
+
+  <div class="rec">
+    <div class="rec-wave"><span style="height:20px"></span><span style="height:12px"></span><span style="height:30px"></span><span style="height:18px"></span><span style="height:24px"></span></div>
+    <div>
+      <div class="rec-name">Wedding Toast</div>
+      <div class="rec-meta">1:18 · yesterday</div>
+    </div>
+    <div class="rec-score"><div class="rs">76</div><div class="rsl">SCORE</div></div>
+  </div>
+
+  <div class="section-head">
+    <div class="section-title">Model of the Day</div>
+    <span class="section-link">Library</span>
+  </div>
+
+  <div class="feat">
+    <img src="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=800&q=80" alt="">
+    <div class="feat-overlay"></div>
+    <div class="feat-tag"><i class="fas fa-crown"></i> Elite Model</div>
+    <div class="feat-info">
+      <div class="feat-name">"I Have a Dream"</div>
+      <div class="feat-sub">Wide pitch arcs · rising rhythm · 92 cadence</div>
+    </div>
+    <div class="feat-play"><i class="fas fa-play"></i></div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item active"><i class="fas fa-house"></i><span>Today</span></div>
+  <div class="tab-item"><i class="fas fa-compact-disc"></i><span>Library</span></div>
+  <div class="tab-item"><div class="tab-fab"><i class="fas fa-microphone"></i></div><span class="tab-fab-lbl">Record</span></div>
+  <div class="tab-item"><i class="fas fa-dumbbell"></i><span>Drills</span></div>
+  <div class="tab-item"><i class="fas fa-chart-line"></i><span>Progress</span></div>
+</div>
+
+</body>
+</html>

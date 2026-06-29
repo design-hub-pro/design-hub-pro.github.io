@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orator - Analysis</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #F3F2FB; width: 100%; height: 100%; overflow-x: hidden; scrollbar-width: none; color: #191534; }
+
+  .status-bar { width: 100%; height: 59px; padding: 0 28px 10px; display: flex; justify-content: space-between; align-items: flex-end; background: #F3F2FB; position: sticky; top: 0; z-index: 100; }
+  .status-time { font-size: 16px; font-weight: 600; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 22px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 130px; }
+
+  .nav { display: flex; align-items: center; justify-content: space-between; margin-top: 2px; }
+  .nav-btn { width: 40px; height: 40px; border-radius: 13px; background: #fff; display: flex; align-items: center; justify-content: center; color: #191534; font-size: 16px; box-shadow: 0 4px 12px rgba(25,21,52,0.05); }
+  .nav-title { font-size: 16px; font-weight: 800; }
+
+  /* Ring score */
+  .ring-wrap { display: flex; align-items: center; gap: 18px; margin-top: 18px; background: #fff; border-radius: 26px; padding: 20px; box-shadow: 0 8px 24px rgba(25,21,52,0.06); }
+  .ring { width: 104px; height: 104px; flex-shrink: 0; }
+  .ring-info .rt { font-size: 13px; font-weight: 700; color: #847FA6; }
+  .ring-info .rn { font-size: 17px; font-weight: 800; margin-top: 3px; }
+  .ring-info .rd { font-size: 12px; color: #847FA6; margin-top: 6px; line-height: 1.45; }
+  .ring-pill { display: inline-flex; align-items: center; gap: 5px; margin-top: 9px; background: #E9FBF8; color: #13A89D; font-size: 11px; font-weight: 800; padding: 5px 10px; border-radius: 10px; }
+
+  /* Annotated waveform */
+  .panel { background: #fff; border-radius: 24px; padding: 18px; margin-top: 16px; box-shadow: 0 6px 18px rgba(25,21,52,0.05); }
+  .panel-title { font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .panel-title .sub { font-size: 11px; font-weight: 600; color: #847FA6; margin-left: auto; }
+  .awave { display: flex; align-items: flex-end; gap: 2px; height: 78px; margin-top: 16px; position: relative; }
+  .awave span { flex: 1; border-radius: 3px; background: #D9D2F7; }
+  .awave span.hot { background: linear-gradient(180deg,#A24BE8,#7B5BF0); }
+  .awave .pause-mark { width: 2px; background: #FFB13C !important; border-radius: 0; align-self: stretch; }
+  .legend { display: flex; gap: 16px; margin-top: 14px; }
+  .legend div { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #847FA6; font-weight: 600; }
+  .dot { width: 9px; height: 9px; border-radius: 3px; }
+
+  /* Feature breakdown */
+  .feat { margin-top: 14px; }
+  .feat:first-child { margin-top: 4px; }
+  .feat-head { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+  .feat-ic { width: 34px; height: 34px; border-radius: 11px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; flex-shrink: 0; }
+  .feat-name { font-size: 13px; font-weight: 700; }
+  .feat-val { font-size: 11px; color: #847FA6; }
+  .feat-score { margin-left: auto; font-size: 15px; font-weight: 900; }
+  .bar { height: 8px; border-radius: 6px; background: #ECE8FA; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 6px; }
+
+  .cta { margin-top: 18px; display: flex; gap: 12px; }
+  .cta-btn { flex: 1; height: 52px; border-radius: 17px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 700; }
+  .cta-primary { background: linear-gradient(135deg,#7B5BF0,#A24BE8); color: #fff; box-shadow: 0 10px 22px rgba(123,91,240,0.35); }
+  .cta-ghost { background: #fff; color: #7B5BF0; box-shadow: 0 4px 12px rgba(25,21,52,0.05); }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(255,255,255,0.94); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 0.5px solid rgba(0,0,0,0.06); display: flex; justify-content: space-around; align-items: flex-start; padding: 11px 10px 0; z-index: 100; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #ADA8C9; flex: 1; }
+  .tab-item.active { color: #7B5BF0; }
+  .tab-item i { font-size: 21px; }
+  .tab-fab { width: 56px; height: 56px; border-radius: 19px; background: linear-gradient(135deg,#7B5BF0,#A24BE8); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; margin-top: -16px; box-shadow: 0 10px 22px rgba(123,91,240,0.45); }
+  .tab-fab-lbl { font-size: 10px; font-weight: 700; color: #7B5BF0; margin-top: 3px; }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="content">
+  <div class="nav">
+    <div class="nav-btn"><i class="fas fa-chevron-left"></i></div>
+    <div class="nav-title">Investor Pitch v3</div>
+    <div class="nav-btn"><i class="fas fa-share-nodes"></i></div>
+  </div>
+
+  <div class="ring-wrap">
+    <svg class="ring" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="50" fill="none" stroke="#ECE8FA" stroke-width="13"/>
+      <circle cx="60" cy="60" r="50" fill="none" stroke="url(#g)" stroke-width="13" stroke-linecap="round"
+        stroke-dasharray="314" stroke-dashoffset="56" transform="rotate(-90 60 60)"/>
+      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7B5BF0"/><stop offset="1" stop-color="#A24BE8"/></linearGradient></defs>
+      <text x="60" y="58" text-anchor="middle" font-size="34" font-weight="800" fill="#191534">82</text>
+      <text x="60" y="76" text-anchor="middle" font-size="11" font-weight="600" fill="#847FA6">/ 100</text>
+    </svg>
+    <div class="ring-info">
+      <div class="rt">Orator Score</div>
+      <div class="rn">Persuasive &amp; controlled</div>
+      <div class="rd">Strong pitch variation and pause discipline. Pace runs a touch fast in your hook.</div>
+      <div class="ring-pill"><i class="fas fa-arrow-up"></i> Top 18% of pitches</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><i class="fas fa-wave-square" style="color:#7B5BF0;"></i> Waveform &amp; Pauses <span class="sub">2:41 · 41 segments</span></div>
+    <div class="awave">
+      <span style="height:24%"></span><span style="height:48%"></span><span class="hot" style="height:72%"></span><span style="height:55%"></span>
+      <span class="pause-mark"></span>
+      <span style="height:38%"></span><span style="height:64%"></span><span class="hot" style="height:88%"></span><span style="height:50%"></span><span style="height:33%"></span>
+      <span class="pause-mark"></span>
+      <span style="height:60%"></span><span class="hot" style="height:96%"></span><span style="height:42%"></span><span style="height:70%"></span>
+      <span style="height:28%"></span><span style="height:52%"></span><span class="hot" style="height:80%"></span>
+      <span class="pause-mark"></span>
+      <span style="height:46%"></span><span style="height:66%"></span><span style="height:36%"></span><span style="height:58%"></span><span class="hot" style="height:90%"></span><span style="height:44%"></span>
+    </div>
+    <div class="legend">
+      <div><span class="dot" style="background:#7B5BF0;"></span> Emphasis peak</div>
+      <div><span class="dot" style="background:#FFB13C;"></span> Power pause</div>
+      <div><span class="dot" style="background:#D9D2F7;"></span> Steady speech</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><i class="fas fa-sliders" style="color:#7B5BF0;"></i> Acoustic Breakdown</div>
+    <div style="margin-top:16px;">
+
+      <div class="feat">
+        <div class="feat-head">
+          <div class="feat-ic" style="background:linear-gradient(135deg,#FFB13C,#FF8A3D);"><i class="fas fa-music"></i></div>
+          <div><div class="feat-name">Pitch Variation</div><div class="feat-val">±84 Hz melodic range</div></div>
+          <div class="feat-score" style="color:#13A89D;">89</div>
+        </div>
+        <div class="bar"><div class="bar-fill" style="width:89%;background:linear-gradient(90deg,#FFB13C,#FF8A3D);"></div></div>
+      </div>
+
+      <div class="feat">
+        <div class="feat-head">
+          <div class="feat-ic" style="background:linear-gradient(135deg,#19D3C5,#13A89D);"><i class="fas fa-gauge-high"></i></div>
+          <div><div class="feat-name">Speaking Rate</div><div class="feat-val">138 wpm · ideal 120–150</div></div>
+          <div class="feat-score" style="color:#13A89D;">84</div>
+        </div>
+        <div class="bar"><div class="bar-fill" style="width:84%;background:linear-gradient(90deg,#19D3C5,#13A89D);"></div></div>
+      </div>
+
+      <div class="feat">
+        <div class="feat-head">
+          <div class="feat-ic" style="background:linear-gradient(135deg,#7B5BF0,#A24BE8);"><i class="fas fa-arrows-left-right-to-line"></i></div>
+          <div><div class="feat-name">Pause Timing</div><div class="feat-val">11 rhetorical pauses · 0.9s avg</div></div>
+          <div class="feat-score" style="color:#13A89D;">86</div>
+        </div>
+        <div class="bar"><div class="bar-fill" style="width:86%;background:linear-gradient(90deg,#7B5BF0,#A24BE8);"></div></div>
+      </div>
+
+      <div class="feat">
+        <div class="feat-head">
+          <div class="feat-ic" style="background:linear-gradient(135deg,#5B8DEF,#3B6FE0);"><i class="fas fa-volume-high"></i></div>
+          <div><div class="feat-name">Loudness Dynamics</div><div class="feat-val">12 dB range · slightly flat</div></div>
+          <div class="feat-score" style="color:#E0913B;">71</div>
+        </div>
+        <div class="bar"><div class="bar-fill" style="width:71%;background:linear-gradient(90deg,#5B8DEF,#3B6FE0);"></div></div>
+      </div>
+
+      <div class="feat">
+        <div class="feat-head">
+          <div class="feat-ic" style="background:linear-gradient(135deg,#E36BB0,#C44F8C);"><i class="fas fa-heart-pulse"></i></div>
+          <div><div class="feat-name">Emotional Intensity</div><div class="feat-val">Peaks well on your close</div></div>
+          <div class="feat-score" style="color:#13A89D;">80</div>
+        </div>
+        <div class="bar"><div class="bar-fill" style="width:80%;background:linear-gradient(90deg,#E36BB0,#C44F8C);"></div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="cta">
+    <div class="cta-btn cta-ghost"><i class="fas fa-code-compare"></i> Compare</div>
+    <div class="cta-btn cta-primary"><i class="fas fa-lightbulb"></i> Get Coaching</div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item"><i class="fas fa-house"></i><span>Today</span></div>
+  <div class="tab-item"><i class="fas fa-compact-disc"></i><span>Library</span></div>
+  <div class="tab-item"><div class="tab-fab"><i class="fas fa-microphone"></i></div><span class="tab-fab-lbl">Record</span></div>
+  <div class="tab-item"><i class="fas fa-dumbbell"></i><span>Drills</span></div>
+  <div class="tab-item"><i class="fas fa-chart-line"></i><span>Progress</span></div>
+</div>
+
+</body>
+</html>
