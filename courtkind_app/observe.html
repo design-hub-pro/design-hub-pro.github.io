@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CourtKind - Observe</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #EFF3F0; width: 100%; height: 100%; overflow-x: hidden; scrollbar-width: none; color: #16241C; }
+
+  .status-bar { width: 100%; height: 59px; padding: 0 28px 10px; display: flex; justify-content: space-between; align-items: flex-end; background: #EFF3F0; position: sticky; top: 0; z-index: 100; }
+  .status-time { font-size: 16px; font-weight: 600; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 22px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 130px; }
+
+  .head-row { display: flex; align-items: center; gap: 13px; margin-top: 4px; }
+  .head-avatar { width: 50px; height: 50px; border-radius: 16px; object-fit: cover; }
+  .head-q { font-size: 23px; font-weight: 800; line-height: 1.15; }
+  .head-sub { font-size: 13px; color: #6B8377; font-weight: 600; margin-top: 2px; }
+
+  .label { font-size: 13px; font-weight: 700; color: #8A9B91; text-transform: uppercase; letter-spacing: 0.5px; margin: 22px 0 12px; }
+
+  /* Big mood grid */
+  .mood-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 11px; }
+  .mood-tile { aspect-ratio: 1; border-radius: 22px; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 2.5px solid transparent; }
+  .mood-tile .emo { font-size: 38px; }
+  .mood-tile .nm { font-size: 12px; font-weight: 700; color: #3C4D44; }
+  .mood-tile.sel { border-color: #18B26B; background: #E9FBF1; box-shadow: 0 10px 24px rgba(24,178,107,0.22); }
+  .mood-tile.sel .nm { color: #0E8A4F; }
+
+  /* Quick tags */
+  .tags { display: flex; flex-wrap: wrap; gap: 9px; }
+  .tag { padding: 11px 15px; border-radius: 15px; background: #fff; font-size: 13px; font-weight: 700; color: #3C4D44; display: flex; align-items: center; gap: 7px; }
+  .tag i { font-size: 13px; }
+  .tag.sel { background: #16241C; color: #fff; }
+  .tag.win.sel { background: linear-gradient(135deg,#18B26B,#0E8A4F); }
+
+  /* Drill context */
+  .seg { display: flex; gap: 7px; background: #E5EAE7; padding: 5px; border-radius: 16px; }
+  .seg-item { flex: 1; text-align: center; padding: 9px 0; font-size: 12px; font-weight: 700; color: #6B8377; border-radius: 12px; }
+  .seg-item.sel { background: #fff; color: #16241C; box-shadow: 0 3px 8px rgba(0,0,0,0.07); }
+
+  /* Photo + note quick row */
+  .extra { display: flex; gap: 11px; margin-top: 14px; }
+  .extra-btn { flex: 1; background: #fff; border-radius: 16px; padding: 14px; text-align: center; }
+  .extra-btn i { font-size: 19px; color: #0E8A4F; }
+  .extra-btn span { display: block; font-size: 11px; font-weight: 700; color: #6B8377; margin-top: 6px; }
+
+  .save-btn { margin-top: 22px; width: 100%; padding: 18px; border-radius: 20px; background: linear-gradient(135deg,#18B26B,#0E8A4F); color: #fff; font-size: 17px; font-weight: 800; border: none; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 12px 26px rgba(14,138,79,0.35); }
+
+  .hint { text-align: center; font-size: 12px; color: #9AA89F; font-weight: 600; margin-top: 12px; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(255,255,255,0.94); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 0.5px solid rgba(0,0,0,0.07); display: flex; justify-content: space-around; align-items: flex-start; padding: 11px 10px 0; z-index: 100; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #9AA89F; flex: 1; }
+  .tab-item.active { color: #0E8A4F; }
+  .tab-item i { font-size: 21px; }
+  .tab-fab { width: 56px; height: 56px; border-radius: 19px; background: linear-gradient(135deg,#18B26B,#0E8A4F); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; margin-top: -16px; box-shadow: 0 10px 22px rgba(14,138,79,0.42); border: 3px solid #fff; }
+  .tab-fab-lbl { font-size: 10px; font-weight: 700; color: #0E8A4F; margin-top: 3px; }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="content">
+  <div class="head-row">
+    <img src="https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=200&q=80" class="head-avatar" alt="">
+    <div>
+      <div class="head-q">How's Leo<br>right now?</div>
+    </div>
+  </div>
+
+  <div class="label">Tap a state</div>
+  <div class="mood-grid">
+    <div class="mood-tile sel"><div class="emo">😄</div><div class="nm">Happy</div></div>
+    <div class="mood-tile"><div class="emo">🎯</div><div class="nm">Focused</div></div>
+    <div class="mood-tile"><div class="emo">😌</div><div class="nm">Calm</div></div>
+    <div class="mood-tile"><div class="emo">😣</div><div class="nm">Frustrated</div></div>
+    <div class="mood-tile"><div class="emo">😰</div><div class="nm">Overwhelmed</div></div>
+    <div class="mood-tile"><div class="emo">😴</div><div class="nm">Tired</div></div>
+  </div>
+
+  <div class="label">Add a tag</div>
+  <div class="tags">
+    <span class="tag win sel"><i class="fas fa-trophy"></i> Win!</span>
+    <span class="tag"><i class="fas fa-bolt"></i> Big effort</span>
+    <span class="tag"><i class="fas fa-bullseye"></i> Hit target</span>
+    <span class="tag"><i class="fas fa-mug-hot"></i> Needed break</span>
+    <span class="tag"><i class="fas fa-route"></i> Followed routine</span>
+    <span class="tag"><i class="fas fa-hand"></i> Asked for help</span>
+  </div>
+
+  <div class="label">During</div>
+  <div class="seg">
+    <div class="seg-item">Warm-up</div>
+    <div class="seg-item sel">Rallies</div>
+    <div class="seg-item">Targets</div>
+    <div class="seg-item">Free play</div>
+  </div>
+
+  <div class="extra">
+    <div class="extra-btn"><i class="fas fa-camera"></i><span>Add photo</span></div>
+    <div class="extra-btn"><i class="fas fa-microphone"></i><span>Voice note</span></div>
+    <div class="extra-btn"><i class="fas fa-pen"></i><span>Quick note</span></div>
+  </div>
+
+  <button class="save-btn"><i class="fas fa-check"></i> Log it</button>
+  <div class="hint">Saves to Leo's day · works offline</div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item"><i class="fas fa-house"></i><span>Today</span></div>
+  <div class="tab-item"><i class="fas fa-child-reaching"></i><span>Buddy</span></div>
+  <div class="tab-item active"><div class="tab-fab"><i class="fas fa-plus"></i></div><span class="tab-fab-lbl">Observe</span></div>
+  <div class="tab-item"><i class="fas fa-toolbox"></i><span>Tools</span></div>
+  <div class="tab-item"><i class="fas fa-clipboard-check"></i><span>Recap</span></div>
+</div>
+
+</body>
+</html>

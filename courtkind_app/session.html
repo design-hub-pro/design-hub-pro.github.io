@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CourtKind - Session Plan</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #EFF3F0; width: 100%; height: 100%; overflow-x: hidden; scrollbar-width: none; color: #16241C; }
+
+  .status-bar { width: 100%; height: 59px; padding: 0 28px 10px; display: flex; justify-content: space-between; align-items: flex-end; background: #EFF3F0; position: sticky; top: 0; z-index: 100; }
+  .status-time { font-size: 16px; font-weight: 600; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 22px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 130px; }
+
+  .top { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+  .top-title { font-size: 26px; font-weight: 800; }
+  .top-sub { font-size: 13px; color: #6B8377; font-weight: 600; margin-top: 2px; }
+
+  /* Timer card for current drill */
+  .timer-card { margin-top: 18px; border-radius: 26px; background: linear-gradient(135deg,#18B26B,#0E8A4F); padding: 24px; color: #fff; position: relative; overflow: hidden; box-shadow: 0 16px 34px rgba(14,138,79,0.3); }
+  .timer-glow { position: absolute; top: -40px; right: -30px; width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle, rgba(214,242,62,0.45), transparent 70%); }
+  .timer-lbl { font-size: 12px; font-weight: 700; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px; position: relative; }
+  .timer-name { font-size: 22px; font-weight: 800; margin-top: 4px; position: relative; }
+  .timer-clock { font-size: 52px; font-weight: 800; letter-spacing: 1px; margin-top: 10px; position: relative; }
+  .timer-ctrls { display: flex; gap: 10px; margin-top: 16px; position: relative; }
+  .timer-btn { flex: 1; background: rgba(255,255,255,0.18); backdrop-filter: blur(6px); border-radius: 15px; padding: 13px; text-align: center; font-size: 14px; font-weight: 700; }
+  .timer-btn.main { background: #fff; color: #0E8A4F; }
+
+  .section-title { font-size: 17px; font-weight: 800; margin: 24px 0 14px; }
+
+  /* Timeline */
+  .step { display: flex; gap: 14px; }
+  .step-rail { display: flex; flex-direction: column; align-items: center; }
+  .step-dot { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 17px; color: #fff; flex-shrink: 0; z-index: 2; }
+  .step-line { width: 3px; flex: 1; background: #DCE3DF; margin: 4px 0; border-radius: 2px; }
+  .step.done .step-line { background: #18B26B; }
+  .step-body { flex: 1; background: #fff; border-radius: 18px; padding: 14px 16px; margin-bottom: 12px; }
+  .step.now .step-body { background: #E9FBF1; border: 2px solid #18B26B; }
+  .step-head { display: flex; justify-content: space-between; align-items: center; }
+  .step-name { font-size: 15px; font-weight: 800; }
+  .step-dur { font-size: 12px; font-weight: 700; color: #8A9B91; }
+  .step-desc { font-size: 12.5px; color: #6B8377; font-weight: 500; margin-top: 4px; line-height: 1.4; }
+  .step-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: #0E8A4F; background: #E3F7EC; padding: 4px 9px; border-radius: 9px; margin-top: 8px; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(255,255,255,0.94); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 0.5px solid rgba(0,0,0,0.07); display: flex; justify-content: space-around; align-items: flex-start; padding: 11px 10px 0; z-index: 100; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #9AA89F; flex: 1; }
+  .tab-item.active { color: #0E8A4F; }
+  .tab-item i { font-size: 21px; }
+  .tab-fab { width: 56px; height: 56px; border-radius: 19px; background: linear-gradient(135deg,#18B26B,#0E8A4F); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; margin-top: -16px; box-shadow: 0 10px 22px rgba(14,138,79,0.42); }
+  .tab-fab-lbl { font-size: 10px; font-weight: 700; color: #0E8A4F; margin-top: 3px; }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="content">
+  <div class="top">
+    <div>
+      <div class="top-title">Session Plan</div>
+      <div class="top-sub">4 drills · 60 min · same order every week</div>
+    </div>
+  </div>
+
+  <div class="timer-card">
+    <div class="timer-glow"></div>
+    <div class="timer-lbl"><i class="fas fa-table-tennis-paddle-ball"></i> Now: Drill 2</div>
+    <div class="timer-name">Mini Rallies</div>
+    <div class="timer-clock">04:32</div>
+    <div class="timer-ctrls">
+      <div class="timer-btn"><i class="fas fa-rotate-left"></i></div>
+      <div class="timer-btn main"><i class="fas fa-pause"></i> Pause</div>
+      <div class="timer-btn"><i class="fas fa-forward-step"></i> Next</div>
+    </div>
+  </div>
+
+  <div class="section-title">Today's Drills</div>
+
+  <div class="step done">
+    <div class="step-rail">
+      <div class="step-dot" style="background:#18B26B;"><i class="fas fa-check"></i></div>
+      <div class="step-line"></div>
+    </div>
+    <div class="step-body">
+      <div class="step-head"><div class="step-name">Warm-up</div><div class="step-dur">10 min</div></div>
+      <div class="step-desc">Bounce & catch, light jog to the net, big stretches.</div>
+    </div>
+  </div>
+
+  <div class="step now">
+    <div class="step-rail">
+      <div class="step-dot" style="background:#18B26B;">2</div>
+      <div class="step-line"></div>
+    </div>
+    <div class="step-body">
+      <div class="step-head"><div class="step-name">Mini Rallies</div><div class="step-dur">15 min</div></div>
+      <div class="step-desc">Soft feeds over a low net. Count hits out loud together.</div>
+      <div class="step-badge"><i class="fas fa-bullseye"></i> Leo's goal: 3-hit rally</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-rail">
+      <div class="step-dot" style="background:#C8D2CC;">3</div>
+      <div class="step-line"></div>
+    </div>
+    <div class="step-body">
+      <div class="step-head"><div class="step-name">Target Hits</div><div class="step-dur">15 min</div></div>
+      <div class="step-desc">Aim at colored cones. Pick a color, earn a sticker.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-rail">
+      <div class="step-dot" style="background:#C8D2CC;">4</div>
+    </div>
+    <div class="step-body">
+      <div class="step-head"><div class="step-name">Free Play & Cooldown</div><div class="step-dur">20 min</div></div>
+      <div class="step-desc">Choice game, water break, calm breathing to finish.</div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item"><i class="fas fa-house"></i><span>Today</span></div>
+  <div class="tab-item"><i class="fas fa-child-reaching"></i><span>Buddy</span></div>
+  <div class="tab-item"><div class="tab-fab"><i class="fas fa-plus"></i></div><span class="tab-fab-lbl">Observe</span></div>
+  <div class="tab-item active"><i class="fas fa-toolbox"></i><span>Tools</span></div>
+  <div class="tab-item"><i class="fas fa-clipboard-check"></i><span>Recap</span></div>
+</div>
+
+</body>
+</html>

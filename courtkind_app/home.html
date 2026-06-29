@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CourtKind - Today</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #EFF3F0; width: 100%; height: 100%; overflow-x: hidden; scrollbar-width: none; color: #16241C; }
+
+  .status-bar { width: 100%; height: 59px; padding: 0 28px 10px; display: flex; justify-content: space-between; align-items: flex-end; background: #EFF3F0; position: sticky; top: 0; z-index: 100; }
+  .status-time { font-size: 16px; font-weight: 600; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 22px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 130px; }
+
+  .greeting { margin-top: 6px; display: flex; justify-content: space-between; align-items: center; }
+  .greeting-sub { font-size: 13px; color: #6B8377; font-weight: 600; }
+  .greeting-main { font-size: 27px; font-weight: 800; color: #16241C; margin-top: 2px; }
+  .greeting-avatar { width: 48px; height: 48px; border-radius: 16px; object-fit: cover; border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+  /* Weather / sun safety strip */
+  .weather { margin-top: 16px; border-radius: 18px; background: linear-gradient(135deg, #FFB23E, #FF8A3D); padding: 13px 16px; display: flex; align-items: center; gap: 12px; color: #fff; box-shadow: 0 8px 20px rgba(255,150,60,0.28); }
+  .weather i { font-size: 22px; }
+  .weather-main { font-size: 14px; font-weight: 700; }
+  .weather-sub { font-size: 11px; font-weight: 500; opacity: 0.92; margin-top: 1px; }
+  .weather-pill { margin-left: auto; background: rgba(255,255,255,0.22); padding: 5px 11px; border-radius: 11px; font-size: 11px; font-weight: 700; }
+
+  /* Buddy hero */
+  .buddy-card { margin-top: 16px; border-radius: 26px; overflow: hidden; position: relative; height: 200px; box-shadow: 0 14px 34px rgba(14,90,55,0.22); }
+  .buddy-card img { width: 100%; height: 100%; object-fit: cover; }
+  .buddy-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8,40,26,0.05) 30%, rgba(8,40,26,0.85)); }
+  .buddy-tag { position: absolute; top: 16px; left: 16px; background: rgba(255,255,255,0.92); color: #0E8A4F; font-size: 11px; font-weight: 800; padding: 6px 12px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .buddy-info { position: absolute; left: 18px; right: 18px; bottom: 16px; color: #fff; }
+  .buddy-name { font-size: 24px; font-weight: 800; }
+  .buddy-pills { display: flex; gap: 7px; margin-top: 8px; flex-wrap: wrap; }
+  .buddy-pill { background: rgba(255,255,255,0.2); backdrop-filter: blur(6px); padding: 5px 11px; border-radius: 11px; font-size: 11px; font-weight: 600; }
+  .buddy-go { position: absolute; right: 16px; bottom: 18px; width: 44px; height: 44px; border-radius: 14px; background: #fff; display: flex; align-items: center; justify-content: center; color: #0E8A4F; font-size: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+
+  /* Session progress */
+  .session-card { margin-top: 16px; background: #fff; border-radius: 22px; padding: 18px; }
+  .session-head { display: flex; justify-content: space-between; align-items: center; }
+  .session-title { font-size: 15px; font-weight: 800; }
+  .session-time { font-size: 12px; font-weight: 700; color: #0E8A4F; background: #E3F7EC; padding: 5px 10px; border-radius: 10px; }
+  .drill-row { display: flex; gap: 6px; margin-top: 16px; }
+  .drill-seg { flex: 1; text-align: center; }
+  .drill-bar { height: 7px; border-radius: 6px; background: #E5EAE7; }
+  .drill-seg.done .drill-bar { background: linear-gradient(90deg,#18B26B,#0E8A4F); }
+  .drill-seg.now .drill-bar { background: #D6F23E; }
+  .drill-lbl { font-size: 10px; font-weight: 600; color: #8A9B91; margin-top: 7px; }
+  .drill-seg.now .drill-lbl, .drill-seg.done .drill-lbl { color: #16241C; }
+
+  /* Quick actions */
+  .section-head { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; margin-bottom: 13px; }
+  .section-title { font-size: 17px; font-weight: 800; }
+  .section-link { font-size: 13px; color: #0E8A4F; font-weight: 700; }
+  .quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 11px; }
+  .quick-btn { text-align: center; }
+  .quick-icon { width: 100%; aspect-ratio: 1; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 23px; color: #fff; box-shadow: 0 8px 18px rgba(0,0,0,0.1); }
+  .quick-label { font-size: 11px; font-weight: 700; color: #3C4D44; margin-top: 8px; }
+
+  /* Recent moments */
+  .moment { background: #fff; border-radius: 18px; padding: 13px 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 13px; }
+  .moment-emoji { width: 46px; height: 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+  .moment-name { font-size: 14px; font-weight: 700; }
+  .moment-meta { font-size: 12px; color: #8A9B91; margin-top: 2px; }
+  .moment-time { font-size: 11px; color: #B3C0B8; font-weight: 600; margin-left: auto; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(255,255,255,0.94); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 0.5px solid rgba(0,0,0,0.07); display: flex; justify-content: space-around; align-items: flex-start; padding: 11px 10px 0; z-index: 100; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #9AA89F; flex: 1; }
+  .tab-item.active { color: #0E8A4F; }
+  .tab-item i { font-size: 21px; }
+  .tab-fab { width: 56px; height: 56px; border-radius: 19px; background: linear-gradient(135deg,#18B26B,#0E8A4F); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; margin-top: -16px; box-shadow: 0 10px 22px rgba(14,138,79,0.42); }
+  .tab-fab-lbl { font-size: 10px; font-weight: 700; color: #0E8A4F; margin-top: 3px; }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="content">
+  <div class="greeting">
+    <div>
+      <div class="greeting-sub">Saturday · Court 3 · 10:00 AM</div>
+      <div class="greeting-main">Hi, Coach Sarah</div>
+    </div>
+    <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&q=80" class="greeting-avatar" alt="">
+  </div>
+
+  <div class="weather">
+    <i class="fas fa-sun"></i>
+    <div>
+      <div class="weather-main">Sunny · 78°F</div>
+      <div class="weather-sub">UV High — water break every drill</div>
+    </div>
+    <div class="weather-pill"><i class="fas fa-droplet"></i> Hydrate</div>
+  </div>
+
+  <div class="buddy-card">
+    <img src="https://images.unsplash.com/photo-1622163642998-1ea32b0bbc67?w=800&q=80" alt="">
+    <div class="buddy-overlay"></div>
+    <div class="buddy-tag"><i class="fas fa-hand-sparkles"></i> Your Buddy Today</div>
+    <div class="buddy-info">
+      <div class="buddy-name">Leo · 8</div>
+      <div class="buddy-pills">
+        <span class="buddy-pill">💚 Loves rallies</span>
+        <span class="buddy-pill">🔇 Quiet starts</span>
+        <span class="buddy-pill">⏱️ Needs routine</span>
+      </div>
+    </div>
+    <div class="buddy-go"><i class="fas fa-arrow-right"></i></div>
+  </div>
+
+  <div class="session-card">
+    <div class="session-head">
+      <div class="session-title">Session Progress</div>
+      <div class="session-time"><i class="fas fa-clock"></i> 25 min left</div>
+    </div>
+    <div class="drill-row">
+      <div class="drill-seg done"><div class="drill-bar"></div><div class="drill-lbl">Warm-up</div></div>
+      <div class="drill-seg now"><div class="drill-bar"></div><div class="drill-lbl">Rallies</div></div>
+      <div class="drill-seg"><div class="drill-bar"></div><div class="drill-lbl">Targets</div></div>
+      <div class="drill-seg"><div class="drill-bar"></div><div class="drill-lbl">Free play</div></div>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <div class="section-title">Quick Tools</div>
+  </div>
+  <div class="quick-grid">
+    <div class="quick-btn">
+      <div class="quick-icon" style="background: linear-gradient(135deg,#18B26B,#0E8A4F);"><i class="fas fa-circle-plus"></i></div>
+      <div class="quick-label">Observe</div>
+    </div>
+    <div class="quick-btn">
+      <div class="quick-icon" style="background: linear-gradient(135deg,#34B3C7,#2E8BD6);"><i class="fas fa-spa"></i></div>
+      <div class="quick-label">Calm Kit</div>
+    </div>
+    <div class="quick-btn">
+      <div class="quick-icon" style="background: linear-gradient(135deg,#FFC93C,#FF9F1C);"><i class="fas fa-star"></i></div>
+      <div class="quick-label">Reward</div>
+    </div>
+    <div class="quick-btn">
+      <div class="quick-icon" style="background: linear-gradient(135deg,#A06CF0,#7B5BE0);"><i class="fas fa-list-check"></i></div>
+      <div class="quick-label">Plan</div>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <div class="section-title">Today's Moments</div>
+    <span class="section-link">Recap</span>
+  </div>
+
+  <div class="moment">
+    <div class="moment-emoji" style="background:#E3F7EC;">🎾</div>
+    <div>
+      <div class="moment-name">First 4-hit rally!</div>
+      <div class="moment-meta">Big win · high-fived coach</div>
+    </div>
+    <div class="moment-time">2m</div>
+  </div>
+
+  <div class="moment">
+    <div class="moment-emoji" style="background:#E7F3FB;">😌</div>
+    <div>
+      <div class="moment-name">Calmed with break</div>
+      <div class="moment-meta">Used quiet corner · 90s</div>
+    </div>
+    <div class="moment-time">14m</div>
+  </div>
+
+  <div class="moment">
+    <div class="moment-emoji" style="background:#FFF3DF;">🙂</div>
+    <div>
+      <div class="moment-name">Engaged in warm-up</div>
+      <div class="moment-meta">Followed routine well</div>
+    </div>
+    <div class="moment-time">28m</div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item active"><i class="fas fa-house"></i><span>Today</span></div>
+  <div class="tab-item"><i class="fas fa-child-reaching"></i><span>Buddy</span></div>
+  <div class="tab-item"><div class="tab-fab"><i class="fas fa-plus"></i></div><span class="tab-fab-lbl">Observe</span></div>
+  <div class="tab-item"><i class="fas fa-toolbox"></i><span>Tools</span></div>
+  <div class="tab-item"><i class="fas fa-clipboard-check"></i><span>Recap</span></div>
+</div>
+
+</body>
+</html>
