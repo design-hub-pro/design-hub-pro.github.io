@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FairPlay Lab — Player</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0E17; color:#fff; scrollbar-width:none; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:40px; background:#0A0E17; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+
+  /* Hero cover */
+  .cover { position:relative; height:250px; }
+  .cover img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .cover-overlay { position:absolute; inset:0; background:linear-gradient(180deg, rgba(10,14,23,0.2) 0%, rgba(10,14,23,0.55) 45%, #0A0E17 100%); }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+  .cover-nav { position:relative; z-index:10; display:flex; justify-content:space-between; padding:6px 28px; }
+  .cover-btn { width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.14); backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center; }
+  .cover-btn i { font-size:14px; color:#fff; }
+
+  .p-identity { position:absolute; bottom:20px; left:28px; right:28px; z-index:10; display:flex; align-items:flex-end; gap:14px; }
+  .p-identity img { width:74px; height:74px; border-radius:22px; object-fit:cover; border:3px solid #2DE0A6; }
+  .p-identity .name { font-size:23px; font-weight:900; letter-spacing:-0.6px; }
+  .p-identity .role { font-size:12px; color:#C5CDD9; margin-top:2px; }
+  .p-identity .tag { display:inline-flex; align-items:center; gap:5px; background:rgba(168,85,247,0.2); border:1px solid rgba(168,85,247,0.4); color:#C4A0F5; font-size:9px; font-weight:800; padding:3px 8px; border-radius:7px; margin-top:6px; }
+
+  /* Stat trio */
+  .stats { display:flex; gap:10px; padding:20px 28px 0; }
+  .stat { flex:1; background:#141A28; border:1px solid rgba(255,255,255,0.05); border-radius:16px; padding:14px; text-align:center; }
+  .stat .v { font-size:22px; font-weight:900; letter-spacing:-0.5px; line-height:1; }
+  .stat .l { font-size:9.5px; color:#7A8598; font-weight:600; margin-top:5px; }
+
+  .section-header { padding:24px 28px 12px; }
+  .section-title { font-size:16px; font-weight:800; letter-spacing:-0.3px; }
+  .section-sub { font-size:11px; color:#7A8598; margin-top:2px; }
+
+  /* Development pathway */
+  .pathway { padding:0 28px; position:relative; }
+  .path-line { position:absolute; left:47px; top:14px; bottom:20px; width:2px; background:linear-gradient(180deg,#2DE0A6,rgba(168,85,247,0.3)); }
+  .path-step { display:flex; gap:16px; margin-bottom:16px; position:relative; }
+  .path-node { width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; z-index:2; }
+  .path-node i { font-size:15px; }
+  .path-card { flex:1; background:#141A28; border:1px solid rgba(255,255,255,0.05); border-radius:16px; padding:14px; }
+  .path-card.current { border-color:rgba(45,224,166,0.3); background:linear-gradient(135deg,rgba(45,224,166,0.08),#141A28); }
+  .path-status { font-size:8.5px; font-weight:800; letter-spacing:0.5px; padding:2px 7px; border-radius:5px; }
+  .path-top { display:flex; justify-content:space-between; align-items:center; }
+  .path-title { font-size:13px; font-weight:800; }
+  .path-desc { font-size:11px; color:#8A94A6; margin-top:5px; line-height:1.5; }
+  .path-progress { height:5px; background:rgba(255,255,255,0.07); border-radius:4px; margin-top:10px; overflow:hidden; }
+  .path-progress-fill { height:100%; background:#2DE0A6; border-radius:4px; }
+
+  /* Minutes trend */
+  .trend { margin:6px 28px 0; background:#141A28; border:1px solid rgba(255,255,255,0.05); border-radius:20px; padding:18px; }
+  .trend-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  .trend-title { font-size:13px; font-weight:800; }
+  .trend-chip { font-size:10px; font-weight:800; color:#2DE0A6; background:rgba(45,224,166,0.14); padding:4px 9px; border-radius:8px; }
+  .trend-chart { display:flex; align-items:flex-end; justify-content:space-between; height:80px; gap:8px; }
+  .trend-bar { flex:1; display:flex; flex-direction:column; align-items:center; gap:7px; }
+  .trend-bar .bar { width:100%; border-radius:6px 6px 3px 3px; background:linear-gradient(180deg,#A855F7,#7C3AED); }
+  .trend-bar .g { font-size:9px; color:#7A8598; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+
+  <div class="cover">
+    <img src="https://images.unsplash.com/photo-1519861531473-9200262188bf?w=800&q=80">
+    <div class="cover-overlay"></div>
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+    </div>
+    <div class="cover-nav">
+      <div class="cover-btn"><i class="fas fa-arrow-left"></i></div>
+      <div class="cover-btn"><i class="fas fa-ellipsis"></i></div>
+    </div>
+    <div class="p-identity">
+      <img src="https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=200&q=80">
+      <div>
+        <div class="name">Andre P.</div>
+        <div class="role">Guard · #7 · Freshman</div>
+        <div class="tag"><i class="fas fa-seedling"></i> DEVELOPING PLAYER</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="v" style="color:#A855F7">12<span style="font-size:11px;color:#7A8598">min</span></div><div class="l">Avg Minutes</div></div>
+    <div class="stat"><div class="v" style="color:#2DE0A6">+38%</div><div class="l">Since Wk 1</div></div>
+    <div class="stat"><div class="v" style="color:#3B82F6">RPE 5</div><div class="l">Fresh</div></div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Development Pathway</div>
+    <div class="section-sub">A clear, earnable route to more minutes</div>
+  </div>
+  <div class="pathway">
+    <div class="path-line"></div>
+
+    <div class="path-step">
+      <div class="path-node" style="background:linear-gradient(135deg,#2DE0A6,#12B981)"><i class="fas fa-check" style="color:#04120D"></i></div>
+      <div class="path-card">
+        <div class="path-top"><div class="path-title">Earn rotation minutes</div><div class="path-status" style="background:rgba(45,224,166,0.14);color:#2DE0A6">DONE</div></div>
+        <div class="path-desc">Reached 10+ min/game consistently across 3 games.</div>
+      </div>
+    </div>
+
+    <div class="path-step">
+      <div class="path-node" style="background:linear-gradient(135deg,#2DE0A6,#12B981);box-shadow:0 0 20px rgba(45,224,166,0.4)"><i class="fas fa-location-arrow" style="color:#04120D"></i></div>
+      <div class="path-card current">
+        <div class="path-top"><div class="path-title">Lift involvement to 12%</div><div class="path-status" style="background:rgba(45,224,166,0.2);color:#2DE0A6">CURRENT</div></div>
+        <div class="path-desc">Get more touches in early offense. Currently at 9%.</div>
+        <div class="path-progress"><div class="path-progress-fill" style="width:75%"></div></div>
+      </div>
+    </div>
+
+    <div class="path-step">
+      <div class="path-node" style="background:rgba(255,255,255,0.06)"><i class="fas fa-lock" style="color:#7A8598"></i></div>
+      <div class="path-card">
+        <div class="path-top"><div class="path-title">Unlock 18+ min window</div><div class="path-status" style="background:rgba(255,255,255,0.06);color:#7A8598">NEXT</div></div>
+        <div class="path-desc">Hold RPE under 7 & hit involvement target for 2 weeks.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Minutes Trend</div>
+    <div class="section-sub">Last 6 games</div>
+  </div>
+  <div class="trend">
+    <div class="trend-head">
+      <div class="trend-title">Steady upward climb</div>
+      <div class="trend-chip"><i class="fas fa-arrow-trend-up"></i> +8 min</div>
+    </div>
+    <div class="trend-chart">
+      <div class="trend-bar"><div class="bar" style="height:30%"></div><div class="g">G1</div></div>
+      <div class="trend-bar"><div class="bar" style="height:42%"></div><div class="g">G2</div></div>
+      <div class="trend-bar"><div class="bar" style="height:50%"></div><div class="g">G3</div></div>
+      <div class="trend-bar"><div class="bar" style="height:66%"></div><div class="g">G4</div></div>
+      <div class="trend-bar"><div class="bar" style="height:78%"></div><div class="g">G5</div></div>
+      <div class="trend-bar"><div class="bar" style="height:100%"></div><div class="g">G6</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

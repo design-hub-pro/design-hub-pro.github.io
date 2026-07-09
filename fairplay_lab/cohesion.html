@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FairPlay Lab — Cohesion</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0E17; color:#fff; scrollbar-width:none; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:110px; background:#0A0E17; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .nav { padding:8px 28px 12px; display:flex; align-items:center; justify-content:space-between; }
+  .nav-title { font-size:22px; font-weight:800; letter-spacing:-0.6px; }
+  .nav-sub { font-size:11px; color:#7A8598; font-weight:600; margin-top:1px; }
+  .week-pill { background:#141A28; border:1px solid rgba(255,255,255,0.06); font-size:11px; font-weight:700; color:#9AA5B8; padding:8px 12px; border-radius:11px; display:flex; align-items:center; gap:7px; }
+
+  /* Hero vs Team gauge */
+  .gauge-card { margin:6px 28px 0; background:linear-gradient(135deg,#141A28,#101622); border:1px solid rgba(255,255,255,0.06); border-radius:24px; padding:20px; }
+  .gauge-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  .gauge-label { font-size:10px; font-weight:800; letter-spacing:0.8px; color:#7A8598; }
+  .gauge-grade { font-size:13px; font-weight:900; color:#04120D; background:#FFB020; padding:5px 12px; border-radius:10px; }
+  .gauge-bar { height:44px; border-radius:14px; overflow:hidden; display:flex; position:relative; }
+  .gauge-hero { background:linear-gradient(135deg,#FFB020,#FF8A00); display:flex; align-items:center; padding-left:14px; }
+  .gauge-team { background:linear-gradient(135deg,#2DE0A6,#12B981); display:flex; align-items:center; justify-content:flex-end; padding-right:14px; }
+  .gauge-seg-label { font-size:12px; font-weight:900; color:#04120D; }
+  .gauge-marker { position:absolute; top:-4px; bottom:-4px; width:3px; background:#fff; left:50%; border-radius:3px; opacity:0.4; }
+  .gauge-foot { display:flex; justify-content:space-between; margin-top:12px; }
+  .gauge-foot-item { font-size:11px; font-weight:700; }
+  .gauge-foot-item.hero { color:#FFB020; }
+  .gauge-foot-item.team { color:#2DE0A6; }
+  .gauge-foot-item span { color:#7A8598; font-weight:500; }
+
+  /* Stat trio */
+  .trio { display:flex; gap:10px; padding:14px 28px 0; }
+  .trio-card { flex:1; background:#141A28; border:1px solid rgba(255,255,255,0.05); border-radius:18px; padding:14px; text-align:center; }
+  .trio-val { font-size:26px; font-weight:900; letter-spacing:-1px; line-height:1; }
+  .trio-lbl { font-size:9.5px; color:#7A8598; font-weight:600; margin-top:5px; }
+
+  .section-header { padding:22px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .section-title { font-size:16px; font-weight:800; letter-spacing:-0.3px; }
+  .section-link { font-size:11px; color:#2DE0A6; font-weight:700; }
+
+  /* Involvement bars */
+  .involve { padding:0 28px; display:flex; flex-direction:column; gap:12px; }
+  .inv-row { display:flex; align-items:center; gap:12px; }
+  .inv-row img { width:38px; height:38px; border-radius:11px; object-fit:cover; flex-shrink:0; }
+  .inv-body { flex:1; }
+  .inv-top { display:flex; justify-content:space-between; margin-bottom:6px; }
+  .inv-name { font-size:12.5px; font-weight:700; }
+  .inv-pct { font-size:12px; font-weight:900; }
+  .inv-bar { height:7px; background:rgba(255,255,255,0.06); border-radius:5px; overflow:hidden; }
+  .inv-fill { height:100%; border-radius:5px; }
+
+  /* Nudge card */
+  .nudge { margin:20px 28px 0; background:linear-gradient(135deg,rgba(59,130,246,0.12),rgba(99,102,241,0.06)); border:1px solid rgba(59,130,246,0.22); border-radius:20px; padding:18px; }
+  .nudge-top { display:flex; align-items:center; gap:11px; margin-bottom:12px; }
+  .nudge-icon { width:42px; height:42px; border-radius:13px; background:linear-gradient(135deg,#3B82F6,#6366F1); display:flex; align-items:center; justify-content:center; }
+  .nudge-icon i { color:#fff; font-size:18px; }
+  .nudge-title { font-size:14px; font-weight:800; }
+  .nudge-tag { font-size:9px; font-weight:800; color:#3B82F6; letter-spacing:0.5px; }
+  .nudge-item { display:flex; align-items:flex-start; gap:10px; padding:9px 0; border-top:1px solid rgba(255,255,255,0.05); }
+  .nudge-item i { color:#3B82F6; font-size:12px; margin-top:2px; }
+  .nudge-item span { font-size:12px; color:#C5CDD9; line-height:1.5; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(10,14,23,0.9); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.07); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:54px; }
+  .tab-item i { font-size:19px; color:rgba(255,255,255,0.32); }
+  .tab-item span { font-size:9.5px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#2DE0A6; }
+  .tab-center { width:56px; height:56px; border-radius:19px; background:linear-gradient(135deg,#2DE0A6,#12B981); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(45,224,166,0.4); }
+  .tab-center i { font-size:22px; color:#04120D; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="nav">
+    <div>
+      <div class="nav-title">Cohesion</div>
+      <div class="nav-sub">Weekly team report</div>
+    </div>
+    <div class="week-pill"><i class="fas fa-calendar-week"></i> Week 8</div>
+  </div>
+
+  <div class="gauge-card">
+    <div class="gauge-head">
+      <div class="gauge-label">HERO BALL vs TEAM BALL</div>
+      <div class="gauge-grade">Grade B+</div>
+    </div>
+    <div class="gauge-bar">
+      <div class="gauge-hero" style="width:32%"><span class="gauge-seg-label">32%</span></div>
+      <div class="gauge-team" style="width:68%"><span class="gauge-seg-label">68%</span></div>
+      <div class="gauge-marker"></div>
+    </div>
+    <div class="gauge-foot">
+      <div class="gauge-foot-item hero">Hero Ball <span>· iso-heavy</span></div>
+      <div class="gauge-foot-item team">Team Ball <span>· shared</span></div>
+    </div>
+  </div>
+
+  <div class="trio">
+    <div class="trio-card">
+      <div class="trio-val" style="color:#2DE0A6">24.3</div>
+      <div class="trio-lbl">Assists / Game</div>
+    </div>
+    <div class="trio-card">
+      <div class="trio-val" style="color:#3B82F6">3.1s</div>
+      <div class="trio-lbl">Ball Hold Time</div>
+    </div>
+    <div class="trio-card">
+      <div class="trio-val" style="color:#A855F7">11</div>
+      <div class="trio-lbl">Players Scoring</div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Involvement Balance</div>
+    <div class="section-link">Full report</div>
+  </div>
+  <div class="involve">
+    <div class="inv-row">
+      <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80">
+      <div class="inv-body">
+        <div class="inv-top"><span class="inv-name">Devon R.</span><span class="inv-pct" style="color:#FFB020">28%</span></div>
+        <div class="inv-bar"><div class="inv-fill" style="width:90%;background:#FFB020"></div></div>
+      </div>
+    </div>
+    <div class="inv-row">
+      <img src="https://images.unsplash.com/photo-1552058544-f2b08422138a?w=100&q=80">
+      <div class="inv-body">
+        <div class="inv-top"><span class="inv-name">Marcus J.</span><span class="inv-pct" style="color:#2DE0A6">21%</span></div>
+        <div class="inv-bar"><div class="inv-fill" style="width:68%;background:#2DE0A6"></div></div>
+      </div>
+    </div>
+    <div class="inv-row">
+      <img src="https://images.unsplash.com/photo-1547347298-4074fc3086f0?w=100&q=80">
+      <div class="inv-body">
+        <div class="inv-top"><span class="inv-name">Tyler M.</span><span class="inv-pct" style="color:#2DE0A6">17%</span></div>
+        <div class="inv-bar"><div class="inv-fill" style="width:54%;background:#2DE0A6"></div></div>
+      </div>
+    </div>
+    <div class="inv-row">
+      <img src="https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=100&q=80">
+      <div class="inv-body">
+        <div class="inv-top"><span class="inv-name">Andre P.</span><span class="inv-pct" style="color:#3B82F6">9%</span></div>
+        <div class="inv-bar"><div class="inv-fill" style="width:30%;background:#3B82F6"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nudge">
+    <div class="nudge-top">
+      <div class="nudge-icon"><i class="fas fa-clipboard-list"></i></div>
+      <div>
+        <div class="nudge-tag">PRACTICE NUDGE</div>
+        <div class="nudge-title">Rebalance ball movement</div>
+      </div>
+    </div>
+    <div class="nudge-item"><i class="fas fa-circle-check"></i><span>Run "5-pass minimum" scrimmage drill to spread touches beyond Devon.</span></div>
+    <div class="nudge-item"><i class="fas fa-circle-check"></i><span>Give Andre 3 designed early-offense actions to lift involvement.</span></div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item"><i class="fas fa-stopwatch"></i><span>Playtime</span></div>
+    <div class="tab-item"><div class="tab-center"><i class="fas fa-plus"></i></div></div>
+    <div class="tab-item active"><i class="fas fa-diagram-project"></i><span>Cohesion</span></div>
+    <div class="tab-item"><i class="fas fa-brain"></i><span>Study</span></div>
+  </div>
+</div>
+</body>
+</html>

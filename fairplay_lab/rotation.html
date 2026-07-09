@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FairPlay Lab — Rotation</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0E17; color:#fff; scrollbar-width:none; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:110px; background:#0A0E17; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .nav { padding:8px 28px 10px; display:flex; align-items:center; justify-content:space-between; }
+  .nav-title { font-size:22px; font-weight:800; letter-spacing:-0.6px; }
+  .nav-sub { font-size:11px; color:#7A8598; font-weight:600; margin-top:1px; }
+  .nav-btn { width:38px; height:38px; border-radius:12px; background:#141A28; border:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; }
+  .nav-btn i { font-size:14px; color:#9AA5B8; }
+
+  /* Mode switch */
+  .mode-switch { margin:8px 28px 0; background:#141A28; border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:5px; display:flex; position:relative; }
+  .mode-opt { flex:1; text-align:center; padding:10px; border-radius:12px; font-size:13px; font-weight:800; color:#7A8598; z-index:2; display:flex; align-items:center; justify-content:center; gap:7px; }
+  .mode-opt.active { color:#04120D; }
+  .mode-opt i { font-size:12px; }
+  .mode-glider { position:absolute; top:5px; left:5px; width:calc(50% - 5px); height:calc(100% - 10px); background:linear-gradient(135deg,#2DE0A6,#12B981); border-radius:12px; z-index:1; }
+
+  /* Fairness meter */
+  .fair-card { margin:16px 28px 0; background:linear-gradient(135deg,#141A28,#101622); border:1px solid rgba(45,224,166,0.18); border-radius:24px; padding:20px; position:relative; overflow:hidden; }
+  .fair-card::before { content:''; position:absolute; right:-40px; top:-40px; width:160px; height:160px; border-radius:50%; background:radial-gradient(circle,rgba(45,224,166,0.14),transparent 70%); }
+  .fair-top { display:flex; justify-content:space-between; align-items:center; position:relative; z-index:2; }
+  .fair-label { font-size:10px; font-weight:800; letter-spacing:0.8px; color:#7A8598; }
+  .fair-score { font-size:44px; font-weight:900; letter-spacing:-2px; line-height:1; margin-top:4px; }
+  .fair-score span { color:#2DE0A6; }
+  .fair-chip { background:rgba(45,224,166,0.14); color:#2DE0A6; font-size:11px; font-weight:800; padding:7px 12px; border-radius:11px; display:flex; align-items:center; gap:6px; }
+  .fair-bar { height:8px; background:rgba(255,255,255,0.07); border-radius:6px; margin-top:16px; overflow:hidden; position:relative; z-index:2; display:flex; }
+  .fair-seg { height:100%; }
+  .fair-legend { display:flex; gap:16px; margin-top:12px; position:relative; z-index:2; }
+  .leg-item { display:flex; align-items:center; gap:6px; font-size:10px; color:#9AA5B8; font-weight:600; }
+  .leg-dot { width:8px; height:8px; border-radius:50%; }
+
+  .section-header { padding:22px 28px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .section-title { font-size:16px; font-weight:800; letter-spacing:-0.3px; }
+  .section-link { font-size:11px; color:#2DE0A6; font-weight:700; }
+
+  /* Player rotation rows */
+  .players { padding:0 28px; display:flex; flex-direction:column; gap:10px; }
+  .p-row { background:#141A28; border:1px solid rgba(255,255,255,0.05); border-radius:18px; padding:13px 15px; display:flex; align-items:center; gap:12px; }
+  .p-avatar-wrap { position:relative; flex-shrink:0; }
+  .p-avatar { width:46px; height:46px; border-radius:14px; object-fit:cover; }
+  .p-status { position:absolute; bottom:-3px; right:-3px; width:16px; height:16px; border-radius:50%; border:2.5px solid #141A28; }
+  .p-info { flex:1; min-width:0; }
+  .p-name { font-size:14px; font-weight:800; display:flex; align-items:center; gap:7px; }
+  .p-tag { font-size:8px; font-weight:800; padding:2px 6px; border-radius:5px; letter-spacing:0.3px; }
+  .p-meta { font-size:10.5px; color:#7A8598; margin-top:2px; }
+  .p-minutes { text-align:right; flex-shrink:0; }
+  .p-min-val { font-size:17px; font-weight:900; letter-spacing:-0.5px; }
+  .p-min-val span { font-size:11px; color:#7A8598; font-weight:700; }
+  .p-why { font-size:9px; color:#2DE0A6; font-weight:700; margin-top:2px; display:flex; align-items:center; gap:3px; justify-content:flex-end; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:96px; background:rgba(10,14,23,0.9); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.07); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:54px; }
+  .tab-item i { font-size:19px; color:rgba(255,255,255,0.32); }
+  .tab-item span { font-size:9.5px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#2DE0A6; }
+  .tab-center { width:56px; height:56px; border-radius:19px; background:linear-gradient(135deg,#2DE0A6,#12B981); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(45,224,166,0.4); }
+  .tab-center i { font-size:22px; color:#04120D; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="nav">
+    <div>
+      <div class="nav-title">Rotation</div>
+      <div class="nav-sub">vs Eagles · Tomorrow 6:00 PM</div>
+    </div>
+    <div class="nav-btn"><i class="fas fa-sliders"></i></div>
+  </div>
+
+  <div class="mode-switch">
+    <div class="mode-glider"></div>
+    <div class="mode-opt active"><i class="fas fa-seedling"></i> Develop</div>
+    <div class="mode-opt"><i class="fas fa-trophy"></i> Win</div>
+  </div>
+
+  <div class="fair-card">
+    <div class="fair-top">
+      <div>
+        <div class="fair-label">FAIRNESS INDEX</div>
+        <div class="fair-score">94<span>%</span></div>
+      </div>
+      <div class="fair-chip"><i class="fas fa-scale-balanced"></i> Balanced</div>
+    </div>
+    <div class="fair-bar">
+      <div class="fair-seg" style="width:42%;background:#2DE0A6"></div>
+      <div class="fair-seg" style="width:36%;background:#3B82F6"></div>
+      <div class="fair-seg" style="width:22%;background:#A855F7"></div>
+    </div>
+    <div class="fair-legend">
+      <div class="leg-item"><span class="leg-dot" style="background:#2DE0A6"></span>Starters 42%</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#3B82F6"></span>Rotation 36%</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#A855F7"></span>Developing 22%</div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Recommended Minutes</div>
+    <div class="section-link">Tap for why</div>
+  </div>
+
+  <div class="players">
+    <div class="p-row">
+      <div class="p-avatar-wrap">
+        <img class="p-avatar" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?w=150&q=80">
+        <div class="p-status" style="background:#2DE0A6"></div>
+      </div>
+      <div class="p-info">
+        <div class="p-name">Marcus J. <span class="p-tag" style="background:rgba(45,224,166,0.14);color:#2DE0A6">STARTER</span></div>
+        <div class="p-meta">Guard · RPE 6 · Fresh legs</div>
+      </div>
+      <div class="p-minutes">
+        <div class="p-min-val">26–30<span> min</span></div>
+        <div class="p-why"><i class="fas fa-circle-info"></i> Why</div>
+      </div>
+    </div>
+
+    <div class="p-row">
+      <div class="p-avatar-wrap">
+        <img class="p-avatar" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&q=80">
+        <div class="p-status" style="background:#FFB020"></div>
+      </div>
+      <div class="p-info">
+        <div class="p-name">Devon R. <span class="p-tag" style="background:rgba(255,176,32,0.14);color:#FFB020">LOAD</span></div>
+        <div class="p-meta">Forward · RPE 8 · Manage minutes</div>
+      </div>
+      <div class="p-minutes">
+        <div class="p-min-val">18–22<span> min</span></div>
+        <div class="p-why"><i class="fas fa-circle-info"></i> Why</div>
+      </div>
+    </div>
+
+    <div class="p-row">
+      <div class="p-avatar-wrap">
+        <img class="p-avatar" src="https://images.unsplash.com/photo-1547347298-4074fc3086f0?w=150&q=80">
+        <div class="p-status" style="background:#2DE0A6"></div>
+      </div>
+      <div class="p-info">
+        <div class="p-name">Tyler M. <span class="p-tag" style="background:rgba(59,130,246,0.14);color:#3B82F6">ROTATION</span></div>
+        <div class="p-meta">Center · RPE 5 · Steady form</div>
+      </div>
+      <div class="p-minutes">
+        <div class="p-min-val">16–20<span> min</span></div>
+        <div class="p-why"><i class="fas fa-circle-info"></i> Why</div>
+      </div>
+    </div>
+
+    <div class="p-row">
+      <div class="p-avatar-wrap">
+        <img class="p-avatar" src="https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=150&q=80">
+        <div class="p-status" style="background:#A855F7"></div>
+      </div>
+      <div class="p-info">
+        <div class="p-name">Andre P. <span class="p-tag" style="background:rgba(168,85,247,0.14);color:#A855F7">DEVELOP</span></div>
+        <div class="p-meta">Guard · Freshman · Earn reps</div>
+      </div>
+      <div class="p-minutes">
+        <div class="p-min-val">10–14<span> min</span></div>
+        <div class="p-why"><i class="fas fa-circle-info"></i> Why</div>
+      </div>
+    </div>
+
+    <div class="p-row">
+      <div class="p-avatar-wrap">
+        <img class="p-avatar" src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&q=80">
+        <div class="p-status" style="background:#A855F7"></div>
+      </div>
+      <div class="p-info">
+        <div class="p-name">Chris L. <span class="p-tag" style="background:rgba(168,85,247,0.14);color:#A855F7">DEVELOP</span></div>
+        <div class="p-meta">Forward · +2 min vs last game</div>
+      </div>
+      <div class="p-minutes">
+        <div class="p-min-val">8–12<span> min</span></div>
+        <div class="p-why"><i class="fas fa-circle-info"></i> Why</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i><span>Home</span></div>
+    <div class="tab-item active"><i class="fas fa-stopwatch"></i><span>Playtime</span></div>
+    <div class="tab-item"><div class="tab-center"><i class="fas fa-plus"></i></div></div>
+    <div class="tab-item"><i class="fas fa-diagram-project"></i><span>Cohesion</span></div>
+    <div class="tab-item"><i class="fas fa-brain"></i><span>Study</span></div>
+  </div>
+</div>
+</body>
+</html>
