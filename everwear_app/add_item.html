@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Everwear — Add Item</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#14180F; color:#fff; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow:hidden; }
+
+  .cam-img { position:absolute; inset:0; }
+  .cam-img img { width:100%; height:100%; object-fit:cover; }
+  .cam-dim { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(20,24,15,0.55) 0%, rgba(20,24,15,0.1) 26%, rgba(20,24,15,0.2) 55%, rgba(20,24,15,0.96) 100%); }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:30; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:20; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .topbar { position:relative; z-index:20; display:flex; align-items:center; justify-content:space-between; padding:6px 28px 0; }
+  .tb-btn { width:40px; height:40px; border-radius:50%; background:rgba(20,24,15,0.5); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.15); }
+  .tb-btn i { font-size:15px; color:#fff; }
+  .tb-title { font-size:15px; font-weight:700; }
+
+  /* scan frame */
+  .scan-wrap { position:absolute; top:150px; left:50%; transform:translateX(-50%); z-index:15; }
+  .scan-frame { width:250px; height:300px; border-radius:26px; position:relative; }
+  .corner { position:absolute; width:34px; height:34px; border:3px solid #A8C79A; }
+  .corner.tl { top:0; left:0; border-right:none; border-bottom:none; border-radius:16px 0 0 0; }
+  .corner.tr { top:0; right:0; border-left:none; border-bottom:none; border-radius:0 16px 0 0; }
+  .corner.bl { bottom:0; left:0; border-right:none; border-top:none; border-radius:0 0 0 16px; }
+  .corner.br { bottom:0; right:0; border-left:none; border-top:none; border-radius:0 0 16px 0; }
+  .scan-line { position:absolute; left:12px; right:12px; top:52%; height:2px; background:linear-gradient(90deg,transparent,#A8C79A,transparent); box-shadow:0 0 14px 2px rgba(168,199,154,0.7); }
+  .scan-status { text-align:center; margin-top:20px; }
+  .scan-status .sp { display:inline-flex; align-items:center; gap:8px; background:rgba(20,24,15,0.55); backdrop-filter:blur(8px); padding:8px 15px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid rgba(168,199,154,0.35); }
+  .scan-status .sp i { color:#A8C79A; }
+
+  /* detected sheet */
+  .sheet { position:absolute; left:0; right:0; bottom:0; z-index:20; background:#F4F0E8; color:#23291F; border-radius:30px 30px 0 0; padding:12px 28px 34px; }
+  .grab { width:40px; height:5px; border-radius:3px; background:rgba(35,41,31,0.14); margin:0 auto 16px; }
+  .sheet-head { display:flex; align-items:center; gap:8px; }
+  .ai-chip { display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:800; color:#3A5A40; background:rgba(136,169,123,0.2); padding:5px 10px; border-radius:10px; letter-spacing:0.4px; }
+  .conf { margin-left:auto; font-size:11px; color:#8A9080; font-weight:600; }
+  .conf b { color:#3A5A40; }
+  .sheet h2 { font-family:'Fraunces',serif; font-size:24px; font-weight:600; margin-top:12px; letter-spacing:-0.5px; }
+  .detect-sub { font-size:12.5px; color:#8A9080; margin-top:3px; }
+
+  .attrs { display:flex; gap:9px; margin-top:16px; flex-wrap:wrap; }
+  .attr { display:flex; align-items:center; gap:7px; background:#fff; border:1px solid rgba(35,41,31,0.06); padding:9px 12px; border-radius:13px; font-size:12px; font-weight:600; }
+  .attr i { font-size:11px; color:#588157; }
+  .attr .swatch { width:13px; height:13px; border-radius:50%; }
+
+  /* footprint */
+  .foot { display:flex; gap:11px; margin-top:16px; }
+  .fp { flex:1; background:#fff; border:1px solid rgba(35,41,31,0.06); border-radius:16px; padding:13px; }
+  .fp .fh { display:flex; align-items:center; gap:6px; font-size:10.5px; color:#8A9080; font-weight:700; }
+  .fp .fh i { font-size:11px; }
+  .fp .fv { font-family:'Fraunces',serif; font-size:20px; font-weight:600; margin-top:6px; }
+  .fp .fnote { font-size:10px; color:#588157; font-weight:700; margin-top:2px; }
+
+  .save-btn { margin-top:18px; width:100%; height:56px; border-radius:18px; background:#3A5A40; color:#fff; font-size:15.5px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:9px; }
+  .edit-link { text-align:center; margin-top:13px; font-size:13px; color:#8A9080; font-weight:600; }
+  .edit-link b { color:#3A5A40; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="cam-img">
+    <img src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800&q=80">
+    <div class="cam-dim"></div>
+  </div>
+
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="topbar">
+    <div class="tb-btn"><i class="fas fa-xmark"></i></div>
+    <div class="tb-title">Add to closet</div>
+    <div class="tb-btn"><i class="fas fa-bolt"></i></div>
+  </div>
+
+  <div class="scan-wrap">
+    <div class="scan-frame">
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
+      <div class="scan-line"></div>
+    </div>
+    <div class="scan-status"><div class="sp"><i class="fas fa-wand-magic-sparkles"></i> AI identifying fabric &amp; footprint…</div></div>
+  </div>
+
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheet-head">
+      <span class="ai-chip"><i class="fas fa-wand-magic-sparkles"></i> AI DETECTED</span>
+      <span class="conf">Match confidence <b>96%</b></span>
+    </div>
+    <h2>Oat Knit Sweater</h2>
+    <div class="detect-sub">Looks like a lambswool crewneck · tap any tag to edit</div>
+
+    <div class="attrs">
+      <div class="attr"><i class="fas fa-shirt"></i> Tops · Knit</div>
+      <div class="attr"><span class="swatch" style="background:#D9CBB2"></span> Oat</div>
+      <div class="attr"><i class="fas fa-wind"></i> 70% Wool</div>
+      <div class="attr"><i class="fas fa-recycle"></i> 30% Recycled</div>
+    </div>
+
+    <div class="foot">
+      <div class="fp">
+        <div class="fh"><i class="fas fa-smog" style="color:#8A9080"></i> CARBON</div>
+        <div class="fv">7.2 kg</div>
+        <div class="fnote" style="color:#588157">-38% vs. avg knit</div>
+      </div>
+      <div class="fp">
+        <div class="fh"><i class="fas fa-droplet" style="color:#6DA9C9"></i> WATER</div>
+        <div class="fv">1,900 L</div>
+        <div class="fnote" style="color:#588157">Low-impact fiber</div>
+      </div>
+      <div class="fp">
+        <div class="fh"><i class="fas fa-award" style="color:#C08A3E"></i> GRADE</div>
+        <div class="fv">A-</div>
+        <div class="fnote" style="color:#588157">Durable, wear 100+×</div>
+      </div>
+    </div>
+
+    <div class="save-btn"><i class="fas fa-check"></i> Save to closet</div>
+    <div class="edit-link">Add price &amp; care details · <b>Optional</b></div>
+  </div>
+</div>
+</body>
+</html>
