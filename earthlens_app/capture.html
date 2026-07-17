@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EarthLens — Capture</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#000; color:#fff; scrollbar-width:none; }
+
+  .screen { width:100%; height:100%; position:relative; overflow:hidden; }
+  .cam-bg { position:absolute; inset:0; }
+  .cam-bg img { width:100%; height:100%; object-fit:cover; }
+  .cam-dim { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 22%, transparent 55%, rgba(0,0,0,0.85) 100%); }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .cap-top { position:relative; z-index:20; display:flex; align-items:center; justify-content:space-between; padding:6px 28px 0; }
+  .cap-top .x { width:38px; height:38px; border-radius:50%; background:rgba(0,0,0,0.4); backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .live-pill { display:flex; align-items:center; gap:8px; background:rgba(0,0,0,0.45); backdrop-filter:blur(10px); padding:8px 14px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid rgba(82,224,139,0.4); }
+  .live-dot { width:8px; height:8px; border-radius:50%; background:#52E08B; box-shadow:0 0 12px #52E08B; }
+  .cap-top .flash { width:38px; height:38px; border-radius:50%; background:rgba(0,0,0,0.4); backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center; font-size:16px; }
+
+  /* AI scan frame */
+  .scan-area { position:absolute; top:0; left:0; right:0; bottom:0; z-index:15; display:flex; align-items:center; justify-content:center; }
+  .scan-frame { width:74%; height:44%; border-radius:24px; position:relative; }
+  .corner { position:absolute; width:34px; height:34px; border:3px solid #52E08B; }
+  .corner.tl { top:0; left:0; border-right:none; border-bottom:none; border-radius:14px 0 0 0; }
+  .corner.tr { top:0; right:0; border-left:none; border-bottom:none; border-radius:0 14px 0 0; }
+  .corner.bl { bottom:0; left:0; border-right:none; border-top:none; border-radius:0 0 0 14px; }
+  .corner.br { bottom:0; right:0; border-left:none; border-top:none; border-radius:0 0 14px 0; }
+  .scan-detect { position:absolute; top:18%; left:14%; background:rgba(82,224,139,0.16); border:1.5px solid #52E08B; border-radius:10px; padding:4px 9px; font-size:10px; font-weight:800; color:#eafff2; backdrop-filter:blur(4px); }
+  .scan-detect.b { top:auto; bottom:20%; left:auto; right:16%; background:rgba(56,189,248,0.16); border-color:#38BDF8; }
+
+  /* live analysis panel */
+  .analysis { position:absolute; left:20px; right:20px; bottom:180px; z-index:20; background:rgba(10,15,12,0.72); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,0.12); border-radius:24px; padding:16px 18px; }
+  .an-head { display:flex; align-items:center; gap:9px; margin-bottom:12px; }
+  .an-ico { width:30px; height:30px; border-radius:10px; background:linear-gradient(135deg,#52E08B,#16A34A); display:flex; align-items:center; justify-content:center; }
+  .an-ico i { font-size:14px; color:#04140B; }
+  .an-title { font-size:13px; font-weight:800; }
+  .an-sub { font-size:10px; color:#8b978f; margin-top:1px; }
+  .an-score { margin-left:auto; text-align:right; }
+  .an-score .v { font-size:26px; font-weight:900; color:#52E08B; letter-spacing:-1px; line-height:1; }
+  .an-score .l { font-size:9px; color:#8b978f; font-weight:700; letter-spacing:0.5px; }
+  .an-tags { display:flex; gap:7px; flex-wrap:wrap; }
+  .an-tag { font-size:10px; font-weight:700; padding:6px 11px; border-radius:9px; background:rgba(255,255,255,0.08); display:flex; align-items:center; gap:6px; }
+
+  /* controls */
+  .controls { position:absolute; left:0; right:0; bottom:44px; z-index:20; display:flex; align-items:center; justify-content:space-between; padding:0 44px; }
+  .ctrl-side { width:48px; height:48px; border-radius:14px; background:rgba(255,255,255,0.12); backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center; font-size:18px; overflow:hidden; }
+  .ctrl-side img { width:100%; height:100%; object-fit:cover; }
+  .shutter { width:80px; height:80px; border-radius:50%; border:5px solid rgba(255,255,255,0.85); display:flex; align-items:center; justify-content:center; }
+  .shutter-in { width:62px; height:62px; border-radius:50%; background:linear-gradient(135deg,#52E08B,#16A34A); display:flex; align-items:center; justify-content:center; box-shadow:0 6px 20px rgba(82,224,139,0.5); }
+  .shutter-in i { font-size:24px; color:#04140B; }
+
+  .mode-row { position:absolute; bottom:16px; left:0; right:0; z-index:20; display:flex; justify-content:center; gap:22px; }
+  .mode { font-size:11px; font-weight:700; color:rgba(255,255,255,0.45); }
+  .mode.active { color:#52E08B; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="cam-bg">
+    <img src="https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=800&q=80">
+  </div>
+  <div class="cam-dim"></div>
+
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="cap-top">
+    <div class="x"><i class="fas fa-xmark"></i></div>
+    <div class="live-pill"><span class="live-dot"></span> AI Analyzing</div>
+    <div class="flash"><i class="fas fa-bolt"></i></div>
+  </div>
+
+  <div class="scan-area">
+    <div class="scan-frame">
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
+      <div class="scan-detect"><i class="fas fa-seedling"></i> Grassland · 98%</div>
+      <div class="scan-detect b"><i class="fas fa-cloud-sun"></i> Clear sky</div>
+    </div>
+  </div>
+
+  <div class="analysis">
+    <div class="an-head">
+      <div class="an-ico"><i class="fas fa-wand-magic-sparkles"></i></div>
+      <div>
+        <div class="an-title">Live Environmental Analysis</div>
+        <div class="an-sub"><i class="fas fa-location-dot"></i> Prairie Ridge, MT · auto-tagged</div>
+      </div>
+      <div class="an-score"><div class="v">88</div><div class="l">ENV SCORE</div></div>
+    </div>
+    <div class="an-tags">
+      <span class="an-tag"><i class="fas fa-leaf" style="color:#52E08B"></i> Native Grassland</span>
+      <span class="an-tag"><i class="fas fa-bug" style="color:#FBBF24"></i> Pollinator-Rich</span>
+      <span class="an-tag"><i class="fas fa-droplet" style="color:#38BDF8"></i> Healthy Soil</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="ctrl-side"><img src="https://images.unsplash.com/photo-1418065460487-3e41a6c84dc5?w=200&q=80"></div>
+    <div class="shutter"><div class="shutter-in"><i class="fas fa-camera"></i></div></div>
+    <div class="ctrl-side"><i class="fas fa-images"></i></div>
+  </div>
+
+  <div class="mode-row">
+    <span class="mode">TIMELAPSE</span>
+    <span class="mode active">OBSERVATION</span>
+    <span class="mode">VIDEO</span>
+  </div>
+</div>
+</body>
+</html>

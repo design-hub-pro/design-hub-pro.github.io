@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EarthLens — Observation</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0F0C; color:#fff; scrollbar-width:none; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:40px; background:#0A0F0C; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:absolute; top:0; left:0; right:0; z-index:50; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  /* hero photo */
+  .hero { position:relative; height:430px; }
+  .hero img { width:100%; height:100%; object-fit:cover; }
+  .hero-grad { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 30%, rgba(10,15,12,0.6) 78%, #0A0F0C 100%); }
+  .hero-nav { position:absolute; top:64px; left:20px; right:20px; display:flex; justify-content:space-between; z-index:20; }
+  .hnav-btn { width:38px; height:38px; border-radius:50%; background:rgba(0,0,0,0.4); backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center; font-size:15px; }
+  .hero-user { position:absolute; left:20px; bottom:20px; display:flex; align-items:center; gap:11px; z-index:20; }
+  .hero-user img { width:42px; height:42px; border-radius:13px; object-fit:cover; border:2px solid rgba(255,255,255,0.5); }
+  .hu-name { font-size:15px; font-weight:800; display:flex; align-items:center; gap:6px; }
+  .hu-name i { font-size:12px; color:#52E08B; }
+  .hu-loc { font-size:11px; color:#cfd8d2; margin-top:2px; }
+
+  .body { padding:0 24px; margin-top:-4px; }
+
+  /* score hero */
+  .score-hero { display:flex; align-items:center; gap:18px; background:#111813; border:1px solid rgba(82,224,139,0.2); border-radius:24px; padding:20px; margin-bottom:16px; }
+  .big-ring { width:88px; height:88px; border-radius:50%; background:conic-gradient(#52E08B 0% 87%, rgba(255,255,255,0.1) 87% 100%); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .big-ring-in { width:70px; height:70px; border-radius:50%; background:#0d130f; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .big-ring-in .n { font-size:28px; font-weight:900; color:#52E08B; line-height:1; letter-spacing:-1px; }
+  .big-ring-in .s { font-size:8px; color:#8b978f; font-weight:700; letter-spacing:0.5px; }
+  .sh-info .t { font-size:16px; font-weight:800; color:#52E08B; }
+  .sh-info p { font-size:12px; color:#9BA79F; line-height:1.5; margin-top:5px; }
+
+  .sec-title { font-size:12px; font-weight:800; color:#8b978f; letter-spacing:0.5px; text-transform:uppercase; margin:20px 4px 12px; }
+
+  /* metrics grid */
+  .metrics { display:grid; grid-template-columns:1fr 1fr; gap:11px; }
+  .metric { background:#111813; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:15px; }
+  .m-top { display:flex; align-items:center; justify-content:space-between; }
+  .m-ico { width:34px; height:34px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .m-dot { width:9px; height:9px; border-radius:50%; }
+  .m-val { font-size:22px; font-weight:900; letter-spacing:-0.5px; margin-top:11px; }
+  .m-label { font-size:11px; color:#8b978f; font-weight:600; margin-top:2px; }
+
+  /* biodiversity tags */
+  .bio-row { display:flex; gap:9px; flex-wrap:wrap; }
+  .bio { background:#111813; border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:8px 13px; font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px; }
+  .bio i { font-size:13px; }
+
+  /* AI narrative */
+  .ai-box { background:linear-gradient(135deg, rgba(82,224,139,0.1), rgba(22,163,74,0.04)); border:1px solid rgba(82,224,139,0.22); border-radius:22px; padding:18px; margin-top:12px; }
+  .ai-box-head { display:flex; align-items:center; gap:9px; margin-bottom:11px; }
+  .ai-box-head .i { width:30px; height:30px; border-radius:10px; background:linear-gradient(135deg,#52E08B,#16A34A); display:flex; align-items:center; justify-content:center; }
+  .ai-box-head .i i { color:#04140B; font-size:14px; }
+  .ai-box-head .t { font-size:13px; font-weight:800; }
+  .ai-box p { font-size:13px; line-height:1.65; color:#dfe6e1; }
+  .ai-box p b { color:#52E08B; }
+
+  /* trend link */
+  .trend { display:flex; align-items:center; gap:13px; background:#111813; border:1px solid rgba(56,189,248,0.25); border-radius:20px; padding:16px; margin-top:12px; }
+  .trend-ico { width:44px; height:44px; border-radius:14px; background:rgba(56,189,248,0.14); display:flex; align-items:center; justify-content:center; }
+  .trend-ico i { color:#38BDF8; font-size:18px; }
+  .trend-info { flex:1; }
+  .trend-info .t { font-size:13px; font-weight:800; }
+  .trend-info .s { font-size:11px; color:#8b978f; margin-top:2px; }
+  .trend i.go { color:#38BDF8; font-size:14px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="hero">
+    <img src="https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=800&q=80">
+    <div class="hero-grad"></div>
+    <div class="hero-nav">
+      <div class="hnav-btn"><i class="fas fa-chevron-left"></i></div>
+      <div class="hnav-btn"><i class="fas fa-ellipsis"></i></div>
+    </div>
+    <div class="hero-user">
+      <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80">
+      <div>
+        <div class="hu-name">Maya Rivera <i class="fas fa-circle-check"></i></div>
+        <div class="hu-loc"><i class="fas fa-location-dot"></i> Emerald Lake, BC · Jul 16, 6:12 PM</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="score-hero">
+      <div class="big-ring"><div class="big-ring-in"><div class="n">87</div><div class="s">ENV SCORE</div></div></div>
+      <div class="sh-info">
+        <div class="t">Thriving Ecosystem</div>
+        <p>Alpine lake showing excellent water clarity and intact shoreline vegetation. Minimal human disturbance detected.</p>
+      </div>
+    </div>
+
+    <div class="sec-title">Environmental Metrics</div>
+    <div class="metrics">
+      <div class="metric">
+        <div class="m-top"><div class="m-ico" style="background:rgba(56,189,248,0.14)"><i class="fas fa-water" style="color:#38BDF8"></i></div><div class="m-dot" style="background:#52E08B"></div></div>
+        <div class="m-val">Clear</div><div class="m-label">Water Quality</div>
+      </div>
+      <div class="metric">
+        <div class="m-top"><div class="m-ico" style="background:rgba(82,224,139,0.14)"><i class="fas fa-leaf" style="color:#52E08B"></i></div><div class="m-dot" style="background:#52E08B"></div></div>
+        <div class="m-val">High</div><div class="m-label">Biodiversity</div>
+      </div>
+      <div class="metric">
+        <div class="m-top"><div class="m-ico" style="background:rgba(251,191,36,0.14)"><i class="fas fa-smog" style="color:#FBBF24"></i></div><div class="m-dot" style="background:#FBBF24"></div></div>
+        <div class="m-val">Low</div><div class="m-label">Pollution Level</div>
+      </div>
+      <div class="metric">
+        <div class="m-top"><div class="m-ico" style="background:rgba(167,139,250,0.14)"><i class="fas fa-temperature-half" style="color:#A78BFA"></i></div><div class="m-dot" style="background:#52E08B"></div></div>
+        <div class="m-val">Stable</div><div class="m-label">Habitat Health</div>
+      </div>
+    </div>
+
+    <div class="sec-title">Biodiversity Detected</div>
+    <div class="bio-row">
+      <div class="bio"><i class="fas fa-tree" style="color:#52E08B"></i> Conifer Forest</div>
+      <div class="bio"><i class="fas fa-fish" style="color:#38BDF8"></i> Cutthroat Trout</div>
+      <div class="bio"><i class="fas fa-dove" style="color:#A78BFA"></i> Osprey</div>
+      <div class="bio"><i class="fas fa-spa" style="color:#F472B6"></i> Alpine Flora</div>
+    </div>
+
+    <div class="ai-box">
+      <div class="ai-box-head"><div class="i"><i class="fas fa-wand-magic-sparkles"></i></div><div class="t">AI Environmental Reading</div></div>
+      <p>This observation adds to a <b>3-year clarity dataset</b> for Emerald Lake. Compared to community records from 2023, shoreline vegetation has expanded ~12%, and no algal bloom indicators are present — consistent with a <b>recovering alpine watershed</b>.</p>
+    </div>
+
+    <div class="trend">
+      <div class="trend-ico"><i class="fas fa-chart-line"></i></div>
+      <div class="trend-info">
+        <div class="t">See Emerald Lake Trend</div>
+        <div class="s">142 community observations · 3 years</div>
+      </div>
+      <i class="fas fa-arrow-right go"></i>
+    </div>
+  </div>
+</div>
+</body>
+</html>

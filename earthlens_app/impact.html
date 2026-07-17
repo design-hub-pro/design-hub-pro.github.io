@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EarthLens — Impact</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0F0C; color:#fff; scrollbar-width:none; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:104px; background:#0A0F0C; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:sticky; top:0; z-index:50; background:#0A0F0C; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; } .status-bar .icons i { font-size:14px; }
+
+  /* profile header */
+  .phead { display:flex; align-items:center; gap:15px; padding:6px 28px 20px; }
+  .p-avatar { width:66px; height:66px; border-radius:20px; object-fit:cover; border:2px solid #52E08B; }
+  .p-name { font-size:20px; font-weight:900; letter-spacing:-0.5px; display:flex; align-items:center; gap:7px; }
+  .p-name i { font-size:14px; color:#52E08B; }
+  .p-lvl { display:inline-flex; align-items:center; gap:6px; margin-top:6px; font-size:11px; font-weight:800; color:#52E08B; background:rgba(82,224,139,0.12); padding:5px 11px; border-radius:10px; }
+  .p-set { margin-left:auto; width:38px; height:38px; border-radius:12px; background:#161E18; display:flex; align-items:center; justify-content:center; }
+  .p-set i { color:#9BA79F; font-size:15px; }
+
+  /* impact hero card */
+  .impact-hero { margin:0 28px 18px; border-radius:26px; padding:22px; background:linear-gradient(135deg,#12331F,#0d1f14); border:1px solid rgba(82,224,139,0.22); position:relative; overflow:hidden; }
+  .impact-hero::before { content:''; position:absolute; right:-40px; top:-40px; width:170px; height:170px; border-radius:50%; background:radial-gradient(circle, rgba(82,224,139,0.22), transparent 70%); }
+  .ih-label { font-size:11px; font-weight:800; color:#52E08B; letter-spacing:0.5px; text-transform:uppercase; position:relative; z-index:2; }
+  .ih-score { font-size:52px; font-weight:900; letter-spacing:-2px; line-height:1; margin-top:8px; position:relative; z-index:2; }
+  .ih-score span { font-size:18px; color:#8b978f; font-weight:700; }
+  .ih-sub { font-size:12px; color:#c3ccc6; margin-top:8px; position:relative; z-index:2; }
+  .ih-sub b { color:#52E08B; }
+  .ih-next { margin-top:16px; position:relative; z-index:2; }
+  .ih-next-top { display:flex; justify-content:space-between; font-size:11px; margin-bottom:7px; }
+  .ih-next-top .a { color:#c3ccc6; font-weight:600; }
+  .ih-next-top .b { color:#52E08B; font-weight:800; }
+  .ih-bar { height:7px; border-radius:5px; background:rgba(255,255,255,0.1); overflow:hidden; }
+  .ih-bar > div { height:100%; border-radius:5px; background:linear-gradient(90deg,#52E08B,#16A34A); }
+
+  /* stats row */
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:11px; padding:0 28px 8px; }
+  .stat { background:#111813; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:15px 12px; text-align:center; }
+  .stat .n { font-size:24px; font-weight:900; letter-spacing:-0.5px; }
+  .stat .l { font-size:10px; color:#8b978f; font-weight:600; margin-top:3px; }
+
+  .sec-title { font-size:12px; font-weight:800; color:#8b978f; letter-spacing:0.5px; text-transform:uppercase; margin:22px 28px 13px; }
+
+  /* contribution proof cards */
+  .contrib { margin:0 28px 11px; background:#111813; border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:14px; display:flex; align-items:center; gap:13px; }
+  .contrib-ico { width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:17px; }
+  .contrib-body { flex:1; }
+  .contrib-title { font-size:13px; font-weight:800; }
+  .contrib-sub { font-size:11px; color:#8b978f; margin-top:2px; }
+  .contrib-check { color:#52E08B; font-size:16px; }
+
+  /* badges */
+  .badges { display:flex; gap:12px; padding:0 28px; overflow-x:auto; }
+  .badge { flex-shrink:0; width:96px; text-align:center; }
+  .badge-ring { width:72px; height:72px; border-radius:22px; display:flex; align-items:center; justify-content:center; margin:0 auto 8px; font-size:26px; }
+  .badge-name { font-size:11px; font-weight:700; }
+  .badge-name.locked { color:#5b665e; }
+  .badge.locked .badge-ring { background:#141A16; border:1px dashed rgba(255,255,255,0.12); }
+  .badge.locked .badge-ring i { color:#4a544c; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(10,15,12,0.92); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:19px; color:rgba(255,255,255,0.32); } .tab-item span { font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#52E08B; }
+  .tab-cam { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#52E08B,#16A34A); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(82,224,139,0.4); }
+  .tab-cam i { font-size:22px; color:#04140B; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="phead">
+    <img class="p-avatar" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&q=80">
+    <div>
+      <div class="p-name">Jordan Lee <i class="fas fa-circle-check"></i></div>
+      <div class="p-lvl"><i class="fas fa-medal"></i> Level 4 · Ecosystem Guardian</div>
+    </div>
+    <div class="p-set"><i class="fas fa-gear"></i></div>
+  </div>
+
+  <div class="impact-hero">
+    <div class="ih-label">Your Environmental Impact</div>
+    <div class="ih-score">3,180<span> pts</span></div>
+    <div class="ih-sub"><b>27 of your observations</b> shaped real environmental findings</div>
+    <div class="ih-next">
+      <div class="ih-next-top"><span class="a">Next: Field Naturalist</span><span class="b">820 pts to go</span></div>
+      <div class="ih-bar"><div style="width:72%"></div></div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="n">412</div><div class="l">Observations</div></div>
+    <div class="stat"><div class="n">38</div><div class="l">Locations</div></div>
+    <div class="stat"><div class="n">2.3y</div><div class="l">Monitoring</div></div>
+  </div>
+
+  <div class="sec-title">Proof of Impact</div>
+  <div class="contrib">
+    <div class="contrib-ico" style="background:rgba(82,224,139,0.14)"><i class="fas fa-flask" style="color:#52E08B"></i></div>
+    <div class="contrib-body"><div class="contrib-title">Featured in 6 monthly reports</div><div class="contrib-sub">Your data revealed regional trends</div></div>
+    <i class="fas fa-circle-check contrib-check"></i>
+  </div>
+  <div class="contrib">
+    <div class="contrib-ico" style="background:rgba(167,139,250,0.14)"><i class="fas fa-microscope" style="color:#A78BFA"></i></div>
+    <div class="contrib-body"><div class="contrib-title">Cited by 3 research groups</div><div class="contrib-sub">WWF · Audubon · UC Davis</div></div>
+    <i class="fas fa-circle-check contrib-check"></i>
+  </div>
+  <div class="contrib">
+    <div class="contrib-ico" style="background:rgba(56,189,248,0.14)"><i class="fas fa-wand-magic-sparkles" style="color:#38BDF8"></i></div>
+    <div class="contrib-body"><div class="contrib-title">Triggered 4 new trend alerts</div><div class="contrib-sub">AI detected changes from your photos</div></div>
+    <i class="fas fa-circle-check contrib-check"></i>
+  </div>
+
+  <div class="sec-title">Citizen Scientist Path</div>
+  <div class="badges">
+    <div class="badge">
+      <div class="badge-ring" style="background:linear-gradient(135deg,#52E08B,#16A34A)"><i class="fas fa-seedling" style="color:#04140B"></i></div>
+      <div class="badge-name">Observer</div>
+    </div>
+    <div class="badge">
+      <div class="badge-ring" style="background:linear-gradient(135deg,#38BDF8,#0284C7)"><i class="fas fa-water"></i></div>
+      <div class="badge-name">Water Watch</div>
+    </div>
+    <div class="badge">
+      <div class="badge-ring" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)"><i class="fas fa-shield-halved"></i></div>
+      <div class="badge-name">Guardian</div>
+    </div>
+    <div class="badge locked">
+      <div class="badge-ring"><i class="fas fa-lock"></i></div>
+      <div class="badge-name locked">Naturalist</div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-layer-group"></i><span>Feed</span></div>
+    <div class="tab-item"><i class="fas fa-earth-americas"></i><span>Insights</span></div>
+    <div class="tab-item"><div class="tab-cam"><i class="fas fa-camera"></i></div></div>
+    <div class="tab-item"><i class="fas fa-compass"></i><span>Missions</span></div>
+    <div class="tab-item active"><i class="fas fa-user"></i><span>Impact</span></div>
+  </div>
+</div>
+</body>
+</html>

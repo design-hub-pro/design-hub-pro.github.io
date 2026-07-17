@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EarthLens — Feed</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0F0C; color:#fff; scrollbar-width:none; }
+
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:104px; background:#0A0F0C; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:sticky; top:0; z-index:50; background:#0A0F0C; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; }
+  .status-bar .icons i { font-size:14px; }
+
+  .topbar { padding:6px 28px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .brand { display:flex; align-items:center; gap:9px; }
+  .brand-mark { width:34px; height:34px; border-radius:11px; background:linear-gradient(135deg,#52E08B,#16A34A); display:flex; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(82,224,139,0.35); }
+  .brand-mark i { font-size:16px; color:#04140B; }
+  .brand-name { font-size:20px; font-weight:900; letter-spacing:-0.5px; }
+  .top-actions { display:flex; gap:16px; }
+  .top-actions i { font-size:18px; color:#cfd8d2; }
+
+  /* region filter chips */
+  .chips { display:flex; gap:9px; padding:0 28px 16px; overflow-x:auto; }
+  .chip { flex-shrink:0; padding:8px 15px; border-radius:20px; font-size:12px; font-weight:700; background:#161E18; color:#9BA79F; border:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:6px; }
+  .chip.active { background:linear-gradient(135deg,#52E08B,#16A34A); color:#04140B; border-color:transparent; }
+
+  /* observation card */
+  .card { margin:0 20px 22px; background:#111813; border-radius:26px; overflow:hidden; border:1px solid rgba(255,255,255,0.06); }
+  .card-head { display:flex; align-items:center; gap:11px; padding:14px 16px; }
+  .u-avatar { width:38px; height:38px; border-radius:12px; object-fit:cover; }
+  .u-meta { flex:1; }
+  .u-name { font-size:13px; font-weight:800; display:flex; align-items:center; gap:5px; }
+  .u-name i { font-size:11px; color:#52E08B; }
+  .u-loc { font-size:11px; color:#7E8A81; margin-top:2px; display:flex; align-items:center; gap:5px; }
+  .lvl-pill { font-size:9px; font-weight:800; color:#52E08B; background:rgba(82,224,139,0.12); padding:3px 8px; border-radius:8px; letter-spacing:0.3px; }
+
+  .photo-wrap { position:relative; }
+  .photo { width:100%; height:340px; object-fit:cover; display:block; }
+  .photo-grad { position:absolute; inset:0; background:linear-gradient(to top, rgba(6,12,8,0.85) 0%, transparent 45%); }
+  /* AI score ring */
+  .score-badge { position:absolute; top:14px; right:14px; background:rgba(6,12,8,0.55); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:8px 12px; display:flex; align-items:center; gap:8px; }
+  .score-ring { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; }
+  .score-txt { line-height:1.1; }
+  .score-txt .l { font-size:8px; color:#cbd5d0; text-transform:uppercase; letter-spacing:0.5px; font-weight:700; }
+  .score-txt .v { font-size:12px; font-weight:800; }
+
+  .ai-strip { position:absolute; left:14px; bottom:14px; right:14px; }
+  .ai-tags { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:9px; }
+  .ai-tag { font-size:10px; font-weight:700; padding:5px 10px; border-radius:9px; background:rgba(6,12,8,0.55); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.12); display:flex; align-items:center; gap:5px; }
+  .ai-read { display:flex; align-items:flex-start; gap:8px; background:rgba(6,12,8,0.6); backdrop-filter:blur(12px); border:1px solid rgba(82,224,139,0.25); border-radius:14px; padding:10px 12px; }
+  .ai-read i { color:#52E08B; font-size:12px; margin-top:1px; }
+  .ai-read p { font-size:11.5px; line-height:1.5; color:#dfe6e1; }
+  .ai-read b { color:#fff; font-weight:700; }
+
+  .card-foot { display:flex; align-items:center; gap:20px; padding:13px 16px; }
+  .foot-act { display:flex; align-items:center; gap:7px; font-size:12px; color:#9BA79F; font-weight:600; }
+  .foot-act i { font-size:15px; }
+  .foot-act.impact i { color:#52E08B; }
+  .foot-spacer { flex:1; }
+  .contrib-flag { font-size:10px; font-weight:700; color:#38BDF8; background:rgba(56,189,248,0.1); padding:5px 10px; border-radius:9px; display:flex; align-items:center; gap:5px; }
+
+  /* tab bar */
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(10,15,12,0.92); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:19px; color:rgba(255,255,255,0.32); }
+  .tab-item span { font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#52E08B; }
+  .tab-cam { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#52E08B,#16A34A); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(82,224,139,0.4); }
+  .tab-cam i { font-size:22px; color:#04140B; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark"><i class="fas fa-earth-americas"></i></div>
+      <div class="brand-name">EarthLens</div>
+    </div>
+    <div class="top-actions"><i class="fas fa-magnifying-glass"></i><i class="fas fa-map-location-dot"></i></div>
+  </div>
+
+  <div class="chips">
+    <div class="chip active"><i class="fas fa-location-dot"></i> Near You</div>
+    <div class="chip"><i class="fas fa-water"></i> Rivers</div>
+    <div class="chip"><i class="fas fa-tree"></i> Forests</div>
+    <div class="chip"><i class="fas fa-paw"></i> Wildlife</div>
+    <div class="chip"><i class="fas fa-trash"></i> Pollution</div>
+  </div>
+
+  <!-- Observation 1 -->
+  <div class="card">
+    <div class="card-head">
+      <img class="u-avatar" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80">
+      <div class="u-meta">
+        <div class="u-name">Maya Rivera <i class="fas fa-circle-check"></i></div>
+        <div class="u-loc"><i class="fas fa-location-dot"></i> Klamath River, CA · 2h ago</div>
+      </div>
+      <span class="lvl-pill">GUARDIAN</span>
+    </div>
+    <div class="photo-wrap">
+      <img class="photo" src="https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=800&q=80">
+      <div class="photo-grad"></div>
+      <div class="score-badge">
+        <div class="score-ring" style="background:conic-gradient(#52E08B 0% 84%, rgba(255,255,255,0.15) 84% 100%); color:#04140B;">
+          <div style="width:26px;height:26px;border-radius:50%;background:#0d130f;color:#52E08B;display:flex;align-items:center;justify-content:center;">84</div>
+        </div>
+        <div class="score-txt"><div class="l">Env Score</div><div class="v" style="color:#52E08B">Healthy</div></div>
+      </div>
+      <div class="ai-strip">
+        <div class="ai-tags">
+          <span class="ai-tag"><i class="fas fa-water" style="color:#38BDF8"></i> Clear Water</span>
+          <span class="ai-tag"><i class="fas fa-leaf" style="color:#52E08B"></i> High Biodiversity</span>
+          <span class="ai-tag"><i class="fas fa-temperature-half" style="color:#FBBF24"></i> Low Turbidity</span>
+        </div>
+        <div class="ai-read">
+          <i class="fas fa-wand-magic-sparkles"></i>
+          <p><b>AI reading:</b> Water clarity improved vs. last month. Riparian vegetation dense and healthy — a strong sign of recovering salmon habitat.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card-foot">
+      <div class="foot-act impact"><i class="fas fa-seedling"></i> 214</div>
+      <div class="foot-act"><i class="far fa-comment"></i> 32</div>
+      <div class="foot-spacer"></div>
+      <div class="contrib-flag"><i class="fas fa-flask"></i> In Monthly Report</div>
+    </div>
+  </div>
+
+  <!-- Observation 2 -->
+  <div class="card">
+    <div class="card-head">
+      <img class="u-avatar" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80">
+      <div class="u-meta">
+        <div class="u-name">Devon Park <i class="fas fa-circle-check"></i></div>
+        <div class="u-loc"><i class="fas fa-location-dot"></i> Redwood NP · 5h ago</div>
+      </div>
+      <span class="lvl-pill">SCIENTIST</span>
+    </div>
+    <div class="photo-wrap">
+      <img class="photo" src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80">
+      <div class="photo-grad"></div>
+      <div class="score-badge">
+        <div class="score-ring">
+          <div style="width:26px;height:26px;border-radius:50%;background:#0d130f;color:#52E08B;display:flex;align-items:center;justify-content:center;border:2px solid #52E08B;">91</div>
+        </div>
+        <div class="score-txt"><div class="l">Env Score</div><div class="v" style="color:#52E08B">Thriving</div></div>
+      </div>
+      <div class="ai-strip">
+        <div class="ai-tags">
+          <span class="ai-tag"><i class="fas fa-tree" style="color:#52E08B"></i> Old-Growth</span>
+          <span class="ai-tag"><i class="fas fa-dove" style="color:#A78BFA"></i> 3 Species Detected</span>
+        </div>
+        <div class="ai-read">
+          <i class="fas fa-wand-magic-sparkles"></i>
+          <p><b>AI reading:</b> Canopy density in the top 5% of coastal forests. Detected marbled murrelet habitat markers — flagged for research review.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card-foot">
+      <div class="foot-act impact"><i class="fas fa-seedling"></i> 508</div>
+      <div class="foot-act"><i class="far fa-comment"></i> 61</div>
+      <div class="foot-spacer"></div>
+      <div class="contrib-flag" style="color:#A78BFA;background:rgba(167,139,250,0.1)"><i class="fas fa-microscope"></i> Cited by WWF</div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item active"><i class="fas fa-layer-group"></i><span>Feed</span></div>
+    <div class="tab-item"><i class="fas fa-earth-americas"></i><span>Insights</span></div>
+    <div class="tab-item"><div class="tab-cam"><i class="fas fa-camera"></i></div></div>
+    <div class="tab-item"><i class="fas fa-compass"></i><span>Missions</span></div>
+    <div class="tab-item"><i class="fas fa-user"></i><span>Impact</span></div>
+  </div>
+</div>
+</body>
+</html>

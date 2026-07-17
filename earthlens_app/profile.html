@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EarthLens — My Observations</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#0A0F0C; color:#fff; scrollbar-width:none; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:104px; background:#0A0F0C; }
+
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:sticky; top:0; z-index:50; background:#0A0F0C; }
+  .status-bar .time { font-size:17px; font-weight:700; }
+  .status-bar .icons { display:flex; gap:6px; } .status-bar .icons i { font-size:14px; }
+
+  .nav { display:flex; align-items:center; justify-content:space-between; padding:6px 28px 16px; }
+  .nav .back { width:38px; height:38px; border-radius:12px; background:#161E18; display:flex; align-items:center; justify-content:center; font-size:15px; color:#cfd8d2; }
+  .nav .title { font-size:17px; font-weight:800; }
+  .nav .add { width:38px; height:38px; border-radius:12px; background:#161E18; display:flex; align-items:center; justify-content:center; font-size:15px; color:#52E08B; }
+
+  /* summary strip */
+  .summary { display:flex; gap:11px; padding:0 28px 18px; }
+  .sum { flex:1; background:#111813; border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:13px; text-align:center; }
+  .sum .n { font-size:20px; font-weight:900; letter-spacing:-0.5px; }
+  .sum .n.g { color:#52E08B; }
+  .sum .l { font-size:10px; color:#8b978f; font-weight:600; margin-top:3px; }
+
+  /* view toggle */
+  .toggle { display:flex; gap:8px; padding:0 28px 16px; }
+  .tg { flex:1; text-align:center; padding:9px; border-radius:13px; font-size:12px; font-weight:700; background:#161E18; color:#9BA79F; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .tg.active { background:linear-gradient(135deg,#52E08B,#16A34A); color:#04140B; }
+
+  /* observation grid */
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:11px; padding:0 28px; }
+  .cell { position:relative; border-radius:18px; overflow:hidden; aspect-ratio:1/1.15; }
+  .cell img { width:100%; height:100%; object-fit:cover; }
+  .cell-grad { position:absolute; inset:0; background:linear-gradient(to top, rgba(6,12,8,0.9) 0%, transparent 50%); }
+  .cell-score { position:absolute; top:9px; right:9px; width:30px; height:30px; border-radius:50%; background:rgba(6,12,8,0.6); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; border:1.5px solid; }
+  .cell-info { position:absolute; left:11px; right:11px; bottom:10px; }
+  .cell-tag { font-size:10px; font-weight:800; display:flex; align-items:center; gap:5px; }
+  .cell-loc { font-size:9px; color:#c3ccc6; margin-top:3px; display:flex; align-items:center; gap:4px; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(10,15,12,0.92); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:12px; border-top:0.5px solid rgba(255,255,255,0.08); }
+  .tab-item { display:flex; flex-direction:column; align-items:center; gap:4px; min-width:56px; }
+  .tab-item i { font-size:19px; color:rgba(255,255,255,0.32); } .tab-item span { font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab-item.active i, .tab-item.active span { color:#52E08B; }
+  .tab-cam { width:56px; height:56px; border-radius:20px; background:linear-gradient(135deg,#52E08B,#16A34A); display:flex; align-items:center; justify-content:center; margin-top:-14px; box-shadow:0 8px 24px rgba(82,224,139,0.4); }
+  .tab-cam i { font-size:22px; color:#04140B; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="nav">
+    <div class="back"><i class="fas fa-chevron-left"></i></div>
+    <div class="title">My Observations</div>
+    <div class="add"><i class="fas fa-plus"></i></div>
+  </div>
+
+  <div class="summary">
+    <div class="sum"><div class="n g">412</div><div class="l">Captured</div></div>
+    <div class="sum"><div class="n">78</div><div class="l">Avg Score</div></div>
+    <div class="sum"><div class="n">38</div><div class="l">Sites</div></div>
+  </div>
+
+  <div class="toggle">
+    <div class="tg active"><i class="fas fa-grip"></i> Grid</div>
+    <div class="tg"><i class="fas fa-map-location-dot"></i> Map</div>
+    <div class="tg"><i class="fas fa-clock-rotate-left"></i> Timeline</div>
+  </div>
+
+  <div class="grid">
+    <div class="cell">
+      <img src="https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=400&q=80">
+      <div class="cell-grad"></div>
+      <div class="cell-score" style="border-color:#52E08B;color:#52E08B">84</div>
+      <div class="cell-info"><div class="cell-tag" style="color:#38BDF8"><i class="fas fa-water"></i> River</div><div class="cell-loc"><i class="fas fa-location-dot"></i> Klamath, CA</div></div>
+    </div>
+    <div class="cell">
+      <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=80">
+      <div class="cell-grad"></div>
+      <div class="cell-score" style="border-color:#52E08B;color:#52E08B">91</div>
+      <div class="cell-info"><div class="cell-tag" style="color:#52E08B"><i class="fas fa-tree"></i> Forest</div><div class="cell-loc"><i class="fas fa-location-dot"></i> Redwood NP</div></div>
+    </div>
+    <div class="cell">
+      <img src="https://images.unsplash.com/photo-1484406566174-9da000fda645?w=400&q=80">
+      <div class="cell-grad"></div>
+      <div class="cell-score" style="border-color:#A78BFA;color:#A78BFA">76</div>
+      <div class="cell-info"><div class="cell-tag" style="color:#A78BFA"><i class="fas fa-paw"></i> Wildlife</div><div class="cell-loc"><i class="fas fa-location-dot"></i> Yellowstone</div></div>
+    </div>
+    <div class="cell">
+      <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&q=80">
+      <div class="cell-grad"></div>
+      <div class="cell-score" style="border-color:#FBBF24;color:#FBBF24">58</div>
+      <div class="cell-info"><div class="cell-tag" style="color:#FBBF24"><i class="fas fa-seedling"></i> Grassland</div><div class="cell-loc"><i class="fas fa-location-dot"></i> Prairie Ridge</div></div>
+    </div>
+    <div class="cell">
+      <img src="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=400&q=80">
+      <div class="cell-grad"></div>
+      <div class="cell-score" style="border-color:#FB923C;color:#FB923C">41</div>
+      <div class="cell-info"><div class="cell-tag" style="color:#FB923C"><i class="fas fa-trash"></i> Pollution</div><div class="cell-loc"><i class="fas fa-location-dot"></i> Harbor Reserve</div></div>
+    </div>
+    <div class="cell">
+      <img src="https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=400&q=80">
+      <div class="cell-grad"></div>
+      <div class="cell-score" style="border-color:#52E08B;color:#52E08B">87</div>
+      <div class="cell-info"><div class="cell-tag" style="color:#38BDF8"><i class="fas fa-water"></i> Lake</div><div class="cell-loc"><i class="fas fa-location-dot"></i> Emerald Lake</div></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-layer-group"></i><span>Feed</span></div>
+    <div class="tab-item"><i class="fas fa-earth-americas"></i><span>Insights</span></div>
+    <div class="tab-item"><div class="tab-cam"><i class="fas fa-camera"></i></div></div>
+    <div class="tab-item"><i class="fas fa-compass"></i><span>Missions</span></div>
+    <div class="tab-item active"><i class="fas fa-user"></i><span>Impact</span></div>
+  </div>
+</div>
+</body>
+</html>
