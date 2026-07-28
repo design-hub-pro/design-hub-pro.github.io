@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Land Memory Lab — Time Slider</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .display { font-family: 'Space Grotesk', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .glass { background: rgba(15,23,42,.6); backdrop-filter: blur(14px); }
+        input[type=range] { -webkit-appearance:none; appearance:none; height:4px; border-radius:9px; background:linear-gradient(90deg,#34d399,#38bdf8); outline:none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:22px; height:22px; border-radius:50%; background:#fff; border:4px solid #34d399; cursor:grab; box-shadow:0 4px 14px rgba(0,0,0,.5); }
+        input[type=range]::-webkit-slider-thumb:active { cursor:grabbing; }
+        .layer-map { transition: opacity .6s ease; }
+        .tick { transition: color .3s, transform .3s; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 overflow-hidden">
+    <div class="h-screen flex flex-col">
+        <!-- Top bar -->
+        <header class="glass border-b border-white/10 z-30">
+            <div class="px-5 h-14 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <a href="home.html" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center"><i class="fas fa-arrow-left text-sm"></i></a>
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-sky-500 flex items-center justify-center"><i class="fas fa-layer-group text-slate-950 text-xs"></i></div>
+                    <div class="hidden sm:block"><div class="text-sm font-semibold leading-none">Time-Slider Map</div><div class="text-[11px] text-slate-400 mono">Presidio Basin · San Francisco</div></div>
+                </div>
+                <nav class="hidden lg:flex items-center gap-1 text-sm">
+                    <a href="timeline.html" class="px-3 py-1.5 rounded-lg bg-white/10 font-medium">Time Slider</a>
+                    <a href="compare.html" class="px-3 py-1.5 rounded-lg hover:bg-white/5 text-slate-300">Compare</a>
+                    <a href="water.html" class="px-3 py-1.5 rounded-lg hover:bg-white/5 text-slate-300">Water</a>
+                    <a href="vegetation.html" class="px-3 py-1.5 rounded-lg hover:bg-white/5 text-slate-300">Vegetation</a>
+                    <a href="stories.html" class="px-3 py-1.5 rounded-lg hover:bg-white/5 text-slate-300">Stories</a>
+                </nav>
+                <div class="flex items-center gap-2">
+                    <button id="playBtn" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-400 text-slate-950 text-sm font-semibold hover:bg-emerald-300"><i class="fas fa-play text-xs"></i><span>Play era</span></button>
+                    <button class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center"><i class="fas fa-share-nodes text-sm"></i></button>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 flex min-h-0">
+            <!-- Left: layers -->
+            <aside class="w-64 shrink-0 glass border-r border-white/10 hidden md:flex flex-col">
+                <div class="p-4 border-b border-white/10">
+                    <div class="text-xs text-slate-400 mono mb-3">MAP LAYERS</div>
+                    <div class="space-y-2" id="layerList">
+                        <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
+                            <input type="checkbox" checked class="accent-emerald-400"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span><span class="text-sm">Vegetation</span><span class="ml-auto text-xs text-slate-500 mono">82%</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
+                            <input type="checkbox" checked class="accent-sky-400"><span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span><span class="text-sm">Hydrology</span><span class="ml-auto text-xs text-slate-500 mono">64%</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
+                            <input type="checkbox" checked class="accent-amber-400"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span><span class="text-sm">Built cover</span><span class="ml-auto text-xs text-slate-500 mono">40%</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
+                            <input type="checkbox" class="accent-rose-400"><span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span><span class="text-sm">Fault lines</span><span class="ml-auto text-xs text-slate-500 mono">off</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
+                            <input type="checkbox" class="accent-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span><span class="text-sm">Elevation shade</span><span class="ml-auto text-xs text-slate-500 mono">off</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="p-4 border-b border-white/10">
+                    <div class="text-xs text-slate-400 mono mb-3">BASEMAP OPACITY</div>
+                    <input type="range" min="0" max="100" value="70" class="w-full" id="opacity">
+                    <div class="flex justify-between text-[11px] text-slate-500 mt-1"><span>Data</span><span>Imagery</span></div>
+                </div>
+                <div class="p-4 mt-auto">
+                    <div class="text-xs text-slate-400 mono mb-2">LEGEND · land use</div>
+                    <div class="space-y-1.5 text-xs">
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-emerald-500"></span> Native forest / scrub</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-lime-400"></span> Grassland / dune</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-sky-400"></span> Water / wetland</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-amber-400"></span> Agriculture</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-rose-400"></span> Urban / paved</div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Center: map -->
+            <div class="flex-1 relative min-w-0">
+                <!-- stacked era images crossfading -->
+                <div id="mapStack" class="absolute inset-0">
+                    <img data-era="0" class="layer-map absolute inset-0 w-full h-full object-cover" style="opacity:1" src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1600&q=80" alt="1852 wild landscape">
+                    <img data-era="1" class="layer-map absolute inset-0 w-full h-full object-cover" style="opacity:0" src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1600&q=80" alt="1906">
+                    <img data-era="2" class="layer-map absolute inset-0 w-full h-full object-cover" style="opacity:0" src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1600&q=80" alt="1950">
+                    <img data-era="3" class="layer-map absolute inset-0 w-full h-full object-cover" style="opacity:0" src="https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=1600&q=80" alt="1990">
+                    <img data-era="4" class="layer-map absolute inset-0 w-full h-full object-cover" style="opacity:0" src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1600&q=80" alt="2024 city">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-slate-950/20"></div>
+                    <!-- vector hydrology overlay -->
+                    <svg class="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 1000 700">
+                        <path id="riverPath" d="M120 40 C 180 200 90 300 220 400 S 420 560 380 700" fill="none" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+                        <circle cx="220" cy="400" r="7" fill="#38bdf8"/>
+                    </svg>
+                </div>
+
+                <!-- floating year badge -->
+                <div class="absolute top-5 left-5 glass border border-white/10 rounded-2xl px-5 py-3">
+                    <div class="text-[11px] text-slate-400 mono">VIEWING YEAR</div>
+                    <div id="yearBig" class="display text-4xl font-bold leading-none">1852</div>
+                    <div id="eraLabel" class="text-xs text-emerald-400 mt-1">Pre-settlement · dune & oak</div>
+                </div>
+
+                <!-- map controls -->
+                <div class="absolute top-5 right-5 flex flex-col gap-2">
+                    <button class="w-9 h-9 glass border border-white/10 rounded-lg hover:bg-white/10"><i class="fas fa-plus text-sm"></i></button>
+                    <button class="w-9 h-9 glass border border-white/10 rounded-lg hover:bg-white/10"><i class="fas fa-minus text-sm"></i></button>
+                    <button class="w-9 h-9 glass border border-white/10 rounded-lg hover:bg-white/10"><i class="fas fa-compass text-sm"></i></button>
+                    <button class="w-9 h-9 glass border border-white/10 rounded-lg hover:bg-white/10"><i class="fas fa-expand text-sm"></i></button>
+                </div>
+
+                <!-- scale + coord -->
+                <div class="absolute bottom-5 right-5 flex items-center gap-3 text-[11px] mono text-slate-300">
+                    <span class="glass border border-white/10 rounded px-2 py-1"><i class="fas fa-location-crosshairs text-emerald-400 mr-1"></i>37.7989°N 122.4662°W</span>
+                    <div class="glass border border-white/10 rounded px-2 py-1 flex items-center gap-1"><span class="w-8 h-0.5 bg-white inline-block"></span>500 m</div>
+                </div>
+            </div>
+
+            <!-- Right: context -->
+            <aside class="w-80 shrink-0 glass border-l border-white/10 hidden xl:flex flex-col">
+                <div class="p-5 border-b border-white/10">
+                    <div class="text-xs text-slate-400 mono mb-1">CHANGE SINCE 1852</div>
+                    <h3 id="ctxTitle" class="display text-lg font-bold">A basin of oak and dune</h3>
+                    <p id="ctxBody" class="text-sm text-slate-400 mt-2 leading-relaxed">Tidal marsh once fingered deep inland here. Serpentine grassland covered the ridges, and a spring-fed creek ran to the bay unimpeded.</p>
+                </div>
+                <div class="p-5 space-y-4 border-b border-white/10">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Native vegetation</span><span id="vegVal" class="mono text-emerald-400">82%</span></div>
+                        <div class="h-2 rounded-full bg-white/10 overflow-hidden"><div id="vegBar" class="h-full bg-emerald-400 transition-all duration-500" style="width:82%"></div></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Open water & wetland</span><span id="watVal" class="mono text-sky-400">64%</span></div>
+                        <div class="h-2 rounded-full bg-white/10 overflow-hidden"><div id="watBar" class="h-full bg-sky-400 transition-all duration-500" style="width:64%"></div></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Built / paved surface</span><span id="urbVal" class="mono text-amber-400">2%</span></div>
+                        <div class="h-2 rounded-full bg-white/10 overflow-hidden"><div id="urbBar" class="h-full bg-amber-400 transition-all duration-500" style="width:2%"></div></div>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <div class="text-xs text-slate-400 mono mb-3">EVENTS ON THE TIMELINE</div>
+                    <div class="space-y-3 text-sm" id="events">
+                        <div class="flex gap-3"><span class="mono text-xs text-slate-500 pt-0.5">1852</span><span>Coastal survey maps the tidal marsh.</span></div>
+                        <div class="flex gap-3"><span class="mono text-xs text-slate-500 pt-0.5">1906</span><span>Earthquake reshapes the shoreline.</span></div>
+                        <div class="flex gap-3"><span class="mono text-xs text-slate-500 pt-0.5">1950</span><span>Creek culverted; marsh filled for housing.</span></div>
+                        <div class="flex gap-3"><span class="mono text-xs text-slate-500 pt-0.5">2024</span><span>Restoration daylights 400 m of channel.</span></div>
+                    </div>
+                    <a href="stories.html" class="mt-5 inline-flex items-center gap-2 text-sm text-emerald-400 hover:text-emerald-300">Read the full story <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Bottom timeline -->
+        <footer class="glass border-t border-white/10 px-6 py-4 z-30">
+            <div class="max-w-5xl mx-auto">
+                <div class="flex items-center gap-4">
+                    <button id="stepBack" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center"><i class="fas fa-backward-step text-xs"></i></button>
+                    <div class="flex-1">
+                        <input id="slider" type="range" min="1852" max="2024" value="1852" step="1" class="w-full">
+                        <div class="flex justify-between mt-2 text-xs">
+                            <button class="tick text-slate-400 hover:text-white" data-y="1852">1852</button>
+                            <button class="tick text-slate-400 hover:text-white" data-y="1906">1906</button>
+                            <button class="tick text-slate-400 hover:text-white" data-y="1950">1950</button>
+                            <button class="tick text-slate-400 hover:text-white" data-y="1990">1990</button>
+                            <button class="tick text-slate-400 hover:text-white" data-y="2024">2024</button>
+                        </div>
+                    </div>
+                    <button id="stepFwd" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center"><i class="fas fa-forward-step text-xs"></i></button>
+                    <div class="mono text-sm w-14 text-right"><span id="yearSmall">1852</span></div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const eras = [
+            {y:1852, i:0, label:'Pre-settlement · dune & oak', title:'A basin of oak and dune', body:'Tidal marsh once fingered deep inland here. Serpentine grassland covered the ridges, and a spring-fed creek ran to the bay unimpeded.', veg:82, wat:64, urb:2},
+            {y:1906, i:1, label:'Post-quake · reshaped shore', title:'The ground rearranged', body:'The 1906 rupture shifted the shoreline and cracked the spring line. Refugee camps spread across the former grassland.', veg:70, wat:58, urb:14},
+            {y:1950, i:2, label:'Fill era · marsh to lots', title:'The marsh disappears', body:'Postwar housing filled the wetland. The creek was culverted underground; only its name survived on street signs.', veg:48, wat:26, urb:52},
+            {y:1990, i:3, label:'Peak paving · dense grid', title:'A hardened surface', body:'Impervious cover peaked. Storm runoff spiked and the last serpentine remnants clung to a single protected ridge.', veg:33, wat:18, urb:74},
+            {y:2024, i:4, label:'Restoration · daylighting', title:'Reading the memory back', body:'A restoration project reopened 400 m of buried channel. Native plantings returned to the corridor, guided by 1852 survey maps.', veg:41, wat:30, urb:66},
+        ];
+        const slider = document.getElementById('slider');
+        const imgs = [...document.querySelectorAll('#mapStack img')];
+        const opacity = document.getElementById('opacity');
+        const set = (o)=>{ imgs.forEach(im=> im.style.filter = `saturate(${.6+o/250})`); };
+
+        function nearest(y){ let e=eras[0]; for(const s of eras){ if(y>=s.y) e=s; } return e; }
+        function pct(y){ // fade weighting toward nearest era image
+            let lower=eras[0], upper=eras[eras.length-1];
+            for(let k=0;k<eras.length-1;k++){ if(y>=eras[k].y && y<=eras[k+1].y){ lower=eras[k]; upper=eras[k+1]; } }
+            const span = upper.y-lower.y || 1; const t=(y-lower.y)/span;
+            imgs.forEach(im=> im.style.opacity = 0);
+            imgs[lower.i].style.opacity = 1-t;
+            imgs[upper.i].style.opacity = t;
+        }
+        function update(y){
+            y = +y;
+            const e = nearest(y);
+            document.getElementById('yearBig').textContent = y;
+            document.getElementById('yearSmall').textContent = y;
+            document.getElementById('eraLabel').textContent = e.label;
+            document.getElementById('ctxTitle').textContent = e.title;
+            document.getElementById('ctxBody').textContent = e.body;
+            document.getElementById('vegVal').textContent = e.veg+'%'; document.getElementById('vegBar').style.width=e.veg+'%';
+            document.getElementById('watVal').textContent = e.wat+'%'; document.getElementById('watBar').style.width=e.wat+'%';
+            document.getElementById('urbVal').textContent = e.urb+'%'; document.getElementById('urbBar').style.width=e.urb+'%';
+            pct(y);
+            document.querySelectorAll('.tick').forEach(t=>{ t.classList.toggle('text-emerald-400', +t.dataset.y===e.y); t.classList.toggle('text-slate-400', +t.dataset.y!==e.y); });
+        }
+        slider.addEventListener('input', e=> update(e.target.value));
+        opacity.addEventListener('input', e=> set(+e.target.value));
+        document.querySelectorAll('.tick').forEach(t=> t.addEventListener('click', ()=>{ slider.value=t.dataset.y; update(t.dataset.y); }));
+        document.getElementById('stepFwd').onclick = ()=>{ slider.value = Math.min(2024, +slider.value+10); update(slider.value); };
+        document.getElementById('stepBack').onclick = ()=>{ slider.value = Math.max(1852, +slider.value-10); update(slider.value); };
+
+        let playing=false, timer=null;
+        const playBtn=document.getElementById('playBtn');
+        playBtn.onclick=()=>{
+            playing=!playing;
+            playBtn.innerHTML = playing ? '<i class="fas fa-pause text-xs"></i><span>Pause</span>' : '<i class="fas fa-play text-xs"></i><span>Play era</span>';
+            if(playing){ if(+slider.value>=2024) slider.value=1852;
+                timer=setInterval(()=>{ if(+slider.value>=2024){ clearInterval(timer); playing=false; playBtn.innerHTML='<i class="fas fa-play text-xs"></i><span>Play era</span>'; return;} slider.value=+slider.value+2; update(slider.value); }, 60);
+            } else clearInterval(timer);
+        };
+        update(1852); set(70);
+    </script>
+</body>
+</html>

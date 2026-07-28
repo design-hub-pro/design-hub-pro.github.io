@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Land Memory Lab — Side-by-Side</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .display { font-family: 'Space Grotesk', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .glass { background: rgba(15,23,42,.6); backdrop-filter: blur(14px); }
+        .handle { cursor: ew-resize; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 overflow-hidden">
+    <div class="h-screen flex flex-col">
+        <header class="glass border-b border-white/10 z-30">
+            <div class="px-5 h-14 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <a href="home.html" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center"><i class="fas fa-arrow-left text-sm"></i></a>
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-400 to-fuchsia-500 flex items-center justify-center"><i class="fas fa-clone text-slate-950 text-xs"></i></div>
+                    <div class="hidden sm:block"><div class="text-sm font-semibold leading-none">Side-by-Side Compare</div><div class="text-[11px] text-slate-400 mono">Drag the divider to reveal</div></div>
+                </div>
+                <nav class="hidden lg:flex items-center gap-1 text-sm">
+                    <a href="timeline.html" class="px-3 py-1.5 rounded-lg hover:bg-white/5 text-slate-300">Time Slider</a>
+                    <a href="compare.html" class="px-3 py-1.5 rounded-lg bg-white/10 font-medium">Compare</a>
+                    <a href="water.html" class="px-3 py-1.5 rounded-lg hover:bg-white/5 text-slate-300">Water</a>
+                    <a href="vegetation.html" class="px-3 py-1.5 rounded-lg hover:bg-white/5 text-slate-300">Vegetation</a>
+                    <a href="stories.html" class="px-3 py-1.5 rounded-lg hover:bg-white/5 text-slate-300">Stories</a>
+                </nav>
+                <div class="flex items-center gap-2 text-sm">
+                    <div class="glass border border-white/10 rounded-lg flex items-center overflow-hidden">
+                        <select id="leftYear" class="bg-transparent px-3 py-1.5 outline-none text-slate-100"><option class="bg-slate-900">1852</option><option class="bg-slate-900" selected>1906</option><option class="bg-slate-900">1950</option></select>
+                        <span class="px-1 text-slate-500">vs</span>
+                        <select id="rightYear" class="bg-transparent px-3 py-1.5 outline-none text-slate-100"><option class="bg-slate-900">1990</option><option class="bg-slate-900" selected>2024</option></select>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 flex min-h-0">
+            <!-- Compare canvas -->
+            <div id="canvas" class="flex-1 relative min-w-0 select-none overflow-hidden">
+                <!-- Right (after) full -->
+                <img src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1600&q=80" class="absolute inset-0 w-full h-full object-cover" alt="after">
+                <!-- Left (before) clipped -->
+                <div id="clip" class="absolute inset-0 overflow-hidden" style="width:50%">
+                    <img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1600&q=80" class="absolute inset-0 h-full object-cover" style="width:100vw" alt="before">
+                    <div class="absolute inset-0 bg-emerald-900/10"></div>
+                </div>
+
+                <!-- labels -->
+                <div class="absolute top-5 left-5 glass border border-white/10 rounded-xl px-4 py-2">
+                    <div class="text-[11px] text-slate-400 mono">BEFORE</div>
+                    <div id="lLabel" class="display text-2xl font-bold">1906</div>
+                    <div class="text-xs text-emerald-400">Marsh & grassland</div>
+                </div>
+                <div class="absolute top-5 right-5 glass border border-white/10 rounded-xl px-4 py-2 text-right">
+                    <div class="text-[11px] text-slate-400 mono">AFTER</div>
+                    <div id="rLabel" class="display text-2xl font-bold">2024</div>
+                    <div class="text-xs text-amber-400">Urban grid</div>
+                </div>
+
+                <!-- divider handle -->
+                <div id="handle" class="handle absolute top-0 bottom-0 -ml-5 w-10 flex items-center justify-center z-20" style="left:50%">
+                    <div class="absolute inset-y-0 left-1/2 w-0.5 bg-white/90 -translate-x-1/2"></div>
+                    <div class="w-10 h-10 rounded-full bg-white shadow-xl flex items-center justify-center text-slate-900"><i class="fas fa-left-right text-sm"></i></div>
+                </div>
+
+                <div class="absolute bottom-5 left-1/2 -translate-x-1/2 glass border border-white/10 rounded-full px-4 py-1.5 text-xs text-slate-300"><i class="fas fa-hand-pointer text-emerald-400 mr-1.5"></i>Drag the divider left and right</div>
+            </div>
+
+            <!-- Right analysis panel -->
+            <aside class="w-80 shrink-0 glass border-l border-white/10 hidden xl:flex flex-col">
+                <div class="p-5 border-b border-white/10">
+                    <div class="text-xs text-slate-400 mono mb-1">DELTA · 1906 → 2024</div>
+                    <h3 class="display text-lg font-bold">What the land traded away</h3>
+                    <p class="text-sm text-slate-400 mt-2 leading-relaxed">Over 118 years this square kilometre lost most of its wetland and gained a dense street grid. The change is not evenly spread — the western dune held on longest.</p>
+                </div>
+                <div class="p-5 space-y-5 border-b border-white/10">
+                    <div class="flex items-center justify-between">
+                        <div><div class="text-sm">Native vegetation</div><div class="text-xs text-slate-500">70% → 41%</div></div>
+                        <div class="mono text-rose-400 font-semibold">-29%</div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div><div class="text-sm">Open water & wetland</div><div class="text-xs text-slate-500">58% → 30%</div></div>
+                        <div class="mono text-rose-400 font-semibold">-28%</div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div><div class="text-sm">Impervious surface</div><div class="text-xs text-slate-500">14% → 66%</div></div>
+                        <div class="mono text-amber-400 font-semibold">+52%</div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div><div class="text-sm">Tree canopy height</div><div class="text-xs text-slate-500">6m → 11m</div></div>
+                        <div class="mono text-emerald-400 font-semibold">+5m</div>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <div class="text-xs text-slate-400 mono mb-3">PAIRED VIEWS</div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button class="rounded-xl overflow-hidden border border-white/10 relative h-20 group"><img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=400&q=70" class="w-full h-full object-cover opacity-70 group-hover:opacity-100"><span class="absolute bottom-1 left-2 text-xs mono">1852/2024</span></button>
+                        <button class="rounded-xl overflow-hidden border border-white/10 relative h-20 group"><img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=400&q=70" class="w-full h-full object-cover opacity-70 group-hover:opacity-100"><span class="absolute bottom-1 left-2 text-xs mono">1950/2024</span></button>
+                        <button class="rounded-xl overflow-hidden border border-white/10 relative h-20 group"><img src="https://images.unsplash.com/photo-1439066615861-d1af74d74000?auto=format&fit=crop&w=400&q=70" class="w-full h-full object-cover opacity-70 group-hover:opacity-100"><span class="absolute bottom-1 left-2 text-xs mono">Water</span></button>
+                        <button class="rounded-xl overflow-hidden border border-white/10 relative h-20 group"><img src="https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=400&q=70" class="w-full h-full object-cover opacity-70 group-hover:opacity-100"><span class="absolute bottom-1 left-2 text-xs mono">Canopy</span></button>
+                    </div>
+                    <a href="stories.html" class="mt-5 inline-flex items-center gap-2 text-sm text-violet-300 hover:text-violet-200">Why did this happen? <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        const canvas=document.getElementById('canvas'), clip=document.getElementById('clip'), handle=document.getElementById('handle');
+        let dragging=false;
+        function move(x){ const r=canvas.getBoundingClientRect(); let p=(x-r.left)/r.width; p=Math.max(0.02,Math.min(0.98,p)); clip.style.width=(p*100)+'%'; handle.style.left=(p*100)+'%'; }
+        handle.addEventListener('mousedown',()=>dragging=true);
+        window.addEventListener('mouseup',()=>dragging=false);
+        window.addEventListener('mousemove',e=>{ if(dragging) move(e.clientX); });
+        canvas.addEventListener('click',e=>{ if(e.target.closest('#handle')) return; move(e.clientX); });
+        handle.addEventListener('touchmove',e=>{ move(e.touches[0].clientX); e.preventDefault(); },{passive:false});
+        document.getElementById('leftYear').onchange=e=>{ document.getElementById('lLabel').textContent=e.target.value; };
+        document.getElementById('rightYear').onchange=e=>{ document.getElementById('rLabel').textContent=e.target.value; };
+    </script>
+</body>
+</html>
