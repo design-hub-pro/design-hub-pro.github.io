@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trivet - Heating</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; }
+  * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; color:#fff; overflow-x:hidden; position:relative;
+         background:radial-gradient(120% 62% at 50% 4%, rgba(255,122,61,0.20) 0%, rgba(255,122,61,0.04) 42%, #0F1114 74%), #0F1114; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:600; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .content { padding:0 28px 30px; display:flex; flex-direction:column; min-height:calc(100% - 59px); }
+
+  .nav { display:flex; justify-content:space-between; align-items:center; margin:6px 0 4px; }
+  .nav-btn { width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,0.07); display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .nav-t { font-size:13px; font-weight:700; color:rgba(255,255,255,0.55); }
+
+  .ring-wrap { position:relative; width:262px; height:262px; margin:6px auto 0; }
+  .ring-c { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .big { font-size:66px; font-weight:900; letter-spacing:-3.5px; line-height:1; }
+  .big span { font-size:24px; font-weight:800; letter-spacing:-0.5px; }
+  .big-l { font-size:11px; font-weight:700; color:rgba(255,255,255,0.42); letter-spacing:0.8px; text-transform:uppercase; margin-top:7px; }
+  .big-t { font-size:13px; font-weight:700; color:#FFB25E; margin-top:12px; display:flex; align-items:center; gap:6px; }
+
+  .dish { display:flex; align-items:center; gap:11px; justify-content:center; margin-top:18px; }
+  .dish img { width:34px; height:34px; border-radius:10px; object-fit:cover; }
+  .dish-n { font-size:14px; font-weight:700; }
+  .dish-s { font-size:11px; color:rgba(255,255,255,0.4); margin-top:1px; }
+
+  /* stage timeline */
+  .stages { display:flex; gap:6px; margin:22px 0 0; }
+  .stage { flex:1; text-align:center; }
+  .stage-bar { height:4px; border-radius:4px; background:rgba(255,255,255,0.09); }
+  .stage.done .stage-bar { background:#34D399; }
+  .stage.now .stage-bar { background:linear-gradient(90deg,#FF7A3D,#FFB25E); }
+  .stage-l { font-size:9px; font-weight:700; margin-top:7px; color:rgba(255,255,255,0.3); letter-spacing:0.3px; }
+  .stage.done .stage-l { color:rgba(52,211,153,0.85); }
+  .stage.now .stage-l { color:#FFB25E; }
+
+  /* live readouts */
+  .live { display:flex; gap:9px; margin-top:22px; }
+  .lv { flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.07); border-radius:16px; padding:13px 12px; }
+  .lv-l { font-size:9px; font-weight:700; color:rgba(255,255,255,0.36); letter-spacing:0.6px; text-transform:uppercase; }
+  .lv-v { font-size:22px; font-weight:800; letter-spacing:-0.7px; margin-top:6px; }
+  .lv-v span { font-size:11px; font-weight:700; opacity:0.55; }
+  .lv-v.g { color:#34D399; }
+
+  .trace { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:18px; padding:15px 16px 10px; margin-top:14px; }
+  .trace-h { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+  .trace-t { font-size:12px; font-weight:700; color:rgba(255,255,255,0.7); }
+  .trace-k { font-size:10px; color:rgba(255,255,255,0.32); display:flex; gap:11px; }
+  .k i { font-size:7px; margin-right:4px; }
+
+  .note { display:flex; align-items:flex-start; gap:10px; background:rgba(52,211,153,0.09); border:1px solid rgba(52,211,153,0.20); border-radius:16px; padding:13px 15px; margin-top:14px; }
+  .note i { color:#34D399; font-size:13px; margin-top:1px; }
+  .note-t { font-size:12px; line-height:1.45; color:rgba(255,255,255,0.72); }
+  .note-t b { color:#fff; font-weight:700; }
+
+  .stop { width:100%; margin-top:auto; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.10); color:rgba(255,255,255,0.7); border-radius:18px; padding:15px; font-size:14px; font-weight:700; font-family:inherit; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">12:11</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:13px"></i>
+      <i class="fas fa-wifi" style="font-size:13px"></i>
+      <i class="fas fa-battery-full" style="font-size:16px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="nav">
+      <div class="nav-btn"><i class="fas fa-chevron-down"></i></div>
+      <div class="nav-t">Running</div>
+      <div class="nav-btn"><i class="fas fa-ellipsis"></i></div>
+    </div>
+
+    <div class="ring-wrap">
+      <svg width="262" height="262" viewBox="0 0 262 262">
+        <defs>
+          <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#FF6A28"/>
+            <stop offset="100%" stop-color="#FFC072"/>
+          </linearGradient>
+        </defs>
+        <circle cx="131" cy="131" r="113" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="15"/>
+        <circle cx="131" cy="131" r="113" fill="none" stroke="url(#g)" stroke-width="15" stroke-linecap="round"
+                stroke-dasharray="710" stroke-dashoffset="266" transform="rotate(-90 131 131)"/>
+      </svg>
+      <div class="ring-c">
+        <div class="big">58<span>°C</span></div>
+        <div class="big-l">Coldest point</div>
+        <div class="big-t"><i class="fas fa-arrow-up"></i> target 72 °C</div>
+      </div>
+    </div>
+
+    <div class="dish">
+      <img src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=140&h=140&fit=crop" alt="">
+      <div>
+        <div class="dish-n">Rice bowl · 380 g load</div>
+        <div class="dish-s">6 min 40 s left</div>
+      </div>
+    </div>
+
+    <div class="stages">
+      <div class="stage done"><div class="stage-bar"></div><div class="stage-l">PROBE</div></div>
+      <div class="stage done"><div class="stage-bar"></div><div class="stage-l">RAMP</div></div>
+      <div class="stage now"><div class="stage-bar"></div><div class="stage-l">STIR</div></div>
+      <div class="stage"><div class="stage-bar"></div><div class="stage-l">SOAK</div></div>
+      <div class="stage"><div class="stage-bar"></div><div class="stage-l">HOLD</div></div>
+    </div>
+
+    <div class="live">
+      <div class="lv"><div class="lv-l">Plate</div><div class="lv-v">91<span>°C</span></div></div>
+      <div class="lv"><div class="lv-l">Power</div><div class="lv-v">78<span>W</span></div></div>
+      <div class="lv"><div class="lv-l">Contact</div><div class="lv-v g">Good</div></div>
+    </div>
+
+    <div class="trace">
+      <div class="trace-h">
+        <div class="trace-t">Live trace</div>
+        <div class="trace-k">
+          <span class="k"><i class="fas fa-circle" style="color:#FF9350"></i>Plate</span>
+          <span class="k"><i class="fas fa-circle" style="color:#7FB3D5"></i>Food</span>
+        </div>
+      </div>
+      <svg width="100%" height="76" viewBox="0 0 340 76" preserveAspectRatio="none">
+        <line x1="0" y1="20" x2="340" y2="20" stroke="rgba(255,255,255,0.10)" stroke-width="1" stroke-dasharray="3 4"/>
+        <polyline fill="none" stroke="#FF9350" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"
+          points="0,70 26,52 52,36 78,26 104,18 130,14 156,13 182,13 208,13 234,13 260,13"/>
+        <polyline fill="none" stroke="#7FB3D5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"
+          points="0,73 26,70 52,64 78,57 104,50 130,44 156,39 182,35 208,32 234,30 260,29"/>
+        <circle cx="260" cy="29" r="3.6" fill="#7FB3D5"/>
+      </svg>
+    </div>
+
+    <div class="note">
+      <i class="fas fa-mobile-screen"></i>
+      <div class="note-t"><b>You can leave.</b> The profile is on the base. It finishes, holds and logs the run with the phone in another room.</div>
+    </div>
+
+    <button class="stop">Stop</button>
+  </div>
+</body>
+</html>

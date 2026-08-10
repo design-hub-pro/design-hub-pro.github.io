@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trivet — heating base for a stainless lunch box</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{ --ink:#16202B; --soft:#5A6B7A; --line:#E2DED7; --blue:#2E4A5A; --orange:#C4531E; --paper:#FDFCFA; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--paper); color:var(--ink);
+        font:17px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+        overflow-x:hidden; }
+  .wrap{ max-width:720px; margin:0 auto; padding:0 24px; }
+  .wide{ max-width:960px; margin:0 auto; padding:0 24px; }
+  h1,h2,h3{ font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif; font-weight:600; letter-spacing:-0.01em; }
+  h1{ font-size:40px; line-height:1.15; margin:0 0 18px; }
+  h2{ font-size:27px; line-height:1.25; margin:0 0 14px; }
+  h3{ font-size:19px; margin:0 0 8px; }
+  p{ margin:0 0 16px; }
+  .lead{ font-size:20px; color:var(--soft); }
+  .sm{ font-size:15px; color:var(--soft); }
+  .xs{ font-size:13px; color:var(--soft); }
+  section{ padding:52px 0; border-top:1px solid var(--line); }
+  .eyebrow{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--orange); font-weight:600; margin-bottom:10px; }
+  img{ max-width:100%; display:block; border-radius:6px; }
+  figure{ margin:0 0 8px; }
+  figcaption{ font-size:13px; color:var(--soft); margin-top:8px; }
+  a{ color:var(--blue); }
+  .cite{ font-size:13px; color:var(--soft); }
+  .cite a{ color:var(--soft); }
+  table{ width:100%; border-collapse:collapse; font-size:15px; }
+  th,td{ text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ font-weight:600; font-size:13px; letter-spacing:.04em; text-transform:uppercase; color:var(--soft); }
+  td.num{ text-align:right; white-space:nowrap; }
+  .scroll{ overflow-x:auto; }
+  .row{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin:26px 0; }
+  .row div{ padding:18px; border:1px solid var(--line); border-radius:8px; background:#fff; font-size:15px; }
+  .row b{ display:block; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--orange); margin-bottom:6px; }
+  .flag{ background:#FBF3EC; border-left:3px solid var(--orange); padding:20px 22px; border-radius:0 6px 6px 0; margin:26px 0; }
+  .flag p:last-child{ margin-bottom:0; }
+  details{ border-top:1px solid var(--line); padding:18px 0; }
+  details summary{ cursor:pointer; font-weight:600; list-style:none; font-size:16px; }
+  details summary::-webkit-details-marker{ display:none; }
+  details summary::before{ content:"+ "; color:var(--orange); }
+  details[open] summary::before{ content:"– "; }
+  details .body{ padding-top:14px; font-size:15px; color:#33414F; }
+  footer{ border-top:1px solid var(--line); padding:34px 0 60px; }
+  .backlink{ display:inline-block; margin-bottom:26px; font-size:14px; }
+  .chartbox{ background:#fff; border:1px solid var(--line); border-radius:8px; padding:18px 16px 10px; }
+  /* Crops the dead margin off a square generated diagram without re-rendering it. */
+  .band img{ width:100%; aspect-ratio:3/1; object-fit:cover; object-position:center; }
+  .tall img{ width:100%; aspect-ratio:16/11; object-fit:cover; object-position:center; }
+</style>
+</head>
+<body>
+
+<div class="wrap" style="padding-top:34px;">
+  <a class="backlink" href="../index.html">← Overview</a>
+</div>
+
+<!-- HERO -->
+<section style="border-top:0;padding-top:0;">
+  <div class="wrap">
+    <div class="eyebrow">Hardware · Engineering document</div>
+    <h1>Trivet</h1>
+    <p class="lead">A detachable heating base that reheats the plain stainless steel lunch box you already own, works out how much food is in it from the way it warms up, and sets its own power so the food gets hot without the base ever running away.</p>
+    <p class="sm">Powered from a USB-C laptop supply, so there is no mains wiring anywhere in the build. Nothing that touches food is part of the base, which is what makes it easy to clean.</p>
+  </div>
+  <div class="wide" style="margin-top:32px;">
+    <figure>
+      <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786386217794-image-1.png" alt="A flat charcoal heating base on an office desk with a plain stainless steel lunch box on it, wrapped in a neoprene sleeve, connected by USB-C to a small power brick.">
+      <figcaption>The whole product: a plate, a sleeve, a cable. The box is an ordinary one from a supermarket.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 2. HOW IT WORKS -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">How it works</div>
+    <h2>It measures the food by heating it a little and watching what happens</h2>
+    <p>There is no scale and no camera. For the first 90 seconds the base runs the heater at a fixed 60 W and watches two thermistors: one under the aluminium plate, one clipped to the outside wall of the box. A small load warms quickly. A large load warms slowly. That difference is the measurement.</p>
+    <p>What comes out is the <b>heat capacity</b> of everything sitting on the plate, in joules per kelvin. That number is exactly what the controller needs to work out how long the job will take and how hard to push.</p>
+
+    <div class="row">
+      <div><b>Sense</b>Two plate thermistors, one clip-on box-wall probe, 4 Hz.</div>
+      <div><b>Probe</b>90 seconds at a fixed 60 W. The heat is not wasted; it is the start of the job.</div>
+      <div><b>Estimate</b>Fit a two-node thermal model, get heat capacity and contact quality.</div>
+      <div><b>Decide</b>Pick power, predicted finish time, and when to prompt a stir.</div>
+      <div><b>Heat</b>Slow 1 Hz switching on a 100 W silicone mat under a 3 mm aluminium plate.</div>
+      <div><b>Hold</b>Keep the food above 60 °C for up to 40 minutes, then stop.</div>
+    </div>
+
+    <p>A bimetal cutout and a one-shot thermal fuse sit in series with the heater. Neither is connected to the microcontroller. If the software fails in any way at all, the heater still switches off.</p>
+    <p>The app talks to the base over Bluetooth, sends a profile, and can then go away. The base finishes the job with the phone in another room, because phones leave rooms.</p>
+  </div>
+  <div class="wide" style="margin-top:30px;">
+    <figure class="band">
+      <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786386224333-image-1.png" alt="Block diagram showing the signal chain from sensing through probe pulse, heat capacity estimate, power choice, heating and hold, with the hardware cutoff drawn on the heater below the chain.">
+      <figcaption>The hardware cutoff is drawn below the chain on purpose. It sits in the heater loop and does not go through software.</figcaption>
+    </figure>
+  </div>
+  <div class="wide" style="margin-top:26px;">
+    <figure class="tall">
+      <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786386665741-image-1.png" alt="Exploded isometric view of the base: gasketed aluminium top plate, silicone heater mat, insulation board, control board with USB-C, lower housing, and a separate clip-on probe.">
+      <figcaption>Top to bottom: gasketed aluminium plate, heater mat, insulation board, control board, housing. The two orange beads are the plate thermistors. The clip-on box-wall probe sits to the right.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 3. HOW WE KNOW IT WORKS -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">How we know it works</div>
+    <h2>Three numbers decide whether this is an instrument or a gadget</h2>
+    <p>Anyone can build a plate that gets hot. The claim that has to survive is that this one knows how much food is on it and gets the coldest part of that food to a safe temperature. Both of those are checkable against a reference, and both have a number that we either hit or do not.</p>
+
+    <h3>1. The heat capacity estimate</h3>
+    <p>Checked against water, because water's specific heat is known to four figures. Weigh a stainless beaker of water on a 1 g kitchen scale, put it on the plate, run the 90 second probe, and compare the estimate with mass × 4.18 kJ/kg·K.</p>
+    <p>Loads from 150 g to 700 g in 100 g steps, five repeats each, 35 runs. Half the runs are used to fit the estimator and half are held back.</p>
+    <p><b>Acceptance: the estimate is within ±12% of the reference on the held-back runs.</b> If it misses, the fallback profile in section six ships instead and the estimator becomes a logged prediction that we report on rather than a feature we rely on.</p>
+
+    <h3>2. The temperature of the coldest bite</h3>
+    <p>This is the one that matters and the one a plate can get wrong quietly. A five-channel thermocouple logger, calibrated in an ice bath and boiling water, with the probes at the centre, at two corners, at the surface, and 10 mm above the base. Five dishes: rice with vegetables, pasta in sauce, curry, soup, and steamed dumplings. Four repeats each, all starting from a fridge at 4 to 6 °C.</p>
+    <p><b>Acceptance: the coldest of the five probes reaches 72 °C and stays above 70 °C for two minutes, on 20 runs out of 20.</b> The hottest probe must not exceed 88 °C, because past that the food starts to dry and the sauce splits.</p>
+    <p class="cite">The 70 °C for two minutes target follows UK Food Standards Agency guidance for reheating cooked food. Source: <a href="https://www.food.gov.uk/business-guidance/cooking-safely-in-your-business" target="_blank" rel="noopener">FSA, cooking safely</a></p>
+
+    <h3>3. How uneven the food is at the end</h3>
+    <p>The same five probes give the spread between hottest and coldest at the moment the cycle ends. This is measured twice for every dish: once with the app's stir prompt followed, once ignored.</p>
+    <p><b>Acceptance: spread of 8 °C or less with the stir, and the number without the stir is reported honestly whatever it is.</b> The model says it will be 25 to 30 °C. If it is, that comparison is the most useful result the project produces, because it shows that one instruction to a person is worth more than any amount of extra electronics.</p>
+
+    <h3>4. The safety chain, tested by breaking it</h3>
+    <p>Run the base with an empty dry box, with the firmware temperature limit deliberately raised past the cutout's rating. <b>Acceptance: the bimetal opens within 90 seconds of the plate passing 145 °C, and the plate never exceeds 165 °C.</b> Repeat 10 times. Then a separate unit with the bimetal shorted out, to confirm the one-shot fuse also does its job, which destroys that unit's fuse and is the reason it is done once at the very end.</p>
+
+    <p>Most student hardware demonstrates that a device does something. Very little of it demonstrates that the device is accurate to a stated tolerance, against a reference, on a sample size. That difference is what a judge, a reviewer, or a buyer is actually looking for, and it is the reason this section is the longest one on the page.</p>
+  </div>
+  <div class="wide" style="margin-top:30px;">
+    <figure>
+      <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786386237538-image-1.png" alt="Bench test setup: the heating base with a stainless lunch box of rice, five thermocouple probes inserted into the food running to a four-channel logger, a kitchen scale with a beaker of water, a notebook and a stopwatch.">
+      <figcaption>The setup for tests 1 to 3. The scale is the reference for heat capacity, the thermocouples are the reference for temperature.</figcaption>
+    </figure>
+  </div>
+
+  <div class="wide" style="margin-top:34px;">
+    <div class="chartbox"><canvas id="probeChart" height="150"></canvas></div>
+    <p class="xs" style="margin-top:10px;"><b>Illustrative, not measured.</b> Box-wall temperature rise during the 90 second probe, computed from the two-node model with a plate capacity of 220 J/K and a contact conductance of 15 W/K. It shows the separation the estimator depends on, and the reason an empty box is easy to spot.</p>
+  </div>
+</section>
+
+<!-- 4. CHANGES TO THE PLAN -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Changes to the original plan</div>
+    <h2>Six things we would change before anyone starts buying parts</h2>
+    <p>The brief is sound in its main idea. Six things in it either will not work as written, are pointing at the wrong risk, or are missing from the parts list.</p>
+
+    <h3>Drop induction heating</h3>
+    <p>The obvious way to heat a steel box is induction, and it is the wrong choice here. Most cheap lunch boxes are 304 stainless, which is austenitic and effectively non-magnetic. A fridge magnet will not stick to one. Induction needs a ferromagnetic base to couple into, so on a typical box the coupling is poor and concentrated at the rim, which is the opposite of even. A resistive mat under an aluminium plate works with any box that has a flat bottom, costs about $14 instead of about $45 for a driver stage, and produces no radiated field to worry about. The one thing to test before committing: put a magnet against the bottom of five different boxes and count how many hold it.</p>
+
+    <h3>The sensor cannot tell you how much food there is, and does not need to</h3>
+    <p>The brief says the temperature sensor judges the amount of food. What a warming curve actually reveals is heat capacity, which is mass multiplied by specific heat, and those two cannot be separated. 300 g of soup has a heat capacity of about 1170 J/K. 400 g of cooked rice has about 1160 J/K. The base cannot tell them apart, so a readout in grams would be wrong by a third while the heating itself was perfectly correct.</p>
+    <p>So: control on heat capacity, and never show a weight. The app says "about 14 minutes", not "about 400 grams". Nothing is lost, because the user wanted the time.</p>
+
+    <h3>The dangerous direction is too cold, not too hot</h3>
+    <p>The brief asks for overheat protection. Overheating is real and we handle it with two independent hardware cutouts, but it is not the failure that will actually hurt someone. A plate can sit at 95 °C and read perfectly safe while the middle of a fridge-cold portion is still at 40 °C, which is squarely in the range where bacteria multiply. The plate feels hot, the outside of the food is hot, and the centre is not.</p>
+    <p>That is why the control target is the box-wall sensor and the acceptance test is on the coldest probe in the food, not on the plate. A design that only watches the plate would pass every test it set itself and still be wrong.</p>
+
+    <h3>Even heating cannot be achieved, so bound it instead</h3>
+    <p>Heat comes in through the bottom. In a bed of moist food the only transport is conduction, with a thermal diffusivity of roughly 1.4 × 10⁻⁷ m²/s. The time for heat to work its way through a 50 mm depth is about L²/α, which is around 18,000 seconds. Five hours. No amount of clever power control changes that, because it is a property of the food.</p>
+    <p>Two things follow. Hold the plate at a moderate temperature over a longer soak so the gradient stays bounded rather than trying to force it, and have the app prompt a single stir at the midpoint. Stirring halves the effective depth, which cuts the equalisation time by four. That prompt is the single most effective feature on the whole device and it costs nothing.</p>
+
+    <div class="flag">
+      <p><b>Five parts the list needs and does not have.</b> A bare USB-C port supplies 5 V at 0.5 A until something negotiates for more. That is 2.5 W, which would take about eleven hours to reheat a lunch. The chain needs, in order: a PD sink controller to request 20 V at 5 A, a 20 V to 3.3 V buck converter because the microcontroller cannot sit on the heater rail, a one-shot thermal fuse behind the bimetal cutout, a micro-switch so the plate refuses to heat with nothing on it, and an 8 mm neoprene sleeve.</p>
+      <p>The sleeve is not a comfort item. An uncovered box at 70 °C in a 22 °C room loses about 22 W from roughly 0.055 m² of exposed surface. With the sleeve that drops to about 8 W. On a 100 W supply, 14 W is a seventh of everything the device has.</p>
+    </div>
+
+    <h3>The app does not cook, and the recipe list has to say so</h3>
+    <p>An app that drives the base through recipe steps is a good idea and it is in the design. What it cannot be is a cooking appliance. Boiling off just 100 g of water takes about 226 kJ, which is more than twice the entire energy of a full reheat cycle. Raw meat, frying, and baking are all out of reach of 100 W through a flat plate.</p>
+    <p>What genuinely works is a short and useful list: reheating any cooked dish, oats to hot porridge, soft-set eggs, dumplings steamed with 30 ml of added water and the lid on, soup, and fish poached at 60 °C. Twelve profiles at launch. The app holds the steps a person does and the base handles the thermal part, and the page should not pretend the split is anything else.</p>
+  </div>
+</section>
+
+<!-- 5. PARTS -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Parts</div>
+    <h2>About $114 for one unit</h2>
+    <p class="sm">Prices are approximate and come from typical hobbyist supplier listings. They will move with quantity and region.</p>
+    <div class="scroll">
+    <table>
+      <thead><tr><th>Part</th><th>What it does</th><th class="num">Price</th></tr></thead>
+      <tbody>
+        <tr><td>ESP32-C3 module</td><td>Control loop, Bluetooth, sensor ADC</td><td class="num">$5</td></tr>
+        <tr><td>USB-C PD sink controller, 20 V</td><td>Negotiates 20 V at 5 A from the supply</td><td class="num">$2</td></tr>
+        <tr><td>100 W USB-C supply and 5 A e-marked cable</td><td>Power. The cable rating is not optional</td><td class="num">$34</td></tr>
+        <tr><td>Silicone heater mat, 20 V 100 W, 4.0 Ω</td><td>The heat, 150 × 100 mm</td><td class="num">$14</td></tr>
+        <tr><td>Anodised aluminium plate, 3 mm, 190 × 140 mm</td><td>Spreads heat sideways, seals the top, wipes clean</td><td class="num">$9</td></tr>
+        <tr><td>Thermal interface pad, 1 mm</td><td>Plate to mat, fills small gaps</td><td class="num">$4</td></tr>
+        <tr><td>Logic-level MOSFET, heatsink, gate resistor</td><td>Switches 5 A at 1 Hz</td><td class="num">$3</td></tr>
+        <tr><td>Bimetal cutout, 145 °C, normally closed</td><td>Opens the heater without any software</td><td class="num">$2</td></tr>
+        <tr><td>One-shot thermal fuse, 172 °C, 10 A</td><td>Last resort if the bimetal welds shut</td><td class="num">$1</td></tr>
+        <tr><td>Buck converter, 20 V to 3.3 V</td><td>Powers the microcontroller</td><td class="num">$3</td></tr>
+        <tr><td>NTC 10 k B3950 glass bead × 2</td><td>Plate centre and plate edge</td><td class="num">$2</td></tr>
+        <tr><td>Clip-on potted NTC probe, 1 m lead</td><td>Box wall. The sensor the control loop actually follows</td><td class="num">$6</td></tr>
+        <tr><td>Micro-switch, plate presence</td><td>Refuses to heat with nothing on the plate</td><td class="num">$1</td></tr>
+        <tr><td>Silicone gasket cord, 3 mm</td><td>Seals the plate edge against spills</td><td class="num">$3</td></tr>
+        <tr><td>Neoprene sleeve, 8 mm, sewn to fit</td><td>Cuts standing loss from about 22 W to about 8 W</td><td class="num">$7</td></tr>
+        <tr><td>Ceramic fibre insulation board, 10 mm</td><td>Keeps heat out of the electronics</td><td class="num">$4</td></tr>
+        <tr><td>Printed ABS housing, feet, port recess</td><td>The body</td><td class="num">$6</td></tr>
+        <tr><td>Silicone wire 20 AWG, connectors, 6 A fuse, screws</td><td>Assembly</td><td class="num">$8</td></tr>
+        <tr><td><b>One unit</b></td><td></td><td class="num"><b>$114</b></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p style="margin-top:22px;"><b>Build two.</b> A second unit sharing the same power supply and cable is $80, for $194 in total. There is one builder and a deadline, and a spare costs less than the week lost to a heater mat delaminating or a MOSFET failing short three days before a demonstration. It also makes the safety test in section three possible, because that test destroys a thermal fuse and should not be done on the only working device.</p>
+    <p><b>The cut line.</b> A 65 W supply instead of 100 W saves $16 per unit and turns an 18 minute reheat into about 30 minutes. If the budget is tight, cut here rather than cutting a sensor or the sleeve. Everything else on the list is either safety or measurement.</p>
+  </div>
+  <div class="wide" style="margin-top:30px;">
+    <figure>
+      <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786386259435-image-1.png" alt="Overhead view of the base with a stainless lunch box on it beside a phone showing a simple app screen with a temperature, a progress bar and three steps.">
+      <figcaption>The app sends a profile and then stops mattering. Everything after that runs on the base.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 6. WHAT COULD GO WRONG -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">What could go wrong</div>
+    <h2>The hard part is contact, not wiring</h2>
+    <p>Soldering this together is a weekend. The part that can consume the whole project is that the heat capacity estimate depends on how well the box sits on the plate, and that changes from run to run. A crumb under one corner, a wet base, a slightly dented bottom, or a cheap stamped box going a little concave after thirty heat cycles all change the contact conductance. The estimator sees worse contact, reads it as more food, and heats for longer than it should. Or condensation improves the contact, it reads less food, and it stops early. Stopping early is the one that matters.</p>
+    <p>Put a number on the warping: a 0.2 mm air gap across a 0.02 m² contact patch adds roughly 0.4 K/W of thermal resistance, which at 80 W is a 30 °C drop that simply did not exist when the box was new. This is why there are two sensors rather than one. Poor contact and a heavy load look similar in the box-wall reading, but they are opposite in the plate reading: with poor contact the plate keeps climbing because heat cannot leave it, while with a heavy load the plate slope falls off. The ratio between the two separates them, and any run where the plate-to-box gradient exceeds 25 °C at 90 seconds has its estimate rejected.</p>
+
+    <div class="flag">
+      <p><b>The safety valve.</b> When an estimate is rejected, or if the estimator never reaches its ±12% target, the base falls back to a fixed profile: hold the plate at 90 °C, run until the box wall has been at or above 78 °C for four minutes, hard stop at 45 minutes. It is slower and it is never clever, but it is safe on every load and it needs no estimator at all.</p>
+      <p><b>The decision gate is the end of build week 6.</b> If the water calibration is not inside ±12% by then, the fallback ships as the only heating mode, the estimator stays in as a logged shadow prediction, and the project presents it as a measured result rather than a feature. That decision has to be made on a date, or the estimator will quietly eat every remaining week.</p>
+    </div>
+
+    <p>Then the dull things, which end more projects than architecture does. Steam condenses on the cold lid, runs down the outside of the box, pools on the plate and creeps into the seam, so the gasket runs continuously around the plate edge and the USB-C port faces down into a recess at the rear. Grease finds the same seam more slowly and is harder to get out. And if a user swaps in a cheap USB-C cable with no e-marker, the sink controller silently negotiates 3 A instead of 5 A and every cycle takes sixty percent longer with no explanation, so the firmware reads back the negotiated current and the app says so on the screen.</p>
+    <p>One thing that is not a risk: the base is never immersed, because nothing on it touches food. The box goes in the dishwasher. The base gets wiped.</p>
+  </div>
+</section>
+
+<!-- 7. APPENDIX -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">For the engineer</div>
+    <h2>Build detail</h2>
+    <p class="sm">Working specification. None of it is needed to understand the project.</p>
+
+    <details>
+      <summary>The two-node model and the probe procedure</summary>
+      <div class="body">
+        <p>Plate node capacity C<sub>p</sub> ≈ 220 J/K, being a 215 g aluminium plate at 900 J/kg·K plus the mat and pad. Load node C<sub>l</sub> is the box plus food, coupled by conductance G, estimated at 10 to 20 W/K for a flat stamped box on a 1 mm pad.</p>
+        <p>dT<sub>p</sub>/dt = (P − G(T<sub>p</sub> − T<sub>l</sub>)) / C<sub>p</sub> &nbsp;·&nbsp; dT<sub>l</sub>/dt = G(T<sub>p</sub> − T<sub>l</sub>) / C<sub>l</sub></p>
+        <p>Probe: P = 60 W held flat for 90 s, sampling at 4 Hz with 64× oversampling and a 3 s moving average. Features taken at t = 90 s are the plate rise, the box-wall rise, and the plate slope over the 60 to 90 s window. C<sub>l</sub> and G come from a least-squares fit against the model, seeded from a two-variable quadratic surface fitted during water calibration so the fit converges in under 200 ms on the ESP32-C3.</p>
+        <p>The probe energy is not overhead. Those 5.4 kJ are the first five percent of the job.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Control law and switching</summary>
+      <div class="body">
+        <p>PI on the box-wall sensor, setpoint ramped rather than stepped, with an inner clamp that limits the plate to 110 °C at all times and to 95 °C once the box wall passes 55 °C. Integral term is clamped and frozen whenever the plate clamp is active, which is the usual anti-windup problem in a system this slow.</p>
+        <p>Switching is 1 Hz slow PWM on the low side. The thermal time constants here are tens of seconds, so there is nothing to gain from fast switching and a great deal to lose in EMI and gate-drive losses. MOSFET dissipation at 5 A with 22 mΩ on-resistance is about 0.55 W, which a small clip-on heatsink handles with the fan-free margin it needs.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>State machine</summary>
+      <div class="body">
+        <p>IDLE → PRESENCE (micro-switch closed and plate slope sane) → PROBE (90 s) → ESTIMATE → RAMP → STIR PROMPT → SOAK → HOLD → DONE. Any state can fall to FAULT.</p>
+        <p>FAULT conditions: plate above 110 °C, plate-to-box gradient above 40 °C outside the probe, box-wall sensor open or shorted, no rise in box wall after 4 minutes of full power, total runtime past 90 minutes, or presence switch opening mid-cycle. FAULT cuts the gate, latches, and needs a button press to clear.</p>
+        <p>HOLD keeps the food above 60 °C for up to 40 minutes and then shuts down, because a hold that runs all afternoon is how food gets left in the danger zone at the end of a working day.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Power budget and timing</summary>
+      <div class="body">
+        <p>350 g of moist food at about 3.3 kJ/kg·K, from 5 °C to a 76 °C mean so that the coldest point clears 72 °C, is 81 kJ. The 180 g steel box adds 6 kJ. The aluminium plate rising 75 °C adds 15 kJ. Total 102 kJ.</p>
+        <p>At 100 W in, minus about 5 W of average standing loss through the sleeve and about 3 W in the converter, cable and MOSFET, roughly 92 W reaches the load. 102 kJ ÷ 92 W is 1110 s, about 18 minutes. On a 65 W supply the same job takes about 30 minutes.</p>
+        <p>Standing loss, sleeved: 0.055 m² of exposed surface, U ≈ 3.2 W/m²K from an 8 mm neoprene layer at k = 0.04 in series with a surface coefficient near 9, at a 45 °C difference, is 8 W. Unsleeved it is 22 W.</p>
+        <p>Heater: 20 V across 4.0 Ω is 5.0 A and 100 W. Wiring is 20 AWG silicone throughout the heater loop with a 6 A fuse at the sink output.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Sensing resolution, and why there is no external ADC</summary>
+      <div class="body">
+        <p>A 10 k B3950 thermistor near 40 °C changes about −400 Ω/K. In a 10 k divider on 3.3 V that is roughly 33 mV/K. The ESP32-C3's 12-bit ADC gives 0.8 mV per count, so 0.024 K per count before any averaging. The measurement needs about 0.05 K to resolve a 2.4 K box-wall rise to a few percent, so the internal ADC with 64× oversampling clears it with room to spare.</p>
+        <p>A 16-bit external ADC was in the first parts list and came out. It added $4, an I²C bus, and no resolution the design could use. What does matter is a stable reference and a low-noise 3.3 V rail, so the divider references the same rail the ADC does and the ratio cancels supply drift.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Data format and logging</summary>
+      <div class="body">
+        <p>One CSV line per second, streamed over BLE notify and buffered to flash so a disconnected phone loses nothing: t_s, T_plate_centre, T_plate_edge, T_box, duty, state, C_est, G_est, PD_current_A. About 60 bytes a line, 65 kB for a 90 minute worst case, which fits in flash without a card.</p>
+        <p>Every validation run in section three is logged this way, so a failed acceptance test comes with the trace that explains it.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Bring-up order</summary>
+      <div class="body">
+        <p>Test every component alone before wiring any two together. Sink controller onto a meter first, confirm 20 V at no load and under a 4 Ω dummy. Buck converter alone into a resistor, check ripple. Microcontroller alone on bench power. Each thermistor alone against a reference thermometer in a water bath at 20, 50 and 80 °C, three points, fit the Steinhart-Hart constants per sensor rather than trusting the datasheet. Heater mat alone on the bench with a thermal camera or a hand-held probe, mapped at nine points to confirm the mat itself is even before blaming anything downstream. MOSFET switching a dummy load. Only then assemble.</p>
+        <p>The bimetal and the thermal fuse go in from the first powered test, not added later. A heater loop is never run without them, not even once.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Full validation checklist</summary>
+      <div class="body">
+        <p>Sensor calibration, 3 points × 3 sensors × 2 units. Water heat capacity, 6 loads × 5 repeats, half held back. Real food, 5 dishes × 4 repeats, five thermocouples each, coldest point and spread recorded. Stir versus no stir, 5 dishes × 2. Empty box dry run, 10 repeats. Bimetal trip test, 10 repeats. One-shot fuse test, once, on the spare unit. Poor-contact test with a deliberately dented box and with a 0.2 mm shim, 5 repeats each, to confirm the rejection rule fires. Cable test with an e-marked and a non-e-marked cable, confirming the app reports the difference. Ingress: IPX4 spray for 5 minutes, then open the housing and inspect. Cleaning: 20 dishwasher cycles on the box and 20 wipe-downs on the plate, then repeat the food test to confirm nothing has drifted.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>What this device cannot do</summary>
+      <div class="body">
+        <p>It cannot cook raw food. It cannot boil, fry, or brown anything. It cannot tell you the weight of your lunch, only its heat capacity. It cannot heat a box with a rounded or ribbed bottom, because the contact area is too small and too variable. It cannot make the top and bottom of a deep portion the same temperature without you stirring it. It cannot be immersed or put in a dishwasher. It cannot work from a phone charger or a laptop port that does not offer 20 V. It cannot detect that food has gone off, and it should never be described as though it can. It does not hold food safe indefinitely; it stops after 40 minutes of holding by design.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Assumptions we made, and where to correct us</summary>
+      <div class="body">
+        <p>That the target box is a flat-bottomed rectangular 304 stainless box of roughly 170 × 120 × 60 mm and 180 g. That a typical portion is 300 to 400 g starting from a domestic fridge at 4 to 6 °C. That the user has access to a 100 W USB-C supply, which most recent laptops ship with. That the build is one person on a fixed deadline with a bench, a 3D printer, and access to a five-channel thermocouple logger. That mains power is off the table for a student build, both for safety and because a mains heater changes what approvals the project would need. Any of these being wrong changes the numbers on this page, and the power budget is the one most sensitive to them.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="sm" style="margin-bottom:8px;">Engineering document. The accuracy targets in section three are the part to read first.</p>
+    <p><a href="../trivet_app/index.html">See the companion app →</a></p>
+    <p class="xs" style="margin-top:26px;">Trivet · Heating base for a stainless lunch box · System design · August 2026</p>
+  </div>
+</footer>
+
+<script>
+const t = [0,15,30,45,60,75,90];
+new Chart(document.getElementById('probeChart'), {
+  type: 'line',
+  data: {
+    labels: t,
+    datasets: [
+      { label: 'Empty box', data: [0,2.10,4.98,7.89,10.79,13.69,16.59], borderColor:'#C4531E', backgroundColor:'#C4531E', tension:.25, pointRadius:2, borderWidth:2 },
+      { label: '200 g food', data: [0,0.41,1.21,2.10,3.02,3.95,4.87], borderColor:'#2E4A5A', backgroundColor:'#2E4A5A', tension:.25, pointRadius:2, borderWidth:2 },
+      { label: '500 g food', data: [0,0.19,0.56,0.99,1.44,1.90,2.36], borderColor:'#9AA7B1', backgroundColor:'#9AA7B1', tension:.25, pointRadius:2, borderWidth:2 }
+    ]
+  },
+  options: {
+    responsive:true,
+    plugins:{ legend:{ position:'bottom', labels:{ boxWidth:12, font:{ size:12 } } },
+              title:{ display:true, text:'Box-wall temperature rise during the 90 s probe', font:{ size:13, weight:'600' }, color:'#5A6B7A' } },
+    scales:{
+      x:{ title:{ display:true, text:'seconds', font:{size:11} }, grid:{ display:false } },
+      y:{ title:{ display:true, text:'rise (°C)', font:{size:11} }, grid:{ color:'#EFEBE5' } }
+    }
+  }
+});
+</script>
+
+</body>
+</html>
