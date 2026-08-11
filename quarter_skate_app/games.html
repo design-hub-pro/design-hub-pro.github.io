@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quarter - Play</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; }
+  * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#080E16; color:#fff; overflow-x:hidden; position:relative; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:600; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .content { padding:0 28px 110px; }
+
+  .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .kick { font-size:11px; font-weight:800; letter-spacing:1.6px; text-transform:uppercase; color:#FF9A5E; }
+  h1 { font-size:27px; font-weight:900; letter-spacing:-0.9px; margin-top:5px; }
+  .streak { text-align:right; }
+  .streak b { font-size:30px; font-weight:900; letter-spacing:-1.6px; line-height:1; background:linear-gradient(135deg,#FF9A5E,#FF6A4D); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .streak span { display:block; font-size:10px; color:rgba(255,255,255,0.4); font-weight:700; letter-spacing:0.6px; margin-top:4px; }
+
+  .hero { position:relative; border-radius:24px; overflow:hidden; height:172px; margin-bottom:14px; }
+  .hero img { width:100%; height:100%; object-fit:cover; }
+  .hero-ov { position:absolute; inset:0; background:linear-gradient(to top, rgba(6,11,18,0.96) 12%, rgba(43,26,80,0.45) 100%); padding:20px; display:flex; flex-direction:column; justify-content:flex-end; }
+  .hero-k { font-size:10px; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; color:#7C6BF0; }
+  .hero-t { font-size:23px; font-weight:900; letter-spacing:-0.7px; line-height:1.12; margin-top:6px; }
+  .hero-s { font-size:12px; color:rgba(255,255,255,0.55); margin-top:7px; }
+  .pips { display:flex; gap:5px; margin-top:13px; }
+  .pip { width:26px; height:7px; border-radius:5px; background:rgba(255,255,255,0.14); }
+  .pip.on { background:linear-gradient(90deg,#56A8FF,#7C6BF0); }
+  .pip.miss { background:#FF6A4D; }
+
+  .games { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+  .g { border-radius:20px; padding:14px; height:110px; display:flex; flex-direction:column; justify-content:space-between; }
+  .g1 { background:linear-gradient(150deg,#2E6FD4,#16336B); }
+  .g2 { background:linear-gradient(150deg,#6C5CE7,#33297E); }
+  .g3 { background:linear-gradient(150deg,#D9633C,#7C3018); }
+  .g4 { background:linear-gradient(150deg,#1E7A63,#0E3B31); }
+  .g i { font-size:19px; opacity:0.9; }
+  .g-t { font-size:14.5px; font-weight:800; letter-spacing:-0.3px; }
+  .g-s { font-size:10.5px; opacity:0.72; margin-top:4px; line-height:1.4; }
+
+  .sec { display:flex; justify-content:space-between; align-items:baseline; margin:16px 0 8px; }
+  .sec-t { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+  .sec-l { font-size:12px; color:#56A8FF; font-weight:700; }
+
+  .lb { display:flex; align-items:center; gap:12px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .rank { width:22px; font-size:13px; font-weight:900; color:rgba(255,255,255,0.32); flex-shrink:0; }
+  .rank.top { color:#FF9A5E; }
+  .lbav { width:35px; height:35px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+  .lbn { font-size:14px; font-weight:700; }
+  .lbs { font-size:11px; color:rgba(255,255,255,0.38); margin-top:2px; }
+  .lbv { font-size:17px; font-weight:900; letter-spacing:-0.6px; }
+  .lb.me { background:rgba(86,168,255,0.07); margin:0 -12px; padding:8px 12px; border-radius:14px; border-bottom:none; }
+
+  .badges { display:flex; gap:11px; margin-top:2px; }
+  .bd { flex:1; text-align:center; }
+  .bd-c { width:100%; height:54px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+  .bd-c.won { background:linear-gradient(150deg,#FF9A5E,#D9633C); }
+  .bd-c.won2 { background:linear-gradient(150deg,#56A8FF,#2E6FD4); }
+  .bd-c.won3 { background:linear-gradient(150deg,#2FD9A6,#1E7A63); }
+  .bd-c.lock { background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.22); border:1px dashed rgba(255,255,255,0.12); }
+  .bd-l { font-size:10px; color:rgba(255,255,255,0.42); font-weight:600; margin-top:6px; line-height:1.3; white-space:nowrap; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:88px; background:rgba(8,14,22,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:11px; border-top:1px solid rgba(255,255,255,0.06); }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab.on { color:#56A8FF; }
+  .tab i { font-size:19px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">18:12</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:13px"></i>
+      <i class="fas fa-wifi" style="font-size:13px"></i>
+      <i class="fas fa-battery-full" style="font-size:16px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="top">
+      <div>
+        <div class="kick">Rink 2 club</div>
+        <h1>Play</h1>
+      </div>
+      <div class="streak"><b>11</b><span>DAY STREAK</span></div>
+    </div>
+
+    <div class="hero">
+      <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786479405779-image-1.png" alt="">
+      <div class="hero-ov">
+        <div class="hero-k"><i class="fas fa-bullseye"></i> Live challenge · ends Sunday</div>
+        <div class="hero-t">Quarter Chase</div>
+        <div class="hero-s">Land 10 in a row inside 30° of full. You are 6 deep.</div>
+        <div class="pips">
+          <span class="pip on"></span><span class="pip on"></span><span class="pip on"></span>
+          <span class="pip on"></span><span class="pip on"></span><span class="pip on"></span>
+          <span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="games">
+      <div class="g g1">
+        <i class="fas fa-arrow-up-long"></i>
+        <div><div class="g-t">Height Ladder</div><div class="g-s">Beat 44 cm to clear rung 7</div></div>
+      </div>
+      <div class="g g2">
+        <i class="fas fa-repeat"></i>
+        <div><div class="g-t">Consistency</div><div class="g-s">Keep the spread under 40° for a week</div></div>
+      </div>
+      <div class="g g3">
+        <i class="fas fa-people-group"></i>
+        <div><div class="g-t">Rink Relay</div><div class="g-s">Club total: 2,140 of 3,000 jumps</div></div>
+      </div>
+      <div class="g g4">
+        <i class="fas fa-feather"></i>
+        <div><div class="g-t">Soft Landings</div><div class="g-s">10 sessions under 9 g median</div></div>
+      </div>
+    </div>
+
+    <div class="sec"><div class="sec-t">Quarter Chase board</div><div class="sec-l">Club</div></div>
+
+    <div class="lb">
+      <div class="rank top">1</div>
+      <img class="lbav" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face" alt="">
+      <div style="flex:1"><div class="lbn">Priya R.</div><div class="lbs">9 in a row · 3Lo</div></div>
+      <div class="lbv">9</div>
+    </div>
+    <div class="lb me">
+      <div class="rank">2</div>
+      <img class="lbav" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop&crop=face" alt="">
+      <div style="flex:1"><div class="lbn">You</div><div class="lbs">6 in a row · 3S</div></div>
+      <div class="lbv">6</div>
+    </div>
+    <div class="lb">
+      <div class="rank">3</div>
+      <img class="lbav" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face" alt="">
+      <div style="flex:1"><div class="lbn">Tomas K.</div><div class="lbs">5 in a row · 2A</div></div>
+      <div class="lbv">5</div>
+    </div>
+
+    <div class="sec"><div class="sec-t">Badges</div><div class="sec-l">7 of 24</div></div>
+    <div class="badges">
+      <div class="bd"><div class="bd-c won"><i class="fas fa-fire"></i></div><div class="bd-l">10 day streak</div></div>
+      <div class="bd"><div class="bd-c won2"><i class="fas fa-arrow-up-long"></i></div><div class="bd-l">40 cm club</div></div>
+      <div class="bd"><div class="bd-c won3"><i class="fas fa-feather"></i></div><div class="bd-l">Soft week</div></div>
+      <div class="bd"><div class="bd-c lock"><i class="fas fa-lock"></i></div><div class="bd-l">Clean 3S</div></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><i class="fas fa-house"></i>Home</div>
+    <div class="tab"><i class="fas fa-list-ul"></i>Jumps</div>
+    <div class="tab"><i class="fas fa-dumbbell"></i>Train</div>
+    <div class="tab on"><i class="fas fa-trophy"></i>Play</div>
+    <div class="tab"><i class="fas fa-calendar-days"></i>Plan</div>
+  </div>
+</body>
+</html>
