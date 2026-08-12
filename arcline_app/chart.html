@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arcline - Shot chart</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; }
+  * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#080B10; color:#fff; overflow-x:hidden; position:relative; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:600; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .content { padding:0 28px 110px; }
+
+  .title { font-size:27px; font-weight:900; letter-spacing:-1px; }
+  .subtitle { font-size:12.5px; color:rgba(255,255,255,0.42); margin-top:5px; }
+
+  .filters { display:flex; gap:8px; margin-top:12px; }
+  .f { font-size:11.5px; font-weight:700; padding:8px 14px; border-radius:30px; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.55); }
+  .f.on { background:#FF7A2F; color:#fff; }
+
+  .courtbox { margin-top:14px; border-radius:24px; background:linear-gradient(160deg,#141A24,#0C1119); border:1px solid rgba(255,255,255,0.07); padding:14px 12px 10px; }
+  .legend { display:flex; justify-content:center; gap:16px; margin-top:4px; }
+  .lg { display:flex; align-items:center; gap:6px; font-size:10.5px; color:rgba(255,255,255,0.45); font-weight:600; }
+  .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+  .dot.green { background:#35D6A4; } .dot.red { background:#FF5A5A; } .dot.grey { background:rgba(255,255,255,0.30); }
+
+  .sec { display:flex; justify-content:space-between; align-items:baseline; margin:14px 0 9px; }
+  .sec-t { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+  .sec-l { font-size:12px; color:#FF7A2F; font-weight:700; }
+
+  .zone { display:flex; align-items:center; gap:13px; background:rgba(255,255,255,0.045); border:1px solid rgba(255,255,255,0.07); border-radius:18px; padding:10px 14px; margin-bottom:8px; }
+  .z-name { font-size:13.5px; font-weight:800; }
+  .z-sub { font-size:11px; color:rgba(255,255,255,0.40); margin-top:3px; }
+  .z-bar { height:6px; border-radius:6px; background:rgba(255,255,255,0.10); margin-top:8px; overflow:hidden; }
+  .z-fill { height:100%; border-radius:6px; }
+  .z-pct { font-size:21px; font-weight:900; letter-spacing:-0.8px; width:52px; text-align:right; flex-shrink:0; }
+  .z-ang { font-size:10.5px; font-weight:800; width:52px; text-align:right; flex-shrink:0; color:rgba(255,255,255,0.42); margin-top:4px; }
+
+  .callout { margin-top:12px; border-radius:20px; padding:14px 15px; background:rgba(90,169,255,0.10); border:1px solid rgba(90,169,255,0.22); font-size:12px; color:rgba(255,255,255,0.62); line-height:1.55; }
+  .callout b { color:#fff; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:88px; background:rgba(8,11,16,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:11px; border-top:1px solid rgba(255,255,255,0.06); }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab.on { color:#FF7A2F; }
+  .tab i { font-size:19px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">19:38</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:13px"></i>
+      <i class="fas fa-wifi" style="font-size:13px"></i>
+      <i class="fas fa-battery-full" style="font-size:16px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="title">Where you shoot from</div>
+    <div class="subtitle">Foot position read off the floor lines. Median error 18 cm.</div>
+
+    <div class="filters">
+      <div class="f on">Tonight</div>
+      <div class="f">30 days</div>
+      <div class="f">Season</div>
+      <div class="f"><i class="fas fa-sliders"></i></div>
+    </div>
+
+    <div class="courtbox">
+      <svg viewBox="0 0 356 292" preserveAspectRatio="xMidYMid meet" style="width:100%;height:216px;display:block">
+        <defs>
+          <radialGradient id="hot" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="rgba(255,90,90,0.34)"/><stop offset="100%" stop-color="rgba(255,90,90,0)"/>
+          </radialGradient>
+          <radialGradient id="cold" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="rgba(53,214,164,0.30)"/><stop offset="100%" stop-color="rgba(53,214,164,0)"/>
+          </radialGradient>
+        </defs>
+
+        <!-- heat blobs -->
+        <ellipse cx="52" cy="196" rx="62" ry="62" fill="url(#hot)"/>
+        <ellipse cx="178" cy="150" rx="70" ry="60" fill="url(#cold)"/>
+
+        <!-- court lines -->
+        <path d="M28,286 L28,168 A150,150 0 0 1 328,168 L328,286" fill="none" stroke="rgba(255,255,255,0.20)" stroke-width="2"/>
+        <rect x="140" y="14" width="76" height="112" fill="none" stroke="rgba(255,255,255,0.20)" stroke-width="2"/>
+        <path d="M140,126 A38,38 0 0 0 216,126" fill="none" stroke="rgba(255,255,255,0.20)" stroke-width="2"/>
+        <path d="M140,126 A38,38 0 0 1 216,126" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="2" stroke-dasharray="6 6"/>
+        <line x1="28" y1="14" x2="328" y2="14" stroke="rgba(255,255,255,0.20)" stroke-width="2"/>
+        <circle cx="178" cy="36" r="9" fill="none" stroke="#FF7A2F" stroke-width="3"/>
+
+        <!-- makes -->
+        <g fill="#35D6A4">
+          <circle cx="178" cy="150" r="4.6"/><circle cx="192" cy="158" r="4.6"/><circle cx="166" cy="144" r="4.6"/>
+          <circle cx="204" cy="140" r="4.6"/><circle cx="158" cy="162" r="4.6"/><circle cx="186" cy="132" r="4.6"/>
+          <circle cx="262" cy="176" r="4.6"/><circle cx="276" cy="164" r="4.6"/><circle cx="250" cy="188" r="4.6"/>
+          <circle cx="288" cy="182" r="4.6"/><circle cx="238" cy="170" r="4.6"/>
+          <circle cx="120" cy="128" r="4.6"/><circle cx="132" cy="140" r="4.6"/><circle cx="110" cy="146" r="4.6"/>
+          <circle cx="300" cy="238" r="4.6"/><circle cx="312" cy="222" r="4.6"/>
+          <circle cx="178" cy="96" r="4.6"/><circle cx="192" cy="104" r="4.6"/><circle cx="164" cy="102" r="4.6"/>
+        </g>
+        <!-- misses -->
+        <g fill="#FF5A5A">
+          <circle cx="42" cy="206" r="4.6"/><circle cx="54" cy="192" r="4.6"/><circle cx="36" cy="224" r="4.6"/>
+          <circle cx="60" cy="216" r="4.6"/><circle cx="48" cy="176" r="4.6"/><circle cx="30" cy="196" r="4.6"/>
+          <circle cx="66" cy="238" r="4.6"/><circle cx="44" cy="248" r="4.6"/><circle cx="58" cy="164" r="4.6"/>
+          <circle cx="216" cy="192" r="4.6"/><circle cx="146" cy="176" r="4.6"/><circle cx="284" cy="204" r="4.6"/>
+          <circle cx="106" cy="166" r="4.6"/><circle cx="200" cy="122" r="4.6"/>
+        </g>
+        <!-- unsure -->
+        <g fill="rgba(255,255,255,0.30)">
+          <circle cx="72" cy="200" r="4.6"/><circle cx="88" cy="184" r="4.6"/><circle cx="228" cy="158" r="4.6"/>
+        </g>
+
+        <text x="52" y="272" text-anchor="middle" font-family="Inter" font-size="11" font-weight="900" fill="#FF6A6A">29%</text>
+        <text x="178" y="216" text-anchor="middle" font-family="Inter" font-size="11" font-weight="900" fill="#35D6A4">68%</text>
+      </svg>
+      <div class="legend">
+        <div class="lg"><span class="dot green"></span> Made</div>
+        <div class="lg"><span class="dot red"></span> Missed</div>
+        <div class="lg"><span class="dot grey"></span> Unsure</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      Your left corner is not an aim problem. Left–right error there is <b>2.4 cm</b>, the same as your best spot. The ball is arriving <b>5.2° flatter</b>, which is a release problem.
+    </div>
+
+    <div class="sec"><div class="sec-t">By spot</div><div class="sec-l">Entry angle</div></div>
+
+    <div class="zone">
+      <div style="flex:1">
+        <div class="z-name">Left corner three</div>
+        <div class="z-sub">14 attempts · 10 of them short</div>
+        <div class="z-bar"><div class="z-fill" style="width:29%;background:#FF5A5A"></div></div>
+      </div>
+      <div><div class="z-pct">29%</div><div class="z-ang">38.1°</div></div>
+    </div>
+
+    <div class="zone">
+      <div style="flex:1">
+        <div class="z-name">Top of the key</div>
+        <div class="z-sub">22 attempts · your steadiest spot</div>
+        <div class="z-bar"><div class="z-fill" style="width:68%;background:#35D6A4"></div></div>
+      </div>
+      <div><div class="z-pct">68%</div><div class="z-ang">45.3°</div></div>
+    </div>
+
+    <div class="zone">
+      <div style="flex:1">
+        <div class="z-name">Right wing three</div>
+        <div class="z-sub">18 attempts · aim drifts right late</div>
+        <div class="z-bar"><div class="z-fill" style="width:56%;background:#FFB547"></div></div>
+      </div>
+      <div><div class="z-pct">56%</div><div class="z-ang">43.0°</div></div>
+    </div>
+
+    <div class="zone">
+      <div style="flex:1">
+        <div class="z-name">Free throw</div>
+        <div class="z-sub">20 attempts · no fatigue drop</div>
+        <div class="z-bar"><div class="z-fill" style="width:75%;background:#35D6A4"></div></div>
+      </div>
+      <div><div class="z-pct">75%</div><div class="z-ang">46.2°</div></div>
+    </div>
+
+    <div class="callout">
+      Your left corner is not an aim problem. Left–right error there is <b>2.4 cm</b>, the same as your best spot. The ball is arriving <b>5.2° flatter</b>, which is a release problem.
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><i class="fas fa-house"></i>Home</div>
+    <div class="tab on"><i class="fas fa-basketball"></i>Shots</div>
+    <div class="tab"><i class="fas fa-dumbbell"></i>Train</div>
+    <div class="tab"><i class="fas fa-chart-line"></i>Trends</div>
+    <div class="tab"><i class="fas fa-user"></i>Me</div>
+  </div>
+</body>
+</html>

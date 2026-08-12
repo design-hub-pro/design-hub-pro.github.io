@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arcline - Train</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; }
+  * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#080B10; color:#fff; overflow-x:hidden; position:relative; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:600; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .content { padding:0 28px 110px; }
+
+  .title { font-size:27px; font-weight:900; letter-spacing:-1px; }
+  .subtitle { font-size:12.5px; color:rgba(255,255,255,0.42); margin-top:5px; }
+
+  .plan { margin-top:13px; border-radius:24px; overflow:hidden; position:relative; height:150px; }
+  .plan img { width:100%; height:100%; object-fit:cover; }
+  .plan-ov { position:absolute; inset:0; background:linear-gradient(to top, rgba(6,9,14,0.97) 18%, rgba(6,9,14,0.62) 52%, rgba(6,9,14,0.12) 88%); padding:18px; display:flex; flex-direction:column; justify-content:flex-end; }
+  .plan-k { font-size:10px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:#FF9E4A; }
+  .plan-t { font-size:22px; font-weight:900; letter-spacing:-0.6px; margin-top:7px; line-height:1.15; }
+  .prog { display:flex; align-items:center; gap:10px; margin-top:13px; }
+  .prog-track { flex:1; height:6px; border-radius:6px; background:rgba(255,255,255,0.16); overflow:hidden; }
+  .prog-fill { height:100%; width:42%; border-radius:6px; background:linear-gradient(90deg,#FF7A2F,#FFB547); }
+  .prog-l { font-size:11px; font-weight:800; color:rgba(255,255,255,0.72); }
+
+  .why { margin-top:12px; border-radius:20px; padding:13px 15px; background:rgba(255,122,47,0.11); border:1px solid rgba(255,122,47,0.22); font-size:12px; color:rgba(255,255,255,0.62); line-height:1.55; }
+  .why b { color:#fff; }
+
+  .sec { display:flex; justify-content:space-between; align-items:baseline; margin:14px 0 9px; }
+  .sec-t { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+  .sec-l { font-size:12px; color:#FF7A2F; font-weight:700; }
+
+  .drill { display:flex; gap:12px; align-items:center; background:rgba(255,255,255,0.045); border:1px solid rgba(255,255,255,0.07); border-radius:20px; padding:8px; margin-bottom:7px; }
+  .dthumb { width:90px; height:66px; border-radius:15px; object-fit:cover; flex-shrink:0; position:relative; }
+  .dwrap { position:relative; width:90px; height:66px; flex-shrink:0; border-radius:15px; overflow:hidden; }
+  .dwrap img { width:100%; height:100%; object-fit:cover; }
+  .dplay { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.24); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; font-size:10px; }
+  .ddur { position:absolute; right:6px; bottom:6px; font-size:8.5px; font-weight:800; background:rgba(6,9,14,0.75); padding:3px 6px; border-radius:20px; }
+  .d-t { font-size:14px; font-weight:800; }
+  .d-s { font-size:11px; color:rgba(255,255,255,0.42); margin-top:4px; line-height:1.4; }
+  .d-bar { height:5px; border-radius:5px; background:rgba(255,255,255,0.10); margin-top:8px; overflow:hidden; }
+  .d-fill { height:100%; border-radius:5px; background:#FF7A2F; }
+  .tick { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; }
+  .tick.done { background:rgba(53,214,164,0.16); color:#35D6A4; }
+  .tick.todo { background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.30); }
+
+  .goal { display:flex; gap:10px; margin-top:10px; }
+  .g { flex:1; border-radius:18px; padding:12px 13px; }
+  .g1 { background:linear-gradient(150deg,#2B62C4,#16306B); }
+  .g2 { background:linear-gradient(150deg,#1E7A63,#0F4438); }
+  .g-n { font-size:28px; font-weight:900; letter-spacing:-1.2px; }
+  .g-n span { font-size:13px; font-weight:700; }
+  .g-l { font-size:10.5px; font-weight:600; opacity:0.82; margin-top:5px; line-height:1.35; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:88px; background:rgba(8,11,16,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:11px; border-top:1px solid rgba(255,255,255,0.06); }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab.on { color:#FF7A2F; }
+  .tab i { font-size:19px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">08:12</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:13px"></i>
+      <i class="fas fa-wifi" style="font-size:13px"></i>
+      <i class="fas fa-battery-full" style="font-size:16px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="title">Train</div>
+    <div class="subtitle">Built from last night. Four blocks, 26 minutes.</div>
+
+    <div class="plan">
+      <img src="https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&h=500&fit=crop" alt="">
+      <div class="plan-ov">
+        <div class="plan-k">Today · corner arc block</div>
+        <div class="plan-t">50 corner threes.<br>Hold the finish.</div>
+        <div class="prog">
+          <div class="prog-track"><div class="prog-fill"></div></div>
+          <div class="prog-l">21 / 50</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="why">
+      Chosen because your left-corner entry angle was <b>38°</b> against <b>45°</b> at the top of the key. This block scores the arc, not the make.
+    </div>
+
+    <div class="sec"><div class="sec-t">Blocks</div><div class="sec-l">26 min</div></div>
+
+    <div class="drill">
+      <div class="dwrap">
+        <img src="https://images.unsplash.com/photo-1574623452334-1e0ac2b3ccb4?w=300&h=240&fit=crop" alt="">
+        <div class="dplay"><i class="fas fa-play"></i></div>
+        <div class="ddur">2:40</div>
+      </div>
+      <div style="flex:1">
+        <div class="d-t">One-hand form shots</div>
+        <div class="d-s">Close range. Target 50° release, no jump.</div>
+        <div class="d-bar"><div class="d-fill" style="width:100%"></div></div>
+      </div>
+      <div class="tick done"><i class="fas fa-check"></i></div>
+    </div>
+
+    <div class="drill">
+      <div class="dwrap">
+        <img src="https://images.unsplash.com/photo-1515523110800-9415d13b84a8?w=300&h=240&fit=crop" alt="">
+        <div class="dplay"><i class="fas fa-play"></i></div>
+        <div class="ddur">6:10</div>
+      </div>
+      <div style="flex:1">
+        <div class="d-t">Corner catch and hold</div>
+        <div class="d-s">25 reps. A rep counts only past a 0.20 s hold.</div>
+        <div class="d-bar"><div class="d-fill" style="width:84%"></div></div>
+      </div>
+      <div class="tick done"><i class="fas fa-check"></i></div>
+    </div>
+
+    <div class="drill">
+      <div class="dwrap">
+        <img src="https://images.unsplash.com/photo-1519861531473-9200262188bf?w=300&h=240&fit=crop" alt="">
+        <div class="dplay"><i class="fas fa-play"></i></div>
+        <div class="ddur">9:30</div>
+      </div>
+      <div style="flex:1">
+        <div class="d-t">Corner to corner, 5 spots</div>
+        <div class="d-s">Stops at minute 34, before your arc usually drops.</div>
+        <div class="d-bar"><div class="d-fill" style="width:32%"></div></div>
+      </div>
+      <div class="tick todo"><i class="fas fa-play"></i></div>
+    </div>
+
+    <div class="drill">
+      <div class="dwrap">
+        <img src="https://images.unsplash.com/photo-1608245449230-4ac19066d2d0?w=300&h=240&fit=crop" alt="">
+        <div class="dplay"><i class="fas fa-play"></i></div>
+        <div class="ddur">7:00</div>
+      </div>
+      <div style="flex:1">
+        <div class="d-t">Free throws between blocks</div>
+        <div class="d-s">Your steadiest spot. Used as a reset, not a test.</div>
+        <div class="d-bar"><div class="d-fill" style="width:0%"></div></div>
+      </div>
+      <div class="tick todo"><i class="fas fa-play"></i></div>
+    </div>
+
+    <div class="goal">
+      <div class="g g1">
+        <div class="g-n">42<span>°</span></div>
+        <div class="g-l">Two-week goal: left corner entry, up from 38°</div>
+      </div>
+      <div class="g g2">
+        <div class="g-n">0.20<span>s</span></div>
+        <div class="g-l">Follow-through hold, back to June level</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><i class="fas fa-house"></i>Home</div>
+    <div class="tab"><i class="fas fa-basketball"></i>Shots</div>
+    <div class="tab on"><i class="fas fa-dumbbell"></i>Train</div>
+    <div class="tab"><i class="fas fa-chart-line"></i>Trends</div>
+    <div class="tab"><i class="fas fa-user"></i>Me</div>
+  </div>
+</body>
+</html>

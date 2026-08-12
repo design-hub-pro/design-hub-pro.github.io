@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arcline - Session</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; }
+  * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#080B10; color:#fff; overflow-x:hidden; position:relative; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:600; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .content { padding:0 28px 110px; }
+
+  .nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .nav-i { width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,0.07); display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .nav-t { font-size:13px; font-weight:700; color:rgba(255,255,255,0.55); }
+
+  .big { font-size:32px; font-weight:900; letter-spacing:-1.3px; line-height:1.08; }
+  .big-s { font-size:13px; color:rgba(255,255,255,0.42); margin-top:8px; }
+
+  .ring-row { display:flex; align-items:center; gap:18px; margin-top:14px; background:rgba(255,255,255,0.045); border:1px solid rgba(255,255,255,0.07); border-radius:24px; padding:13px 16px; }
+  .ring-k { font-size:10px; font-weight:800; letter-spacing:1.2px; color:rgba(255,255,255,0.42); }
+  .ring-v { font-size:22px; font-weight:900; letter-spacing:-0.7px; margin-top:3px; }
+  .ring-d { font-size:11px; margin-top:4px; font-weight:700; }
+  .up { color:#35D6A4; } .down { color:#FF6A4D; }
+
+  .timeline { margin-top:12px; background:rgba(255,255,255,0.045); border:1px solid rgba(255,255,255,0.07); border-radius:22px; padding:13px 15px 12px; }
+  .tl-h { display:flex; justify-content:space-between; align-items:baseline; }
+  .tl-t { font-size:13px; font-weight:800; }
+  .tl-l { font-size:11px; color:rgba(255,255,255,0.38); font-weight:600; }
+  .ticks { display:flex; gap:2.4px; align-items:flex-end; height:44px; margin-top:11px; }
+  .tk { flex:1; border-radius:2px; }
+  .legend { display:flex; gap:14px; margin-top:11px; }
+  .lg { display:flex; align-items:center; gap:6px; font-size:10.5px; color:rgba(255,255,255,0.48); font-weight:600; }
+  .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+  .dot.green { background:#35D6A4; } .dot.red { background:#FF5A5A; } .dot.grey { background:rgba(255,255,255,0.28); }
+
+  .sec { display:flex; justify-content:space-between; align-items:baseline; margin:15px 0 9px; }
+  .sec-t { font-size:17px; font-weight:800; letter-spacing:-0.3px; }
+  .sec-l { font-size:12px; color:#FF7A2F; font-weight:700; }
+
+  .shot { display:flex; gap:12px; align-items:center; background:rgba(255,255,255,0.045); border:1px solid rgba(255,255,255,0.07); border-radius:18px; padding:9px 13px 9px 9px; margin-bottom:8px; }
+  .thumb { width:62px; height:52px; border-radius:12px; object-fit:cover; flex-shrink:0; }
+  .sh-t { font-size:13.5px; font-weight:800; }
+  .sh-s { font-size:11px; color:rgba(255,255,255,0.42); margin-top:3px; }
+  .badge { font-size:10.5px; font-weight:800; padding:5px 10px; border-radius:30px; }
+  .b-made { background:rgba(53,214,164,0.14); color:#35D6A4; }
+  .b-miss { background:rgba(255,90,90,0.14); color:#FF6A6A; }
+  .b-un { background:rgba(255,255,255,0.09); color:rgba(255,255,255,0.55); }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:88px; background:rgba(8,11,16,0.94); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:11px; border-top:1px solid rgba(255,255,255,0.06); }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10px; color:rgba(255,255,255,0.32); font-weight:600; }
+  .tab.on { color:#FF7A2F; }
+  .tab i { font-size:19px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">19:31</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:13px"></i>
+      <i class="fas fa-wifi" style="font-size:13px"></i>
+      <i class="fas fa-battery-full" style="font-size:16px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="nav">
+      <div class="nav-i"><i class="fas fa-chevron-left"></i></div>
+      <div class="nav-t">Thu 18 Sep · 51 min</div>
+      <div class="nav-i"><i class="fas fa-share-nodes"></i></div>
+    </div>
+
+    <div class="big">84 shots.<br>49 down.</div>
+    <div class="big-s">Catch-and-shoot from seven spots. Band on the whole time.</div>
+
+    <div class="ring-row">
+      <svg viewBox="0 0 120 120" style="width:96px;height:96px;flex-shrink:0">
+        <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="13"/>
+        <circle cx="60" cy="60" r="48" fill="none" stroke="#FF7A2F" stroke-width="13" stroke-linecap="round"
+                stroke-dasharray="175 302" transform="rotate(-90 60 60)"/>
+        <text x="60" y="57" text-anchor="middle" font-family="Inter" font-size="30" font-weight="900" fill="#fff">58</text>
+        <text x="60" y="76" text-anchor="middle" font-family="Inter" font-size="12" font-weight="700" fill="rgba(255,255,255,0.45)">PERCENT</text>
+      </svg>
+      <div style="flex:1">
+        <div class="ring-k">MEDIAN ENTRY ANGLE</div>
+        <div class="ring-v">43.1°</div>
+        <div class="ring-d up"><i class="fas fa-arrow-up"></i> 1.4° better than last week</div>
+        <div style="height:12px"></div>
+        <div class="ring-k">RELEASE CONSISTENCY (SD)</div>
+        <div class="ring-v">0.031 s</div>
+        <div class="ring-d down"><i class="fas fa-arrow-down"></i> more scattered late in the hour</div>
+      </div>
+    </div>
+
+    <div class="timeline">
+      <div class="tl-h">
+        <div class="tl-t">Shot by shot</div>
+        <div class="tl-l">bar height = entry angle</div>
+      </div>
+      <div class="ticks">
+        <div class="tk" style="height:78%;background:#35D6A4"></div>
+        <div class="tk" style="height:86%;background:#35D6A4"></div>
+        <div class="tk" style="height:62%;background:#FF5A5A"></div>
+        <div class="tk" style="height:88%;background:#35D6A4"></div>
+        <div class="tk" style="height:74%;background:#35D6A4"></div>
+        <div class="tk" style="height:55%;background:#FF5A5A"></div>
+        <div class="tk" style="height:80%;background:#35D6A4"></div>
+        <div class="tk" style="height:92%;background:#35D6A4"></div>
+        <div class="tk" style="height:47%;background:rgba(255,255,255,0.24)"></div>
+        <div class="tk" style="height:70%;background:#35D6A4"></div>
+        <div class="tk" style="height:58%;background:#FF5A5A"></div>
+        <div class="tk" style="height:84%;background:#35D6A4"></div>
+        <div class="tk" style="height:66%;background:#FF5A5A"></div>
+        <div class="tk" style="height:90%;background:#35D6A4"></div>
+        <div class="tk" style="height:52%;background:#FF5A5A"></div>
+        <div class="tk" style="height:76%;background:#35D6A4"></div>
+        <div class="tk" style="height:44%;background:rgba(255,255,255,0.24)"></div>
+        <div class="tk" style="height:82%;background:#35D6A4"></div>
+        <div class="tk" style="height:60%;background:#FF5A5A"></div>
+        <div class="tk" style="height:87%;background:#35D6A4"></div>
+        <div class="tk" style="height:71%;background:#35D6A4"></div>
+        <div class="tk" style="height:50%;background:#FF5A5A"></div>
+        <div class="tk" style="height:64%;background:#FF5A5A"></div>
+        <div class="tk" style="height:79%;background:#35D6A4"></div>
+        <div class="tk" style="height:56%;background:#FF5A5A"></div>
+        <div class="tk" style="height:83%;background:#35D6A4"></div>
+        <div class="tk" style="height:46%;background:rgba(255,255,255,0.24)"></div>
+        <div class="tk" style="height:68%;background:#35D6A4"></div>
+        <div class="tk" style="height:53%;background:#FF5A5A"></div>
+        <div class="tk" style="height:75%;background:#35D6A4"></div>
+      </div>
+      <div class="legend">
+        <div class="lg"><span class="dot green"></span> Made</div>
+        <div class="lg"><span class="dot red"></span> Missed</div>
+        <div class="lg"><span class="dot grey"></span> Unsure · ball occluded</div>
+      </div>
+    </div>
+
+    <div class="sec"><div class="sec-t">Shots</div><div class="sec-l">All 84</div></div>
+
+    <div class="shot">
+      <img class="thumb" src="https://images.unsplash.com/photo-1546519638-68e109498ffc?w=200&h=160&fit=crop" alt="">
+      <div style="flex:1">
+        <div class="sh-t">#84 · Top of the key</div>
+        <div class="sh-s">Entry 45° · depth +3 cm · release 0.40 s</div>
+      </div>
+      <span class="badge b-made">MADE</span>
+    </div>
+
+    <div class="shot">
+      <img class="thumb" src="https://images.unsplash.com/photo-1574623452334-1e0ac2b3ccb4?w=200&h=160&fit=crop" alt="">
+      <div style="flex:1">
+        <div class="sh-t">#83 · Left corner</div>
+        <div class="sh-s">Entry 37° · depth −6 cm · front rim</div>
+      </div>
+      <span class="badge b-miss">SHORT</span>
+    </div>
+
+    <div class="shot">
+      <img class="thumb" src="https://images.unsplash.com/photo-1519861531473-9200262188bf?w=200&h=160&fit=crop" alt="">
+      <div style="flex:1">
+        <div class="sh-t">#82 · Left corner</div>
+        <div class="sh-s">Ball hidden behind the shooter for 6 frames</div>
+      </div>
+      <span class="badge b-un">UNSURE</span>
+    </div>
+
+    <div class="shot">
+      <img class="thumb" src="https://images.unsplash.com/photo-1515523110800-9415d13b84a8?w=200&h=160&fit=crop" alt="">
+      <div style="flex:1">
+        <div class="sh-t">#81 · Right wing</div>
+        <div class="sh-s">Entry 44° · depth +1 cm · release 0.43 s</div>
+      </div>
+      <span class="badge b-made">MADE</span>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><i class="fas fa-house"></i>Home</div>
+    <div class="tab on"><i class="fas fa-basketball"></i>Shots</div>
+    <div class="tab"><i class="fas fa-dumbbell"></i>Train</div>
+    <div class="tab"><i class="fas fa-chart-line"></i>Trends</div>
+    <div class="tab"><i class="fas fa-user"></i>Me</div>
+  </div>
+</body>
+</html>

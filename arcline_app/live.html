@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arcline - Live capture</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; }
+  * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#05070A; color:#fff; overflow:hidden; position:relative; }
+
+  .cam { position:absolute; inset:0; }
+  .cam img { width:100%; height:100%; object-fit:cover; opacity:0.92; }
+  .cam-tint { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(5,7,10,0.72) 0%, rgba(5,7,10,0.05) 26%, rgba(5,7,10,0.10) 52%, rgba(5,7,10,0.93) 88%); }
+  .trace { position:absolute; inset:0; width:100%; height:100%; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:600; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .hud { position:relative; z-index:20; padding:0 28px; }
+  .hud-top { display:flex; align-items:center; justify-content:space-between; margin-top:6px; }
+  .rec { display:flex; align-items:center; gap:8px; background:rgba(5,7,10,0.55); backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,0.12); padding:8px 14px; border-radius:40px; font-size:12.5px; font-weight:800; letter-spacing:0.3px; }
+  .dot { width:8px; height:8px; border-radius:50%; display:inline-block; flex-shrink:0; }
+  .dot.red { background:#FF4D4D; box-shadow:0 0 10px rgba(255,77,77,0.9); }
+  .dot.green { background:#35D6A4; box-shadow:0 0 8px rgba(53,214,164,0.8); }
+  .dot.amber { background:#FFB547; }
+  .chips { display:flex; gap:7px; }
+  .chip { background:rgba(5,7,10,0.55); backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,0.12); padding:8px 11px; border-radius:40px; font-size:11px; font-weight:700; display:flex; align-items:center; gap:6px; }
+
+  .counter { position:absolute; top:150px; left:28px; z-index:20; }
+  .c-n { font-size:64px; font-weight:900; letter-spacing:-3.4px; line-height:0.9; text-shadow:0 4px 30px rgba(0,0,0,0.6); }
+  .c-l { font-size:11px; font-weight:800; letter-spacing:1.6px; text-transform:uppercase; color:rgba(255,255,255,0.62); margin-top:6px; }
+  .c-made { font-size:13px; font-weight:800; color:#35D6A4; margin-top:10px; }
+
+  .callout { position:absolute; z-index:22; right:26px; top:236px; width:186px; background:rgba(5,7,10,0.62); backdrop-filter:blur(18px); border:1px solid rgba(255,122,47,0.34); border-radius:18px; padding:13px 14px; }
+  .co-h { font-size:9.5px; font-weight:800; letter-spacing:1.3px; text-transform:uppercase; color:#FF9E4A; }
+  .co-r { display:flex; justify-content:space-between; align-items:baseline; margin-top:9px; }
+  .co-k { font-size:11.5px; color:rgba(255,255,255,0.58); font-weight:600; }
+  .co-v { font-size:15px; font-weight:900; }
+  .co-v.bad { color:#FF6A4D; } .co-v.ok { color:#35D6A4; }
+
+  .panel { position:absolute; left:0; right:0; bottom:0; z-index:24; padding:0 28px 34px; }
+  .voice { display:flex; align-items:center; gap:11px; background:rgba(255,122,47,0.16); border:1px solid rgba(255,122,47,0.32); border-radius:18px; padding:12px 14px; margin-bottom:13px; }
+  .voice-ico { width:34px; height:34px; border-radius:50%; background:linear-gradient(150deg,#FF7A2F,#C0410E); display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+  .voice-t { font-size:13.5px; font-weight:800; }
+  .voice-s { font-size:11px; color:rgba(255,255,255,0.5); margin-top:2px; }
+
+  .lastshots { display:flex; gap:8px; margin-bottom:16px; }
+  .ls { flex:1; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.10); border-radius:14px; padding:9px 10px; }
+  .ls-t { font-size:9.5px; font-weight:800; letter-spacing:1px; color:rgba(255,255,255,0.42); }
+  .ls-v { font-size:17px; font-weight:900; margin-top:5px; letter-spacing:-0.5px; }
+  .ls-v small { font-size:10px; font-weight:700; }
+
+  .controls { display:flex; align-items:center; justify-content:space-between; }
+  .ctl { width:52px; height:52px; border-radius:50%; background:rgba(255,255,255,0.10); backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,0.12); display:flex; align-items:center; justify-content:center; font-size:17px; }
+  .stop { width:78px; height:78px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 34px rgba(0,0,0,0.5); }
+  .stop div { width:28px; height:28px; border-radius:7px; background:#FF3B30; }
+
+  .minicourt { position:absolute; z-index:22; left:26px; bottom:272px; width:112px; background:rgba(5,7,10,0.6); backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:9px; }
+</style>
+</head>
+<body>
+  <div class="cam">
+    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786567276252-image-1.png" alt="">
+    <div class="cam-tint"></div>
+    <svg class="trace" viewBox="0 0 1024 1024" preserveAspectRatio="xMidYMid slice">
+      <!-- tracked ball path -->
+      <path d="M378,392 Q425,100 508,232" fill="none" stroke="rgba(255,122,47,0.30)" stroke-width="4"/>
+      <path d="M378,392 Q425,100 508,232" fill="none" stroke="#FF7A2F" stroke-width="8" stroke-linecap="round" stroke-dasharray="2 30"/>
+      <circle cx="391" cy="277" r="19" fill="none" stroke="#FFB547" stroke-width="5"/>
+      <!-- pose box on shooter -->
+      <rect x="252" y="366" width="132" height="330" rx="10" fill="none" stroke="rgba(90,169,255,0.85)" stroke-width="4"/>
+      <line x1="252" y1="700" x2="384" y2="700" stroke="rgba(90,169,255,0.5)" stroke-width="3" stroke-dasharray="8 8"/>
+      <!-- rim lock -->
+      <circle cx="508" cy="236" r="46" fill="none" stroke="rgba(53,214,164,0.9)" stroke-width="4" stroke-dasharray="30 16"/>
+    </svg>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-time">18:57</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:13px"></i>
+      <i class="fas fa-wifi" style="font-size:13px"></i>
+      <i class="fas fa-battery-three-quarters" style="font-size:16px"></i>
+    </div>
+  </div>
+
+  <div class="hud">
+    <div class="hud-top">
+      <div class="rec"><span class="dot red"></span> 12:04</div>
+      <div class="chips">
+        <div class="chip"><span class="dot green"></span> 60 fps</div>
+        <div class="chip"><i class="fas fa-wave-square" style="color:#5AA9FF"></i> Band</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="counter">
+    <div class="c-n">37</div>
+    <div class="c-l">Shots tracked</div>
+    <div class="c-made">21 made · 57%</div>
+  </div>
+
+  <div class="callout">
+    <div class="co-h">Shot 37 · left wing</div>
+    <div class="co-r"><span class="co-k">Entry</span><span class="co-v bad">39°</span></div>
+    <div class="co-r"><span class="co-k">Depth</span><span class="co-v">−4 cm</span></div>
+    <div class="co-r"><span class="co-k">Release</span><span class="co-v ok">0.41 s</span></div>
+    <div class="co-r"><span class="co-k">Left–right</span><span class="co-v">+2 cm</span></div>
+  </div>
+
+  <div class="minicourt">
+    <svg viewBox="0 0 120 92" style="width:100%;height:auto;display:block">
+      <rect x="2" y="2" width="116" height="88" rx="8" fill="rgba(255,255,255,0.05)"/>
+      <path d="M18,90 L18,54 A42,42 0 0 1 102,54 L102,90" fill="none" stroke="rgba(255,255,255,0.24)" stroke-width="1.6"/>
+      <rect x="47" y="2" width="26" height="26" fill="none" stroke="rgba(255,255,255,0.24)" stroke-width="1.6"/>
+      <circle cx="60" cy="10" r="3.4" fill="none" stroke="#FF7A2F" stroke-width="1.8"/>
+      <g fill="#35D6A4"><circle cx="34" cy="46" r="3"/><circle cx="86" cy="44" r="3"/><circle cx="60" cy="62" r="3"/><circle cx="72" cy="38" r="3"/></g>
+      <g fill="#FF5A5A"><circle cx="22" cy="76" r="3"/><circle cx="30" cy="66" r="3"/></g>
+      <circle cx="38" cy="58" r="6.5" fill="none" stroke="#FFB547" stroke-width="2"/>
+      <circle cx="38" cy="58" r="3" fill="#FFB547"/>
+    </svg>
+  </div>
+
+  <div class="panel">
+    <div class="voice">
+      <div class="voice-ico"><i class="fas fa-volume-high"></i></div>
+      <div style="flex:1">
+        <div class="voice-t">"Flat again. Hold the follow-through."</div>
+        <div class="voice-s">Cue in your ear · fires only after 3 flat shots in a row</div>
+      </div>
+    </div>
+
+    <div class="lastshots">
+      <div class="ls"><div class="ls-t">LAST 5 ENTRY</div><div class="ls-v">40<small>°</small></div></div>
+      <div class="ls"><div class="ls-t">APEX</div><div class="ls-v">3.4<small>m</small></div></div>
+      <div class="ls"><div class="ls-t">UNSURE</div><div class="ls-v">3</div></div>
+    </div>
+
+    <div class="controls">
+      <div class="ctl"><i class="fas fa-bookmark"></i></div>
+      <div class="stop"><div></div></div>
+      <div class="ctl"><i class="fas fa-microphone-slash"></i></div>
+    </div>
+  </div>
+</body>
+</html>
