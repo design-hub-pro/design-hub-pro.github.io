@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edgetrace - Blade report</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; } * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#070E16; color:#EAF2F8; overflow:hidden; position:relative; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:absolute; top:0; left:0; right:0; z-index:100; }
+  .status-time { font-size:17px; font-weight:700; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .hero { position:relative; height:222px; }
+  .hero img { width:100%; height:100%; object-fit:cover; opacity:0.5; }
+  .hero-ov { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(7,14,22,0.6), rgba(7,14,22,0.15) 34%, rgba(7,14,22,0.93) 82%, #070E16 100%); padding:66px 28px 14px; display:flex; flex-direction:column; justify-content:space-between; }
+  .back { display:flex; align-items:center; gap:10px; font-size:13px; font-weight:750; color:#B4C4D4; }
+  .kick { font-size:11px; font-weight:850; letter-spacing:1.7px; text-transform:uppercase; color:#FF8A5B; }
+  .ttl { font-size:28px; font-weight:900; letter-spacing:-1.3px; line-height:1.05; margin-top:7px; }
+  .sub { font-size:12.5px; color:#8FA1B4; font-weight:700; margin-top:8px; }
+
+  .content { padding:0 28px 110px; }
+
+  .verdict { background:linear-gradient(135deg, rgba(255,138,91,0.15), rgba(255,138,91,0.03)); border:1px solid rgba(255,138,91,0.34); border-radius:24px; padding:16px 18px; display:flex; align-items:center; gap:15px; }
+  .ring { width:78px; height:78px; flex-shrink:0; position:relative; }
+  .ring-n { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .ring-v { font-size:25px; font-weight:900; letter-spacing:-1.2px; line-height:1; color:#FF8A5B; }
+  .ring-l { font-size:8.5px; font-weight:850; letter-spacing:0.9px; color:#5C6C80; margin-top:3px; }
+  .v-t { font-size:16px; font-weight:850; }
+  .v-d { font-size:12.5px; color:#A9B8C8; line-height:1.5; margin-top:6px; font-weight:550; }
+
+  .sec-t { font-size:19px; font-weight:850; letter-spacing:-0.5px; margin:17px 0 4px; }
+  .sec-s { font-size:12px; color:#65758A; font-weight:600; margin-bottom:10px; line-height:1.4; }
+
+  .rock { background:#0A131D; border:1px solid rgba(255,255,255,0.07); border-radius:22px; padding:14px 14px 11px; }
+  .lgd { display:flex; gap:14px; margin-top:8px; padding-left:4px; }
+  .lgi { display:flex; align-items:center; gap:6px; font-size:10.5px; color:#7C8CA0; font-weight:750; }
+  .sw { width:13px; height:3px; border-radius:2px; }
+
+  .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:11px; }
+  .cell { background:#0F1A26; border:1px solid rgba(255,255,255,0.07); border-radius:18px; padding:12px 10px; }
+  .cl { font-size:9px; font-weight:850; letter-spacing:0.8px; text-transform:uppercase; color:#5C6C80; }
+  .cv { font-size:19px; font-weight:900; letter-spacing:-0.8px; margin-top:7px; line-height:1; }
+  .cd { font-size:9.5px; color:#65758A; font-weight:700; margin-top:5px; line-height:1.3; }
+
+  .shots { display:flex; gap:9px; margin-top:11px; }
+  .shot { flex:1; height:74px; border-radius:18px; overflow:hidden; position:relative; border:1px solid rgba(255,255,255,0.08); }
+  .shot img { width:100%; height:100%; object-fit:cover; opacity:0.82; }
+  .shot .lbl { position:absolute; left:0; right:0; bottom:0; background:rgba(5,9,15,0.8); font-size:9px; font-weight:850; letter-spacing:0.6px; text-align:center; padding:4px 0; }
+  .mk { position:absolute; border:2px solid #FF8A5B; border-radius:50%; }
+
+  .cta { margin-top:13px; height:54px; border-radius:50px; background:#3FD9E8; color:#05121A; display:flex; align-items:center; justify-content:center; gap:10px; font-size:15.5px; font-weight:900; }
+  .cta2 { margin-top:10px; height:52px; border-radius:50px; background:transparent; border:1px solid rgba(255,255,255,0.14); color:#B4C4D4; display:flex; align-items:center; justify-content:center; gap:9px; font-size:14px; font-weight:800; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; z-index:50; height:92px; background:rgba(7,14,22,0.95); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:13px; border-top:1px solid rgba(255,255,255,0.07); }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; font-size:10.5px; color:#4E5E70; font-weight:750; }
+  .tab.on { color:#3FD9E8; }
+  .tab i { font-size:19px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">7:54</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons"><i class="fas fa-microchip" style="color:#3FD9E8"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-three-quarters" style="font-size:16px"></i></div>
+  </div>
+
+  <div class="hero">
+    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786655483336-image-1.png" alt="">
+    <div class="hero-ov">
+      <div class="back"><i class="fas fa-chevron-left"></i> Gear</div>
+      <div>
+        <div class="kick">Scanned just now</div>
+        <div class="ttl">Left blade<br>needs a grind</div>
+        <div class="sub">MK Professional 9¼" · fitted Sept 2025</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="verdict">
+      <div class="ring">
+        <svg width="78" height="78" viewBox="0 0 78 78">
+          <circle cx="39" cy="39" r="32" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="7"/>
+          <circle cx="39" cy="39" r="32" fill="none" stroke="#FF8A5B" stroke-width="7" stroke-linecap="round"
+                  stroke-dasharray="201" stroke-dashoffset="78" transform="rotate(-90 39 39)"/>
+        </svg>
+        <div class="ring-n"><div class="ring-v">61%</div><div class="ring-l">LIFE</div></div>
+      </div>
+      <div>
+        <div class="v-t">Sharpen, do not replace</div>
+        <div class="v-d">Two nicks on the outside edge and a flat patch under the ball of the foot. Plenty of steel left above the mounting line.</div>
+      </div>
+    </div>
+
+    <div class="sec-t">Rocker profile</div>
+    <div class="sec-s">Silhouette traced from the side-profile photo, compared with the factory curve.</div>
+
+    <div class="rock">
+      <svg viewBox="0 0 340 130" style="width:100%;height:104px">
+        <line x1="0" y1="104" x2="340" y2="104" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+        <path d="M18 92 Q170 30 322 92" fill="none" stroke="#7C6BFF" stroke-width="2" stroke-dasharray="5 4" opacity="0.8"/>
+        <path d="M18 93 Q90 56 138 46 L206 46 Q262 54 322 93" fill="none" stroke="#3FD9E8" stroke-width="3" stroke-linecap="round"/>
+        <rect x="138" y="38" width="68" height="18" rx="6" fill="rgba(255,138,91,0.16)" stroke="rgba(255,138,91,0.5)" stroke-width="1.2"/>
+        <text x="172" y="30" fill="#FF8A5B" font-size="10.5" font-weight="850" font-family="Inter" text-anchor="middle">12 mm flat</text>
+        <circle cx="98" cy="62" r="7" fill="none" stroke="#FF8A5B" stroke-width="2"/>
+        <circle cx="252" cy="60" r="5.5" fill="none" stroke="#FF8A5B" stroke-width="2"/>
+        <text x="18" y="122" fill="#4E5E70" font-size="9.5" font-weight="750" font-family="Inter">HEEL</text>
+        <text x="292" y="122" fill="#4E5E70" font-size="9.5" font-weight="750" font-family="Inter">TOE PICK</text>
+      </svg>
+      <div class="lgd">
+        <div class="lgi"><span class="sw" style="background:#3FD9E8"></span> Today</div>
+        <div class="lgi"><span class="sw" style="background:#7C6BFF"></span> Factory curve</div>
+        <div class="lgi"><span class="sw" style="background:#FF8A5B"></span> Nicks found</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="cell">
+        <div class="cl">Hours</div>
+        <div class="cv">41</div>
+        <div class="cd">Usually 50</div>
+      </div>
+      <div class="cell">
+        <div class="cl">Nicks</div>
+        <div class="cv" style="color:#FF8A5B">2</div>
+        <div class="cd">0.4 / 0.2 mm</div>
+      </div>
+      <div class="cell">
+        <div class="cl">Rust</div>
+        <div class="cv" style="color:#4FE0A6">None</div>
+        <div class="cd">Drying works</div>
+      </div>
+      <div class="cell">
+        <div class="cl">Hollow</div>
+        <div class="cv">7/16"</div>
+        <div class="cd">From log</div>
+      </div>
+    </div>
+
+    <div class="shots">
+      <div class="shot">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786655485253-image-1.png">
+        <div class="mk" style="width:26px;height:26px;left:22%;top:38%"></div>
+        <div class="lbl">EDGE ON</div>
+      </div>
+      <div class="shot">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786655483336-image-1.png">
+        <div class="lbl">SIDE PROFILE</div>
+      </div>
+      <div class="shot">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786655483826-image-1.png">
+        <div class="lbl">LAST GRIND</div>
+      </div>
+    </div>
+
+    <div class="cta">Book Kelso Sharpening · Sat 9am <i class="fas fa-arrow-right" style="font-size:13px"></i></div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><i class="fas fa-snowflake"></i>Today</div>
+    <div class="tab"><i class="fas fa-video"></i>Train</div>
+    <div class="tab"><i class="fas fa-route"></i>Trace</div>
+    <div class="tab on"><i class="fas fa-shoe-prints"></i>Gear</div>
+    <div class="tab"><i class="fas fa-user"></i>Me</div>
+  </div>
+</body>
+</html>

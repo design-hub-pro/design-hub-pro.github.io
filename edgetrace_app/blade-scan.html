@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edgetrace - Blade scan</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; } * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#05090F; color:#EAF2F8; overflow:hidden; position:relative; }
+
+  .cam { position:absolute; inset:0; }
+  .cam img { width:100%; height:100%; object-fit:cover; }
+  .vig { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(5,9,15,0.82) 0%, rgba(5,9,15,0.25) 20%, rgba(5,9,15,0.25) 55%, rgba(5,9,15,0.96) 78%, #05090F 100%); }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:700; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .topbar { position:relative; z-index:10; padding:10px 28px 0; display:flex; align-items:center; }
+  .rnd { width:38px; height:38px; border-radius:50%; background:rgba(5,9,15,0.62); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.12); display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .tt { flex:1; text-align:center; }
+  .tt-t { font-size:15px; font-weight:850; }
+  .tt-s { font-size:11px; color:#8FA1B4; font-weight:700; margin-top:2px; }
+
+  .steps { position:relative; z-index:10; display:flex; gap:7px; padding:20px 28px 0; }
+  .sp { flex:1; height:4px; border-radius:3px; background:rgba(255,255,255,0.16); }
+  .sp.on { background:#3FD9E8; }
+
+  /* guide */
+  .guide { position:absolute; z-index:9; left:34px; right:34px; top:284px; height:190px; }
+  .gb { position:absolute; width:26px; height:26px; border-color:#3FD9E8; }
+  .g1 { top:0; left:0; border-top:3px solid; border-left:3px solid; border-radius:6px 0 0 0; }
+  .g2 { top:0; right:0; border-top:3px solid; border-right:3px solid; border-radius:0 6px 0 0; }
+  .g3 { bottom:0; left:0; border-bottom:3px solid; border-left:3px solid; border-radius:0 0 0 6px; }
+  .g4 { bottom:0; right:0; border-bottom:3px solid; border-right:3px solid; border-radius:0 0 6px 0; }
+  .scanline { position:absolute; left:8px; right:8px; top:58%; height:2px; background:linear-gradient(90deg,transparent,#3FD9E8,transparent); box-shadow:0 0 14px rgba(63,217,232,0.8); }
+
+  .ping { position:absolute; z-index:10; display:flex; align-items:center; gap:6px; background:rgba(255,138,91,0.94); color:#1A0B04; font-size:10.5px; font-weight:900; padding:5px 10px; border-radius:7px; }
+
+  .hint { position:absolute; z-index:12; left:28px; right:28px; top:506px; background:rgba(5,9,15,0.72); backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,0.11); border-radius:20px; padding:14px 16px; display:flex; align-items:center; gap:12px; }
+  .h-ic { width:36px; height:36px; border-radius:12px; background:rgba(63,217,232,0.16); color:#3FD9E8; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+  .h-t { font-size:13.5px; font-weight:850; }
+  .h-d { font-size:11.5px; color:#8FA1B4; font-weight:650; margin-top:2px; }
+
+  .panel { position:absolute; left:0; right:0; bottom:0; z-index:14; padding:22px 28px 28px; }
+  .shots { display:flex; gap:10px; }
+  .shot { flex:1; height:74px; border-radius:17px; overflow:hidden; position:relative; border:1px solid rgba(255,255,255,0.1); background:#0F1A26; }
+  .shot img { width:100%; height:100%; object-fit:cover; opacity:0.75; }
+  .shot .lbl { position:absolute; left:0; right:0; bottom:0; background:rgba(5,9,15,0.78); font-size:9.5px; font-weight:850; letter-spacing:0.6px; text-align:center; padding:4px 0; }
+  .shot.done::after { content:'\f00c'; font-family:'Font Awesome 6 Free'; font-weight:900; position:absolute; top:7px; right:7px; width:19px; height:19px; border-radius:50%; background:#4FE0A6; color:#05121A; font-size:9px; display:flex; align-items:center; justify-content:center; }
+  .shot.wait { border-style:dashed; border-color:rgba(63,217,232,0.5); display:flex; align-items:center; justify-content:center; color:#3FD9E8; font-size:17px; }
+
+  .ctrl { display:flex; align-items:center; justify-content:space-between; margin-top:22px; }
+  .side { width:52px; height:52px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; font-size:16px; color:#B4C4D4; }
+  .shutter { width:78px; height:78px; border-radius:50%; border:4px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; }
+  .shutter-in { width:60px; height:60px; border-radius:50%; background:#3FD9E8; display:flex; align-items:center; justify-content:center; color:#05121A; font-size:20px; }
+  .fine { text-align:center; font-size:11px; color:#556274; font-weight:700; margin-top:16px; }
+</style>
+</head>
+<body>
+  <div class="cam">
+    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786655485253-image-1.png" alt="">
+    <div class="vig"></div>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-time">7:52</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons"><i class="fas fa-microchip" style="color:#3FD9E8"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-three-quarters" style="font-size:16px"></i></div>
+  </div>
+
+  <div class="topbar">
+    <div class="rnd"><i class="fas fa-xmark"></i></div>
+    <div class="tt">
+      <div class="tt-t">Blade scan · Left</div>
+      <div class="tt-s">Step 3 of 3 · edge-on</div>
+    </div>
+    <div class="rnd"><i class="fas fa-bolt"></i></div>
+  </div>
+
+  <div class="steps">
+    <div class="sp on"></div><div class="sp on"></div><div class="sp on"></div>
+  </div>
+
+  <div class="guide">
+    <div class="gb g1"></div><div class="gb g2"></div><div class="gb g3"></div><div class="gb g4"></div>
+    <div class="scanline"></div>
+    <svg viewBox="0 0 380 190" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%">
+      <path d="M14 150 Q190 116 366 150" fill="none" stroke="rgba(63,217,232,0.75)" stroke-width="1.6" stroke-dasharray="6 5"/>
+      <circle cx="118" cy="140" r="9" fill="none" stroke="#FF8A5B" stroke-width="2.2"/>
+      <circle cx="256" cy="132" r="7" fill="none" stroke="#FF8A5B" stroke-width="2.2"/>
+    </svg>
+    <div class="ping" style="left:20%;top:36%">nick 0.4 mm</div>
+    <div class="ping" style="left:60%;top:26%">nick 0.2 mm</div>
+  </div>
+
+  <div class="hint">
+    <div class="h-ic"><i class="fas fa-arrows-up-down-left-right"></i></div>
+    <div>
+      <div class="h-t">Hold steady. Blade is level.</div>
+      <div class="h-d">Two nicks already visible on the outside edge.</div>
+    </div>
+    <div style="margin-left:auto;font-size:11px;font-weight:900;color:#4FE0A6">READY</div>
+  </div>
+
+  <div class="panel">
+    <div class="shots">
+      <div class="shot done"><img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786655483336-image-1.png"><div class="lbl">SIDE PROFILE</div></div>
+      <div class="shot done"><img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786655485253-image-1.png"><div class="lbl">TOE PICK</div></div>
+      <div class="shot wait"><i class="fas fa-crosshairs"></i></div>
+    </div>
+
+    <div class="ctrl">
+      <div class="side"><i class="fas fa-images"></i></div>
+      <div class="shutter"><div class="shutter-in"><i class="fas fa-camera"></i></div></div>
+      <div class="side"><i class="fas fa-circle-question"></i></div>
+    </div>
+
+    <div class="fine">Scan takes about 20 seconds. Boot guard off, blade dry.</div>
+  </div>
+</body>
+</html>

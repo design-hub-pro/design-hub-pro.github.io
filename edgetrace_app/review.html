@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edgetrace - Pose review</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; } * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#070E16; color:#EAF2F8; overflow:hidden; position:relative; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:700; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .nav { display:flex; align-items:center; padding:4px 28px 11px; }
+  .nav-t { font-size:19px; font-weight:850; letter-spacing:-0.5px; }
+  .nav-s { font-size:11.5px; color:#65758A; font-weight:700; margin-top:2px; }
+  .ico { width:38px; height:38px; border-radius:50%; background:#0F1A26; border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:14px; color:#B4C4D4; }
+  .ico + .ico { margin-left:8px; }
+  .right { margin-left:auto; display:flex; }
+
+  .content { padding:0 28px 110px; }
+
+  .player { position:relative; border-radius:26px; overflow:hidden; height:252px; background:#05090F; }
+  .player img { width:100%; height:100%; object-fit:cover; opacity:0.62; }
+  .pv { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(5,9,15,0.3), transparent 30%, transparent 62%, rgba(5,9,15,0.88)); }
+  .ptag { position:absolute; top:14px; left:14px; display:flex; gap:7px; }
+  .pt { background:rgba(5,9,15,0.68); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.12); font-size:10.5px; font-weight:850; padding:6px 10px; border-radius:50px; }
+  .pt.a { background:#3FD9E8; color:#05121A; border-color:transparent; }
+  .pbot { position:absolute; left:16px; right:16px; bottom:14px; display:flex; align-items:center; gap:11px; }
+  .ppl { width:44px; height:44px; border-radius:50%; background:#fff; color:#05121A; display:flex; align-items:center; justify-content:center; font-size:15px; }
+  .ptime { font-size:11.5px; font-weight:800; color:#B4C4D4; }
+  .pbar { flex:1; height:4px; border-radius:3px; background:rgba(255,255,255,0.2); position:relative; }
+  .pbar i { position:absolute; left:0; top:0; bottom:0; width:58%; border-radius:3px; background:#3FD9E8; }
+  .pbar b { position:absolute; left:58%; top:-4px; width:12px; height:12px; border-radius:50%; background:#fff; }
+
+  .lgd { display:flex; gap:14px; margin-top:10px; padding-left:2px; }
+  .lgi { display:flex; align-items:center; gap:6px; font-size:11px; color:#7C8CA0; font-weight:750; }
+  .sw { width:13px; height:3px; border-radius:2px; }
+
+  .phase { display:flex; gap:6px; margin-top:12px; }
+  .ph { flex:1; text-align:center; padding:9px 4px; border-radius:15px; background:#0C1621; border:1px solid rgba(255,255,255,0.055); }
+  .ph.on { background:rgba(63,217,232,0.13); border-color:rgba(63,217,232,0.4); }
+  .ph-n { font-size:11px; font-weight:850; color:#65758A; }
+  .ph.on .ph-n { color:#3FD9E8; }
+  .ph-v { font-size:16px; font-weight:900; letter-spacing:-0.7px; margin-top:5px; }
+  .ph-v.bad { color:#FF8A5B; }
+
+  .sec-t { font-size:19px; font-weight:850; letter-spacing:-0.5px; margin:17px 0 10px; }
+
+  .fix { background:#0F1A26; border:1px solid rgba(255,255,255,0.07); border-radius:20px; padding:12px 15px; display:flex; gap:12px; align-items:flex-start; }
+  .fix + .fix { margin-top:8px; }
+  .fix.hot { border-color:rgba(255,138,91,0.35); background:linear-gradient(135deg, rgba(255,138,91,0.11), rgba(255,138,91,0.02)); }
+  .f-ic { width:38px; height:38px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+  .f-t { font-size:14px; font-weight:850; }
+  .f-d { font-size:11.5px; color:#8FA1B4; line-height:1.45; margin-top:4px; font-weight:550; }
+  .f-m { margin-left:auto; text-align:right; flex-shrink:0; }
+  .f-n { font-size:20px; font-weight:900; letter-spacing:-0.9px; }
+  .f-u { font-size:9.5px; color:#5C6C80; font-weight:800; letter-spacing:0.8px; text-transform:uppercase; margin-top:2px; }
+
+  .send { margin-top:13px; height:52px; border-radius:50px; background:#3FD9E8; color:#05121A; display:flex; align-items:center; justify-content:center; gap:10px; font-size:15px; font-weight:900; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; z-index:50; height:92px; background:rgba(7,14,22,0.95); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:13px; border-top:1px solid rgba(255,255,255,0.07); }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; font-size:10.5px; color:#4E5E70; font-weight:750; }
+  .tab.on { color:#3FD9E8; }
+  .tab i { font-size:19px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">7:31</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons"><i class="fas fa-microchip" style="color:#3FD9E8"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-three-quarters" style="font-size:16px"></i></div>
+  </div>
+
+  <div class="nav">
+    <div>
+      <div class="nav-t">Double axel · rep 11</div>
+      <div class="nav-s">Under-rotated 0.09 · fell</div>
+    </div>
+    <div class="right">
+      <div class="ico"><i class="fas fa-arrows-left-right"></i></div>
+      <div class="ico"><i class="fas fa-share-nodes"></i></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="player">
+      <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786655484252-image-1.png" alt="">
+      <div class="pv"></div>
+
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%">
+        <g stroke="#7C6BFF" stroke-width="1.1" stroke-linecap="round" stroke-dasharray="3 2.5" opacity="0.85" transform="translate(2,0)">
+          <line x1="50" y1="26" x2="50" y2="52"/><line x1="41" y1="34" x2="59" y2="34"/>
+          <line x1="41" y1="34" x2="47" y2="45"/><line x1="59" y1="34" x2="53" y2="45"/>
+          <line x1="45" y1="52" x2="55" y2="52"/><line x1="45" y1="52" x2="44" y2="72"/><line x1="55" y1="52" x2="57" y2="72"/>
+          <line x1="44" y1="72" x2="46" y2="88"/><line x1="57" y1="72" x2="56" y2="88"/>
+        </g>
+        <g stroke="#3FD9E8" stroke-width="1.7" stroke-linecap="round">
+          <line x1="49" y1="26" x2="51" y2="52"/><line x1="40" y1="35" x2="59" y2="33"/>
+          <line x1="40" y1="35" x2="46" y2="46"/><line x1="59" y1="33" x2="53" y2="44"/>
+          <line x1="45" y1="52" x2="57" y2="53"/><line x1="45" y1="52" x2="41" y2="72"/><line x1="57" y1="53" x2="60" y2="71"/>
+          <line x1="41" y1="72" x2="44" y2="89"/><line x1="60" y1="71" x2="59" y2="87"/>
+        </g>
+        <g fill="#EAF2F8">
+          <circle cx="49" cy="23" r="2.4"/><circle cx="40" cy="35" r="1.8"/><circle cx="59" cy="33" r="1.8"/>
+          <circle cx="45" cy="52" r="1.8"/><circle cx="57" cy="53" r="1.8"/><circle cx="44" cy="89" r="1.6"/><circle cx="59" cy="87" r="1.6"/>
+        </g>
+        <circle cx="41" cy="72" r="3.4" fill="#FF8A5B"/>
+      </svg>
+
+      <div style="position:absolute;left:56%;top:66%;background:rgba(255,138,91,0.94);color:#1A0B04;font-size:10.5px;font-weight:900;padding:5px 10px;border-radius:7px">Knee 11° late</div>
+
+      <div class="ptag">
+        <div class="pt a">FRAME 0.42s</div>
+        <div class="pt">240 fps</div>
+      </div>
+      <div class="pbot">
+        <div class="ppl"><i class="fas fa-pause"></i></div>
+        <div class="ptime">0:00.42</div>
+        <div class="pbar"><i></i><b></b></div>
+        <div class="ptime">0:00.72</div>
+      </div>
+    </div>
+
+    <div class="lgd">
+      <div class="lgi"><span class="sw" style="background:#3FD9E8"></span> You</div>
+      <div class="lgi"><span class="sw" style="background:#7C6BFF"></span> Your clean rep, Feb 6</div>
+      <div class="lgi"><span class="sw" style="background:#FF8A5B"></span> Off target</div>
+    </div>
+
+    <div class="phase">
+      <div class="ph"><div class="ph-n">Entry</div><div class="ph-v">91</div></div>
+      <div class="ph"><div class="ph-n">Pick</div><div class="ph-v">84</div></div>
+      <div class="ph on"><div class="ph-n">Air</div><div class="ph-v bad">63</div></div>
+      <div class="ph"><div class="ph-n">Land</div><div class="ph-v bad">41</div></div>
+    </div>
+
+    <div class="sec-t">Three things to fix</div>
+
+    <div class="fix hot">
+      <div class="f-ic" style="background:rgba(255,138,91,0.18);color:#FF8A5B"><i class="fas fa-person-falling"></i></div>
+      <div>
+        <div class="f-t">Left hip opens early</div>
+        <div class="f-d">The check breaks 0.08 s before the pick. Rotation starts on the ice, not in the air.</div>
+      </div>
+      <div class="f-m"><div class="f-n" style="color:#FF8A5B">6.2°</div><div class="f-u">Off</div></div>
+    </div>
+
+    <div class="fix">
+      <div class="f-ic" style="background:rgba(63,217,232,0.14);color:#3FD9E8"><i class="fas fa-arrows-to-circle"></i></div>
+      <div>
+        <div class="f-t">Arms pull in late</div>
+        <div class="f-d">0.11 s slower than your clean rep. That is most of the missing quarter turn.</div>
+      </div>
+      <div class="f-m"><div class="f-n">0.11<span style="font-size:12px">s</span></div><div class="f-u">Late</div></div>
+    </div>
+
+    <div class="fix">
+      <div class="f-ic" style="background:rgba(124,107,255,0.15);color:#9E8FFF"><i class="fas fa-temperature-half"></i></div>
+      <div>
+        <div class="f-t">Soft ice cost you height</div>
+        <div class="f-d">Pick sank on take-off. Air time is down on every rep above −3.5°.</div>
+      </div>
+      <div class="f-m"><div class="f-n">−4<span style="font-size:12px">cm</span></div><div class="f-u">Height</div></div>
+    </div>
+
+    <div class="send">Send clip to Coach Bell <i class="fas fa-paper-plane" style="font-size:13px"></i></div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><i class="fas fa-snowflake"></i>Today</div>
+    <div class="tab on"><i class="fas fa-video"></i>Train</div>
+    <div class="tab"><i class="fas fa-route"></i>Trace</div>
+    <div class="tab"><i class="fas fa-shoe-prints"></i>Gear</div>
+    <div class="tab"><i class="fas fa-user"></i>Me</div>
+  </div>
+</body>
+</html>

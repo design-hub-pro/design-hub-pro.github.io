@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edgetrace - Drills</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; } * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#070E16; color:#EAF2F8; overflow:hidden; position:relative; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:700; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .nav { display:flex; align-items:center; padding:4px 28px 14px; }
+  .nav-t { font-size:29px; font-weight:900; letter-spacing:-1.2px; }
+  .nav-s { font-size:11.5px; color:#65758A; font-weight:700; margin-top:3px; }
+  .ico { margin-left:auto; width:40px; height:40px; border-radius:50%; background:#0F1A26; border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:14px; color:#B4C4D4; }
+
+  .chips { display:flex; gap:8px; padding:0 28px 14px; overflow-x:auto; }
+  .chip { flex-shrink:0; font-size:12px; font-weight:800; padding:9px 15px; border-radius:50px; background:#0F1A26; border:1px solid rgba(255,255,255,0.07); color:#8FA1B4; }
+  .chip.on { background:#3FD9E8; color:#05121A; border-color:transparent; }
+
+  .content { padding:0 28px 110px; }
+
+  .big { position:relative; border-radius:26px; overflow:hidden; height:216px; }
+  .big img { width:100%; height:100%; object-fit:cover; opacity:0.72; }
+  .big-ov { position:absolute; inset:0; background:linear-gradient(to top, rgba(5,10,17,0.95) 16%, rgba(5,10,17,0.2) 66%, transparent); padding:20px; display:flex; flex-direction:column; justify-content:space-between; }
+  .b-k { align-self:flex-start; display:inline-flex; align-items:center; gap:7px; font-size:10.5px; font-weight:850; letter-spacing:1.4px; text-transform:uppercase; color:#05121A; background:#FF8A5B; padding:6px 11px; border-radius:50px; }
+  .b-t { font-size:26px; font-weight:900; letter-spacing:-1.2px; line-height:1.08; }
+  .b-d { font-size:12.5px; color:#93A5B9; font-weight:650; margin-top:7px; }
+  .prow { display:flex; align-items:center; gap:12px; margin-top:14px; }
+  .pbar { flex:1; height:5px; border-radius:4px; background:rgba(255,255,255,0.2); overflow:hidden; }
+  .pbar i { display:block; height:100%; width:40%; background:#FF8A5B; border-radius:4px; }
+  .pn { font-size:11.5px; font-weight:850; color:#FF8A5B; }
+  .bplay { position:absolute; top:44%; left:50%; transform:translate(-50%,-50%); width:56px; height:56px; border-radius:50%; background:rgba(255,255,255,0.94); color:#05121A; display:flex; align-items:center; justify-content:center; font-size:18px; }
+
+  .sec { display:flex; justify-content:space-between; align-items:baseline; margin:18px 0 10px; }
+  .sec-t { font-size:19px; font-weight:850; letter-spacing:-0.5px; }
+  .sec-l { font-size:12.5px; color:#3FD9E8; font-weight:750; }
+
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .card { border-radius:21px; overflow:hidden; position:relative; height:140px; }
+  .card img { width:100%; height:100%; object-fit:cover; opacity:0.8; }
+  .card-ov { position:absolute; inset:0; background:linear-gradient(to top, rgba(5,10,17,0.94) 18%, transparent 62%); padding:14px; display:flex; flex-direction:column; justify-content:flex-end; }
+  .c-n { font-size:14px; font-weight:850; line-height:1.2; }
+  .c-m { font-size:10.5px; color:#8DA0B4; margin-top:4px; font-weight:700; }
+  .dur { position:absolute; top:11px; right:11px; background:rgba(5,10,17,0.75); font-size:10px; font-weight:850; padding:4px 8px; border-radius:20px; }
+  .flagpill { position:absolute; top:11px; left:11px; background:#3FD9E8; color:#05121A; font-size:9px; font-weight:900; letter-spacing:0.8px; padding:4px 8px; border-radius:20px; }
+  .play { position:absolute; top:42%; left:50%; transform:translate(-50%,-50%); width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,0.9); color:#05121A; display:flex; align-items:center; justify-content:center; font-size:12px; }
+  .mini-p { height:4px; border-radius:3px; background:rgba(255,255,255,0.22); margin-top:9px; overflow:hidden; }
+  .mini-p i { display:block; height:100%; border-radius:3px; background:#3FD9E8; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; z-index:50; height:92px; background:rgba(7,14,22,0.95); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:13px; border-top:1px solid rgba(255,255,255,0.07); }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; font-size:10.5px; color:#4E5E70; font-weight:750; }
+  .tab.on { color:#3FD9E8; }
+  .tab i { font-size:19px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">20:14</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full" style="font-size:16px"></i></div>
+  </div>
+
+  <div class="nav">
+    <div>
+      <div class="nav-t">Drills</div>
+      <div class="nav-s">Picked from what the pod saw this week</div>
+    </div>
+    <div class="ico"><i class="fas fa-magnifying-glass"></i></div>
+  </div>
+
+  <div class="chips">
+    <div class="chip on">For you</div>
+    <div class="chip">Jumps</div>
+    <div class="chip">Edges</div>
+    <div class="chip">Spins</div>
+    <div class="chip">Off ice</div>
+  </div>
+
+  <div class="content">
+    <div class="big">
+      <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786655483845-image-1.png" alt="">
+      <div class="bplay"><i class="fas fa-play"></i></div>
+      <div class="big-ov">
+        <div class="b-k"><i class="fas fa-bullseye"></i> Your fault this week</div>
+        <div>
+          <div class="b-t">Hold the check<br>until the pick lands</div>
+          <div class="b-d">Coach Bell · 4 exercises · 12 min</div>
+          <div class="prow">
+            <div class="pbar"><i></i></div>
+            <div class="pn">2 of 4</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec"><div class="sec-t">Because the ice is soft</div><div class="sec-l">Why</div></div>
+    <div class="grid">
+      <div class="card">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786655483556-image-1.png">
+        <div class="dur">1:52</div>
+        <div class="flagpill">−3.1°</div>
+        <div class="play"><i class="fas fa-play"></i></div>
+        <div class="card-ov"><div class="c-n">Early pick timing</div><div class="c-m">Soft ice · 3 reps</div></div>
+      </div>
+      <div class="card">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786655483704-image-1.png">
+        <div class="dur">2:31</div>
+        <div class="play"><i class="fas fa-play"></i></div>
+        <div class="card-ov"><div class="c-n">Reading fresh ice</div><div class="c-m">After a flood</div></div>
+      </div>
+    </div>
+
+    <div class="sec"><div class="sec-t">Keep going</div><div class="sec-l">Library</div></div>
+    <div class="grid">
+      <div class="card">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786655484252-image-1.png">
+        <div class="dur">3:40</div>
+        <div class="play"><i class="fas fa-play"></i></div>
+        <div class="card-ov"><div class="c-n">Spin centring</div><div class="c-m">1.1 m travel</div><div class="mini-p"><i style="width:66%"></i></div></div>
+      </div>
+      <div class="card">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786655486021-image-1.png">
+        <div class="dur">2:14</div>
+        <div class="play"><i class="fas fa-play"></i></div>
+        <div class="card-ov"><div class="c-n">Free leg check</div><div class="c-m">Landing</div><div class="mini-p"><i style="width:25%"></i></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><i class="fas fa-snowflake"></i>Today</div>
+    <div class="tab on"><i class="fas fa-video"></i>Train</div>
+    <div class="tab"><i class="fas fa-route"></i>Trace</div>
+    <div class="tab"><i class="fas fa-shoe-prints"></i>Gear</div>
+    <div class="tab"><i class="fas fa-user"></i>Me</div>
+  </div>
+</body>
+</html>

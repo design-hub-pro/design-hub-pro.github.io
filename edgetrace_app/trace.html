@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edgetrace - Rink trace</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; } * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#070E16; color:#EAF2F8; overflow:hidden; position:relative; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:700; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .nav { padding:4px 28px 12px; display:flex; align-items:center; }
+  .nav-t { font-size:27px; font-weight:900; letter-spacing:-1.1px; }
+  .nav-s { font-size:11.5px; color:#65758A; font-weight:700; margin-top:3px; display:flex; align-items:center; gap:7px; }
+  .gps { display:inline-flex; align-items:center; gap:5px; background:rgba(124,107,255,0.14); border:1px solid rgba(124,107,255,0.3); color:#9E8FFF; font-size:9.5px; font-weight:850; letter-spacing:0.7px; padding:3px 8px; border-radius:20px; }
+  .ico { margin-left:auto; width:40px; height:40px; border-radius:50%; background:#0F1A26; border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:14px; color:#B4C4D4; }
+
+  .chips { display:flex; gap:8px; padding:0 28px 14px; overflow-x:auto; }
+  .chip { flex-shrink:0; font-size:12px; font-weight:800; padding:9px 15px; border-radius:50px; background:#0F1A26; border:1px solid rgba(255,255,255,0.07); color:#8FA1B4; }
+  .chip.on { background:#3FD9E8; color:#05121A; border-color:transparent; }
+
+  .mapwrap { margin:0 28px; border-radius:28px; overflow:hidden; position:relative; height:566px; background:#0A131D; border:1px solid rgba(255,255,255,0.07); }
+  .mapwrap img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0.14; }
+  .mp { position:absolute; inset:0; }
+
+  .mtag { position:absolute; top:14px; left:14px; background:rgba(5,10,17,0.72); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); font-size:10px; font-weight:850; letter-spacing:1px; padding:6px 11px; border-radius:20px; color:#B4C4D4; }
+  .mlg { position:absolute; bottom:14px; left:14px; right:14px; display:flex; gap:13px; background:rgba(5,10,17,0.7); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:10px 13px; }
+  .mlgi { display:flex; align-items:center; gap:6px; font-size:10.5px; color:#8FA1B4; font-weight:750; }
+  .sw { width:12px; height:3.5px; border-radius:2px; }
+  .cd { width:9px; height:9px; border-radius:50%; }
+
+  .stats { display:flex; gap:10px; padding:14px 28px 0; }
+  .st { flex:1; background:#0F1A26; border:1px solid rgba(255,255,255,0.07); border-radius:20px; padding:14px 15px; }
+  .st-l { font-size:9.5px; font-weight:850; letter-spacing:1.1px; text-transform:uppercase; color:#5C6C80; }
+  .st-v { font-size:25px; font-weight:900; letter-spacing:-1.3px; margin-top:6px; line-height:1; }
+  .st-u { font-size:12px; color:#5C6C80; font-weight:750; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; z-index:50; height:92px; background:rgba(7,14,22,0.95); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:13px; border-top:1px solid rgba(255,255,255,0.07); }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; font-size:10.5px; color:#4E5E70; font-weight:750; }
+  .tab.on { color:#3FD9E8; }
+  .tab i { font-size:19px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">7:34</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons"><i class="fas fa-microchip" style="color:#3FD9E8"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-three-quarters" style="font-size:16px"></i></div>
+  </div>
+
+  <div class="nav">
+    <div>
+      <div class="nav-t">Your trace</div>
+      <div class="nav-s">Thu 6:30 patch <span class="gps"><i class="fas fa-tower-broadcast" style="font-size:8px"></i> GPS OFF · BOARD ANCHORS</span></div>
+    </div>
+    <div class="ico"><i class="fas fa-layer-group"></i></div>
+  </div>
+
+  <div class="chips">
+    <div class="chip on">Edge quality</div>
+    <div class="chip">Speed</div>
+    <div class="chip">Coverage</div>
+    <div class="chip">Jumps only</div>
+  </div>
+
+  <div class="mapwrap">
+    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786655483039-image-1.png" alt="">
+    <svg class="mp" viewBox="0 0 340 566" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="edge" x1="0" y1="1" x2="0.3" y2="0">
+          <stop offset="0%" stop-color="#4FE0A6"/>
+          <stop offset="34%" stop-color="#3FD9E8"/>
+          <stop offset="62%" stop-color="#7C6BFF"/>
+          <stop offset="86%" stop-color="#FF8A5B"/>
+          <stop offset="100%" stop-color="#FF5F6D"/>
+        </linearGradient>
+        <filter id="glow"><feGaussianBlur stdDeviation="3.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+
+      <!-- rink -->
+      <rect x="16" y="14" width="308" height="538" rx="82" fill="rgba(180,220,240,0.045)" stroke="rgba(180,220,240,0.28)" stroke-width="2"/>
+      <line x1="16" y1="283" x2="324" y2="283" stroke="rgba(180,220,240,0.13)" stroke-width="1.4"/>
+      <circle cx="170" cy="283" r="42" fill="none" stroke="rgba(180,220,240,0.13)" stroke-width="1.4"/>
+      <circle cx="92" cy="122" r="34" fill="none" stroke="rgba(180,220,240,0.09)" stroke-width="1.2"/>
+      <circle cx="248" cy="122" r="34" fill="none" stroke="rgba(180,220,240,0.09)" stroke-width="1.2"/>
+      <circle cx="92" cy="444" r="34" fill="none" stroke="rgba(180,220,240,0.09)" stroke-width="1.2"/>
+      <circle cx="248" cy="444" r="34" fill="none" stroke="rgba(180,220,240,0.09)" stroke-width="1.2"/>
+
+      <!-- anchors -->
+      <g fill="#9E8FFF">
+        <rect x="10" y="270" width="12" height="26" rx="4"/>
+        <rect x="318" y="270" width="12" height="26" rx="4"/>
+      </g>
+
+      <!-- trace -->
+      <g filter="url(#glow)" opacity="0.55">
+        <path d="M170 512 C112 505 70 462 76 410 C82 356 132 338 176 320 C226 298 246 250 210 218 C176 188 110 195 96 152 C84 112 128 72 178 62 C232 51 278 82 272 130 C268 168 232 188 204 208"
+              fill="none" stroke="url(#edge)" stroke-width="9" stroke-linecap="round"/>
+      </g>
+      <path d="M170 512 C112 505 70 462 76 410 C82 356 132 338 176 320 C226 298 246 250 210 218 C176 188 110 195 96 152 C84 112 128 72 178 62 C232 51 278 82 272 130 C268 168 232 188 204 208"
+            fill="none" stroke="url(#edge)" stroke-width="4" stroke-linecap="round"/>
+
+      <!-- spin spiral -->
+      <path d="M118 400 A26 26 0 1 1 116 400 A19 19 0 1 1 114.5 407 A12 12 0 1 1 113.5 414 A6 6 0 1 1 113 419"
+            fill="none" stroke="#3FD9E8" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
+      <circle cx="113" cy="419" r="3" fill="#3FD9E8"/>
+
+      <!-- markers -->
+      <g>
+        <circle cx="176" cy="320" r="11" fill="#0A131D" stroke="#4FE0A6" stroke-width="2.4"/>
+        <text x="176" y="324" fill="#4FE0A6" font-size="9" font-weight="800" font-family="Inter" text-anchor="middle">2F</text>
+
+        <circle cx="210" cy="218" r="11" fill="#0A131D" stroke="#3FD9E8" stroke-width="2.4"/>
+        <text x="210" y="222" fill="#3FD9E8" font-size="9" font-weight="800" font-family="Inter" text-anchor="middle">2A</text>
+
+        <circle cx="96" cy="152" r="11" fill="#0A131D" stroke="#7C6BFF" stroke-width="2.4"/>
+        <text x="96" y="156" fill="#9E8FFF" font-size="9" font-weight="800" font-family="Inter" text-anchor="middle">2Lz</text>
+
+        <circle cx="272" cy="130" r="13" fill="#FF5F6D"/>
+        <text x="272" y="134" fill="#1A0409" font-size="9" font-weight="900" font-family="Inter" text-anchor="middle">2A</text>
+        <text x="272" y="158" fill="#FF8A93" font-size="9.5" font-weight="800" font-family="Inter" text-anchor="middle">fell · rep 11</text>
+      </g>
+
+      <circle cx="170" cy="512" r="7" fill="#EAF2F8"/>
+      <text x="170" y="536" fill="#7C8CA0" font-size="10" font-weight="800" font-family="Inter" text-anchor="middle">START</text>
+    </svg>
+
+    <div class="mtag">LAP 6 OF 9 · 04:12</div>
+    <div class="mlg">
+      <div class="mlgi"><span class="sw" style="background:#4FE0A6"></span> Clean edge</div>
+      <div class="mlgi"><span class="sw" style="background:#FF8A5B"></span> Flat / scraped</div>
+      <div class="mlgi"><span class="cd" style="background:#9E8FFF"></span> Anchor tag</div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="st">
+      <div class="st-l">Distance</div>
+      <div class="st-v">4.2<span class="st-u">km</span></div>
+    </div>
+    <div class="st">
+      <div class="st-l">Top speed</div>
+      <div class="st-v">24.6<span class="st-u">km/h</span></div>
+    </div>
+    <div class="st">
+      <div class="st-l">Ice used</div>
+      <div class="st-v">71<span class="st-u">%</span></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><i class="fas fa-snowflake"></i>Today</div>
+    <div class="tab"><i class="fas fa-video"></i>Train</div>
+    <div class="tab on"><i class="fas fa-route"></i>Trace</div>
+    <div class="tab"><i class="fas fa-shoe-prints"></i>Gear</div>
+    <div class="tab"><i class="fas fa-user"></i>Me</div>
+  </div>
+</body>
+</html>

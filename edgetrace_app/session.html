@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edgetrace - Live session</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; } * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#05090F; color:#EAF2F8; overflow:hidden; position:relative; }
+
+  .cam { position:absolute; inset:0; }
+  .cam img { width:100%; height:100%; object-fit:cover; }
+  .vig { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(5,9,15,0.8) 0%, transparent 22%, transparent 52%, rgba(5,9,15,0.94) 82%, #05090F 100%); }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:700; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .topbar { position:relative; z-index:10; padding:12px 28px 0; display:flex; align-items:center; gap:9px; }
+  .chip { display:inline-flex; align-items:center; gap:7px; background:rgba(5,9,15,0.62); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.11); font-size:11.5px; font-weight:800; padding:8px 12px; border-radius:50px; }
+  .rec { background:rgba(255,95,109,0.2); border-color:rgba(255,95,109,0.45); color:#FF8A93; }
+  .blip { width:8px; height:8px; border-radius:50%; background:#FF5F6D; box-shadow:0 0 9px #FF5F6D; }
+  .close { margin-left:auto; width:36px; height:36px; border-radius:50%; background:rgba(5,9,15,0.62); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.11); display:flex; align-items:center; justify-content:center; font-size:13px; }
+
+  /* tracking overlay */
+  .track { position:absolute; left:36%; top:31%; width:30%; height:31%; z-index:8; }
+  .brk { position:absolute; width:22px; height:22px; border-color:#3FD9E8; }
+  .b1 { top:0; left:0; border-top:2.5px solid; border-left:2.5px solid; border-radius:5px 0 0 0; }
+  .b2 { top:0; right:0; border-top:2.5px solid; border-right:2.5px solid; border-radius:0 5px 0 0; }
+  .b3 { bottom:0; left:0; border-bottom:2.5px solid; border-left:2.5px solid; border-radius:0 0 0 5px; }
+  .b4 { bottom:0; right:0; border-bottom:2.5px solid; border-right:2.5px solid; border-radius:0 0 5px 0; }
+  .tlbl { position:absolute; top:-26px; left:0; background:#3FD9E8; color:#05121A; font-size:10px; font-weight:900; letter-spacing:1px; padding:4px 8px; border-radius:5px; }
+
+  .flag { position:absolute; z-index:9; display:flex; align-items:center; gap:7px; background:rgba(255,138,91,0.92); color:#1A0B04; font-size:11px; font-weight:900; padding:6px 11px; border-radius:50px; white-space:nowrap; }
+  .flag::after { content:''; position:absolute; left:-16px; top:50%; width:16px; height:1.5px; background:rgba(255,138,91,0.7); }
+
+  .angle { position:absolute; z-index:9; background:rgba(5,9,15,0.7); backdrop-filter:blur(8px); border:1px solid rgba(63,217,232,0.35); color:#3FD9E8; font-size:11px; font-weight:850; padding:5px 10px; border-radius:8px; }
+
+  .cue { position:absolute; left:28px; right:28px; bottom:296px; z-index:12; background:rgba(255,138,91,0.16); backdrop-filter:blur(16px); border:1px solid rgba(255,138,91,0.42); border-radius:22px; padding:15px 17px; display:flex; gap:13px; align-items:center; }
+  .cue-ic { width:38px; height:38px; border-radius:13px; background:#FF8A5B; color:#1A0B04; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+  .cue-t { font-size:14px; font-weight:850; }
+  .cue-d { font-size:11.5px; color:#D7C0B2; margin-top:3px; font-weight:650; }
+  .cue-n { margin-left:auto; font-size:10px; font-weight:900; color:#FF8A5B; letter-spacing:1px; }
+
+  .panel { position:absolute; left:0; right:0; bottom:0; z-index:14; padding:20px 28px 26px; background:linear-gradient(to top, #070E16 62%, rgba(7,14,22,0.9) 100%); }
+  .stats { display:flex; gap:10px; }
+  .st { flex:1; background:#0F1A26; border:1px solid rgba(255,255,255,0.07); border-radius:20px; padding:13px 14px; }
+  .st-l { font-size:9.5px; font-weight:850; letter-spacing:1.1px; text-transform:uppercase; color:#5C6C80; }
+  .st-v { font-size:26px; font-weight:900; letter-spacing:-1.4px; margin-top:6px; line-height:1; }
+  .st-u { font-size:11px; color:#5C6C80; font-weight:750; }
+
+  .ctrl { display:flex; align-items:center; justify-content:space-between; margin-top:20px; }
+  .side { width:54px; height:54px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; font-size:17px; color:#B4C4D4; }
+  .shutter { width:80px; height:80px; border-radius:50%; border:4px solid rgba(255,255,255,0.28); display:flex; align-items:center; justify-content:center; }
+  .shutter-in { width:32px; height:32px; border-radius:9px; background:#FF5F6D; }
+  .mini { width:54px; height:54px; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.14); position:relative; background:#0F1A26; }
+</style>
+</head>
+<body>
+  <div class="cam">
+    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786655483845-image-1.png" alt="">
+    <div class="vig"></div>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-time">6:58</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons"><i class="fas fa-microchip" style="color:#3FD9E8"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-three-quarters" style="font-size:16px"></i></div>
+  </div>
+
+  <div class="topbar">
+    <div class="chip rec"><span class="blip"></span> 12:04</div>
+    <div class="chip"><i class="fas fa-temperature-half" style="color:#3FD9E8"></i> −3.1°</div>
+    <div class="chip"><i class="fas fa-bolt" style="color:#9E8FFF"></i> 240 fps</div>
+    <div class="close"><i class="fas fa-xmark"></i></div>
+  </div>
+
+  <div class="track">
+    <div class="brk b1"></div><div class="brk b2"></div><div class="brk b3"></div><div class="brk b4"></div>
+    <div class="tlbl">2A · AIR</div>
+    <svg width="100%" height="100%" viewBox="0 0 100 100" style="position:absolute;inset:0">
+      <g stroke="#3FD9E8" stroke-width="1.6" stroke-linecap="round" opacity="0.95">
+        <line x1="50" y1="20" x2="50" y2="47"/>
+        <line x1="38" y1="30" x2="62" y2="30"/>
+        <line x1="38" y1="30" x2="46" y2="41"/>
+        <line x1="62" y1="30" x2="54" y2="41"/>
+        <line x1="43" y1="47" x2="57" y2="47"/>
+        <line x1="43" y1="47" x2="36" y2="66"/>
+        <line x1="57" y1="47" x2="60" y2="66"/>
+        <line x1="36" y1="66" x2="48" y2="80"/>
+        <line x1="60" y1="66" x2="52" y2="82"/>
+      </g>
+      <g fill="#EAF2F8">
+        <circle cx="50" cy="17" r="3"/><circle cx="38" cy="30" r="2.4"/><circle cx="62" cy="30" r="2.4"/>
+        <circle cx="46" cy="41" r="2.2"/><circle cx="54" cy="41" r="2.2"/>
+        <circle cx="43" cy="47" r="2.4"/><circle cx="57" cy="47" r="2.4"/>
+        <circle cx="60" cy="66" r="2.4"/><circle cx="48" cy="80" r="2.2"/><circle cx="52" cy="82" r="2.2"/>
+      </g>
+      <circle cx="36" cy="66" r="4.6" fill="#FF8A5B"/>
+    </svg>
+  </div>
+
+  <div class="angle" style="left:69%; top:38%">Hips 6.2° off</div>
+  <div class="flag" style="left:69%; top:52%"><i class="fas fa-circle" style="font-size:6px"></i> Left hip open</div>
+
+  <div class="cue">
+    <div class="cue-ic"><i class="fas fa-person-falling"></i></div>
+    <div>
+      <div class="cue-t">Left hip opens before the pick</div>
+      <div class="cue-d">Third time this patch. Hold the check a beat longer.</div>
+    </div>
+    <div class="cue-n">3×</div>
+  </div>
+
+  <div class="panel">
+    <div class="stats">
+      <div class="st">
+        <div class="st-l">Jumps</div>
+        <div class="st-v">14</div>
+        <div class="st-u">9 clean</div>
+      </div>
+      <div class="st">
+        <div class="st-l">Air time</div>
+        <div class="st-v">0.61<span class="st-u">s</span></div>
+        <div class="st-u">Best 0.66</div>
+      </div>
+      <div class="st">
+        <div class="st-l">Rotation</div>
+        <div class="st-v" style="color:#FF8A5B">2.41</div>
+        <div class="st-u">Short 0.09</div>
+      </div>
+    </div>
+
+    <div class="ctrl">
+      <div class="side"><i class="fas fa-flag"></i></div>
+      <div class="shutter"><div class="shutter-in"></div></div>
+      <div class="mini">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786655483039-image-1.png" style="width:100%;height:100%;object-fit:cover;opacity:0.5">
+        <svg viewBox="0 0 54 54" style="position:absolute;inset:0"><path d="M14 38 C10 26, 22 12, 32 18 S 44 36, 30 42" fill="none" stroke="#3FD9E8" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

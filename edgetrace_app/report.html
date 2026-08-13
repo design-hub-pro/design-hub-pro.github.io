@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edgetrace - Session report</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; } * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#070E16; color:#EAF2F8; overflow:hidden; position:relative; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:absolute; top:0; left:0; right:0; z-index:100; }
+  .status-time { font-size:17px; font-weight:700; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .hero { position:relative; height:250px; }
+  .hero img { width:100%; height:100%; object-fit:cover; opacity:0.5; }
+  .hero-ov { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(7,14,22,0.6) 0%, rgba(7,14,22,0.2) 34%, rgba(7,14,22,0.92) 80%, #070E16 100%); padding:68px 28px 14px; display:flex; flex-direction:column; justify-content:space-between; }
+  .back { display:flex; align-items:center; gap:10px; font-size:13px; font-weight:750; color:#B4C4D4; }
+  .kick { font-size:11px; font-weight:850; letter-spacing:1.7px; text-transform:uppercase; color:#3FD9E8; }
+  .ttl { font-size:30px; font-weight:900; letter-spacing:-1.4px; line-height:1.05; margin-top:7px; }
+  .row-s { display:flex; gap:18px; margin-top:13px; }
+  .rs { }
+  .rs-v { font-size:22px; font-weight:900; letter-spacing:-1px; }
+  .rs-l { font-size:10px; font-weight:800; letter-spacing:1.1px; text-transform:uppercase; color:#6E7E92; margin-top:3px; }
+
+  .content { padding:0 28px 110px; }
+
+  .score { background:#0F1A26; border:1px solid rgba(255,255,255,0.07); border-radius:24px; padding:16px 18px; display:flex; align-items:center; gap:16px; }
+  .ring { width:86px; height:86px; flex-shrink:0; position:relative; }
+  .ring-n { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .ring-v { font-size:28px; font-weight:900; letter-spacing:-1.4px; line-height:1; }
+  .ring-l { font-size:9px; font-weight:850; letter-spacing:1px; color:#5C6C80; margin-top:3px; }
+  .sc-t { font-size:16px; font-weight:850; }
+  .sc-d { font-size:12.5px; color:#8FA1B4; line-height:1.5; margin-top:6px; font-weight:550; }
+
+  .sec { display:flex; justify-content:space-between; align-items:baseline; margin:17px 0 10px; }
+  .sec-t { font-size:19px; font-weight:850; letter-spacing:-0.5px; }
+  .sec-l { font-size:12.5px; color:#3FD9E8; font-weight:750; }
+
+  .jr { display:flex; align-items:center; gap:13px; padding:11px 15px; background:#0C1621; border:1px solid rgba(255,255,255,0.055); border-radius:19px; }
+  .jr + .jr { margin-top:7px; }
+  .jn { width:34px; height:34px; border-radius:11px; background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; color:#8FA1B4; flex-shrink:0; }
+  .jt { font-size:13.5px; font-weight:850; }
+  .jd { font-size:11px; color:#65758A; font-weight:700; margin-top:2px; }
+  .jbar { flex:1; height:6px; border-radius:4px; background:rgba(255,255,255,0.07); position:relative; overflow:hidden; }
+  .jbar i { position:absolute; left:0; top:0; bottom:0; border-radius:4px; }
+  .jbar b { position:absolute; top:-3px; width:2px; height:12px; background:rgba(255,255,255,0.55); left:83%; }
+  .jres { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; }
+
+  .chg { background:linear-gradient(135deg, rgba(63,217,232,0.12), rgba(124,107,255,0.06)); border:1px solid rgba(63,217,232,0.26); border-radius:22px; padding:16px 18px; }
+  .chg-t { font-size:15px; font-weight:850; }
+  .li { display:flex; gap:10px; align-items:flex-start; margin-top:11px; }
+  .li i { color:#3FD9E8; font-size:12px; margin-top:3px; }
+  .li span { font-size:12.5px; color:#A9BACC; line-height:1.5; font-weight:550; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; z-index:50; height:92px; background:rgba(7,14,22,0.95); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:13px; border-top:1px solid rgba(255,255,255,0.07); }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; font-size:10.5px; color:#4E5E70; font-weight:750; }
+  .tab.on { color:#3FD9E8; }
+  .tab i { font-size:19px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">7:28</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons"><i class="fas fa-microchip" style="color:#3FD9E8"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-three-quarters" style="font-size:16px"></i></div>
+  </div>
+
+  <div class="hero">
+    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786655486021-image-1.png" alt="">
+    <div class="hero-ov">
+      <div class="back"><i class="fas fa-chevron-left"></i> Sessions</div>
+      <div>
+        <div class="kick">Thursday · 6:30 patch</div>
+        <div class="ttl">62 minutes<br>on the ice</div>
+        <div class="row-s">
+          <div class="rs"><div class="rs-v">14</div><div class="rs-l">Jumps</div></div>
+          <div class="rs"><div class="rs-v" style="color:#4FE0A6">9</div><div class="rs-l">Clean</div></div>
+          <div class="rs"><div class="rs-v">4.2<span style="font-size:13px">km</span></div><div class="rs-l">Distance</div></div>
+          <div class="rs"><div class="rs-v">−3.1°</div><div class="rs-l">Ice</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="score">
+      <div class="ring">
+        <svg width="86" height="86" viewBox="0 0 86 86">
+          <circle cx="43" cy="43" r="36" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8"/>
+          <circle cx="43" cy="43" r="36" fill="none" stroke="#3FD9E8" stroke-width="8" stroke-linecap="round"
+                  stroke-dasharray="226" stroke-dashoffset="59" transform="rotate(-90 43 43)"/>
+        </svg>
+        <div class="ring-n"><div class="ring-v">74</div><div class="ring-l">SESSION</div></div>
+      </div>
+      <div>
+        <div class="sc-t">Good patch on soft ice</div>
+        <div class="sc-d">Entries held up. Everything fell apart in the air position, and it was the same fault every time.</div>
+      </div>
+    </div>
+
+    <div class="sec"><div class="sec-t">Jump ledger</div><div class="sec-l">14 reps</div></div>
+
+    <div class="jr">
+      <div class="jn">11</div>
+      <div style="width:64px"><div class="jt">2A</div><div class="jd">0.61 s air</div></div>
+      <div class="jbar"><i style="width:74%;background:linear-gradient(90deg,#FF8A5B,#FFB07B)"></i><b></b></div>
+      <div class="jres" style="background:rgba(255,95,109,0.18);color:#FF5F6D"><i class="fas fa-xmark"></i></div>
+    </div>
+    <div class="jr">
+      <div class="jn">10</div>
+      <div style="width:64px"><div class="jt">2A</div><div class="jd">0.64 s air</div></div>
+      <div class="jbar"><i style="width:86%;background:linear-gradient(90deg,#3FD9E8,#7FE8F2)"></i><b></b></div>
+      <div class="jres" style="background:rgba(79,224,166,0.16);color:#4FE0A6"><i class="fas fa-check"></i></div>
+    </div>
+    <div class="jr">
+      <div class="jn">09</div>
+      <div style="width:64px"><div class="jt">2Lz</div><div class="jd">0.58 s air</div></div>
+      <div class="jbar"><i style="width:91%;background:linear-gradient(90deg,#3FD9E8,#7FE8F2)"></i><b></b></div>
+      <div class="jres" style="background:rgba(79,224,166,0.16);color:#4FE0A6"><i class="fas fa-check"></i></div>
+    </div>
+
+    <div class="sec"><div class="sec-t">What changed</div><div class="sec-l">vs Tuesday</div></div>
+    <div class="chg">
+      <div class="chg-t">One fault, eleven times</div>
+      <div class="li"><i class="fas fa-arrow-trend-up"></i><span>Entry edge scores are up 7 points. Tuesday's drill worked.</span></div>
+      <div class="li"><i class="fas fa-arrow-trend-down"></i><span>Air position dropped 12 points. The left hip opens early on every failed rep.</span></div>
+      <div class="li"><i class="fas fa-snowflake"></i><span>Ice was 1.6° warmer than Tuesday. Air time fell about 5% across the board.</span></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><i class="fas fa-snowflake"></i>Today</div>
+    <div class="tab on"><i class="fas fa-video"></i>Train</div>
+    <div class="tab"><i class="fas fa-route"></i>Trace</div>
+    <div class="tab"><i class="fas fa-shoe-prints"></i>Gear</div>
+    <div class="tab"><i class="fas fa-user"></i>Me</div>
+  </div>
+</body>
+</html>
