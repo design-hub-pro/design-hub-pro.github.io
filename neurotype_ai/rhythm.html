@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuroType - Piano Rows</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; } * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#15120E; color:#fff; overflow-x:hidden; position:relative; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:absolute; top:0; left:0; right:0; z-index:100; }
+  .status-time { font-size:17px; font-weight:700; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .scene { position:relative; height:300px; overflow:hidden; }
+  .scene img { width:100%; height:100%; object-fit:cover; }
+  .scene-ov { position:absolute; inset:0; background:linear-gradient(to top, #15120E 5%, rgba(21,18,14,0.30) 58%, rgba(21,18,14,0.60) 100%); }
+
+  .top { position:absolute; top:66px; left:28px; right:28px; display:flex; align-items:center; gap:14px; z-index:20; }
+  .x { width:42px; height:42px; border-radius:50%; background:rgba(0,0,0,0.34); backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center; font-size:15px; }
+  .bpm { margin-left:auto; display:flex; align-items:center; gap:9px; background:rgba(0,0,0,0.36); backdrop-filter:blur(10px); padding:9px 15px; border-radius:50px; font-size:14px; font-weight:800; }
+  .bpm i { color:#E5A94F; font-size:12px; }
+
+  .title { position:absolute; top:250px; left:28px; right:28px; z-index:20; }
+  .t-l { font-size:11px; font-weight:850; letter-spacing:1.6px; text-transform:uppercase; color:#E5A94F; }
+  .t-t { font-size:25px; font-weight:900; letter-spacing:-0.8px; margin-top:7px; }
+
+  .content { position:relative; padding:26px 28px 0; }
+
+  .lane { background:rgba(255,255,255,0.055); border:1px solid rgba(255,255,255,0.08); border-radius:22px; padding:16px 18px 18px; }
+  .lane-h { display:flex; justify-content:space-between; align-items:baseline; }
+  .lane-l { font-size:10.5px; font-weight:850; letter-spacing:1.3px; text-transform:uppercase; color:rgba(255,255,255,0.42); }
+  .lane-r { font-size:11.5px; font-weight:750; color:#E5A94F; }
+  .track { margin-top:16px; height:96px; position:relative; }
+
+  .stats { display:flex; gap:10px; margin-top:13px; }
+  .st { flex:1; border-radius:20px; padding:15px 15px 16px; }
+  .s1 { background:linear-gradient(150deg,#3E8F55,#1F5231); }
+  .s2 { background:linear-gradient(150deg,#B8792A,#6D4110); }
+  .s3 { background:linear-gradient(150deg,#4E4796,#2A2461); }
+  .st i { font-size:13px; opacity:0.82; }
+  .st-v { font-size:30px; font-weight:900; letter-spacing:-1.4px; margin-top:9px; line-height:1; }
+  .st-v span { font-size:13px; font-weight:700; letter-spacing:0; opacity:0.65; }
+  .st-l { font-size:10.5px; font-weight:650; opacity:0.82; margin-top:6px; line-height:1.35; }
+
+  .note { margin-top:13px; background:rgba(78,71,150,0.16); border:1px solid rgba(120,110,220,0.30); border-radius:18px; padding:14px 16px; display:flex; align-items:center; gap:12px; }
+  .note i { color:#A79BF0; font-size:15px; }
+  .note-t { font-size:13.5px; font-weight:700; line-height:1.4; }
+  .note-t span { color:rgba(255,255,255,0.5); font-weight:500; }
+
+  .piano { position:absolute; bottom:0; left:0; right:0; height:180px; background:#1E1A15; border-radius:26px 26px 0 0; padding:20px 14px 26px; display:flex; gap:6px; }
+  .wk { flex:1; background:linear-gradient(180deg,#F4F0E7,#D9D3C6); border-radius:6px 6px 12px 12px; position:relative; box-shadow:0 3px 0 rgba(0,0,0,0.35); }
+  .wk.hit { background:linear-gradient(180deg,#E5A94F,#C4842B); }
+  .wk span { position:absolute; bottom:14px; left:0; right:0; text-align:center; font-size:14px; font-weight:800; color:#6B6355; }
+  .wk.hit span { color:#3A2A10; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">16:12</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full" style="font-size:16px"></i></div>
+  </div>
+
+  <div class="scene">
+    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786642743503-image-1.png" alt="">
+    <div class="scene-ov"></div>
+  </div>
+
+  <div class="top">
+    <div class="x"><i class="fas fa-xmark"></i></div>
+    <div class="bpm"><i class="fas fa-metronome"></i><i class="fas fa-music"></i> 72 bpm</div>
+  </div>
+
+  <div class="title">
+    <div class="t-l">Piano Rows · Bar 12 of 32</div>
+    <div class="t-t">Follow the beat, not the score</div>
+  </div>
+
+  <div class="content">
+    <div class="lane">
+      <div class="lane-h">
+        <div class="lane-l">Your taps against the beat</div>
+        <div class="lane-r">±38 ms</div>
+      </div>
+      <svg class="track" viewBox="0 0 340 96" preserveAspectRatio="none">
+        <line x1="0" y1="48" x2="340" y2="48" stroke="rgba(255,255,255,0.14)" stroke-width="1.5" stroke-dasharray="4 5"/>
+        <g fill="rgba(255,255,255,0.22)">
+          <rect x="14" y="42" width="3" height="12" rx="1.5"/><rect x="54" y="42" width="3" height="12" rx="1.5"/>
+          <rect x="94" y="42" width="3" height="12" rx="1.5"/><rect x="134" y="42" width="3" height="12" rx="1.5"/>
+          <rect x="174" y="42" width="3" height="12" rx="1.5"/><rect x="214" y="42" width="3" height="12" rx="1.5"/>
+          <rect x="254" y="42" width="3" height="12" rx="1.5"/><rect x="294" y="42" width="3" height="12" rx="1.5"/>
+          <rect x="334" y="42" width="3" height="12" rx="1.5"/>
+        </g>
+        <path d="M15,40 L21,28 M55,56 L48,70 M95,40 L99,30 M135,56 L131,64 M175,40 L184,22 M215,56 L211,62 M255,40 L258,34 M295,56 L288,68"
+              stroke="rgba(255,255,255,0.16)" stroke-width="1.5"/>
+        <g>
+          <circle cx="21" cy="28" r="6.5" fill="#5FCB9B"/>
+          <circle cx="48" cy="70" r="6.5" fill="#5FCB9B"/>
+          <circle cx="99" cy="30" r="6.5" fill="#5FCB9B"/>
+          <circle cx="131" cy="64" r="6.5" fill="#5FCB9B"/>
+          <circle cx="184" cy="22" r="6.5" fill="#E5A94F"/>
+          <circle cx="211" cy="62" r="6.5" fill="#5FCB9B"/>
+          <circle cx="258" cy="34" r="6.5" fill="#5FCB9B"/>
+          <circle cx="288" cy="68" r="6.5" fill="#E5A94F"/>
+        </g>
+        <text x="0" y="12" fill="rgba(255,255,255,0.3)" font-size="8" font-family="Inter" font-weight="700">EARLY</text>
+        <text x="0" y="92" fill="rgba(255,255,255,0.3)" font-size="8" font-family="Inter" font-weight="700">LATE</text>
+      </svg>
+    </div>
+
+    <div class="stats">
+      <div class="st s1">
+        <i class="fas fa-bullseye"></i>
+        <div class="st-v">81<span>%</span></div>
+        <div class="st-l">On the beat</div>
+      </div>
+      <div class="st s2">
+        <i class="fas fa-arrows-left-right"></i>
+        <div class="st-v">38<span>ms</span></div>
+        <div class="st-l">Timing spread</div>
+      </div>
+      <div class="st s3">
+        <i class="fas fa-hand"></i>
+        <div class="st-v">1.3<span>×</span></div>
+        <div class="st-l">Right slower than left</div>
+      </div>
+    </div>
+
+    <div class="note">
+      <i class="fas fa-wand-magic-sparkles"></i>
+      <div class="note-t">Tempo dropped to 72 bpm.<br><span>You were drifting late after bar 8. Slower is not worse.</span></div>
+    </div>
+  </div>
+
+  <div class="piano">
+    <div class="wk"><span>C</span></div>
+    <div class="wk"><span>D</span></div>
+    <div class="wk hit"><span>E</span></div>
+    <div class="wk"><span>F</span></div>
+    <div class="wk"><span>G</span></div>
+    <div class="wk"><span>A</span></div>
+    <div class="wk"><span>B</span></div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuroType - Today</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; } * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#F3F1EC; color:#191C21; overflow-x:hidden; position:relative; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:700; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .content { padding:0 28px 110px; }
+
+  .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  .greet { font-size:13.5px; color:#8A9099; font-weight:600; }
+  .name { font-size:29px; font-weight:900; letter-spacing:-1px; margin-top:2px; }
+  .avatar { width:52px; height:52px; border-radius:50%; object-fit:cover; border:2.5px solid #fff; box-shadow:0 3px 10px rgba(0,0,0,0.10); }
+
+  .score { background:#fff; border:1px solid #E7E3DA; border-radius:26px; padding:20px 22px 18px; }
+  .score-h { display:flex; justify-content:space-between; align-items:flex-start; }
+  .score-l { font-size:11px; font-weight:850; letter-spacing:1.5px; text-transform:uppercase; color:#8A9099; }
+  .chg { font-size:12.5px; font-weight:800; color:#2E9E6B; background:#E6F4ED; padding:6px 10px; border-radius:9px; }
+  .score-row { display:flex; align-items:flex-end; gap:14px; margin-top:8px; }
+  .score-n { font-size:60px; font-weight:900; letter-spacing:-3.4px; line-height:0.9; }
+  .score-of { font-size:15px; color:#9CA0A8; font-weight:700; padding-bottom:7px; }
+  .spark { margin-top:14px; height:52px; }
+  .score-f { font-size:13.5px; color:#5D636D; margin-top:11px; line-height:1.5; }
+  .score-f b { color:#191C21; font-weight:750; }
+  .streak-row { display:flex; align-items:center; gap:14px; margin-top:15px; padding-top:15px; border-top:1px solid #F0EDE6; }
+  .streak-n { font-size:26px; font-weight:900; letter-spacing:-1.2px; line-height:1; color:#D98E33; }
+  .streak-l { font-size:11.5px; color:#8A9099; font-weight:650; margin-top:4px; }
+  .week { display:flex; gap:7px; margin-left:auto; }
+  .d { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; }
+  .d.on { background:#0E7A72; color:#fff; }
+  .d.half { background:#B8DCD8; color:#0A5952; }
+  .d.off { background:#EDEAE3; color:#B4B8BF; }
+
+  .sec { display:flex; justify-content:space-between; align-items:baseline; margin:15px 0 10px; }
+  .sec-t { font-size:19px; font-weight:850; letter-spacing:-0.4px; }
+  .sec-l { font-size:13.5px; color:#0E7A72; font-weight:750; }
+
+  .today { position:relative; border-radius:26px; overflow:hidden; height:176px; }
+  .today img { width:100%; height:100%; object-fit:cover; }
+  .today-ov { position:absolute; inset:0; background:linear-gradient(to top, rgba(24,20,16,0.94) 12%, rgba(24,20,16,0.30) 62%, transparent 100%); padding:20px 22px; display:flex; flex-direction:column; justify-content:flex-end; color:#fff; }
+  .today-tag { display:inline-flex; align-items:center; gap:7px; font-size:11px; font-weight:850; letter-spacing:1.4px; text-transform:uppercase; color:#F0BC72; }
+  .today-t { font-size:23px; font-weight:850; letter-spacing:-0.6px; margin-top:8px; line-height:1.2; }
+  .today-b { display:flex; align-items:center; gap:10px; margin-top:13px; }
+  .pill { font-size:12.5px; font-weight:700; padding:7px 13px; border-radius:50px; background:rgba(255,255,255,0.18); backdrop-filter:blur(8px); }
+  .go { margin-left:auto; width:48px; height:48px; border-radius:50%; background:#fff; color:#191C21; display:flex; align-items:center; justify-content:center; font-size:17px; }
+
+  .rail { display:flex; gap:13px; overflow-x:auto; margin:0 -28px; padding:0 28px 2px; }
+  .card { min-width:152px; width:152px; height:132px; border-radius:22px; overflow:hidden; position:relative; flex-shrink:0; }
+  .card img { width:100%; height:100%; object-fit:cover; }
+  .card-ov { position:absolute; inset:0; background:linear-gradient(to top, rgba(22,20,17,0.90) 14%, transparent 62%); padding:13px; display:flex; flex-direction:column; justify-content:flex-end; color:#fff; }
+  .card-n { font-size:14px; font-weight:800; line-height:1.2; }
+  .card-m { font-size:11px; opacity:0.66; margin-top:3px; }
+  .dur { position:absolute; top:10px; right:10px; background:rgba(20,18,15,0.72); color:#fff; font-size:10px; font-weight:800; padding:4px 8px; border-radius:20px; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(255,255,255,0.97); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:13px; border-top:1px solid #E5E1D8; }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; font-size:11px; color:#A0A4AC; font-weight:650; }
+  .tab.on { color:#0E7A72; }
+  .tab i { font-size:20px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">8:41</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full" style="font-size:16px"></i></div>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <div>
+        <div class="greet">Thursday, 13 August</div>
+        <div class="name">Morning, Robert</div>
+      </div>
+      <img class="avatar" src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786642761488-image-1.png" alt="">
+    </div>
+
+    <div class="score">
+      <div class="score-h">
+        <div class="score-l">Motor index · 30-day</div>
+        <div class="chg"><i class="fas fa-arrow-up" style="font-size:10px"></i> 3 pts</div>
+      </div>
+      <div class="score-row">
+        <div class="score-n">71</div>
+        <div class="score-of">of 100</div>
+      </div>
+      <svg class="spark" viewBox="0 0 340 52" preserveAspectRatio="none">
+        <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#0E7A72" stop-opacity="0.22"/><stop offset="100%" stop-color="#0E7A72" stop-opacity="0"/>
+        </linearGradient></defs>
+        <path d="M0,34 C28,36 42,29 68,31 C96,33 108,24 136,27 C164,30 176,20 204,22 C232,24 246,15 272,17 C298,19 316,11 340,13 L340,52 L0,52 Z" fill="url(#g)"/>
+        <path d="M0,34 C28,36 42,29 68,31 C96,33 108,24 136,27 C164,30 176,20 204,22 C232,24 246,15 272,17 C298,19 316,11 340,13" fill="none" stroke="#0E7A72" stroke-width="2.6" stroke-linecap="round"/>
+        <circle cx="340" cy="13" r="4.5" fill="#0E7A72"/>
+      </svg>
+      <div class="score-f">Steadier than last month. Mornings before your 8 am dose still run <b>slower</b>.</div>
+      <div class="streak-row">
+        <div>
+          <div class="streak-n">24</div>
+          <div class="streak-l">days in a row</div>
+        </div>
+        <div class="week">
+          <div class="d on">M</div><div class="d on">T</div><div class="d on">W</div>
+          <div class="d half">T</div><div class="d off">F</div><div class="d off">S</div><div class="d off">S</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec"><div class="sec-t">Today</div><div class="sec-l">Change</div></div>
+    <div class="today">
+      <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786642723448-image-1.png" alt="">
+      <div class="today-ov">
+        <div class="today-tag"><i class="fas fa-envelope"></i> Postcards</div>
+        <div class="today-t">Write to Ellen from<br>the Amalfi coast</div>
+        <div class="today-b">
+          <span class="pill">3 min</span>
+          <span class="pill">42 words</span>
+          <div class="go"><i class="fas fa-play"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec"><div class="sec-t">Also today</div><div class="sec-l">All activities</div></div>
+    <div class="rail">
+      <div class="card">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786642716842-image-1.png" alt="">
+        <div class="dur">4 min</div>
+        <div class="card-ov"><div class="card-n">Word Garden</div><div class="card-m">6 beds to water</div></div>
+      </div>
+      <div class="card">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786642743503-image-1.png" alt="">
+        <div class="dur">2 min</div>
+        <div class="card-ov"><div class="card-n">Piano Rows</div><div class="card-m">New tempo</div></div>
+      </div>
+      <div class="card">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786642729785-image-1.png" alt="">
+        <div class="dur">5 min</div>
+        <div class="card-ov"><div class="card-n">Kitchen Table</div><div class="card-m">Ellen's recipe</div></div>
+      </div>
+      <div class="card">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786642768619-image-1.png" alt="">
+        <div class="dur">6 min</div>
+        <div class="card-ov"><div class="card-n">Crossword</div><div class="card-m">Thursday set</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab on"><i class="fas fa-house"></i>Today</div>
+    <div class="tab"><i class="fas fa-puzzle-piece"></i>Play</div>
+    <div class="tab"><i class="fas fa-chart-line"></i>Trends</div>
+    <div class="tab"><i class="fas fa-user-doctor"></i>Care</div>
+    <div class="tab"><i class="fas fa-gear"></i>Me</div>
+  </div>
+</body>
+</html>

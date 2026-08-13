@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuroType - Word Garden</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; } * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#1B2118; color:#fff; overflow-x:hidden; position:relative; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:absolute; top:0; left:0; right:0; z-index:100; color:#fff; }
+  .status-time { font-size:17px; font-weight:700; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .scene { position:relative; height:326px; overflow:hidden; }
+  .scene img { width:100%; height:100%; object-fit:cover; }
+  .scene-ov { position:absolute; inset:0; background:linear-gradient(to top, #1B2118 4%, rgba(27,33,24,0.20) 52%, rgba(27,33,24,0.62) 100%); }
+
+  .top { position:absolute; top:66px; left:28px; right:28px; display:flex; align-items:center; gap:14px; z-index:20; }
+  .x { width:42px; height:42px; border-radius:50%; background:rgba(0,0,0,0.32); backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+  .beds { margin-left:auto; display:flex; align-items:center; gap:9px; background:rgba(0,0,0,0.34); backdrop-filter:blur(10px); padding:9px 15px; border-radius:50px; font-size:14px; font-weight:800; }
+  .beds i { color:#9BD9A8; font-size:13px; }
+
+  .sprouts { position:absolute; top:250px; left:28px; right:28px; display:flex; gap:7px; z-index:20; }
+  .sp { flex:1; height:44px; border-radius:12px; background:rgba(255,255,255,0.10); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; font-size:17px; color:rgba(255,255,255,0.28); }
+  .sp.grown { background:rgba(155,217,168,0.22); color:#9BD9A8; }
+  .sp.now { background:#E5A94F; color:#2A2115; }
+
+  .content { position:relative; padding:0 28px; margin-top:-30px; }
+
+  .prompt { text-align:center; }
+  .p-l { font-size:11px; font-weight:850; letter-spacing:1.6px; text-transform:uppercase; color:#9BD9A8; }
+  .word { font-size:52px; font-weight:900; letter-spacing:-1.6px; margin-top:12px; line-height:1; }
+  .word .hit { color:#fff; }
+  .word .rest { color:rgba(255,255,255,0.26); }
+  .p-s { font-size:14.5px; color:rgba(255,255,255,0.5); margin-top:12px; }
+
+  .live { margin-top:22px; display:flex; gap:10px; }
+  .lv { flex:1; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.09); border-radius:18px; padding:13px 14px; }
+  .lv-l { font-size:10px; font-weight:800; letter-spacing:1.1px; text-transform:uppercase; color:rgba(255,255,255,0.42); }
+  .lv-v { font-size:26px; font-weight:900; letter-spacing:-1.2px; margin-top:7px; line-height:1; }
+  .lv-v span { font-size:12px; font-weight:700; letter-spacing:0; opacity:0.55; }
+  .lv-m { font-size:10.5px; margin-top:6px; font-weight:700; display:flex; align-items:center; gap:5px; color:#9BD9A8; }
+  .dot { width:7px; height:7px; border-radius:50%; display:inline-block; background:#9BD9A8; }
+
+  .adapt { margin-top:13px; background:rgba(228,169,79,0.13); border:1px solid rgba(228,169,79,0.28); border-radius:18px; padding:14px 16px; display:flex; align-items:center; gap:12px; }
+  .adapt i { color:#E5A94F; font-size:15px; }
+  .adapt-t { font-size:13.5px; font-weight:700; line-height:1.4; }
+  .adapt-t span { color:rgba(255,255,255,0.5); font-weight:500; }
+
+  .kb { position:absolute; bottom:0; left:0; right:0; background:#232A1F; padding:14px 10px 26px; border-radius:26px 26px 0 0; }
+  .krow { display:flex; gap:5px; justify-content:center; margin-bottom:8px; }
+  .k { width:37px; height:52px; border-radius:10px; background:#3C4535; display:flex; align-items:center; justify-content:center; font-size:19px; font-weight:600; box-shadow:0 2px 0 rgba(0,0,0,0.28); }
+  .k.next { background:#3E8F55; box-shadow:0 2px 0 #23522F; position:relative; }
+  .k.next:after { content:''; position:absolute; inset:-7px; border-radius:16px; border:2px solid rgba(155,217,168,0.5); }
+  .k.dim { opacity:0.35; }
+  .k.wide { width:56px; font-size:14px; background:#2E3628; }
+  .k.space { width:206px; font-size:13px; background:#2E3628; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">9:07</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full" style="font-size:16px"></i></div>
+  </div>
+
+  <div class="scene">
+    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786642716842-image-1.png" alt="">
+    <div class="scene-ov"></div>
+  </div>
+
+  <div class="top">
+    <div class="x"><i class="fas fa-xmark"></i></div>
+    <div class="beds"><i class="fas fa-seedling"></i> 16 / 25 beds</div>
+  </div>
+
+  <div class="sprouts">
+    <div class="sp grown"><i class="fas fa-leaf"></i></div>
+    <div class="sp grown"><i class="fas fa-leaf"></i></div>
+    <div class="sp grown"><i class="fas fa-seedling"></i></div>
+    <div class="sp now"><i class="fas fa-droplet"></i></div>
+    <div class="sp"><i class="fas fa-circle" style="font-size:8px"></i></div>
+    <div class="sp"><i class="fas fa-circle" style="font-size:8px"></i></div>
+    <div class="sp"><i class="fas fa-circle" style="font-size:8px"></i></div>
+  </div>
+
+  <div class="content">
+    <div class="prompt">
+      <div class="p-l">Bed 17 · Water it</div>
+      <div class="word"><span class="hit">ROSE</span><span class="rest">MARY</span></div>
+      <div class="p-s">Take your time. There is no clock.</div>
+    </div>
+
+    <div class="live">
+      <div class="lv">
+        <div class="lv-l">Beds today</div>
+        <div class="lv-v">16</div>
+        <div class="lv-m"><span class="dot"></span> best yet</div>
+      </div>
+      <div class="lv">
+        <div class="lv-l">Rhythm</div>
+        <div class="lv-v">84<span>%</span></div>
+        <div class="lv-m"><span class="dot"></span> even spacing</div>
+      </div>
+      <div class="lv">
+        <div class="lv-l">Backspace</div>
+        <div class="lv-v">4</div>
+        <div class="lv-m"><span class="dot"></span> down from 9</div>
+      </div>
+    </div>
+
+    <div class="adapt">
+      <i class="fas fa-wand-magic-sparkles"></i>
+      <div class="adapt-t">Words got one letter longer.<br><span>Your last six were clean, so the garden grew a little.</span></div>
+    </div>
+  </div>
+
+  <div class="kb">
+    <div class="krow">
+      <div class="k dim">q</div><div class="k dim">w</div><div class="k">e</div><div class="k dim">r</div><div class="k dim">t</div>
+      <div class="k dim">y</div><div class="k dim">u</div><div class="k dim">i</div><div class="k dim">o</div><div class="k dim">p</div>
+    </div>
+    <div class="krow">
+      <div class="k">a</div><div class="k dim">s</div><div class="k dim">d</div><div class="k dim">f</div><div class="k dim">g</div>
+      <div class="k dim">h</div><div class="k dim">j</div><div class="k dim">k</div><div class="k dim">l</div>
+    </div>
+    <div class="krow">
+      <div class="k wide"><i class="fas fa-arrow-up"></i></div>
+      <div class="k dim">z</div><div class="k dim">x</div><div class="k dim">c</div><div class="k dim">v</div><div class="k dim">b</div>
+      <div class="k dim">n</div><div class="k next">m</div>
+      <div class="k wide"><i class="fas fa-delete-left"></i></div>
+    </div>
+    <div class="krow" style="margin-bottom:0">
+      <div class="k wide">123</div>
+      <div class="k space">space</div>
+      <div class="k wide" style="background:#3E8F55;box-shadow:0 2px 0 #23522F"><i class="fas fa-turn-down" style="transform:rotate(90deg)"></i></div>
+    </div>
+  </div>
+</body>
+</html>
