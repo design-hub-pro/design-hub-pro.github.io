@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KitchenMind - Cook</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; }
+  * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#FBF7F1; color:#1C1814; overflow-x:hidden; position:relative; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:600; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .content { padding:0 28px 110px; }
+
+  .head { display:flex; justify-content:space-between; align-items:center; }
+  .title { font-family:'Fraunces',serif; font-size:29px; font-weight:700; letter-spacing:-0.7px; }
+  .ex { width:36px; height:36px; border-radius:50%; background:#F1EAE0; display:flex; align-items:center; justify-content:center; font-size:14px; color:#5B5248; }
+
+  .chips { display:flex; gap:8px; overflow-x:auto; margin:10px -28px 0; padding:0 28px; }
+  .chip { flex-shrink:0; font-size:12.5px; font-weight:700; padding:9px 15px; border-radius:50px; background:#fff; border:1px solid #EAE1D3; color:#7C7064; }
+  .chip.on { background:#1C1814; border-color:#1C1814; color:#fff; }
+
+  .hero { position:relative; border-radius:26px; overflow:hidden; height:178px; margin-top:11px; }
+  .hero img { width:100%; height:100%; object-fit:cover; }
+  .hero-ov { position:absolute; inset:0; background:linear-gradient(to top, rgba(24,17,12,0.94) 12%, rgba(24,17,12,0.24) 62%, transparent 100%); padding:18px 20px; display:flex; flex-direction:column; justify-content:flex-end; color:#fff; }
+  .h-tag { display:inline-flex; align-items:center; gap:7px; font-size:10px; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; color:#FFC48A; }
+  .h-t { font-family:'Fraunces',serif; font-size:26px; font-weight:700; margin-top:8px; letter-spacing:-0.5px; line-height:1.15; }
+  .h-s { font-size:12.5px; opacity:0.72; margin-top:6px; line-height:1.45; max-width:270px; }
+  .h-row { display:flex; gap:8px; margin-top:12px; }
+  .hp { font-size:11px; font-weight:700; padding:6px 11px; border-radius:50px; background:rgba(255,255,255,0.16); backdrop-filter:blur(8px); display:flex; align-items:center; gap:6px; }
+  .play { position:absolute; right:20px; bottom:20px; width:54px; height:54px; border-radius:50%; background:#D9552F; display:flex; align-items:center; justify-content:center; font-size:17px; color:#fff; box-shadow:0 8px 22px rgba(217,85,47,0.5); }
+  .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+  .dot.g { background:#4ED6A0; } .dot.a { background:#F0B429; } .dot.r { background:#FF6A4D; }
+
+  .sec { display:flex; justify-content:space-between; align-items:baseline; margin:11px 0 9px; }
+  .sec-t { font-size:17.5px; font-weight:800; letter-spacing:-0.3px; }
+  .sec-l { font-size:12.5px; color:#D9552F; font-weight:750; }
+
+  .rail { display:flex; gap:12px; overflow-x:auto; margin:0 -28px; padding:0 28px; }
+  .sc { min-width:158px; width:158px; flex-shrink:0; }
+  .sc-img { position:relative; height:100px; border-radius:20px; overflow:hidden; }
+  .sc-img img { width:100%; height:100%; object-fit:cover; }
+  .lv { position:absolute; top:9px; left:9px; background:rgba(24,17,12,0.72); backdrop-filter:blur(6px); color:#fff; font-size:9.5px; font-weight:800; padding:4px 9px; border-radius:20px; letter-spacing:0.5px; }
+  .lock { position:absolute; inset:0; background:rgba(24,17,12,0.55); display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.85); font-size:17px; }
+  .sc-n { font-size:14px; font-weight:750; margin-top:9px; line-height:1.25; }
+  .sc-m { font-size:11px; color:#8C8175; margin-top:4px; }
+  .mini { display:flex; gap:3px; margin-top:7px; }
+  .mb { height:4px; flex:1; border-radius:4px; background:#EAE1D3; }
+  .mb.f { background:#D9552F; }
+
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .g-card { background:#fff; border:1px solid #EFE7DA; border-radius:22px; overflow:hidden; }
+  .g-img { height:82px; position:relative; }
+  .g-img img { width:100%; height:100%; object-fit:cover; }
+  .g-b { padding:10px 12px 12px; }
+  .g-n { font-size:13.5px; font-weight:750; line-height:1.25; }
+  .g-m { font-size:11px; color:#8C8175; margin-top:5px; display:flex; align-items:center; gap:6px; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:88px; background:rgba(251,247,241,0.95); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:11px; border-top:1px solid #EAE2D6; }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10px; color:#A79C90; font-weight:600; }
+  .tab.on { color:#D9552F; }
+  .tab i { font-size:19px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">17:52</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:13px"></i>
+      <i class="fas fa-wifi" style="font-size:13px"></i>
+      <i class="fas fa-battery-three-quarters" style="font-size:16px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="head">
+      <div class="title">Cook</div>
+      <div class="ex"><i class="fas fa-magnifying-glass"></i></div>
+    </div>
+
+    <div class="chips">
+      <div class="chip on">For you</div>
+      <div class="chip">Under 15 min</div>
+      <div class="chip">Holidays</div>
+      <div class="chip">Around the world</div>
+      <div class="chip">Busy kitchen</div>
+    </div>
+
+    <div class="hero">
+      <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&h=700&fit=crop" alt="">
+      <div class="hero-ov">
+        <div class="h-tag"><i class="fas fa-bolt"></i> Weekly challenge · level 9</div>
+        <div class="h-t">The Thursday diner rush</div>
+        <div class="h-s">Four tickets, three burners, one order changes halfway through.</div>
+        <div class="h-row">
+          <span class="hp"><span class="dot r"></span> Hard</span>
+          <span class="hp">22 min</span>
+          <span class="hp">3 interruptions</span>
+        </div>
+      </div>
+      <div class="play"><i class="fas fa-play"></i></div>
+    </div>
+
+    <div class="sec"><div class="sec-t">Tuned to you</div><div class="sec-l">Why these</div></div>
+    <div class="rail">
+      <div class="sc">
+        <div class="sc-img">
+          <img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=400&h=300&fit=crop" alt="">
+          <div class="lv">LEVEL 6</div>
+        </div>
+        <div class="sc-n">Sunday pancakes</div>
+        <div class="sc-m">Today · 14 min</div>
+        <div class="mini"><span class="mb f"></span><span class="mb f"></span><span class="mb f"></span><span class="mb"></span></div>
+      </div>
+      <div class="sc">
+        <div class="sc-img">
+          <img src="https://images.unsplash.com/photo-1547592180-85f173990554?w=400&h=300&fit=crop" alt="">
+          <div class="lv">LEVEL 5</div>
+        </div>
+        <div class="sc-n">Soup and bread</div>
+        <div class="sc-m">Paused · 7 of 9</div>
+        <div class="mini"><span class="mb f"></span><span class="mb f"></span><span class="mb"></span><span class="mb"></span></div>
+      </div>
+      <div class="sc">
+        <div class="sc-img">
+          <img src="https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=400&h=300&fit=crop" alt="">
+          <div class="lv">LEVEL 7</div>
+        </div>
+        <div class="sc-n">Ragu and pasta</div>
+        <div class="sc-m">Two timers</div>
+        <div class="mini"><span class="mb f"></span><span class="mb"></span><span class="mb"></span><span class="mb"></span></div>
+      </div>
+      <div class="sc">
+        <div class="sc-img">
+          <img src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=300&fit=crop" alt="">
+          <div class="lv">LEVEL 8</div>
+        </div>
+        <div class="sc-n">Miso salmon</div>
+        <div class="sc-m">New this week</div>
+        <div class="mini"><span class="mb"></span><span class="mb"></span><span class="mb"></span><span class="mb"></span></div>
+      </div>
+    </div>
+
+    <div class="sec"><div class="sec-t">Bigger tables</div><div class="sec-l">All 9</div></div>
+    <div class="grid">
+      <div class="g-card">
+        <div class="g-img"><img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop" alt=""></div>
+        <div class="g-b">
+          <div class="g-n">Christmas, eight seats</div>
+          <div class="g-m"><span class="dot r"></span> Level 12 · 40 min</div>
+        </div>
+      </div>
+      <div class="g-card">
+        <div class="g-img">
+          <img src="https://images.unsplash.com/photo-1606787366850-de6330128bfc?w=400&h=300&fit=crop" alt="">
+          <div class="lock"><i class="fas fa-lock"></i></div>
+        </div>
+        <div class="g-b">
+          <div class="g-n">Friday pizza night</div>
+          <div class="g-m"><span class="dot a"></span> Locked until level 10</div>
+        </div>
+      </div>
+      <div class="g-card">
+        <div class="g-img"><img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=300&fit=crop" alt=""></div>
+        <div class="g-b">
+          <div class="g-n">Lunch for the grandkids</div>
+          <div class="g-m"><span class="dot g"></span> Level 4 · 12 min</div>
+        </div>
+      </div>
+      <div class="g-card">
+        <div class="g-img"><img src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&h=300&fit=crop" alt=""></div>
+        <div class="g-b">
+          <div class="g-n">Market salad, no recipe</div>
+          <div class="g-m"><span class="dot a"></span> Level 7 · 15 min</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><i class="fas fa-house"></i>Today</div>
+    <div class="tab on"><i class="fas fa-kitchen-set"></i>Cook</div>
+    <div class="tab"><i class="fas fa-chart-line"></i>Progress</div>
+    <div class="tab"><i class="fas fa-book-open"></i>Recipes</div>
+    <div class="tab"><i class="fas fa-user"></i>Me</div>
+  </div>
+</body>
+</html>

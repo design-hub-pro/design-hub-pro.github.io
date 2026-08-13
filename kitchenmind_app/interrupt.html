@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KitchenMind - Interruption</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; }
+  * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#16110D; color:#fff; overflow-x:hidden; position:relative; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:600; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  /* dimmed game board behind */
+  .behind { padding:0 28px; filter:blur(2.5px); opacity:0.36; }
+  .hd { display:flex; align-items:center; gap:12px; }
+  .x { width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,0.09); display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .hd-t { font-size:15px; font-weight:750; }
+  .hd-s { font-size:11px; color:rgba(255,255,255,0.42); margin-top:2px; }
+  .clock { font-family:'Fraunces',serif; font-size:24px; font-weight:700; background:rgba(255,255,255,0.09); padding:6px 13px; border-radius:14px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-top:16px; }
+  .burner { background:rgba(255,255,255,0.055); border:1px solid rgba(255,255,255,0.075); border-radius:22px; height:150px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .burner img { width:64px; height:64px; border-radius:50%; object-fit:cover; }
+  .b-t { font-size:13px; font-weight:750; margin-top:11px; }
+  .b-s { font-size:10.5px; margin-top:3px; font-weight:600; color:rgba(255,255,255,0.4); }
+
+  .scrim { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(10,7,5,0.55), rgba(10,7,5,0.92) 45%); z-index:20; }
+
+  .modal { position:absolute; left:24px; right:24px; bottom:120px; z-index:40; background:#FBF7F1; color:#1C1814; border-radius:32px; padding:26px 24px 22px; box-shadow:0 30px 70px rgba(0,0,0,0.6); }
+  .caller { display:flex; align-items:center; gap:15px; }
+  .c-av { width:66px; height:66px; border-radius:50%; object-fit:cover; border:3px solid #fff; box-shadow:0 4px 14px rgba(0,0,0,0.16); }
+  .c-l { font-size:10.5px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:#B4A899; }
+  .c-n { font-family:'Fraunces',serif; font-size:27px; font-weight:700; letter-spacing:-0.6px; margin-top:3px; }
+  .c-s { font-size:12.5px; color:#8C8175; margin-top:3px; }
+  .ripple { position:absolute; top:26px; left:24px; width:66px; height:66px; border-radius:50%; border:2px solid rgba(217,85,47,0.35); transform:scale(1.35); }
+
+  .btns { display:flex; gap:12px; margin-top:22px; }
+  .b { flex:1; height:58px; border-radius:19px; display:flex; align-items:center; justify-content:center; gap:9px; font-size:15.5px; font-weight:750; }
+  .b.dec { background:#F1EAE0; color:#5B5248; }
+  .b.acc { background:#2F7A5C; color:#fff; box-shadow:0 8px 22px rgba(47,122,92,0.32); }
+
+  .cost { margin-top:18px; padding-top:16px; border-top:1px solid #EDE5D9; }
+  .cost-h { display:flex; align-items:center; gap:7px; font-size:10px; font-weight:800; letter-spacing:1.3px; text-transform:uppercase; color:#C0562A; }
+  .cost-t { font-size:13.5px; line-height:1.5; color:#4A423A; margin-top:8px; }
+  .cost-t b { font-weight:750; color:#1C1814; }
+
+  .running { position:absolute; left:24px; right:24px; bottom:36px; z-index:40; display:flex; gap:10px; }
+  .rt { flex:1; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.10); border-radius:18px; padding:11px 13px; }
+  .rt.hot { background:rgba(255,106,77,0.16); border-color:rgba(255,106,77,0.45); }
+  .rt-l { font-size:10px; font-weight:700; color:rgba(255,255,255,0.5); }
+  .rt-v { font-family:'Fraunces',serif; font-size:21px; font-weight:700; margin-top:5px; letter-spacing:-0.5px; }
+  .rt.hot .rt-v { color:#FF8A6D; }
+  .rt-track { height:4px; border-radius:4px; background:rgba(255,255,255,0.12); margin-top:8px; overflow:hidden; }
+  .rt-fill { height:100%; border-radius:4px; }
+
+  .measuring { position:absolute; top:66px; left:0; right:0; z-index:40; display:flex; justify-content:center; }
+  .mchip { display:flex; align-items:center; gap:8px; font-size:10.5px; font-weight:800; letter-spacing:1.1px; background:rgba(255,255,255,0.10); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.14); padding:8px 15px; border-radius:50px; color:rgba(255,255,255,0.82); }
+  .mchip .d { width:7px; height:7px; border-radius:50%; background:#FF6A4D; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">18:14</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:13px"></i>
+      <i class="fas fa-wifi" style="font-size:13px"></i>
+      <i class="fas fa-battery-three-quarters" style="font-size:16px"></i>
+    </div>
+  </div>
+
+  <div class="behind">
+    <div class="hd">
+      <div class="x"><i class="fas fa-xmark"></i></div>
+      <div style="flex:1">
+        <div class="hd-t">Sunday pancakes for four</div>
+        <div class="hd-s">Step 6 of 12</div>
+      </div>
+      <div class="clock">08:03</div>
+    </div>
+    <div class="grid">
+      <div class="burner"><img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=200&h=200&fit=crop" alt=""><div class="b-t">Batter pan</div><div class="b-s">1:04</div></div>
+      <div class="burner"><img src="https://images.unsplash.com/photo-1528607929212-2636ec44253e?w=200&h=200&fit=crop" alt=""><div class="b-t">Bacon</div><div class="b-s">Turned</div></div>
+      <div class="burner"><img src="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=200&h=200&fit=crop" alt=""><div class="b-t">Syrup</div><div class="b-s">0:22</div></div>
+      <div class="burner"><img src="https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=200&h=200&fit=crop" alt=""><div class="b-t">Kettle</div><div class="b-s">Done</div></div>
+    </div>
+  </div>
+
+  <div class="scrim"></div>
+
+  <div class="measuring">
+    <div class="mchip"><span class="d"></span> TIMING YOUR TASK SWITCH</div>
+  </div>
+
+  <div class="modal">
+    <div class="ripple"></div>
+    <div class="caller">
+      <img class="c-av" src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=200&h=200&fit=crop&crop=face" alt="">
+      <div>
+        <div class="c-l">Incoming call</div>
+        <div class="c-n">Marta</div>
+        <div class="c-s">Your daughter · 2 pans still on</div>
+      </div>
+    </div>
+
+    <div class="btns">
+      <div class="b dec"><i class="fas fa-phone-slash" style="font-size:14px"></i> Not now</div>
+      <div class="b acc"><i class="fas fa-phone" style="font-size:14px"></i> Answer</div>
+    </div>
+
+    <div class="cost">
+      <div class="cost-h"><i class="fas fa-stopwatch"></i> Why this happens</div>
+      <div class="cost-t">Real kitchens get interrupted. We measure how long it takes you to <b>find your place again</b>, and whether the pans survive. Last time you were back on step in <b>9 seconds</b>.</div>
+    </div>
+  </div>
+
+  <div class="running">
+    <div class="rt hot">
+      <div class="rt-l">Batter pan</div>
+      <div class="rt-v">1:04</div>
+      <div class="rt-track"><div class="rt-fill" style="width:26%;background:#FF6A4D"></div></div>
+    </div>
+    <div class="rt">
+      <div class="rt-l">Syrup</div>
+      <div class="rt-v">0:22</div>
+      <div class="rt-track"><div class="rt-fill" style="width:72%;background:#FFB03A"></div></div>
+    </div>
+    <div class="rt">
+      <div class="rt-l">Oven</div>
+      <div class="rt-v">78°</div>
+      <div class="rt-track"><div class="rt-fill" style="width:100%;background:#4ED6A0"></div></div>
+    </div>
+  </div>
+</body>
+</html>

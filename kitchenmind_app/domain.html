@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KitchenMind - Working Memory</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; }
+  * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#FBF7F1; color:#1C1814; overflow-x:hidden; position:relative; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:600; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .content { padding:0 28px 110px; }
+
+  .nav { display:flex; align-items:center; gap:12px; height:42px; }
+  .back { width:34px; height:34px; border-radius:50%; background:#F1EAE0; display:flex; align-items:center; justify-content:center; font-size:14px; color:#5B5248; }
+  .nv-t { font-size:14px; font-weight:750; }
+
+  .hero { background:linear-gradient(150deg,#E4A82A,#B87A0C); border-radius:26px; padding:17px 19px 18px; color:#fff; margin-top:4px; }
+  .h-l { font-size:10.5px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; opacity:0.78; }
+  .h-row { display:flex; align-items:flex-end; gap:14px; margin-top:8px; }
+  .h-v { font-family:'Fraunces',serif; font-size:52px; font-weight:700; line-height:0.88; letter-spacing:-2.2px; }
+  .h-d { font-size:12.5px; font-weight:750; background:rgba(0,0,0,0.18); padding:6px 11px; border-radius:50px; margin-bottom:6px; }
+  .h-t { font-size:14px; line-height:1.48; margin-top:11px; opacity:0.94; }
+  .h-t b { font-weight:800; }
+
+  .sec { display:flex; justify-content:space-between; align-items:baseline; margin:12px 0 9px; }
+  .sec-t { font-size:17.5px; font-weight:800; letter-spacing:-0.3px; }
+  .sec-l { font-size:12.5px; color:#D9552F; font-weight:750; }
+
+  .sigs { display:grid; grid-template-columns:1fr 1fr 1fr; gap:9px; }
+  .sig { background:#fff; border:1px solid #EFE7DA; border-radius:19px; padding:13px 10px 14px; text-align:center; }
+  .s-ic { width:32px; height:32px; border-radius:11px; background:#FDF3E0; color:#B87A0C; display:flex; align-items:center; justify-content:center; font-size:13px; margin:0 auto; }
+  .s-v { font-family:'Fraunces',serif; font-size:24px; font-weight:700; letter-spacing:-0.8px; margin-top:9px; line-height:1; }
+  .s-v span { font-size:14px; }
+  .s-t { font-size:10.5px; font-weight:700; margin-top:7px; line-height:1.3; }
+  .s-u { font-size:9.5px; font-weight:750; color:#A2968A; margin-top:4px; }
+
+  .card { background:#fff; border:1px solid #EFE7DA; border-radius:24px; padding:15px 17px 13px; }
+  .c-h { display:flex; justify-content:space-between; align-items:baseline; }
+  .c-l { font-size:10px; font-weight:800; letter-spacing:1.3px; text-transform:uppercase; color:#B4A899; }
+  .c-r { font-size:11.5px; font-weight:750; color:#C4462A; }
+  .bars { display:flex; align-items:flex-end; gap:6px; height:80px; margin-top:12px; }
+  .bar { flex:1; border-radius:6px 6px 3px 3px; background:#F0D9A8; }
+  .bar.hi { background:#E4A82A; }
+  .bar.now { background:#D9552F; }
+  .xax { display:flex; justify-content:space-between; font-size:9.5px; font-weight:700; color:#B4A899; margin-top:8px; }
+  .cap { font-size:10.5px; color:#A2968A; margin-top:10px; line-height:1.45; }
+  .cap b { color:#7C7064; }
+
+  .band { background:#fff; border:1px solid #EFE7DA; border-radius:24px; padding:15px 17px; }
+  .b-scale { position:relative; height:12px; border-radius:12px; margin-top:16px; background:linear-gradient(90deg,#E9D6C7,#F0D9A8,#BEE0CE); }
+  .b-mark { position:absolute; top:-8px; width:4px; height:28px; border-radius:4px; background:#1C1814; }
+  .b-lab { position:absolute; top:-32px; transform:translateX(-50%); font-size:10.5px; font-weight:800; background:#1C1814; color:#fff; padding:4px 9px; border-radius:50px; white-space:nowrap; }
+  .b-ends { display:flex; justify-content:space-between; font-size:10px; font-weight:700; color:#B4A899; margin-top:11px; }
+
+  .warn { background:#F6F1E8; border:1px solid #E7DECE; border-radius:20px; padding:13px 15px; margin-top:11px; display:flex; gap:11px; }
+  .warn i { color:#8C8175; font-size:14px; margin-top:2px; }
+  .warn-t { font-size:12px; color:#6B6157; line-height:1.55; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:88px; background:rgba(251,247,241,0.95); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:11px; border-top:1px solid #EAE2D6; }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10px; color:#A79C90; font-weight:600; }
+  .tab.on { color:#D9552F; }
+  .tab i { font-size:19px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">10:08</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:13px"></i>
+      <i class="fas fa-wifi" style="font-size:13px"></i>
+      <i class="fas fa-battery-full" style="font-size:16px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="nav">
+      <div class="back"><i class="fas fa-chevron-left"></i></div>
+      <div class="nv-t">Working memory</div>
+    </div>
+
+    <div class="hero">
+      <div class="h-l">Working memory</div>
+      <div class="h-row">
+        <div class="h-v">70</div>
+        <div class="h-d">−4 in 90 days</div>
+      </div>
+      <div class="h-t">Holding a step in your head while your hands do something else. In a kitchen: <b>the second half of an instruction</b>, after you have started the first.</div>
+    </div>
+
+    <div class="sec"><div class="sec-t">The three signals</div><div class="sec-l">Method</div></div>
+
+    <div class="sigs">
+      <div class="sig">
+        <div class="s-ic"><i class="fas fa-eye"></i></div>
+        <div class="s-v">3.4</div>
+        <div class="s-t">Recipe card<br>re-opens</div>
+        <div class="s-u">WAS 1.9</div>
+      </div>
+      <div class="sig">
+        <div class="s-ic"><i class="fas fa-layer-group"></i></div>
+        <div class="s-v">64<span>%</span></div>
+        <div class="s-t">Two-part steps<br>completed</div>
+        <div class="s-u">WAS 79%</div>
+      </div>
+      <div class="sig">
+        <div class="s-ic"><i class="fas fa-basket-shopping"></i></div>
+        <div class="s-v">1.7</div>
+        <div class="s-t">Pantry trips per<br>ingredient</div>
+        <div class="s-u">WAS 1.2</div>
+      </div>
+    </div>
+
+    <div class="sec"><div class="sec-t">Twelve weeks</div></div>
+    <div class="card">
+      <div class="c-h">
+        <div class="c-l">Weekly score</div>
+        <div class="c-r">Drifting down since week 8</div>
+      </div>
+      <div class="bars">
+        <div class="bar hi" style="height:76%"></div>
+        <div class="bar hi" style="height:80%"></div>
+        <div class="bar hi" style="height:74%"></div>
+        <div class="bar hi" style="height:82%"></div>
+        <div class="bar hi" style="height:78%"></div>
+        <div class="bar hi" style="height:81%"></div>
+        <div class="bar hi" style="height:77%"></div>
+        <div class="bar" style="height:72%"></div>
+        <div class="bar" style="height:70%"></div>
+        <div class="bar" style="height:66%"></div>
+        <div class="bar" style="height:69%"></div>
+        <div class="bar now" style="height:63%"></div>
+      </div>
+      <div class="xax"><span>May 5</span><span>Jun 2</span><span>Jun 30</span><span>Jul 21</span></div>
+      <div class="cap"><b>Illustrative.</b> Sleep, a cold and a week away all move this. One low week is noise. Four in a row is worth a mention to a doctor.</div>
+    </div>
+
+    <div class="sec"><div class="sec-t">Against your age band</div></div>
+    <div class="band">
+      <div class="c-l">Women, 70 to 79, 30 or more sessions</div>
+      <div class="b-scale">
+        <div class="b-lab" style="left:58%">You, 58th</div>
+        <div class="b-mark" style="left:58%"></div>
+      </div>
+      <div class="b-ends"><span>LOWER</span><span>TYPICAL</span><span>HIGHER</span></div>
+      <div class="cap" style="margin-top:12px"><b>Illustrative.</b> A pilot-cohort band, not a clinical norm. KitchenMind does not diagnose. Settings exports the raw sessions for your doctor.</div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><i class="fas fa-house"></i>Today</div>
+    <div class="tab"><i class="fas fa-kitchen-set"></i>Cook</div>
+    <div class="tab on"><i class="fas fa-chart-line"></i>Progress</div>
+    <div class="tab"><i class="fas fa-book-open"></i>Recipes</div>
+    <div class="tab"><i class="fas fa-user"></i>Me</div>
+  </div>
+</body>
+</html>

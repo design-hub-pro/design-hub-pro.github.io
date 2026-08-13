@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KitchenMind - Adaptive Difficulty</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; }
+  * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#FBF7F1; color:#1C1814; overflow-x:hidden; position:relative; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:600; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .content { padding:0 28px 110px; }
+
+  .nav { display:flex; align-items:center; gap:12px; height:36px; }
+  .back { width:34px; height:34px; border-radius:50%; background:#F1EAE0; display:flex; align-items:center; justify-content:center; font-size:14px; color:#5B5248; }
+  .nv-t { font-size:14px; font-weight:750; }
+
+  .lead { font-family:'Fraunces',serif; font-size:21px; font-weight:700; line-height:1.24; letter-spacing:-0.4px; margin-top:2px; }
+  .lead-s { font-size:14px; color:#7C7064; line-height:1.55; margin-top:9px; }
+
+  .sec { display:flex; justify-content:space-between; align-items:baseline; margin:8px 0 7px; }
+  .sec-t { font-size:17.5px; font-weight:800; letter-spacing:-0.3px; }
+  .sec-l { font-size:12.5px; color:#D9552F; font-weight:750; }
+
+  .cmp { background:#fff; border:1px solid #EFE7DA; border-radius:24px; padding:4px 17px; }
+  .c-row { display:flex; align-items:center; gap:12px; padding:8px 0; border-bottom:1px solid #F4EDE3; }
+  .c-row:last-child { border-bottom:none; }
+  .c-n { font-size:13.5px; font-weight:650; flex:1; }
+  .old { font-size:14px; font-weight:700; color:#B4A899; text-decoration:line-through; }
+  .arw { font-size:10px; color:#C7BBAD; }
+  .new { font-family:'Fraunces',serif; font-size:20px; font-weight:700; letter-spacing:-0.5px; }
+  .new.up { color:#C4462A; } .new.dn { color:#2F7A5C; } .new.eq { color:#1C1814; }
+  .c-w { font-size:11px; color:#8C8175; margin-top:3px; line-height:1.4; }
+
+  .band { background:#fff; border:1px solid #EFE7DA; border-radius:24px; padding:15px 17px 13px; }
+  .b-l { font-size:10px; font-weight:800; letter-spacing:1.3px; text-transform:uppercase; color:#B4A899; }
+  .zone { position:relative; height:60px; margin-top:10px; }
+  .cap { font-size:10.5px; color:#A2968A; margin-top:9px; line-height:1.45; }
+  .cap b { color:#7C7064; }
+
+  .why { background:#FFF4EC; border:1px solid #F6DCC8; border-radius:22px; padding:14px 16px; }
+  .w-h { display:flex; align-items:center; gap:8px; font-size:10px; font-weight:800; letter-spacing:1.3px; text-transform:uppercase; color:#C0562A; }
+  .w-t { font-size:15px; font-weight:750; margin-top:8px; line-height:1.35; }
+  .w-s { font-size:13px; color:#5B5248; margin-top:8px; line-height:1.5; }
+  .w-s b { color:#1C1814; font-weight:750; }
+
+  .ctrl { background:#fff; border:1px solid #EFE7DA; border-radius:22px; padding:3px 16px; }
+  .k-row { display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid #F4EDE3; }
+  .k-row:last-child { border-bottom:none; }
+  .k-t { font-size:14px; font-weight:650; }
+  .k-s { font-size:11.5px; color:#8C8175; margin-top:2px; }
+  .sw { width:46px; height:28px; border-radius:20px; flex-shrink:0; position:relative; background:#DED4C6; }
+  .sw.on { background:#2F7A5C; }
+  .sw::after { content:''; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
+  .sw.on::after { left:21px; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:88px; background:rgba(251,247,241,0.95); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:11px; border-top:1px solid #EAE2D6; }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10px; color:#A79C90; font-weight:600; }
+  .tab.on { color:#D9552F; }
+  .tab i { font-size:19px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">21:04</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:13px"></i>
+      <i class="fas fa-wifi" style="font-size:13px"></i>
+      <i class="fas fa-battery-half" style="font-size:16px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="nav">
+      <div class="back"><i class="fas fa-chevron-left"></i></div>
+      <div class="nv-t">Adaptive difficulty</div>
+    </div>
+
+    <div class="lead">Thursday is easier in one place and harder in another.</div>
+
+    <div class="sec"><div class="sec-t">What changed</div><div class="sec-l">Undo</div></div>
+    <div class="cmp">
+      <div class="c-row">
+        <div>
+          <div class="c-n">Steps that stack two actions</div>
+          <div class="c-w">This is where your errors are.</div>
+        </div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:9px">
+          <span class="old">3</span><span class="arw"><i class="fas fa-arrow-right"></i></span><span class="new dn">1</span>
+        </div>
+      </div>
+      <div class="c-row">
+        <div>
+          <div class="c-n">Pans on the hob at once</div>
+          <div class="c-w">Held. Three is still too many.</div>
+        </div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:9px">
+          <span class="old">2</span><span class="arw"><i class="fas fa-arrow-right"></i></span><span class="new eq">2</span>
+        </div>
+      </div>
+      <div class="c-row">
+        <div>
+          <div class="c-n">Interruptions</div>
+          <div class="c-w">Later in the cook, when more is running.</div>
+        </div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:9px">
+          <span class="old">1</span><span class="arw"><i class="fas fa-arrow-right"></i></span><span class="new up">2</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec"><div class="sec-t">Where we aim</div></div>
+    <div class="band">
+      <div class="b-l">Difficulty against your success rate</div>
+      <div class="zone">
+        <svg width="100%" height="60" viewBox="0 0 340 118" preserveAspectRatio="none">
+          <rect x="118" y="0" width="104" height="118" fill="#E9F4EF"/>
+          <text x="170" y="16" text-anchor="middle" font-family="Inter" font-size="10" font-weight="800" fill="#2F7A5C" letter-spacing="1">JUST RIGHT</text>
+          <path d="M0,96 C60,92 90,72 120,52 C150,34 190,28 220,36 C255,46 290,80 340,104"
+                fill="none" stroke="#D9552F" stroke-width="3" stroke-linecap="round"/>
+          <line x1="196" y1="0" x2="196" y2="118" stroke="#1C1814" stroke-width="2" stroke-dasharray="4 4"/>
+          <circle cx="196" cy="31" r="6" fill="#1C1814" stroke="#fff" stroke-width="3"/>
+        </svg>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:700;color:#B4A899;margin-top:-4px">
+        <span>TOO EASY · BORED</span><span>TOO HARD · GIVES UP</span>
+      </div>
+      <div class="cap"><b>Illustrative.</b> Target: a session you finish about 7 times in 10.</div>
+    </div>
+
+    <div class="sec"><div class="sec-t">Why now</div></div>
+    <div class="why">
+      <div class="w-h"><i class="fas fa-chart-simple"></i> Six sessions of evidence</div>
+      <div class="w-s">On single-action steps you are <b>within 4 seconds</b> of your best. On two-part steps, <b>19 seconds slower</b> and 4 of every 5 errors.</div>
+    </div>
+
+    <div class="sec"><div class="sec-t">Your say</div></div>
+    <div class="ctrl">
+      <div class="k-row">
+        <div style="flex:1">
+          <div class="k-t">Let the app set the level</div>
+        </div>
+        <div class="sw on"></div>
+      </div>
+      <div class="k-row">
+        <div style="flex:1">
+          <div class="k-t">Allow interruptions</div>
+        </div>
+        <div class="sw on"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><i class="fas fa-house"></i>Today</div>
+    <div class="tab on"><i class="fas fa-kitchen-set"></i>Cook</div>
+    <div class="tab"><i class="fas fa-chart-line"></i>Progress</div>
+    <div class="tab"><i class="fas fa-book-open"></i>Recipes</div>
+    <div class="tab"><i class="fas fa-user"></i>Me</div>
+  </div>
+</body>
+</html>

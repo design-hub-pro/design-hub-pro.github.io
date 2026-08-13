@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KitchenMind - Live Kitchen</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; }
+  * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#16110D; color:#fff; overflow-x:hidden; position:relative; }
+  body::before { content:''; position:absolute; top:0; left:0; right:0; height:340px; background:radial-gradient(120% 100% at 50% 0%, rgba(217,85,47,0.22), transparent 70%); pointer-events:none; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:600; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .content { padding:0 28px; position:relative; z-index:2; }
+
+  .hd { display:flex; align-items:center; gap:12px; }
+  .x { width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,0.09); display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .hd-t { font-size:15px; font-weight:750; letter-spacing:-0.2px; }
+  .hd-s { font-size:11px; color:rgba(255,255,255,0.42); margin-top:2px; }
+  .clock { font-family:'Fraunces',serif; font-size:24px; font-weight:700; letter-spacing:-0.8px; background:rgba(255,255,255,0.09); padding:6px 13px; border-radius:14px; }
+
+  .meter { margin-top:14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.07); border-radius:16px; padding:11px 14px; }
+  .m-top { display:flex; justify-content:space-between; align-items:center; }
+  .m-l { font-size:10px; font-weight:800; letter-spacing:1.3px; text-transform:uppercase; color:rgba(255,255,255,0.44); }
+  .m-v { font-size:12px; font-weight:800; color:#4ED6A0; }
+  .m-track { height:5px; border-radius:5px; background:rgba(255,255,255,0.10); margin-top:8px; overflow:hidden; display:flex; }
+  .m-fill { height:100%; background:linear-gradient(90deg,#4ED6A0,#2F9E7A); }
+
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-top:14px; }
+  .burner { background:rgba(255,255,255,0.055); border:1px solid rgba(255,255,255,0.075); border-radius:22px; padding:13px; height:158px; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; }
+  .burner.alert { background:rgba(255,106,77,0.14); border-color:rgba(255,106,77,0.42); }
+  .burner.done { opacity:0.55; }
+  .b-ring { width:82px; height:82px; position:relative; }
+  .b-thumb { position:absolute; top:9px; left:9px; width:64px; height:64px; border-radius:50%; object-fit:cover; }
+  .b-empty { position:absolute; top:9px; left:9px; width:64px; height:64px; border-radius:50%; background:rgba(255,255,255,0.05); border:2px dashed rgba(255,255,255,0.22); display:flex; align-items:center; justify-content:center; font-size:17px; color:rgba(255,255,255,0.3); }
+  .b-t { font-size:13px; font-weight:750; margin-top:11px; }
+  .b-s { font-size:10.5px; margin-top:3px; font-weight:600; }
+  .ok { color:#4ED6A0; } .warn { color:#FFB03A; } .bad { color:#FF6A4D; } .mute { color:rgba(255,255,255,0.35); }
+  .b-pill { position:absolute; top:11px; right:11px; font-size:9px; font-weight:800; padding:4px 8px; border-radius:20px; letter-spacing:0.4px; }
+  .p-red { background:#FF6A4D; color:#2A0D06; }
+  .p-grey { background:rgba(255,255,255,0.13); color:rgba(255,255,255,0.6); }
+
+  .oven { margin-top:12px; display:flex; align-items:center; gap:13px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.075); border-radius:20px; padding:12px 15px; }
+  .oven-ic { width:42px; height:42px; border-radius:13px; background:linear-gradient(145deg,#B93E17,#7A2508); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+  .oven-t { font-size:13.5px; font-weight:700; }
+  .oven-s { font-size:11px; color:rgba(255,255,255,0.42); margin-top:2px; }
+  .oven-v { font-family:'Fraunces',serif; font-size:20px; font-weight:700; letter-spacing:-0.5px; }
+
+  .step { margin-top:13px; background:#FBF7F1; color:#1C1814; border-radius:24px; padding:16px 18px; }
+  .st-h { display:flex; justify-content:space-between; align-items:center; }
+  .st-l { font-size:10px; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; color:#B4A899; }
+  .st-peek { font-size:11px; font-weight:800; color:#D9552F; background:#FCEDE5; padding:5px 10px; border-radius:50px; }
+  .st-t { font-family:'Fraunces',serif; font-size:22px; font-weight:700; line-height:1.22; margin-top:9px; letter-spacing:-0.4px; }
+  .st-n { display:flex; align-items:center; gap:8px; font-size:12px; color:#8C8175; margin-top:11px; padding-top:11px; border-top:1px solid #EDE5D9; }
+
+  .tray-h { display:flex; align-items:center; justify-content:space-between; margin:13px 0 9px; }
+  .tray-l { font-size:10px; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; color:rgba(255,255,255,0.38); }
+  .tray { display:flex; gap:10px; overflow-x:auto; margin:0 -28px; padding:0 28px; }
+  .ing { min-width:62px; width:62px; flex-shrink:0; text-align:center; }
+  .ing img { width:62px; height:62px; border-radius:18px; object-fit:cover; }
+  .ing.used img { opacity:0.28; }
+  .ing-n { font-size:10px; font-weight:650; margin-top:6px; color:rgba(255,255,255,0.72); }
+  .ing.used .ing-n { color:rgba(255,255,255,0.3); text-decoration:line-through; }
+  .ing-miss { width:62px; height:62px; border-radius:18px; border:2px dashed rgba(255,176,58,0.5); display:flex; align-items:center; justify-content:center; color:#FFB03A; font-size:16px; }
+
+  .bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(18,13,10,0.96); backdrop-filter:blur(20px); border-top:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; gap:11px; padding:0 28px; }
+  .bt { flex:1; height:52px; border-radius:17px; background:rgba(255,255,255,0.08); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-size:10.5px; font-weight:700; color:rgba(255,255,255,0.78); }
+  .bt i { font-size:16px; }
+  .bt.main { flex:1.5; background:#D9552F; color:#fff; box-shadow:0 8px 22px rgba(217,85,47,0.4); }
+  .rec { display:flex; align-items:center; gap:6px; font-size:9px; font-weight:800; letter-spacing:0.8px; color:rgba(255,255,255,0.42); }
+  .rec .d { width:6px; height:6px; border-radius:50%; background:#FF6A4D; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">18:12</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:13px"></i>
+      <i class="fas fa-wifi" style="font-size:13px"></i>
+      <i class="fas fa-battery-three-quarters" style="font-size:16px"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="hd">
+      <div class="x"><i class="fas fa-xmark"></i></div>
+      <div style="flex:1">
+        <div class="hd-t">Sunday pancakes for four</div>
+        <div class="hd-s">Step 5 of 12 · level 6</div>
+      </div>
+      <div class="clock">06:41</div>
+    </div>
+
+    <div class="meter">
+      <div class="m-top">
+        <div class="m-l">Plan holding</div>
+        <div class="m-v">82% · nothing burnt yet</div>
+      </div>
+      <div class="m-track"><div class="m-fill" style="width:82%"></div></div>
+    </div>
+
+    <div class="grid">
+      <div class="burner">
+        <div class="b-ring">
+          <svg width="82" height="82" viewBox="0 0 82 82">
+            <circle cx="41" cy="41" r="37" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="6"/>
+            <circle cx="41" cy="41" r="37" fill="none" stroke="#4ED6A0" stroke-width="6" stroke-linecap="round"
+                    stroke-dasharray="232" stroke-dashoffset="72" transform="rotate(-90 41 41)"/>
+          </svg>
+          <img class="b-thumb" src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=200&h=200&fit=crop" alt="">
+        </div>
+        <div class="b-t">Batter pan</div>
+        <div class="b-s ok">2:10 · low heat</div>
+      </div>
+
+      <div class="burner alert">
+        <div class="b-pill p-red">TURN NOW</div>
+        <div class="b-ring">
+          <svg width="82" height="82" viewBox="0 0 82 82">
+            <circle cx="41" cy="41" r="37" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="6"/>
+            <circle cx="41" cy="41" r="37" fill="none" stroke="#FF6A4D" stroke-width="6" stroke-linecap="round"
+                    stroke-dasharray="232" stroke-dashoffset="212" transform="rotate(-90 41 41)"/>
+          </svg>
+          <img class="b-thumb" src="https://images.unsplash.com/photo-1528607929212-2636ec44253e?w=200&h=200&fit=crop" alt="">
+        </div>
+        <div class="b-t">Bacon</div>
+        <div class="b-s bad">0:12 · catching</div>
+      </div>
+
+      <div class="burner">
+        <div class="b-ring">
+          <div class="b-empty"><i class="fas fa-plus"></i></div>
+        </div>
+        <div class="b-t">Free burner</div>
+        <div class="b-s mute">Drag a pan here</div>
+      </div>
+
+      <div class="burner done">
+        <div class="b-pill p-grey">DONE</div>
+        <div class="b-ring">
+          <svg width="82" height="82" viewBox="0 0 82 82">
+            <circle cx="41" cy="41" r="37" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="6"/>
+            <circle cx="41" cy="41" r="37" fill="none" stroke="rgba(255,255,255,0.34)" stroke-width="6" stroke-linecap="round"
+                    stroke-dasharray="232" stroke-dashoffset="0" transform="rotate(-90 41 41)"/>
+          </svg>
+          <img class="b-thumb" src="https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=200&h=200&fit=crop" alt="">
+        </div>
+        <div class="b-t">Kettle</div>
+        <div class="b-s mute">Off heat 1:04 ago</div>
+      </div>
+    </div>
+
+    <div class="oven">
+      <div class="oven-ic"><i class="fas fa-fire-burner"></i></div>
+      <div style="flex:1">
+        <div class="oven-t">Oven · warming the plates</div>
+        <div class="oven-s">You set this at minute 2. Good call.</div>
+      </div>
+      <div class="oven-v">78°</div>
+    </div>
+
+    <div class="step">
+      <div class="st-h">
+        <div class="st-l">Now</div>
+        <div class="st-peek">Peek recipe · 3 used</div>
+      </div>
+      <div class="st-t">Turn the bacon, then pour the batter.</div>
+      <div class="st-n"><i class="fas fa-arrow-turn-down" style="transform:rotate(-90deg)"></i> Next: warm the syrup, 40 seconds</div>
+    </div>
+
+    <div class="tray-h">
+      <div class="tray-l">Your counter</div>
+      <div class="rec"><span class="d"></span> RECORDING ORDER · TIMING · PEEKS</div>
+    </div>
+    <div class="tray">
+      <div class="ing used"><img src="https://images.unsplash.com/photo-1518492104633-130d0cc84637?w=160&h=160&fit=crop" alt=""><div class="ing-n">Flour</div></div>
+      <div class="ing used"><img src="https://images.unsplash.com/photo-1587486913049-53fc88980cfc?w=160&h=160&fit=crop" alt=""><div class="ing-n">Eggs</div></div>
+      <div class="ing"><img src="https://images.unsplash.com/photo-1550583724-b2692b85b150?w=160&h=160&fit=crop" alt=""><div class="ing-n">Milk</div></div>
+      <div class="ing"><img src="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=160&h=160&fit=crop" alt=""><div class="ing-n">Butter</div></div>
+      <div class="ing"><div class="ing-miss"><i class="fas fa-question"></i></div><div class="ing-n" style="color:#FFB03A">Syrup?</div></div>
+      <div class="ing"><img src="https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=160&h=160&fit=crop" alt=""><div class="ing-n">Berries</div></div>
+    </div>
+  </div>
+
+  <div class="bar">
+    <div class="bt"><i class="fas fa-pause"></i>Pause</div>
+    <div class="bt"><i class="fas fa-box-open"></i>Pantry</div>
+    <div class="bt main"><i class="fas fa-utensils"></i>Plate up</div>
+  </div>
+</body>
+</html>
