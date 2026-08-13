@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dawnlock - Scan code</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; } * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#0C0F14; color:#F2F5FA; overflow:hidden; position:relative; }
+
+  .cam { position:absolute; inset:0; }
+  .cam img { width:100%; height:100%; object-fit:cover; }
+  .cam::after { content:''; position:absolute; inset:0; background:linear-gradient(to bottom, rgba(10,14,20,0.80) 0%, rgba(10,14,20,0.10) 26%, rgba(10,14,20,0.14) 60%, rgba(10,14,20,0.94) 88%); }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:700; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:150px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); display:flex; align-items:center; justify-content:center; gap:8px; }
+  .di-dot { width:8px; height:8px; border-radius:50%; background:#FF5A3D; }
+  .di-t { font-size:11px; font-weight:850; color:#FF8A3D; letter-spacing:0.5px; }
+
+  .content { padding:0 28px; position:relative; z-index:5; height:calc(100% - 59px); display:flex; flex-direction:column; }
+
+  .ring-alarm { display:flex; align-items:center; gap:10px; align-self:center; background:rgba(255,90,61,0.18); border:1px solid rgba(255,90,61,0.38); padding:9px 17px; border-radius:50px; margin-top:10px; backdrop-filter:blur(10px); }
+  .ra-d { width:7px; height:7px; border-radius:50%; background:#FF5A3D; }
+  .ra-t { font-size:11px; font-weight:850; letter-spacing:1.7px; text-transform:uppercase; color:#FFB49C; }
+
+  .headline { text-align:center; margin-top:22px; }
+  .hl { font-size:25px; font-weight:900; letter-spacing:-0.9px; text-shadow:0 2px 20px rgba(0,0,0,0.6); }
+  .hs { font-size:13px; color:#C3CBD8; margin-top:9px; font-weight:650; text-shadow:0 2px 12px rgba(0,0,0,0.6); }
+
+  /* viewfinder */
+  .vf { position:absolute; top:352px; left:50%; transform:translateX(-50%); width:214px; height:214px; z-index:8; }
+  .corner { position:absolute; width:42px; height:42px; border:4px solid #5FD39B; border-radius:6px; }
+  .c1 { top:0; left:0; border-right:none; border-bottom:none; border-top-left-radius:16px; }
+  .c2 { top:0; right:0; border-left:none; border-bottom:none; border-top-right-radius:16px; }
+  .c3 { bottom:0; left:0; border-right:none; border-top:none; border-bottom-left-radius:16px; }
+  .c4 { bottom:0; right:0; border-left:none; border-top:none; border-bottom-right-radius:16px; }
+  .scanline { position:absolute; left:8px; right:8px; top:58%; height:2px; background:linear-gradient(90deg,transparent,#5FD39B,transparent); box-shadow:0 0 14px rgba(95,211,155,0.9); }
+  .qrbox { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-3deg); width:96px; height:96px; background:#fff; border-radius:5px; padding:8px; box-shadow:0 6px 24px rgba(0,0,0,0.45); }
+  .qrbox svg { width:100%; height:100%; display:block; }
+  .lock { position:absolute; bottom:-52px; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:8px; background:rgba(95,211,155,0.16); border:1px solid rgba(95,211,155,0.42); backdrop-filter:blur(10px); padding:8px 15px; border-radius:50px; white-space:nowrap; }
+  .lock i { font-size:11px; color:#5FD39B; }
+  .lock span { font-size:11.5px; font-weight:800; color:#96E9C1; }
+
+  .lower { margin-top:auto; }
+  .steps { display:flex; gap:9px; margin-bottom:18px; }
+  .sp { flex:1; background:rgba(20,26,36,0.80); backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,0.09); border-radius:18px; padding:14px 15px; }
+  .sp.done { border-color:rgba(95,211,155,0.34); background:rgba(31,58,47,0.66); }
+  .spt { display:flex; align-items:center; gap:8px; }
+  .spi { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9.5px; font-weight:900; }
+  .spi.g { background:#5FD39B; color:#08150E; }
+  .spi.o { background:rgba(255,138,61,0.22); color:#FF8A3D; }
+  .spn { font-size:12.5px; font-weight:800; }
+  .spm { font-size:11px; color:#8A96A8; margin-top:7px; font-weight:650; }
+
+  .hintbar { background:rgba(20,26,36,0.86); backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,0.09); border-radius:22px; padding:17px 19px; display:flex; align-items:center; gap:14px; }
+  .hic { width:38px; height:38px; border-radius:12px; background:rgba(123,140,255,0.18); color:#9AA8FF; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+  .hti { font-size:13.5px; font-weight:800; }
+  .hmi { font-size:11.5px; color:#8A96A8; margin-top:4px; font-weight:650; line-height:1.4; }
+
+  .foot { text-align:center; font-size:12px; font-weight:700; color:#5C6675; margin:20px 0 34px; }
+  .foot b { color:#8A96A8; }
+</style>
+</head>
+<body>
+  <div class="cam"><img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786644852677-image-1.png" alt=""></div>
+
+  <div class="status-bar">
+    <div class="status-time">6:43</div>
+    <div class="dynamic-island"><span class="di-dot"></span><span class="di-t">ALARM</span></div>
+    <div class="status-icons"><i class="fas fa-volume-high" style="color:#FF8A3D"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full" style="font-size:16px"></i></div>
+  </div>
+
+  <div class="content">
+    <div class="ring-alarm"><span class="ra-d"></span><span class="ra-t">Mission 2 of 2</span></div>
+
+    <div class="headline">
+      <div class="hl">Find the bathroom code.</div>
+      <div class="hs">It is 6 metres from your bed. That is the point.</div>
+    </div>
+
+    <div class="lower">
+      <div class="steps">
+        <div class="sp done">
+          <div class="spt"><div class="spi g"><i class="fas fa-check"></i></div><div class="spn">Push-ups</div></div>
+          <div class="spm">10 of 10 · 71 seconds</div>
+        </div>
+        <div class="sp">
+          <div class="spt"><div class="spi o">2</div><div class="spn">Scan code</div></div>
+          <div class="spm">Aligning · hold steady</div>
+        </div>
+      </div>
+
+      <div class="hintbar">
+        <div class="hic"><i class="fas fa-location-dot"></i></div>
+        <div>
+          <div class="hti">You registered this code as "Bathroom mirror"</div>
+          <div class="hmi">Any other code will not work. Photographing it in advance will not either.</div>
+        </div>
+      </div>
+
+      <div class="foot">Alarm still ringing at <b>74%</b> · silences the moment this reads</div>
+    </div>
+  </div>
+
+  <div class="vf">
+    <div class="corner c1"></div><div class="corner c2"></div>
+    <div class="corner c3"></div><div class="corner c4"></div>
+    <div class="scanline"></div>
+    <div class="qrbox">
+      <svg viewBox="0 0 21 21" shape-rendering="crispEdges">
+        <rect width="21" height="21" fill="#fff"/>
+        <g fill="#0C0F14">
+          <path d="M0 0h7v7H0z"/><path d="M14 0h7v7h-7z"/><path d="M0 14h7v7H0z"/>
+        </g>
+        <g fill="#fff">
+          <path d="M1 1h5v5H1z"/><path d="M15 1h5v5h-5z"/><path d="M1 15h5v5H1z"/>
+        </g>
+        <g fill="#0C0F14">
+          <path d="M2 2h3v3H2z"/><path d="M16 2h3v3h-3z"/><path d="M2 16h3v3H2z"/>
+          <path d="M8 0h1v1H8zM10 0h1v1h-1zM9 1h1v1H9zM8 2h1v1H8zM11 1h1v1h-1zM12 2h1v1h-1z"/>
+          <path d="M8 3h1v1H8zM10 3h1v1h-1zM12 4h1v1h-1zM9 4h1v1H9zM11 5h1v1h-1zM8 5h1v1H8z"/>
+          <path d="M8 6h1v1H8zM10 6h1v1h-1zM12 6h1v1h-1z"/>
+          <path d="M0 8h1v1H0zM2 8h1v1H2zM4 8h1v1H4zM6 8h1v1H6zM1 9h1v1H1zM3 9h1v1H3zM5 9h1v1H5z"/>
+          <path d="M0 10h1v1H0zM2 10h1v1H2zM4 10h1v1H4zM6 10h1v1H6zM1 11h1v1H1zM4 11h1v1H4z"/>
+          <path d="M0 12h1v1H0zM3 12h1v1H3zM5 12h1v1H5zM2 13h1v1H2zM6 13h1v1H6z"/>
+          <path d="M14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM15 9h1v1h-1zM17 9h1v1h-1zM19 9h1v1h-1z"/>
+          <path d="M14 10h1v1h-1zM16 10h1v1h-1zM19 10h1v1h-1zM15 11h1v1h-1zM18 11h1v1h-1zM20 11h1v1h-1z"/>
+          <path d="M14 12h1v1h-1zM17 12h1v1h-1zM20 12h1v1h-1zM16 13h1v1h-1zM18 13h1v1h-1z"/>
+          <path d="M8 8h1v1H8zM10 8h1v1h-1zM12 8h1v1h-1zM9 9h1v1H9zM11 9h1v1h-1z"/>
+          <path d="M8 10h1v1H8zM10 10h1v1h-1zM12 10h1v1h-1zM9 11h1v1H9zM12 11h1v1h-1z"/>
+          <path d="M8 12h1v1H8zM10 12h1v1h-1zM11 13h1v1h-1zM9 13h1v1H9z"/>
+          <path d="M8 14h1v1H8zM10 14h1v1h-1zM12 14h1v1h-1zM14 14h1v1h-1zM16 14h1v1h-1zM18 14h1v1h-1zM20 14h1v1h-1z"/>
+          <path d="M9 15h1v1H9zM11 15h1v1h-1zM15 15h1v1h-1zM17 15h1v1h-1zM19 15h1v1h-1z"/>
+          <path d="M8 16h1v1H8zM12 16h1v1h-1zM14 16h1v1h-1zM16 16h1v1h-1zM20 16h1v1h-1z"/>
+          <path d="M9 17h1v1H9zM10 17h1v1h-1zM15 17h1v1h-1zM18 17h1v1h-1z"/>
+          <path d="M8 18h1v1H8zM11 18h1v1h-1zM14 18h1v1h-1zM17 18h1v1h-1zM19 18h1v1h-1z"/>
+          <path d="M9 19h1v1H9zM12 19h1v1h-1zM16 19h1v1h-1zM20 19h1v1h-1z"/>
+          <path d="M8 20h1v1H8zM10 20h1v1h-1zM14 20h1v1h-1zM18 20h1v1h-1z"/>
+        </g>
+      </svg>
+    </div>
+    <div class="lock"><i class="fas fa-check"></i><span>Code recognised · hold 1s</span></div>
+  </div>
+</body>
+</html>

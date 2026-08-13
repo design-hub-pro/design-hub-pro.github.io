@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dawnlock - Bedtime nudge</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; } * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#05070E; color:#F2F5FA; overflow:hidden; position:relative; }
+
+  .wall { position:absolute; inset:0; }
+  .wall img { width:100%; height:100%; object-fit:cover; opacity:0.55; }
+  .wall::after { content:''; position:absolute; inset:0; background:linear-gradient(to bottom, rgba(5,7,14,0.62) 0%, rgba(5,7,14,0.28) 26%, rgba(5,7,14,0.72) 58%, rgba(5,7,14,0.94) 88%); }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:relative; z-index:100; }
+  .status-time { font-size:17px; font-weight:700; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .content { padding:0 20px; position:relative; z-index:5; height:calc(100% - 59px); display:flex; flex-direction:column; }
+
+  .lock { text-align:center; margin-top:20px; }
+  .li { font-size:15px; color:rgba(255,255,255,0.62); }
+  .ld { font-size:20px; font-weight:650; color:rgba(255,255,255,0.72); margin-top:14px; letter-spacing:0.2px; }
+  .lt { font-size:88px; font-weight:250; letter-spacing:-3px; line-height:1; margin-top:2px; font-variant-numeric:tabular-nums; }
+
+  /* live activity */
+  .la { margin-top:26px; background:rgba(18,22,38,0.80); backdrop-filter:blur(28px); border:1px solid rgba(255,255,255,0.11); border-radius:24px; padding:17px 19px; }
+  .lah { display:flex; align-items:center; gap:9px; }
+  .laic { width:22px; height:22px; border-radius:7px; background:linear-gradient(135deg,#7B8CFF,#B08CFF); display:flex; align-items:center; justify-content:center; font-size:10px; color:#08101F; }
+  .lan { font-size:11.5px; font-weight:800; color:#98A2BC; letter-spacing:0.3px; }
+  .lam { margin-left:auto; font-size:11.5px; font-weight:700; color:#6C768F; }
+  .labody { display:flex; align-items:flex-end; gap:14px; margin-top:14px; }
+  .lav { font-size:34px; font-weight:900; letter-spacing:-1.7px; line-height:1; }
+  .lal { font-size:12px; color:#8891AB; font-weight:700; padding-bottom:4px; }
+  .laring { margin-left:auto; position:relative; width:52px; height:52px; }
+  .larn { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; color:#9AA8FF; }
+  .lat { height:5px; border-radius:4px; background:rgba(255,255,255,0.10); margin-top:14px; position:relative; }
+  .laf { position:absolute; left:0; top:0; bottom:0; width:66%; border-radius:4px; background:linear-gradient(90deg,#7B8CFF,#B08CFF); }
+  .lax { display:flex; justify-content:space-between; font-size:10.5px; font-weight:750; color:#5A6480; margin-top:9px; }
+
+  /* notification */
+  .notif { margin-top:12px; background:rgba(18,22,38,0.80); backdrop-filter:blur(28px); border:1px solid rgba(255,255,255,0.11); border-radius:24px; padding:17px 19px; }
+  .nh { display:flex; align-items:center; gap:9px; }
+  .nt { font-size:15.5px; font-weight:850; letter-spacing:-0.3px; margin-top:12px; }
+  .nb { font-size:13.5px; color:#B4BDD4; line-height:1.5; margin-top:8px; }
+  .nb b { color:#EEF1FA; font-weight:750; }
+  .nacts { display:flex; gap:9px; margin-top:15px; }
+  .na { flex:1; text-align:center; font-size:13px; font-weight:800; padding:12px 0; border-radius:14px; }
+  .na.p { background:#7B8CFF; color:#080B14; }
+  .na.s { background:rgba(255,255,255,0.09); color:#C3CBE0; }
+
+  .cost { margin-top:12px; background:rgba(18,22,38,0.68); backdrop-filter:blur(28px); border:1px solid rgba(255,184,107,0.20); border-radius:24px; padding:16px 19px; display:flex; align-items:center; gap:14px; }
+  .cic { width:36px; height:36px; border-radius:12px; background:rgba(255,184,107,0.14); color:#FFB86B; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+  .ct { font-size:13px; font-weight:750; line-height:1.45; }
+  .cm { font-size:11.5px; color:#7A85A1; margin-top:4px; font-weight:650; }
+
+  .bottom { margin-top:auto; margin-bottom:26px; display:flex; align-items:center; justify-content:space-between; padding:0 24px; }
+  .bb { width:52px; height:52px; border-radius:50%; background:rgba(255,255,255,0.13); backdrop-filter:blur(14px); display:flex; align-items:center; justify-content:center; font-size:18px; color:#F2F5FA; }
+  .bar { position:absolute; bottom:10px; left:50%; transform:translateX(-50%); width:140px; height:5px; border-radius:4px; background:rgba(255,255,255,0.36); }
+</style>
+</head>
+<body>
+  <div class="wall"><img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786644852887-image-1.png" alt=""></div>
+
+  <div class="status-bar">
+    <div class="status-time">10:38</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons"><i class="fas fa-moon" style="color:#7B8CFF"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full" style="font-size:16px"></i></div>
+  </div>
+
+  <div class="content">
+    <div class="lock">
+      <div class="li"><i class="fas fa-lock"></i></div>
+      <div class="ld">Thursday, 13 August</div>
+      <div class="lt">10:38</div>
+    </div>
+
+    <div class="la">
+      <div class="lah">
+        <div class="laic"><i class="fas fa-moon"></i></div>
+        <div class="lan">DAWNLOCK</div>
+        <div class="lam">now</div>
+      </div>
+      <div class="labody">
+        <div class="lav">7 min</div>
+        <div class="lal">until wind-down</div>
+        <div class="laring">
+          <svg viewBox="0 0 52 52" style="width:52px;height:52px">
+            <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="5"/>
+            <circle cx="26" cy="26" r="22" fill="none" stroke="#7B8CFF" stroke-width="5" stroke-linecap="round"
+                    stroke-dasharray="138" stroke-dashoffset="47" transform="rotate(-90 26 26)"/>
+          </svg>
+          <div class="larn">66%</div>
+        </div>
+      </div>
+      <div class="lat"><div class="laf"></div></div>
+      <div class="lax"><span>10:45 wind-down</span><span>11:09 lights out</span></div>
+    </div>
+
+    <div class="notif">
+      <div class="nh">
+        <div class="laic"><i class="fas fa-moon"></i></div>
+        <div class="lan">DAWNLOCK</div>
+        <div class="lam">now</div>
+      </div>
+      <div class="nt">Stop here and you keep the streak</div>
+      <div class="nb">You are 6 nights in. Going to bed now puts you at <b>7h 31m</b> before the 6:40 alarm.</div>
+      <div class="nacts">
+        <div class="na p">Start wind-down</div>
+        <div class="na s">15 more minutes</div>
+      </div>
+    </div>
+
+    <div class="cost">
+      <div class="cic"><i class="fas fa-hourglass-half"></i></div>
+      <div>
+        <div class="ct">One more episode costs 47 minutes</div>
+        <div class="cm">Your average, measured across 12 late nights</div>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <div class="bb"><i class="fas fa-lightbulb"></i></div>
+      <div class="bb"><i class="fas fa-camera"></i></div>
+    </div>
+    <div class="bar"></div>
+  </div>
+</body>
+</html>
