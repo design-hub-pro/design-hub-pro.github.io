@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scan</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  *::-webkit-scrollbar{display:none;}
+  html,body{height:100%;scrollbar-width:none;}
+  body{font-family:'Inter',-apple-system,sans-serif;color:#fff;font-size:14px;}
+  .screen{position:relative;width:100%;height:100%;overflow:hidden;background:#07100E;}
+  .feed{position:absolute;inset:0;}
+  .feed img{width:100%;height:100%;object-fit:cover;opacity:.62;}
+  .feed .veil{position:absolute;inset:0;background:radial-gradient(120% 60% at 50% 34%,rgba(7,16,14,.05),rgba(7,16,14,.86) 78%);}
+  .statusbar{height:59px;padding:0 28px 8px;display:flex;align-items:flex-end;justify-content:space-between;font-size:14px;font-weight:600;color:#fff;position:relative;z-index:3;}
+  .island{position:absolute;left:50%;transform:translateX(-50%);top:11px;width:118px;height:34px;border-radius:19px;background:#000;}
+  .layer{position:absolute;inset:59px 0 0;padding:0 28px;z-index:3;display:flex;flex-direction:column;}
+  .meta{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);}
+  .tabular{font-variant-numeric:tabular-nums;}
+
+  .topbar{display:flex;align-items:center;padding-top:8px;}
+  .rnd{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.13);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .live{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;background:rgba(212,58,58,.2);border:1px solid rgba(255,120,120,.35);height:28px;padding:0 12px;border-radius:99px;margin:0 auto;}
+  .live i{width:7px;height:7px;border-radius:50%;background:#FF6B6B;}
+
+  /* signature: viewfinder brackets + detections */
+  .finder{position:relative;height:296px;margin-top:26px;}
+  .br{position:absolute;width:38px;height:38px;border:3px solid #5FD3BB;border-radius:6px;}
+  .br.tl{top:0;left:0;border-right:none;border-bottom:none;}
+  .br.tr{top:0;right:0;border-left:none;border-bottom:none;}
+  .br.bl{bottom:0;left:0;border-right:none;border-top:none;}
+  .br.br2{bottom:0;right:0;border-left:none;border-top:none;}
+  .sweep{position:absolute;left:14px;right:14px;top:52%;height:2px;background:linear-gradient(90deg,transparent,#5FD3BB,transparent);box-shadow:0 0 14px rgba(95,211,187,.8);}
+  .det{position:absolute;display:flex;align-items:center;gap:7px;height:30px;padding:0 11px;border-radius:9px;font-size:12px;font-weight:700;backdrop-filter:blur(10px);}
+  .det.ok{background:rgba(20,164,140,.26);border:1px solid rgba(95,211,187,.55);color:#B6F0E2;}
+  .det.warn{background:rgba(200,116,40,.3);border:1px solid rgba(240,175,110,.6);color:#FFD9AE;}
+  .det.dim{background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.78);}
+
+  .count{display:flex;align-items:flex-end;gap:12px;margin-top:auto;}
+  .count .n{font-size:62px;font-weight:800;letter-spacing:-3.4px;line-height:.86;}
+  .count .u{padding-bottom:7px;}
+  .count .rate{margin-left:auto;text-align:right;padding-bottom:6px;}
+  .count .rate b{font-size:19px;font-weight:800;color:#5FD3BB;letter-spacing:-.5px;}
+
+  /* signature: live type histogram */
+  .hist{display:flex;gap:3px;height:8px;border-radius:99px;overflow:hidden;margin-top:16px;}
+  .hist span{display:block;height:100%;}
+  .legend{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;}
+  .lg{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:rgba(255,255,255,.62);}
+  .lg i{width:8px;height:8px;border-radius:3px;}
+  .lg b{color:#fff;font-weight:800;}
+
+  .controls{display:flex;align-items:center;justify-content:space-between;padding:22px 0 30px;}
+  .shutter{width:74px;height:74px;border-radius:50%;border:4px solid rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;}
+  .shutter div{width:56px;height:56px;border-radius:16px;background:#FF6B6B;display:flex;align-items:center;justify-content:center;font-size:19px;color:#fff;}
+  .thumb{width:50px;height:50px;border-radius:14px;overflow:hidden;border:2px solid rgba(255,255,255,.3);}
+  .thumb img{width:100%;height:100%;object-fit:cover;}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="feed">
+    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786755132951-image-1.png" alt="">
+    <div class="veil"></div>
+  </div>
+
+  <div class="statusbar"><span>9:41</span><div class="island"></div>
+    <span style="display:flex;gap:6px;align-items:center;"><i class="fas fa-signal" style="font-size:12px;"></i><i class="fas fa-wifi" style="font-size:12px;"></i><i class="fas fa-battery-three-quarters" style="font-size:13px;"></i></span>
+  </div>
+
+  <div class="layer">
+    <div class="topbar">
+      <div class="rnd"><i class="fas fa-xmark"></i></div>
+      <div class="live"><i></i> Reading pile 3 of 3</div>
+      <div class="rnd"><i class="fas fa-bolt"></i></div>
+    </div>
+
+    <div class="finder">
+      <span class="br tl"></span><span class="br tr"></span><span class="br bl"></span><span class="br br2"></span>
+      <div class="sweep"></div>
+      <div class="det ok" style="top:38px;left:22px;"><i class="fas fa-check" style="font-size:10px;"></i> Basic · Grass · 70 HP</div>
+      <div class="det warn" style="top:118px;right:16px;"><i class="fas fa-arrow-up-from-bracket" style="font-size:10px;"></i> Holo · pull out</div>
+      <div class="det dim" style="bottom:74px;left:34px;"><i class="fas fa-bolt" style="font-size:10px;"></i> Energy ×4</div>
+      <div class="det ok" style="bottom:22px;right:40px;"><i class="fas fa-check" style="font-size:10px;"></i> Stage-1 · match found</div>
+    </div>
+
+    <div class="count">
+      <div>
+        <div class="meta">Cards read</div>
+        <div class="n tabular" style="margin-top:6px;">1,412</div>
+      </div>
+      <div class="rate">
+        <div class="meta" style="font-size:10px;">Per minute</div>
+        <b class="tabular">218</b>
+      </div>
+    </div>
+
+    <div class="hist">
+      <span style="flex:631;background:#5FD3BB;"></span>
+      <span style="flex:288;background:#8FD6C8;"></span>
+      <span style="flex:142;background:#3E8F7E;"></span>
+      <span style="flex:96;background:#2C6C5E;"></span>
+      <span style="flex:191;background:#4A5A56;"></span>
+      <span style="flex:64;background:#E0913F;"></span>
+    </div>
+    <div class="legend">
+      <span class="lg"><i style="background:#5FD3BB;"></i>Basics <b class="tabular">631</b></span>
+      <span class="lg"><i style="background:#8FD6C8;"></i>Energy <b class="tabular">288</b></span>
+      <span class="lg"><i style="background:#3E8F7E;"></i>Stage-1 <b class="tabular">142</b></span>
+      <span class="lg"><i style="background:#2C6C5E;"></i>Trainer <b class="tabular">96</b></span>
+      <span class="lg"><i style="background:#4A5A56;"></i>Craft <b class="tabular">191</b></span>
+      <span class="lg"><i style="background:#E0913F;"></i>Pull out <b class="tabular">64</b></span>
+    </div>
+
+    <div class="controls">
+      <div class="thumb"><img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1786755119236-image-1.png" alt=""></div>
+      <div class="shutter"><div><i class="fas fa-stop"></i></div></div>
+      <div class="rnd"><i class="fas fa-keyboard"></i></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
