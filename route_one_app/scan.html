@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scan</title>
+<!-- Card images: Pokemon TCG API (images.pokemontcg.io), set sv3pt5 "Scarlet & Violet-151".
+     Names, rarities and market prices pulled from api.pokemontcg.io, Aug 2026. -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  *::-webkit-scrollbar{display:none;}
+  html,body{height:100%;scrollbar-width:none;}
+  body{font-family:'Inter',-apple-system,sans-serif;color:#8E8B84;font-size:14px;}
+  .screen{position:relative;width:100%;height:100%;overflow:hidden;background:#0E0F13;}
+  .statusbar{height:59px;padding:0 28px 8px;display:flex;align-items:flex-end;justify-content:space-between;font-size:14px;font-weight:600;color:#fff;position:relative;z-index:6;}
+  .island{position:absolute;left:50%;transform:translateX(-50%);top:11px;width:118px;height:34px;border-radius:19px;background:#0C0D11;}
+  .sbr{display:flex;gap:6px;align-items:center;} .sbr i{font-size:12px;}
+  .scroll{height:calc(100% - 59px);overflow-y:auto;padding:0 0 150px;}
+  .pad{padding:0 28px;}
+  .meta{font-size:10.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#6D6A64;}
+  .tabular{font-variant-numeric:tabular-nums;}
+
+  .nav{display:flex;align-items:center;padding:2px 28px 0;}
+  .nb{width:38px;height:38px;border-radius:13px;background:rgba(255,255,255,.11);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
+  .navt{margin-left:auto;height:30px;padding:0 13px;border-radius:99px;background:rgba(255,255,255,.11);color:#fff;display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;}
+
+  /* camera viewport over a binder page */
+  .cam{margin:12px 22px 0;border-radius:24px;background:#17181D;padding:14px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.07);}
+  .grid9{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .slot{position:relative;border-radius:6px;overflow:hidden;aspect-ratio:63/88;background:#101116;}
+  .slot img{width:100%;height:100%;object-fit:cover;display:block;}
+  .slot .box{position:absolute;inset:0;border:2px solid #5FD08A;border-radius:6px;}
+  .slot.sell .box{border-color:#F0B84A;}
+  .slot .lab{position:absolute;left:3px;bottom:3px;height:15px;padding:0 5px;border-radius:4px;background:#5FD08A;color:#0E0F13;font-size:8px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;display:flex;align-items:center;}
+  .slot.sell .lab{background:#F0B84A;}
+  .slot .px{position:absolute;right:3px;top:3px;height:15px;padding:0 5px;border-radius:4px;background:rgba(14,15,19,.82);color:#F0B84A;font-size:8.5px;font-weight:900;display:flex;align-items:center;}
+  .scanline{position:absolute;left:14px;right:14px;top:38%;height:2px;background:linear-gradient(90deg,rgba(95,208,138,0),#5FD08A,rgba(95,208,138,0));box-shadow:0 0 14px rgba(95,208,138,.7);}
+  .camfoot{display:flex;align-items:center;gap:9px;margin-top:13px;}
+  .camfoot .d{width:7px;height:7px;border-radius:50%;background:#5FD08A;}
+  .camfoot .t{font-size:12px;font-weight:800;color:#fff;}
+  .camfoot .r{margin-left:auto;font-size:11px;font-weight:700;color:#6D6A64;}
+
+  .split{display:flex;gap:11px;margin-top:12px;}
+  .sp{flex:1;border-radius:20px;padding:16px;}
+  .sp.give{background:rgba(95,208,138,.11);border:1px solid rgba(95,208,138,.26);}
+  .sp.sell{background:rgba(240,184,74,.1);border:1px solid rgba(240,184,74,.26);}
+  .sp .k{font-size:9.5px;font-weight:900;letter-spacing:1.6px;text-transform:uppercase;}
+  .sp.give .k{color:#5FD08A;} .sp.sell .k{color:#F0B84A;}
+  .sp .n{font-size:29px;font-weight:900;color:#fff;letter-spacing:-1.4px;margin-top:7px;line-height:1;}
+  .sp .s{font-size:11px;color:#8E8B84;margin-top:6px;line-height:1.4;}
+
+  .flag{background:#191A20;border-radius:22px;padding:16px;margin-top:18px;display:flex;gap:14px;align-items:center;}
+  .flag .card{width:66px;border-radius:6px;overflow:hidden;flex-shrink:0;box-shadow:0 8px 20px rgba(0,0,0,.5);}
+  .flag .card img{width:100%;display:block;}
+  .flag .k{font-size:9.5px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#F0B84A;}
+  .flag .t{font-size:16px;font-weight:800;color:#fff;letter-spacing:-.4px;margin-top:5px;}
+  .flag .s{font-size:11.5px;color:#7C7A73;margin-top:3px;}
+  .flag .why{font-size:12.5px;line-height:1.45;color:#E4E2DD;margin-top:9px;font-weight:600;}
+  .flag .why b{color:#F0B84A;}
+
+  .sechead{display:flex;align-items:baseline;margin:24px 0 11px;}
+  .sechead .a{margin-left:auto;font-size:12.5px;font-weight:700;color:#FF8A6E;}
+
+  .list{background:#191A20;border-radius:22px;padding:3px 16px;}
+  .li{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+  .li:last-child{border-bottom:none;}
+  .li .sp2{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .li .sp2 img{width:30px;height:30px;object-fit:contain;}
+  .li .t{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.2px;}
+  .li .s{font-size:10.5px;color:#6D6A64;margin-top:2px;}
+  .li .r{margin-left:auto;text-align:right;}
+  .li .r b{font-size:13px;font-weight:800;color:#E4E2DD;}
+  .li .r span{display:block;font-size:9px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:#5FD08A;margin-top:1px;}
+  .li .r span.s2{color:#F0B84A;}
+
+  .dock{position:absolute;left:0;right:0;bottom:0;padding:14px 28px 32px;background:linear-gradient(to top,#0E0F13 60%,rgba(14,15,19,0));display:flex;gap:11px;align-items:center;}
+  .shut{width:58px;height:60px;border-radius:20px;background:#191A20;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;}
+  .go{flex:1;height:60px;border-radius:20px;background:linear-gradient(150deg,#EE5A3E,#C22B18);color:#fff;display:flex;align-items:center;padding:0 20px;box-shadow:0 14px 28px rgba(194,43,24,.34);}
+  .go .t{font-size:16px;font-weight:800;letter-spacing:-.3px;}
+  .go .s{font-size:11px;color:rgba(255,255,255,.75);margin-top:1px;}
+  .go i{margin-left:auto;font-size:14px;}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="statusbar"><span>9:41</span><div class="island"></div>
+    <span class="sbr"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-three-quarters"></i></span>
+  </div>
+
+  <div class="scroll">
+    <div class="nav">
+      <div class="nb"><i class="fas fa-arrow-left"></i></div>
+      <div class="navt"><i class="fas fa-layer-group" style="font-size:10px;"></i> Binder page 3 of 8</div>
+    </div>
+
+    <div class="cam">
+      <div class="grid9">
+        <div class="slot"><img src="https://images.pokemontcg.io/sv3pt5/1.png" alt="Bulbasaur"><div class="box"></div><div class="lab">Give</div></div>
+        <div class="slot"><img src="https://images.pokemontcg.io/sv3pt5/4.png" alt="Charmander"><div class="box"></div><div class="lab">Give</div></div>
+        <div class="slot"><img src="https://images.pokemontcg.io/sv3pt5/7.png" alt="Squirtle"><div class="box"></div><div class="lab">Give</div></div>
+        <div class="slot"><img src="https://images.pokemontcg.io/sv3pt5/25.png" alt="Pikachu"><div class="box"></div><div class="lab">Give</div></div>
+        <div class="slot"><img src="https://images.pokemontcg.io/sv3pt5/133.png" alt="Eevee"><div class="box"></div><div class="lab">Give</div></div>
+        <div class="slot"><img src="https://images.pokemontcg.io/sv3pt5/39.png" alt="Jigglypuff"><div class="box"></div><div class="lab">Give</div></div>
+        <div class="slot"><img src="https://images.pokemontcg.io/sv3pt5/143.png" alt="Snorlax"><div class="box"></div><div class="lab">Give</div></div>
+        <div class="slot sell"><img src="https://images.pokemontcg.io/sv3pt5/199.png" alt="Charizard ex"><div class="box"></div><div class="px">$372</div><div class="lab">Sell</div></div>
+        <div class="slot sell"><img src="https://images.pokemontcg.io/sv3pt5/151.png" alt="Mew ex"><div class="box"></div><div class="px">$7.53</div><div class="lab">Sell</div></div>
+      </div>
+      <div class="scanline"></div>
+      <div class="camfoot"><div class="d"></div><div class="t">9 of 9 read</div><div class="r tabular">Scarlet &amp; Violet&mdash;151</div></div>
+    </div>
+
+    <div class="pad">
+      <div class="flag">
+        <div class="card"><img src="https://images.pokemontcg.io/sv3pt5/199.png" alt="Charizard ex special illustration rare"></div>
+        <div>
+          <div class="k">Do not ship this one</div>
+          <div class="t">Charizard ex</div>
+          <div class="s tabular">151 &middot; #199 &middot; Special Illustration Rare &middot; $372.18</div>
+          <div class="why">Sold through the league shop, this card buys <b>31 sleeved decks</b>. In a donation box it is one card.</div>
+        </div>
+      </div>
+
+      <div class="split">
+        <div class="sp give"><div class="k">Give</div><div class="n tabular">7</div><div class="s">Playable. Goes straight into a 60-card deck.</div></div>
+        <div class="sp sell"><div class="k">Sell</div><div class="n tabular">$379</div><div class="s">Too valuable to ship to a ward.</div></div>
+      </div>
+
+      <div class="sechead"><span class="meta">Read from this page</span><span class="a">Edit</span></div>
+      <div class="list">
+        <div class="li">
+          <div class="sp2"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png" alt=""></div>
+          <div><div class="t">Pikachu</div><div class="s">151 &middot; #25 &middot; Common</div></div>
+          <div class="r"><b class="tabular">$1.20</b><span>Give</span></div>
+        </div>
+        <div class="li">
+          <div class="sp2"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/143.png" alt=""></div>
+          <div><div class="t">Snorlax</div><div class="s">151 &middot; #143 &middot; Uncommon</div></div>
+          <div class="r"><b class="tabular">$0.30</b><span>Give</span></div>
+        </div>
+        <div class="li">
+          <div class="sp2"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png" alt=""></div>
+          <div><div class="t">Eevee</div><div class="s">151 &middot; #133 &middot; Common</div></div>
+          <div class="r"><b class="tabular">$0.23</b><span>Give</span></div>
+        </div>
+        <div class="li">
+          <div class="sp2"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/151.png" alt=""></div>
+          <div><div class="t">Mew ex</div><div class="s">151 &middot; #151 &middot; Double Rare</div></div>
+          <div class="r"><b class="tabular">$7.53</b><span class="s2">Sell</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dock">
+    <div class="shut"><i class="fas fa-camera"></i></div>
+    <div class="go">
+      <div><div class="t">Add 7 to pledge</div><div class="s tabular">Ridgeway Ward 4 &middot; 2 decks short</div></div>
+      <i class="fas fa-arrow-right"></i>
+    </div>
+  </div>
+</div>
+</body>
+</html>
