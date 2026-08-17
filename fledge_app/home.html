@@ -1,0 +1,175 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fledge — Today</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+*::-webkit-scrollbar{display:none;}
+:root{
+  --accent:#0F6B52; --accent2:#A8D65C;
+  --ink:#11211B; --muted:#6E7C75; --border:#E4E8E3; --surface:#F4F7F2; --white:#fff;
+  --warn:#E2A32B; --alert:#D2542F;
+}
+html,body{width:100%;height:100%;}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--surface);color:var(--ink);scrollbar-width:none;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;}
+.screen{width:100%;height:100%;position:relative;display:flex;flex-direction:column;overflow:hidden;background:var(--surface);}
+.status-bar{height:59px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:relative;flex-shrink:0;}
+.island{position:absolute;left:50%;transform:translateX(-50%);top:11px;width:118px;height:34px;border-radius:20px;background:#000;}
+.sb-time{font-size:15px;font-weight:700;letter-spacing:-0.2px;}
+.sb-icons{display:flex;gap:7px;font-size:13px;}
+.content{flex:1;overflow-y:auto;padding:0 28px 108px;}
+
+.top{display:flex;align-items:center;justify-content:space-between;margin-top:4px;}
+.meta{font-size:10.5px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);}
+.top h2{font-size:20px;font-weight:900;letter-spacing:-.7px;margin-top:3px;}
+.bell{position:relative;width:42px;height:42px;border-radius:14px;background:var(--white);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--ink);}
+.badge{position:absolute;top:-4px;right:-4px;min-width:19px;height:19px;border-radius:10px;background:var(--alert);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);padding:0 4px;}
+
+/* hero */
+.hero{position:relative;margin-top:16px;border-radius:24px;overflow:hidden;height:262px;box-shadow:0 18px 40px rgba(17,33,27,.16);}
+.hero img{width:100%;height:100%;object-fit:cover;display:block;}
+.scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,20,14,.42) 0%,rgba(6,20,14,0) 34%,rgba(6,20,14,.82) 100%);}
+.live{position:absolute;top:15px;left:15px;display:flex;align-items:center;gap:7px;background:rgba(10,24,18,.6);backdrop-filter:blur(8px);padding:6px 11px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:1.2px;color:#fff;}
+.dot{width:7px;height:7px;border-radius:50%;background:#5BE39A;box-shadow:0 0 0 3px rgba(91,227,154,.28);}
+.heroid{position:absolute;top:15px;right:15px;background:rgba(10,24,18,.6);backdrop-filter:blur(8px);color:#fff;font-size:10px;font-weight:800;letter-spacing:1px;padding:6px 10px;border-radius:20px;}
+.herotxt{position:absolute;left:18px;right:18px;bottom:16px;color:#fff;}
+.herotxt h3{font-size:25px;font-weight:900;letter-spacing:-.9px;line-height:1.1;}
+.herorow{display:flex;align-items:center;gap:9px;margin-top:9px;font-size:11.5px;font-weight:700;color:rgba(255,255,255,.86);}
+.herorow span{display:flex;align-items:center;gap:5px;}
+.sep{width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.5);}
+.gobtn{position:absolute;right:16px;bottom:16px;width:42px;height:42px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:14px;}
+
+/* season meter */
+.card{background:var(--white);border:1px solid var(--border);border-radius:22px;padding:16px;box-shadow:0 10px 26px rgba(17,33,27,.05);}
+.smhead{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px;}
+.smval{font-size:30px;font-weight:900;letter-spacing:-1.2px;line-height:1;}
+.smval em{font-style:normal;font-size:13px;font-weight:700;color:var(--muted);margin-left:4px;}
+.pill{font-size:10px;font-weight:800;letter-spacing:1px;padding:6px 10px;border-radius:9px;background:rgba(226,163,43,.15);color:#9A6C0C;}
+.segbar{display:flex;gap:4px;}
+.sg{flex:1;height:11px;border-radius:4px;background:#E9EDE6;position:relative;}
+.sg.done{background:#BFD9C9;}
+.sg.now{background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.sg.now::after{content:'';position:absolute;top:-6px;left:60%;width:2px;height:23px;background:var(--ink);border-radius:2px;}
+.sglabels{display:flex;gap:4px;margin-top:8px;}
+.sglabels span{flex:1;font-size:9.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);text-align:center;}
+.sglabels span.on{color:var(--accent);}
+.smfoot{display:flex;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.sf{text-align:left;}
+.sfn{font-size:17px;font-weight:900;letter-spacing:-.5px;}
+.sfn i{font-size:10px;color:var(--accent);margin-left:2px;}
+.sfl{font-size:9.5px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--muted);margin-top:3px;}
+
+/* section */
+.sect{display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px;}
+.sect .act{font-size:12px;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:5px;}
+
+.rows{background:var(--white);border:1px solid var(--border);border-radius:20px;overflow:hidden;}
+.row{display:flex;align-items:center;gap:12px;padding:13px 15px;}
+.row+.row{border-top:1px solid var(--border);}
+.sdot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.rname{font-size:15px;font-weight:700;letter-spacing:-.25px;}
+.rsub{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:2px;}
+.rstat{margin-left:auto;text-align:right;}
+.rs1{font-size:11px;font-weight:800;letter-spacing:.7px;}
+.rs2{font-size:10.5px;color:var(--muted);font-weight:600;margin-top:2px;}
+
+.alertbar{display:flex;align-items:center;gap:12px;background:#FDF1EC;border:1px solid #F5D6C8;border-radius:18px;padding:13px 15px;margin-top:14px;}
+.abicon{width:36px;height:36px;border-radius:11px;background:var(--alert);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.abt{font-size:14px;font-weight:800;letter-spacing:-.2px;color:#8E3418;}
+.abs{font-size:11px;font-weight:600;color:#B06246;margin-top:2px;}
+
+/* tabbar */
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:92px;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding:11px 16px 0;}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;color:#9AA79F;}
+.tab i{font-size:18px;}
+.tab span{font-size:10px;font-weight:700;letter-spacing:.2px;}
+.tab.on{color:var(--accent);}
+</style>
+
+<div class="screen">
+  <div class="status-bar">
+    <span class="sb-time">7:12</span><div class="island"></div>
+    <div class="sb-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="content">
+    <div class="top">
+      <div>
+        <div class="meta">Elmswood patch · 1.2 km</div>
+        <h2>12 May · Week 19</h2>
+      </div>
+      <div class="bell"><i class="far fa-bell"></i><span class="badge">2</span></div>
+    </div>
+
+    <div class="hero">
+      <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1787005599023-image-1.png" alt="">
+      <div class="scrim"></div>
+      <div class="live"><span class="dot"></span>ACTIVE</div>
+      <div class="heroid">EF-12 · 40 m</div>
+      <div class="herotxt">
+        <h3>Blackbird</h3>
+        <div class="herorow">
+          <span><i class="fas fa-egg"></i>Eggs · day 9 of 14</span><span class="sep"></span>
+          <span><i class="fas fa-arrows-left-right-to-line"></i>5 m buffer</span><span class="sep"></span>
+          <span>Hedge, east fence</span>
+        </div>
+      </div>
+      <div class="gobtn"><i class="fas fa-arrow-right"></i></div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="smhead">
+        <div>
+          <div class="meta" style="margin-bottom:5px;">Season stage</div>
+          <div class="smval">Chicks<em>peak</em></div>
+        </div>
+        <span class="pill">ENDS 31 AUG</span>
+      </div>
+      <div class="segbar">
+        <div class="sg done"></div><div class="sg done"></div><div class="sg now"></div><div class="sg"></div><div class="sg"></div>
+      </div>
+      <div class="sglabels">
+        <span>Build</span><span>Eggs</span><span class="on">Chicks</span><span>Fledge</span><span>Clear</span>
+      </div>
+      <div class="smfoot">
+        <div class="sf"><div class="sfn">4</div><div class="sfl">Active nests</div></div>
+        <div class="sf"><div class="sfn">18 d</div><div class="sfl">To first fledge</div></div>
+        <div class="sf"><div class="sfn">+2 <i class="fas fa-arrow-up"></i></div><div class="sfl">Since April</div></div>
+        <div class="sf"><div class="sfn">96%</div><div class="sfl">Buffer held</div></div>
+      </div>
+    </div>
+
+    <div class="sect"><span class="meta">Work check</span><span class="act">See all <i class="fas fa-chevron-right" style="font-size:9px;"></i></span></div>
+    <div class="rows">
+      <div class="row">
+        <span class="sdot" style="background:#D2542F;"></span>
+        <div><div class="rname">Hedge trim · east fence</div><div class="rsub">Blackbird EF-12 · 3 m away</div></div>
+        <div class="rstat"><div class="rs1" style="color:#D2542F;">BLOCKED</div><div class="rs2">until 4 Jun</div></div>
+      </div>
+      <div class="row">
+        <span class="sdot" style="background:#E2A32B;"></span>
+        <div><div class="rname">Roof repair · north eave</div><div class="rsub">House martin NE-04 · 8 m away</div></div>
+        <div class="rstat"><div class="rs1" style="color:#9A6C0C;">REVIEW</div><div class="rs2">survey due</div></div>
+      </div>
+      <div class="row">
+        <span class="sdot" style="background:#0F6B52;"></span>
+        <div><div class="rname">Fell oak 3 · back paddock</div><div class="rsub">No nest within 40 m</div></div>
+        <div class="rstat"><div class="rs1" style="color:#0F6B52;">CLEAR</div><div class="rs2">checked 2 h ago</div></div>
+      </div>
+    </div>
+
+    <div class="alertbar">
+      <div class="abicon"><i class="fas fa-triangle-exclamation"></i></div>
+      <div><div class="abt">Buffer breach · 3 m</div><div class="abs">Strimmer logged 07:04 · EF-12</div></div>
+      <i class="fas fa-chevron-right" style="margin-left:auto;color:#B06246;font-size:12px;"></i>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab on"><i class="fas fa-house"></i><span>Today</span></div>
+    <div class="tab"><i class="fas fa-map-location-dot"></i><span>Map</span></div>
+    <div class="tab"><i class="fas fa-triangle-exclamation"></i><span>Report</span></div>
+    <div class="tab"><i class="fas fa-hand-holding-heart"></i><span>Adopt</span></div>
+  </div>
+</div>

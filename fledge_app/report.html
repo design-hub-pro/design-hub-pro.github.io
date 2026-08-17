@@ -1,0 +1,187 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fledge — Report</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+*::-webkit-scrollbar{display:none;}
+:root{
+  --accent:#0F6B52; --accent2:#A8D65C;
+  --ink:#11211B; --muted:#6E7C75; --border:#E4E8E3; --surface:#F4F7F2; --white:#fff;
+  --warn:#E2A32B; --alert:#D2542F;
+}
+html,body{width:100%;height:100%;}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--surface);color:var(--ink);scrollbar-width:none;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;}
+.screen{width:100%;height:100%;position:relative;display:flex;flex-direction:column;overflow:hidden;background:var(--surface);}
+.status-bar{height:59px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:relative;flex-shrink:0;}
+.island{position:absolute;left:50%;transform:translateX(-50%);top:11px;width:118px;height:34px;border-radius:20px;background:#000;}
+.sb-time{font-size:15px;font-weight:700;letter-spacing:-0.2px;}
+.sb-icons{display:flex;gap:7px;font-size:13px;}
+.content{flex:1;overflow-y:auto;padding:0 28px 108px;}
+
+.top{display:flex;align-items:center;justify-content:space-between;margin-top:4px;}
+.meta{font-size:10.5px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);}
+.top h2{font-size:24px;font-weight:900;letter-spacing:-.9px;margin-top:3px;}
+.draft{font-size:10px;font-weight:800;letter-spacing:1px;color:var(--muted);background:var(--white);border:1px solid var(--border);padding:7px 11px;border-radius:20px;}
+.sect{display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px;}
+.sect .act{font-size:12px;font-weight:700;color:var(--accent);}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{font-size:12.5px;font-weight:700;padding:9px 13px;border-radius:20px;background:var(--white);border:1px solid var(--border);color:var(--muted);display:flex;align-items:center;gap:7px;}
+.chip i{font-size:11px;}
+.chip.on{background:var(--alert);border-color:var(--alert);color:#fff;}
+
+/* photos */
+.photos{display:flex;gap:9px;}
+.pmain{flex:1.7;height:132px;border-radius:18px;overflow:hidden;position:relative;}
+.pmain img{width:100%;height:100%;object-fit:cover;display:block;}
+.ptag{position:absolute;left:9px;bottom:9px;background:rgba(10,24,18,.62);backdrop-filter:blur(8px);color:#fff;font-size:9.5px;font-weight:800;letter-spacing:.8px;padding:5px 9px;border-radius:8px;}
+.pcol{flex:1;display:flex;flex-direction:column;gap:9px;}
+.pthumb{flex:1;border-radius:14px;background:linear-gradient(135deg,#DCE6D6,#C9D9C0);display:flex;align-items:center;justify-content:center;color:#8AA093;font-size:14px;}
+.padd{flex:1;border-radius:14px;border:1.5px dashed #C3D0BC;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:16px;background:var(--white);}
+
+/* location */
+.locrow{display:flex;align-items:center;gap:13px;background:var(--white);border:1px solid var(--border);border-radius:20px;padding:11px 13px;}
+.locmap{width:64px;height:64px;border-radius:15px;overflow:hidden;flex-shrink:0;}
+.lname{font-size:15px;font-weight:700;letter-spacing:-.25px;}
+.lsub{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:3px;}
+.lgps{font-size:10px;font-weight:800;letter-spacing:.7px;color:var(--accent);background:rgba(15,107,82,.1);padding:4px 8px;border-radius:7px;display:inline-block;margin-top:6px;}
+
+/* detail grid */
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.dcell{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:12px 13px;}
+.dl{font-size:9.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);}
+.dv{font-size:19px;font-weight:900;letter-spacing:-.6px;margin-top:5px;}
+.dv em{font-style:normal;font-size:11px;font-weight:700;color:var(--muted);margin-left:3px;}
+
+/* triage */
+.triage{background:#0F1D18;border-radius:24px;padding:18px;margin-top:14px;color:#fff;box-shadow:0 18px 40px rgba(15,29,24,.28);}
+.trhead{display:flex;align-items:flex-start;justify-content:space-between;}
+.trlab{font-size:10px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,.45);}
+.trval{font-size:36px;font-weight:900;letter-spacing:-1.5px;line-height:1;margin-top:6px;color:#FF8A66;}
+.trscore{text-align:right;}
+.trs{font-size:26px;font-weight:900;letter-spacing:-1px;}
+.trs em{font-style:normal;font-size:13px;color:rgba(255,255,255,.4);}
+.trsl{font-size:9px;font-weight:800;letter-spacing:1.2px;color:rgba(255,255,255,.4);margin-top:3px;text-transform:uppercase;}
+.tmeter{display:flex;gap:5px;margin-top:16px;}
+.tm{flex:1;height:10px;border-radius:4px;background:rgba(255,255,255,.1);position:relative;}
+.tm.f1{background:#3FCB8E;}.tm.f2{background:#A8D65C;}.tm.f3{background:#E2A32B;}
+.tm.f4{background:#FF7A52;}
+.tm.f4::after{content:'';position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:2px;height:24px;background:#fff;border-radius:2px;}
+.tmlab{display:flex;gap:5px;margin-top:8px;}
+.tmlab span{flex:1;text-align:center;font-size:9px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:rgba(255,255,255,.35);}
+.tmlab span.on{color:#FF8A66;}
+.trrow{display:flex;align-items:center;gap:11px;margin-top:16px;padding-top:15px;border-top:1px solid rgba(255,255,255,.1);}
+.trav{width:40px;height:40px;border-radius:13px;background:linear-gradient(135deg,#3FCB8E,#A8D65C);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#06251A;}
+.trn{font-size:14px;font-weight:800;letter-spacing:-.2px;}
+.trsub{font-size:11px;color:rgba(255,255,255,.5);font-weight:600;margin-top:2px;}
+.trcall{margin-left:auto;height:36px;padding:0 14px;border-radius:12px;background:rgba(63,203,142,.16);color:#3FCB8E;display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;}
+
+.steps{background:var(--white);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-top:12px;}
+.strow{display:flex;align-items:center;gap:12px;padding:12px 15px;}
+.strow+.strow{border-top:1px solid var(--border);}
+.stn{width:24px;height:24px;border-radius:8px;background:rgba(15,107,82,.1);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+.stt{font-size:14px;font-weight:700;letter-spacing:-.2px;}
+.stv{margin-left:auto;font-size:11px;font-weight:800;letter-spacing:.6px;color:var(--muted);}
+
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:92px;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding:11px 16px 0;}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;color:#9AA79F;}
+.tab i{font-size:18px;}
+.tab span{font-size:10px;font-weight:700;}
+.tab.on{color:var(--alert);}
+</style>
+
+<div class="screen">
+  <div class="status-bar">
+    <span class="sb-time">7:12</span><div class="island"></div>
+    <div class="sb-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="content">
+    <div class="top">
+      <div><div class="meta">Incident 4471</div><h2>Report</h2></div>
+      <span class="draft">DRAFT · 07:12</span>
+    </div>
+
+    <div class="sect"><span class="meta">What happened</span><span class="act">1 of 6</span></div>
+    <div class="chips">
+      <span class="chip on"><i class="fas fa-kiwi-bird"></i>Fallen chick</span>
+      <span class="chip"><i class="fas fa-house-crack"></i>Nest destroyed</span>
+      <span class="chip"><i class="fas fa-cat"></i>Cat attack</span>
+      <span class="chip"><i class="fas fa-bandage"></i>Injured adult</span>
+      <span class="chip"><i class="fas fa-screwdriver-wrench"></i>Works in progress</span>
+      <span class="chip"><i class="fas fa-box"></i>Trapped</span>
+    </div>
+
+    <div class="sect"><span class="meta">Evidence</span><span class="act">3 files</span></div>
+    <div class="photos">
+      <div class="pmain">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1787005611967-image-1.png" alt="">
+        <span class="ptag">07:09 · 2.1 MB</span>
+      </div>
+      <div class="pcol">
+        <div class="pthumb"><i class="fas fa-image"></i></div>
+        <div class="padd"><i class="fas fa-plus"></i></div>
+      </div>
+    </div>
+
+    <div class="locrow" style="margin-top:12px;">
+      <div class="locmap">
+        <svg viewBox="0 0 64 64" style="width:100%;height:100%;display:block;background:#E7EEE2;">
+          <path d="M0 42 C 16 34, 30 48, 44 40 S 64 34, 64 34 L64 64 L0 64Z" fill="#D5E3CB"/>
+          <path d="M14 0 L20 64" stroke="#fff" stroke-width="5"/>
+          <path d="M0 26 L64 20" stroke="#fff" stroke-width="4"/>
+          <circle cx="34" cy="30" r="13" fill="#D2542F" opacity=".16"/>
+          <circle cx="34" cy="30" r="6" fill="#D2542F" stroke="#fff" stroke-width="2"/>
+        </svg>
+      </div>
+      <div>
+        <div class="lname">Elmswood Lane, BS8</div>
+        <div class="lsub">51.4482, -2.6032 · beside path</div>
+        <span class="lgps">GPS ±4 m</span>
+      </div>
+      <i class="fas fa-chevron-right" style="margin-left:auto;color:var(--muted);font-size:12px;"></i>
+    </div>
+
+    <div class="sect"><span class="meta">Condition</span><span class="act">Edit</span></div>
+    <div class="dgrid">
+      <div class="dcell"><div class="dl">Birds</div><div class="dv">1</div></div>
+      <div class="dcell"><div class="dl">Feathered</div><div class="dv">Yes<em>fledgling</em></div></div>
+      <div class="dcell"><div class="dl">Adult nearby</div><div class="dv">None<em>20 min</em></div></div>
+      <div class="dcell"><div class="dl">Visible injury</div><div class="dv">Wing<em>left</em></div></div>
+    </div>
+
+    <div class="triage">
+      <div class="trhead">
+        <div>
+          <div class="trlab">Triage</div>
+          <div class="trval">Urgent</div>
+        </div>
+        <div class="trscore"><div class="trs">78<em>/100</em></div><div class="trsl">Risk score</div></div>
+      </div>
+      <div class="tmeter">
+        <div class="tm f1"></div><div class="tm f2"></div><div class="tm f3"></div><div class="tm f4"></div>
+      </div>
+      <div class="tmlab"><span>Leave</span><span>Monitor</span><span>Assist</span><span class="on">Urgent</span></div>
+      <div class="trrow">
+        <div class="trav">AW</div>
+        <div><div class="trn">Avon Wildlife Rescue</div><div class="trsub">3.4 km · open · 2 units free</div></div>
+        <div class="trcall"><i class="fas fa-phone"></i>Call</div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="strow"><span class="stn">1</span><div class="stt">Keep 3 m back</div><span class="stv">NOW</span></div>
+      <div class="strow"><span class="stn">2</span><div class="stt">Contain cats and dogs</div><span class="stv">NOW</span></div>
+      <div class="strow"><span class="stn">3</span><div class="stt">Wait for responder</div><span class="stv">ETA 22 MIN</span></div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab"><i class="fas fa-house"></i><span>Today</span></div>
+    <div class="tab"><i class="fas fa-map-location-dot"></i><span>Map</span></div>
+    <div class="tab on"><i class="fas fa-triangle-exclamation"></i><span>Report</span></div>
+    <div class="tab"><i class="fas fa-hand-holding-heart"></i><span>Adopt</span></div>
+  </div>
+</div>

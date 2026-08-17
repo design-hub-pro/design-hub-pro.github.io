@@ -1,0 +1,213 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fledge — Nest map</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+*::-webkit-scrollbar{display:none;}
+:root{
+  --accent:#3FCB8E; --accent2:#A8D65C;
+  --ink:#F2F6F2; --muted:#7E8F86; --border:#22322B; --bg:#0B1512; --card:#121F1A;
+  --warn:#E2A32B; --alert:#E8654A;
+}
+html,body{width:100%;height:100%;}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--ink);scrollbar-width:none;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;}
+.screen{width:100%;height:100%;position:relative;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
+.status-bar{height:59px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:relative;flex-shrink:0;color:#fff;}
+.island{position:absolute;left:50%;transform:translateX(-50%);top:11px;width:118px;height:34px;border-radius:20px;background:#000;}
+.sb-time{font-size:15px;font-weight:700;letter-spacing:-0.2px;}
+.sb-icons{display:flex;gap:7px;font-size:13px;}
+.content{flex:1;overflow-y:auto;padding:0 0 108px;}
+.pad{padding:0 28px;}
+
+.top{display:flex;align-items:center;justify-content:space-between;margin-top:4px;}
+.meta{font-size:10.5px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);}
+.top h2{font-size:24px;font-weight:900;letter-spacing:-.9px;margin-top:3px;}
+.ico{width:40px;height:40px;border-radius:13px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--ink);}
+.icos{display:flex;gap:9px;}
+
+.chips{display:flex;gap:8px;margin-top:16px;overflow-x:auto;padding-bottom:2px;}
+.chip{flex-shrink:0;font-size:12.5px;font-weight:700;padding:8px 13px;border-radius:20px;background:var(--card);border:1px solid var(--border);color:var(--muted);display:flex;align-items:center;gap:6px;}
+.chip b{font-weight:800;opacity:.7;}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#06251A;}
+.chip.on b{opacity:.8;}
+
+.mapwrap{margin-top:16px;position:relative;}
+.maplegend{position:absolute;left:38px;bottom:18px;display:flex;flex-direction:column;gap:6px;background:rgba(11,21,18,.72);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:12px;padding:9px 11px;}
+.lg{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:700;letter-spacing:.5px;color:#C7D6CE;}
+.lgd{width:8px;height:8px;border-radius:50%;}
+.mapbtns{position:absolute;right:38px;top:14px;display:flex;flex-direction:column;gap:8px;}
+.mb{width:36px;height:36px;border-radius:11px;background:rgba(11,21,18,.75);backdrop-filter:blur(10px);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;color:#C7D6CE;}
+.mb.on{color:var(--accent);}
+
+.sect{display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px;}
+.sect .act{font-size:12px;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:5px;}
+
+.rows{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;}
+.row{display:flex;align-items:center;gap:12px;padding:13px 15px;}
+.row+.row{border-top:1px solid var(--border);}
+.tile{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.rname{font-size:15px;font-weight:700;letter-spacing:-.25px;display:flex;align-items:center;gap:7px;}
+.vf{font-size:9px;color:#06251A;background:var(--accent);border-radius:5px;padding:2px 5px;font-weight:800;letter-spacing:.5px;}
+.pd{font-size:9px;color:#E2A32B;background:rgba(226,163,43,.16);border-radius:5px;padding:2px 5px;font-weight:800;letter-spacing:.5px;}
+.rsub{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:3px;}
+.rstat{margin-left:auto;text-align:right;}
+.rs1{font-size:16px;font-weight:900;letter-spacing:-.5px;}
+.rs2{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.6px;margin-top:2px;text-transform:uppercase;}
+
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:92px;background:rgba(11,21,18,.94);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding:11px 16px 0;}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;color:#5E6E66;}
+.tab i{font-size:18px;}
+.tab span{font-size:10px;font-weight:700;}
+.tab.on{color:var(--accent);}
+</style>
+
+<div class="screen">
+  <div class="status-bar">
+    <span class="sb-time">7:12</span><div class="island"></div>
+    <div class="sb-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+  </div>
+
+  <div class="content">
+    <div class="pad">
+      <div class="top">
+        <div><div class="meta">Elmswood · 1.2 km</div><h2>Nest map</h2></div>
+        <div class="icos"><div class="ico"><i class="fas fa-magnifying-glass"></i></div><div class="ico"><i class="fas fa-sliders"></i></div></div>
+      </div>
+
+      <div class="chips">
+        <span class="chip on">All <b>14</b></span>
+        <span class="chip">Blackbird <b>5</b></span>
+        <span class="chip">House martin <b>4</b></span>
+        <span class="chip">Swallow <b>3</b></span>
+        <span class="chip">Ground <b>2</b></span>
+      </div>
+    </div>
+
+    <div class="mapwrap">
+      <svg viewBox="0 0 460 336" style="width:100%;display:block;">
+        <defs>
+          <radialGradient id="you" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#3FCB8E" stop-opacity=".24"/>
+            <stop offset="100%" stop-color="#3FCB8E" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="riv" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#1B3A4A"/><stop offset="100%" stop-color="#17303D"/>
+          </linearGradient>
+        </defs>
+        <rect width="460" height="336" fill="#0D1A15"/>
+        <!-- woodland blocks -->
+        <path d="M-10 42 C 60 18, 120 66, 168 44 C 210 24, 250 58, 236 96 C 220 138, 140 132, 92 116 C 40 100, -10 92, -10 92 Z" fill="#132A20"/>
+        <path d="M300 200 C 350 178, 430 190, 470 172 L470 300 C 420 296, 344 274, 300 252 Z" fill="#132A20"/>
+        <path d="M40 246 C 88 232, 128 258, 150 284 C 168 306, 130 336, 88 332 C 44 328, 14 296, 40 246 Z" fill="#14291F"/>
+        <!-- river -->
+        <path d="M-10 132 C 80 152, 150 108, 232 138 C 314 168, 380 128, 470 150" stroke="url(#riv)" stroke-width="16" fill="none" stroke-linecap="round"/>
+        <!-- roads -->
+        <path d="M-10 216 C 110 200, 200 240, 300 214 C 380 194, 430 208, 470 200" stroke="#20302A" stroke-width="9" fill="none"/>
+        <path d="M118 -10 C 128 80, 96 160, 122 250 C 138 306, 132 336, 132 346" stroke="#20302A" stroke-width="7" fill="none"/>
+        <path d="M340 -10 L 318 336" stroke="#1B2A24" stroke-width="5" fill="none"/>
+        <path d="M-10 84 L470 66" stroke="#1B2A24" stroke-width="4" fill="none"/>
+        <!-- buildings -->
+        <g fill="#182823">
+          <rect x="164" y="188" width="46" height="34" rx="4"/><rect x="216" y="196" width="30" height="26" rx="4"/>
+          <rect x="176" y="234" width="34" height="24" rx="4"/><rect x="382" y="96" width="42" height="30" rx="4"/>
+        </g>
+        <!-- you radius -->
+        <circle cx="230" cy="176" r="118" fill="url(#you)"/>
+        <circle cx="230" cy="176" r="118" fill="none" stroke="#3FCB8E" stroke-width="1.4" stroke-dasharray="6 7" opacity=".5"/>
+        <!-- nest pins with buffers -->
+        <g>
+          <circle cx="152" cy="96" r="30" fill="#3FCB8E" opacity=".10"/>
+          <circle cx="152" cy="96" r="30" fill="none" stroke="#3FCB8E" stroke-width="1" stroke-dasharray="3 4" opacity=".45"/>
+          <circle cx="152" cy="96" r="11" fill="#3FCB8E"/><circle cx="152" cy="96" r="4" fill="#06251A"/>
+        </g>
+        <g>
+          <circle cx="300" cy="130" r="26" fill="#E2A32B" opacity=".10"/>
+          <circle cx="300" cy="130" r="26" fill="none" stroke="#E2A32B" stroke-width="1" stroke-dasharray="3 4" opacity=".45"/>
+          <circle cx="300" cy="130" r="11" fill="#E2A32B"/><circle cx="300" cy="130" r="4" fill="#2A1D04"/>
+        </g>
+        <g>
+          <circle cx="196" cy="206" r="34" fill="#E8654A" opacity=".12"/>
+          <circle cx="196" cy="206" r="34" fill="none" stroke="#E8654A" stroke-width="1.2" stroke-dasharray="3 4" opacity=".6"/>
+          <circle cx="196" cy="206" r="12" fill="#E8654A"/><circle cx="196" cy="206" r="4.5" fill="#2E0D05"/>
+        </g>
+        <g>
+          <circle cx="356" cy="238" r="24" fill="#3FCB8E" opacity=".10"/>
+          <circle cx="356" cy="238" r="24" fill="none" stroke="#3FCB8E" stroke-width="1" stroke-dasharray="3 4" opacity=".4"/>
+          <circle cx="356" cy="238" r="10" fill="#3FCB8E"/><circle cx="356" cy="238" r="3.5" fill="#06251A"/>
+        </g>
+        <g opacity=".8">
+          <circle cx="92" cy="268" r="9" fill="#6E8A7C"/><circle cx="92" cy="268" r="3.5" fill="#0D1A15"/>
+          <circle cx="404" cy="76" r="9" fill="#6E8A7C"/><circle cx="404" cy="76" r="3.5" fill="#0D1A15"/>
+        </g>
+        <!-- walked trace -->
+        <path d="M230 176 C 208 200, 188 216, 168 244 C 150 268, 128 282, 106 286" stroke="#A8D65C" stroke-width="2.2" stroke-dasharray="2 6" stroke-linecap="round" fill="none" opacity=".8"/>
+        <!-- you -->
+        <circle cx="230" cy="176" r="17" fill="#3FCB8E" opacity=".22"/>
+        <circle cx="230" cy="176" r="9" fill="#fff"/><circle cx="230" cy="176" r="5" fill="#3FCB8E"/>
+        <!-- scale -->
+        <g><rect x="330" y="306" width="56" height="3" rx="1.5" fill="#7E8F86"/>
+        <text x="392" y="311" font-family="Inter" font-size="10" font-weight="700" fill="#7E8F86">200 m</text></g>
+      </svg>
+
+      <div class="mapbtns">
+        <div class="mb on"><i class="fas fa-location-crosshairs"></i></div>
+        <div class="mb"><i class="fas fa-layer-group"></i></div>
+        <div class="mb"><i class="fas fa-plus"></i></div>
+      </div>
+
+      <div class="maplegend">
+        <div class="lg"><span class="lgd" style="background:#3FCB8E;"></span>Active · buffer held</div>
+        <div class="lg"><span class="lgd" style="background:#E2A32B;"></span>Unverified</div>
+        <div class="lg"><span class="lgd" style="background:#E8654A;"></span>Breach logged</div>
+        <div class="lg"><span class="lgd" style="background:#6E8A7C;"></span>Fledged · archived</div>
+      </div>
+    </div>
+
+    <div class="pad">
+      <div class="sect"><span class="meta">Nearest · 6</span><span class="act">Distance <i class="fas fa-chevron-down" style="font-size:9px;"></i></span></div>
+      <div class="rows">
+        <div class="row">
+          <div class="tile" style="background:rgba(63,203,142,.14);color:#3FCB8E;"><i class="fas fa-feather"></i></div>
+          <div>
+            <div class="rname">Blackbird <span class="vf">VERIFIED</span></div>
+            <div class="rsub">EF-12 · eggs day 9 · 5 m buffer</div>
+          </div>
+          <div class="rstat"><div class="rs1">40 m</div><div class="rs2">NE</div></div>
+        </div>
+        <div class="row">
+          <div class="tile" style="background:rgba(232,101,74,.14);color:#E8654A;"><i class="fas fa-house-chimney"></i></div>
+          <div>
+            <div class="rname">House martin <span class="pd">BREACH 07:04</span></div>
+            <div class="rsub">NE-04 · chicks day 11 · 8 m buffer</div>
+          </div>
+          <div class="rstat"><div class="rs1">115 m</div><div class="rs2">N</div></div>
+        </div>
+        <div class="row">
+          <div class="tile" style="background:rgba(226,163,43,.14);color:#E2A32B;"><i class="fas fa-feather-pointed"></i></div>
+          <div>
+            <div class="rname">Barn swallow <span class="pd">PENDING</span></div>
+            <div class="rsub">BR-21 · building · reported 2 h ago</div>
+          </div>
+          <div class="rstat"><div class="rs1">238 m</div><div class="rs2">SW</div></div>
+        </div>
+        <div class="row">
+          <div class="tile" style="background:rgba(63,203,142,.14);color:#3FCB8E;"><i class="fas fa-crow"></i></div>
+          <div>
+            <div class="rname">Robin <span class="vf">VERIFIED</span></div>
+            <div class="rsub">R-07 · chicks day 6 · 4 m buffer</div>
+          </div>
+          <div class="rstat"><div class="rs1">402 m</div><div class="rs2">E</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab"><i class="fas fa-house"></i><span>Today</span></div>
+    <div class="tab on"><i class="fas fa-map-location-dot"></i><span>Map</span></div>
+    <div class="tab"><i class="fas fa-triangle-exclamation"></i><span>Report</span></div>
+    <div class="tab"><i class="fas fa-hand-holding-heart"></i><span>Adopt</span></div>
+  </div>
+</div>
