@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tapline · Today</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+*::-webkit-scrollbar{display:none}
+*{scrollbar-width:none}
+:root{
+  --accent:#0EA5A4;--accent2:#0284C7;--ink:#0B1B22;--ink2:#24404A;
+  --muted:#6E858E;--border:#E4EBEE;--surface:#F4F8F9;--bg:#FAFCFD;
+  --warn:#DB8C2A;--bad:#D25349;--good:#22A184;
+  --grad:linear-gradient(135deg,#14B8A6 0%,#0284C7 100%);
+}
+body{font-family:'Inter',sans-serif;color:var(--ink);background:#fff}
+.screen{width:100%;min-height:100vh;height:100%;background:var(--bg);position:relative;overflow-y:auto;overflow-x:hidden}
+.sb{height:59px;padding:0 28px 8px;display:flex;align-items:flex-end;justify-content:space-between;position:relative;flex:none}
+.sb .t{font-size:16px;font-weight:600;letter-spacing:-.3px;font-variant-numeric:tabular-nums}
+.sb .i{display:flex;gap:7px;align-items:center;font-size:13px}
+.island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:118px;height:34px;background:#000;border-radius:20px}
+.pad{padding-left:28px;padding-right:28px}
+.meta{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+.card{background:#fff;border:1px solid var(--border);border-radius:22px;box-shadow:0 1px 2px rgba(11,27,34,.04),0 8px 24px -12px rgba(11,27,34,.12)}
+.sechead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sechead .act{font-size:13px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:5px}
+.chips{display:flex;gap:8px;overflow-x:auto}
+.chip{flex:none;padding:9px 15px;border-radius:999px;border:1px solid var(--border);background:#fff;font-size:13px;font-weight:600;color:var(--ink2);white-space:nowrap}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.live{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 0 rgba(34,161,132,.6);animation:p 2s infinite}
+@keyframes p{0%{box-shadow:0 0 0 0 rgba(34,161,132,.5)}70%{box-shadow:0 0 0 9px rgba(34,161,132,0)}100%{box-shadow:0 0 0 0 rgba(34,161,132,0)}}
+.btn{display:flex;align-items:center;justify-content:center;gap:9px;height:56px;border-radius:18px;background:var(--grad);color:#fff;font-size:16px;font-weight:700;letter-spacing:-.2px;box-shadow:0 10px 22px -10px rgba(2,132,199,.7)}
+.btn.ghost{background:#fff;border:1px solid var(--border);color:var(--ink);box-shadow:none}
+.tabbar{position:absolute;bottom:0;left:0;right:0;height:88px;background:rgba(255,255,255,.93);backdrop-filter:blur(18px);border-top:1px solid var(--border);display:flex;padding:12px 14px 0;z-index:20}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;color:#A4B4BA;font-size:10.5px;font-weight:600;letter-spacing:.2px}
+.tab i{font-size:19px}
+.tab.on{color:var(--accent)}
+.hair{height:1px;background:var(--border)}
+.up{color:var(--bad)}.down{color:var(--good)}
+.hdr{display:flex;align-items:flex-start;justify-content:space-between;padding-top:10px}
+.hdr h1{font-size:32px;font-weight:800;letter-spacing:-1px;line-height:1.05;margin-top:6px}
+.av{width:42px;height:42px;border-radius:14px;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+.bell{width:42px;height:42px;border-radius:14px;background:#fff;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--ink2);position:relative}
+.bell b{position:absolute;top:-4px;right:-4px;width:19px;height:19px;border-radius:50%;background:var(--bad);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg)}
+.grade{padding:22px 22px 18px;margin-top:20px}
+.gtop{display:flex;gap:20px;align-items:center}
+.gring{position:relative;width:132px;height:132px;flex:none}
+.gring .v{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gring .v b{font-size:42px;font-weight:800;letter-spacing:-2px;line-height:1}
+.gring .v span{font-size:11px;font-weight:700;letter-spacing:1.6px;color:var(--muted)}
+.gtag{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:999px;background:rgba(219,140,42,.12);color:var(--warn);font-size:12px;font-weight:700}
+.gtitle{font-size:19px;font-weight:700;letter-spacing:-.4px;margin:10px 0 4px}
+.gsub{font-size:13px;color:var(--muted);font-weight:500}
+.mets{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:14px;overflow:hidden;margin-top:18px}
+.met{background:#fff;padding:12px 8px;text-align:center}
+.met .k{font-size:9.5px;font-weight:700;letter-spacing:1.1px;color:var(--muted);text-transform:uppercase}
+.met .n{font-size:19px;font-weight:700;letter-spacing:-.5px;margin-top:5px}
+.met .d{font-size:10.5px;font-weight:600;margin-top:2px}
+.sens{display:flex;align-items:center;gap:11px;padding:14px 18px;margin-top:14px;background:#fff;border:1px solid var(--border);border-radius:16px}
+.sens .l{font-size:13.5px;font-weight:600}
+.sens .r{margin-left:auto;font-size:12px;color:var(--muted);font-weight:600}
+.hero{position:relative;height:212px;border-radius:22px;overflow:hidden;margin-bottom:12px}
+.hero img{width:100%;height:100%;object-fit:cover}
+.hero .sc{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,32,40,0) 30%,rgba(6,32,40,.86) 100%)}
+.hero .bd{position:absolute;top:14px;left:14px;display:flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.92);font-size:11px;font-weight:700;letter-spacing:.6px}
+.hero .tx{position:absolute;left:18px;right:18px;bottom:16px;color:#fff}
+.hero .tx h3{font-size:23px;font-weight:800;letter-spacing:-.6px}
+.hero .tx .row{display:flex;gap:16px;margin-top:9px}
+.hero .tx .row div{font-size:12px;font-weight:600;opacity:.92}
+.hero .tx .row b{display:block;font-size:17px;font-weight:700;letter-spacing:-.3px;margin-top:2px}
+.rec{display:flex;align-items:center;gap:14px;padding:15px 16px;background:#fff;border:1px solid var(--border);border-radius:18px;margin-bottom:10px}
+.rec .ic{width:44px;height:44px;border-radius:14px;background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:17px;flex:none}
+.rec .tt{font-size:15.5px;font-weight:700;letter-spacing:-.2px}
+.rec .ss{font-size:12.5px;color:var(--muted);font-weight:500;margin-top:3px}
+.rec .st{margin-left:auto;font-size:10.5px;font-weight:700;letter-spacing:1px;padding:5px 9px;border-radius:8px;text-transform:uppercase}
+.chart{padding:18px 18px 14px;margin-top:6px}
+.chart .top{display:flex;align-items:baseline;justify-content:space-between}
+.chart .big{font-size:26px;font-weight:800;letter-spacing:-1px}
+.xax{display:flex;justify-content:space-between;margin-top:8px}
+.xax span{font-size:10.5px;font-weight:600;color:#A4B4BA}
+</style></head><body>
+<div class="screen">
+  <div class="sb"><div class="t">7:42</div><div class="island"></div>
+    <div class="i"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-three-quarters"></i></div>
+  </div>
+
+  <div class="pad hdr">
+    <div>
+      <div class="meta">Tue 20 Aug · Kitchen line</div>
+      <h1>Today's water</h1>
+    </div>
+    <div style="display:flex;gap:9px">
+      <div class="bell"><i class="fa-regular fa-bell"></i><b>2</b></div>
+      <div class="av">MR</div>
+    </div>
+  </div>
+
+  <div class="pad">
+    <div class="card grade">
+      <div class="gtop">
+        <div class="gring">
+          <svg width="132" height="132" viewBox="0 0 132 132">
+            <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#14B8A6"/><stop offset="100%" stop-color="#0284C7"/></linearGradient></defs>
+            <circle cx="66" cy="66" r="56" fill="none" stroke="#EDF3F4" stroke-width="13"/>
+            <circle cx="66" cy="66" r="56" fill="none" stroke="url(#rg)" stroke-width="13" stroke-linecap="round"
+              stroke-dasharray="351.8" stroke-dashoffset="91.5" transform="rotate(-90 66 66)"/>
+          </svg>
+          <div class="v"><b class="num">74</b><span>GRADE</span></div>
+        </div>
+        <div style="flex:1">
+          <div class="gtag"><span class="dot" style="background:var(--warn)"></span>Moderately hard</div>
+          <div class="gtitle">118 ppm CaCO<sub>3</sub></div>
+          <div class="gsub">Read 6 min ago · 4 channels</div>
+          <div style="display:flex;gap:6px;margin-top:14px">
+            <div style="flex:1;height:6px;border-radius:4px;background:#DCEDE9"></div>
+            <div style="flex:1;height:6px;border-radius:4px;background:#F1D9B4"></div>
+            <div style="flex:1;height:6px;border-radius:4px;background:#EDF3F4"></div>
+            <div style="flex:1;height:6px;border-radius:4px;background:#EDF3F4"></div>
+          </div>
+          <div style="font-size:11px;font-weight:600;color:var(--muted);margin-top:7px">Soft · <span style="color:var(--warn)">Mod</span> · Hard · Very hard</div>
+        </div>
+      </div>
+      <div class="mets">
+        <div class="met"><div class="k">Hardness</div><div class="n num">118</div><div class="d up">+6 ppm</div></div>
+        <div class="met"><div class="k">Chlorine</div><div class="n num">0.42</div><div class="d down">-0.05</div></div>
+        <div class="met"><div class="k">pH</div><div class="n num">7.4</div><div class="d" style="color:var(--muted)">flat</div></div>
+        <div class="met"><div class="k">TDS</div><div class="n num">214</div><div class="d up">+11</div></div>
+      </div>
+    </div>
+
+    <div class="sens">
+      <span class="live"></span>
+      <div>
+        <div class="l">Under-sink sensor</div>
+        <div style="font-size:11.5px;color:var(--muted);font-weight:500;margin-top:2px">Streaming · 12 reads today</div>
+      </div>
+      <div class="r"><i class="fa-solid fa-battery-three-quarters" style="margin-right:5px"></i>82%</div>
+    </div>
+  </div>
+
+  <div class="pad" style="margin-top:26px">
+    <div class="sechead">
+      <div class="meta">Today's calls · 4</div>
+      <div class="act">See all <i class="fa-solid fa-chevron-right" style="font-size:10px"></i></div>
+    </div>
+
+    <div class="hero">
+      <img src="img/shower.png" alt="">
+      <div class="sc"></div>
+      <div class="bd"><span class="dot" style="background:var(--good)"></span>BEST WINDOW NOW</div>
+      <div class="tx">
+        <h3>Shower</h3>
+        <div class="row">
+          <div>LENGTH<b class="num">8 min</b></div>
+          <div>TEMP<b class="num">38°C</b></div>
+          <div>SOFTENER<b>Bypass</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rec">
+      <div class="ic"><i class="fa-solid fa-pump-soap"></i></div>
+      <div>
+        <div class="tt">Shampoo</div>
+        <div class="ss num">Half dose · 4 mL · clarify Fri</div>
+      </div>
+      <div class="st" style="background:rgba(34,161,132,.12);color:var(--good)">Applied</div>
+    </div>
+
+    <div class="rec">
+      <div class="ic"><i class="fa-solid fa-mug-hot"></i></div>
+      <div>
+        <div class="tt">Kettle</div>
+        <div class="ss num">Descale in 3 days · 41 L since</div>
+      </div>
+      <div class="st" style="background:rgba(219,140,42,.14);color:var(--warn)">Due soon</div>
+    </div>
+
+    <div class="rec" style="opacity:.62">
+      <div class="ic"><i class="fa-solid fa-shirt"></i></div>
+      <div>
+        <div class="tt">Laundry</div>
+        <div class="ss num">Needs 1 more read · 40°C cycle</div>
+      </div>
+      <div class="st" style="background:var(--surface);color:var(--muted)"><i class="fa-solid fa-lock"></i></div>
+    </div>
+  </div>
+
+  <div class="pad" style="margin-top:26px">
+    <div class="card chart">
+      <div class="top">
+        <div>
+          <div class="meta">Hardness · 24h</div>
+          <div class="big num" style="margin-top:6px">118 <span style="font-size:13px;font-weight:600;color:var(--muted)">ppm</span></div>
+        </div>
+        <div style="text-align:right">
+          <div class="num up" style="font-size:13px;font-weight:700"><i class="fa-solid fa-arrow-up" style="font-size:10px"></i> 5.4%</div>
+          <div style="font-size:11px;color:var(--muted);font-weight:600;margin-top:3px">peak 09:00</div>
+        </div>
+      </div>
+      <svg viewBox="0 0 340 96" width="100%" height="96" style="margin-top:12px;display:block">
+        <defs><linearGradient id="ar" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#0EA5A4" stop-opacity=".26"/><stop offset="100%" stop-color="#0EA5A4" stop-opacity="0"/></linearGradient></defs>
+        <line x1="0" y1="24" x2="340" y2="24" stroke="#EDF3F4" stroke-width="1"/>
+        <line x1="0" y1="60" x2="340" y2="60" stroke="#EDF3F4" stroke-width="1"/>
+        <path d="M0,66 L38,58 L76,44 L114,22 L152,34 L190,50 L228,42 L266,56 L304,48 L340,38 L340,96 L0,96 Z" fill="url(#ar)"/>
+        <path d="M0,66 L38,58 L76,44 L114,22 L152,34 L190,50 L228,42 L266,56 L304,48 L340,38" fill="none" stroke="#0EA5A4" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="340" cy="38" r="5" fill="#0EA5A4" stroke="#fff" stroke-width="3"/>
+        <circle cx="114" cy="22" r="3.5" fill="#fff" stroke="#DB8C2A" stroke-width="2.5"/>
+      </svg>
+      <div class="xax"><span>00</span><span>04</span><span>08</span><span>12</span><span>16</span><span>20</span><span>now</span></div>
+    </div>
+  </div>
+
+  <div style="height:118px"></div>
+
+  <div class="tabbar">
+    <div class="tab on"><i class="fa-solid fa-droplet"></i>Today</div>
+    <div class="tab"><i class="fa-solid fa-list-check"></i>Plan</div>
+    <div class="tab"><i class="fa-solid fa-wave-square"></i>Read</div>
+    <div class="tab"><i class="fa-solid fa-chart-simple"></i>Trends</div>
+    <div class="tab"><i class="fa-regular fa-user"></i>You</div>
+  </div>
+</div>
+</body></html>
