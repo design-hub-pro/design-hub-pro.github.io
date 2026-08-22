@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mirra · Progress</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+*::-webkit-scrollbar{display:none}
+html,body{width:100%;height:100%;scrollbar-width:none}
+:root{--accent:#0E9B8E;--accent2:#45C9B0;--ink:#0D1A1B;--muted:#6E8081;--faint:#9BABAC;--border:#E3EBEA;--surface:#fff;--bg:#F4F8F7;--warn:#E2A33C}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.screen{position:relative;width:100%;height:100%;overflow-y:auto;background:var(--bg)}
+.num{font-variant-numeric:tabular-nums}
+.status{position:relative;height:59px;display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+.st-time{font-size:15px;font-weight:700}
+.island{position:absolute;left:50%;transform:translateX(-50%);top:11px;width:116px;height:34px;border-radius:20px;background:#0B1213}
+.st-ic{display:flex;gap:6px;font-size:13px}
+.pad{padding:0 28px 118px}
+.meta{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--faint)}
+.hdr{display:flex;align-items:flex-start;justify-content:space-between}
+.hdr h1{font-size:30px;font-weight:800;letter-spacing:-.8px;margin-top:4px}
+.rnd{width:40px;height:40px;border-radius:13px;background:#fff;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px}
+.chips{display:flex;gap:8px;margin-top:16px}
+.chip{padding:8px 15px;border-radius:11px;font-size:12px;font-weight:700;background:#fff;border:1px solid var(--border);color:var(--muted)}
+.chip.act{background:#0D1A1B;border-color:#0D1A1B;color:#fff}
+.card{background:var(--surface);border-radius:22px;box-shadow:0 1px 2px rgba(13,26,27,.05),0 8px 22px -12px rgba(13,26,27,.18);border:1px solid rgba(227,235,234,.7)}
+/* chart */
+.chart{margin-top:16px;padding:18px 16px 14px}
+.ch{display:flex;justify-content:space-between;align-items:flex-start;padding:0 4px}
+.ch .l b{font-size:38px;font-weight:800;letter-spacing:-1.6px;line-height:1}
+.ch .l .r{display:flex;align-items:center;gap:8px;margin-top:6px}
+.dchip{display:inline-flex;align-items:center;gap:4px;background:#E6F5F1;color:#0B7F72;font-size:12px;font-weight:700;padding:4px 9px;border-radius:8px}
+.ch .l .r span{font-size:12px;font-weight:600;color:var(--muted)}
+.ch .rr{text-align:right}
+.ch .rr b{font-size:16px;font-weight:700}
+.xlab{display:flex;justify-content:space-between;padding:0 6px;margin-top:6px}
+.xlab span{font-size:10px;font-weight:700;color:var(--faint);letter-spacing:.6px}
+/* tiles */
+.tiles{display:flex;gap:10px;margin-top:14px}
+.tile{flex:1;padding:14px 12px;border-radius:18px;background:#fff;border:1px solid rgba(227,235,234,.9);box-shadow:0 1px 2px rgba(13,26,27,.04)}
+.tile span{font-size:10px;font-weight:700;letter-spacing:1.3px;color:var(--faint);display:block}
+.tile b{font-size:24px;font-weight:800;letter-spacing:-1px;display:block;margin-top:5px}
+.tile em{font-style:normal;font-size:11px;font-weight:600;color:var(--muted)}
+/* sections */
+.sec{display:flex;align-items:baseline;justify-content:space-between;margin:24px 0 12px}
+.sec h2{font-size:17px;font-weight:700;letter-spacing:-.3px}
+.sec a,.sec span.k{font-size:12px;font-weight:700;color:var(--accent);text-decoration:none}
+.zrow{padding:13px 16px;display:flex;align-items:center;gap:14px}
+.zrow+.zrow{border-top:1px solid var(--border)}
+.zl{flex:1}
+.zl .t{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.zl .t span:first-child{font-size:14px;font-weight:600}
+.zl .t span:last-child{font-size:13px;font-weight:700;color:var(--muted)}
+.tr2{position:relative;height:7px;border-radius:4px;background:#EDF3F2;overflow:hidden}
+.tr2 i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.tr2 i.w{background:linear-gradient(90deg,#E2A33C,#EFC067)}
+.tr2 u{position:absolute;top:-3px;bottom:-3px;width:2px;background:#0D1A1B;opacity:.3}
+.dd{font-size:12px;font-weight:700;color:#0B7F72;min-width:38px;text-align:right}
+.dd.flat{color:var(--faint)}
+/* badges */
+.bg{display:flex;gap:10px}
+.bd{flex:1;padding:14px 10px;border-radius:18px;background:#fff;border:1px solid rgba(227,235,234,.9);text-align:center}
+.bd .m{width:42px;height:42px;border-radius:14px;margin:0 auto 9px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.bd.lock .m{background:#EDF1F1;color:#BFCBCB}
+.bd h4{font-size:12px;font-weight:700;letter-spacing:-.1px}
+.bd p{font-size:10px;font-weight:600;color:var(--faint);margin-top:3px}
+.bd.lock h4{color:var(--faint)}
+/* log */
+.lrow{display:flex;align-items:center;gap:13px;padding:13px 16px}
+.lrow+.lrow{border-top:1px solid var(--border)}
+.dt{width:44px;text-align:center;flex:none}
+.dt b{display:block;font-size:16px;font-weight:800;letter-spacing:-.4px}
+.dt span{display:block;font-size:9px;font-weight:700;letter-spacing:1.2px;color:var(--faint)}
+.lt{flex:1}
+.lt h4{font-size:14px;font-weight:600}
+.lt p{font-size:12px;color:var(--muted);font-weight:500;margin-top:3px}
+.sc{font-size:17px;font-weight:800;letter-spacing:-.5px}
+.sc small{display:block;font-size:11px;font-weight:700;color:#0B7F72;text-align:right}
+.sc small.dn{color:var(--warn)}
+.tabs{position:absolute;bottom:0;left:0;right:0;height:88px;background:rgba(255,255,255,.93);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding:0 12px}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;padding-top:14px;gap:5px;color:var(--faint)}
+.tab i{font-size:19px}.tab span{font-size:10px;font-weight:600}
+.tab.act{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="status"><div class="st-time num">9:41</div><div class="island"></div>
+    <div class="st-ic"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></div></div>
+
+  <div class="pad">
+    <div class="hdr">
+      <div><div class="meta num">Since 18 Jul · 47 sessions</div><h1>Progress</h1></div>
+      <div class="rnd"><i class="fa-solid fa-sliders"></i></div>
+    </div>
+
+    <div class="chips"><span class="chip">6W</span><span class="chip act">12W</span><span class="chip">All</span><span class="chip"><i class="fa-solid fa-user-doctor" style="margin-right:5px"></i>Clinic</span></div>
+
+    <div class="card chart">
+      <div class="ch">
+        <div class="l"><span class="meta">SYMMETRY INDEX</span><b class="num">78</b>
+          <div class="r"><span class="dchip"><i class="fa-solid fa-arrow-up" style="font-size:9px"></i><span class="num">27</span></span><span>vs baseline 51</span></div>
+        </div>
+        <div class="rr"><span class="meta">HOUSE-BRACKMANN</span><b class="num">III → II</b>
+          <div style="margin-top:8px"><span class="meta" style="color:var(--faint)">TARGET WK 12</span><b class="num" style="display:block">85</b></div>
+        </div>
+      </div>
+      <svg width="100%" height="168" viewBox="0 0 372 168" style="margin-top:14px;display:block">
+        <defs>
+          <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#0E9B8E" stop-opacity=".26"/><stop offset="1" stop-color="#0E9B8E" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="ln" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0E9B8E"/><stop offset="1" stop-color="#45C9B0"/></linearGradient>
+        </defs>
+        <g stroke="#EDF3F2" stroke-width="1">
+          <line x1="0" y1="16" x2="372" y2="16"/><line x1="0" y1="54" x2="372" y2="54"/>
+          <line x1="0" y1="92" x2="372" y2="92"/><line x1="0" y1="130" x2="372" y2="130"/>
+        </g>
+        <line x1="0" y1="16" x2="372" y2="16" stroke="#0D1A1B" stroke-width="1.4" stroke-dasharray="5 6" opacity=".35"/>
+        <text x="4" y="12" font-family="Inter" font-size="9" font-weight="700" fill="#9BABAC" letter-spacing="1">TARGET 85</text>
+        <path d="M12 140 L44 134 L76 124 L108 118 L140 104 L172 96 L204 88 L236 74 L268 66 L300 58 L332 46 L360 38"
+              fill="none" stroke="url(#ln)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 140 L44 134 L76 124 L108 118 L140 104 L172 96 L204 88 L236 74 L268 66 L300 58 L332 46 L360 38 L360 168 L12 168 Z" fill="url(#fill)"/>
+        <g fill="#fff" stroke="#0E9B8E" stroke-width="2.4">
+          <circle cx="140" cy="104" r="4"/><circle cx="268" cy="66" r="4"/>
+        </g>
+        <circle cx="360" cy="38" r="7" fill="#0E9B8E" opacity=".18"/>
+        <circle cx="360" cy="38" r="4.6" fill="#0E9B8E" stroke="#fff" stroke-width="2.4"/>
+        <line x1="204" y1="0" x2="204" y2="168" stroke="#E2A33C" stroke-width="1.4" stroke-dasharray="4 5"/>
+        <text x="209" y="158" font-family="Inter" font-size="9" font-weight="700" fill="#E2A33C" letter-spacing="1">PLAN CHANGE</text>
+      </svg>
+      <div class="xlab"><span>W1</span><span>W3</span><span>W5</span><span>W7</span><span>W9</span><span>W11</span><span>NOW</span></div>
+    </div>
+
+    <div class="tiles">
+      <div class="tile"><span>SESSIONS</span><b class="num">47</b><em class="num">92% adherence</em></div>
+      <div class="tile"><span>TRAIN TIME</span><b class="num">9.4<small style="font-size:13px">h</small></b><em class="num">avg 12 min</em></div>
+      <div class="tile"><span>STREAK</span><b class="num">12</b><em class="num">best 18 days</em></div>
+    </div>
+
+    <div class="sec"><h2>Zone recovery</h2><span class="k">vs baseline</span></div>
+    <div class="card">
+      <div class="zrow"><div class="zl"><div class="t"><span>Eye closure</span><span class="num">88</span></div>
+        <div class="tr2"><i style="width:88%"></i><u style="left:44%"></u></div></div><span class="dd num">+31</span></div>
+      <div class="zrow"><div class="zl"><div class="t"><span>Cheek puff seal</span><span class="num">83</span></div>
+        <div class="tr2"><i style="width:83%"></i><u style="left:56%"></u></div></div><span class="dd num">+27</span></div>
+      <div class="zrow"><div class="zl"><div class="t"><span>Brow lift</span><span class="num">71</span></div>
+        <div class="tr2"><i style="width:71%"></i><u style="left:49%"></u></div></div><span class="dd num">+22</span></div>
+      <div class="zrow"><div class="zl"><div class="t"><span>Smile pull</span><span class="num">66</span></div>
+        <div class="tr2"><i class="w" style="width:66%"></i><u style="left:52%"></u></div></div><span class="dd num">+14</span></div>
+      <div class="zrow"><div class="zl"><div class="t"><span>Lower lip depressor</span><span class="num">61</span></div>
+        <div class="tr2"><i class="w" style="width:61%"></i><u style="left:58%"></u></div></div><span class="dd flat num">+3</span></div>
+    </div>
+
+    <div class="sec"><h2>Milestones</h2><span class="k">6 of 9</span></div>
+    <div class="bg">
+      <div class="bd"><div class="m"><i class="fa-solid fa-eye"></i></div><h4>Full blink</h4><p class="num">Wk 6</p></div>
+      <div class="bd"><div class="m"><i class="fa-solid fa-fire"></i></div><h4>14-day run</h4><p class="num">Wk 9</p></div>
+      <div class="bd lock"><div class="m"><i class="fa-solid fa-lock"></i></div><h4>Smile 80</h4><p class="num">14 to go</p></div>
+    </div>
+
+    <div class="sec"><h2>Recent scans</h2><a href="#">All 37 <i class="fa-solid fa-chevron-right" style="font-size:9px"></i></a></div>
+    <div class="card">
+      <div class="lrow"><div class="dt"><b class="num">22</b><span>AUG</span></div>
+        <div class="lt"><h4>Morning scan</h4><p class="num">8 expressions · 94 s</p></div>
+        <div class="sc num">78<small>+4.2</small></div></div>
+      <div class="lrow"><div class="dt"><b class="num">21</b><span>AUG</span></div>
+        <div class="lt"><h4>Morning scan</h4><p class="num">8 expressions · 88 s</p></div>
+        <div class="sc num">76<small>+1.1</small></div></div>
+      <div class="lrow"><div class="dt"><b class="num">19</b><span>AUG</span></div>
+        <div class="lt"><h4>Evening scan</h4><p class="num">6 expressions · 61 s · partial</p></div>
+        <div class="sc num">74<small class="dn">-0.8</small></div></div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab"><i class="fa-solid fa-house"></i><span>Today</span></div>
+    <div class="tab"><i class="fa-solid fa-camera"></i><span>Scan</span></div>
+    <div class="tab"><i class="fa-solid fa-dumbbell"></i><span>Train</span></div>
+    <div class="tab act"><i class="fa-solid fa-chart-line"></i><span>Progress</span></div>
+  </div>
+</div>
+</body>
+</html>

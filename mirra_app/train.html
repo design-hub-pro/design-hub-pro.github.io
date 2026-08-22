@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mirra · Train</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+*::-webkit-scrollbar{display:none}
+html,body{width:100%;height:100%;scrollbar-width:none}
+:root{--accent:#0E9B8E;--accent2:#45C9B0;--ink:#0D1A1B;--muted:#6E8081;--faint:#9BABAC;--border:#E3EBEA;--surface:#fff;--bg:#F4F8F7;--warn:#E2A33C}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.screen{position:relative;width:100%;height:100%;overflow-y:auto;background:var(--bg)}
+.num{font-variant-numeric:tabular-nums}
+.status{position:relative;height:59px;display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+.st-time{font-size:15px;font-weight:700}
+.island{position:absolute;left:50%;transform:translateX(-50%);top:11px;width:116px;height:34px;border-radius:20px;background:#0B1213}
+.st-ic{display:flex;gap:6px;font-size:13px}
+.pad{padding:0 28px 34px}
+.meta{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--faint)}
+.nav{display:flex;align-items:center;gap:14px}
+.rnd{width:38px;height:38px;border-radius:12px;background:#fff;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;flex:none}
+.segbar{flex:1;display:flex;gap:4px}
+.segbar i{flex:1;height:5px;border-radius:3px;background:#E1E9E8}
+.segbar i.f{background:var(--accent)}
+.segbar i.c{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.elapsed{font-size:12px;font-weight:700;color:var(--muted)}
+/* mirror */
+.mirror{position:relative;height:288px;border-radius:26px;overflow:hidden;margin-top:18px;box-shadow:0 16px 32px -18px rgba(13,26,27,.6)}
+.mirror img{width:100%;height:100%;object-fit:cover;object-position:52% 34%}
+.mirror .scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,26,26,.5) 0%,rgba(6,26,26,0) 38%,rgba(6,26,26,.85) 100%)}
+.mirror .tl{position:absolute;top:14px;left:16px;display:flex;gap:7px}
+.badge{background:rgba(9,26,26,.5);backdrop-filter:blur(8px);color:#fff;font-size:10px;font-weight:700;letter-spacing:1.4px;padding:6px 10px;border-radius:9px}
+.badge.live i{width:6px;height:6px;border-radius:50%;background:#4ADE80;display:inline-block;margin-right:5px;vertical-align:1px}
+.mirror .name{position:absolute;left:18px;bottom:18px;color:#fff}
+.mirror .name h2{font-size:23px;font-weight:800;letter-spacing:-.6px}
+.mirror .name p{font-size:12px;font-weight:600;color:rgba(255,255,255,.72);margin-top:4px}
+.timer{position:absolute;right:16px;bottom:16px;width:92px;height:92px}
+.timer .v{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+.timer .v b{font-size:29px;font-weight:800;letter-spacing:-1px;line-height:1}
+.timer .v span{font-size:9px;font-weight:700;letter-spacing:1.6px;color:rgba(255,255,255,.7);margin-top:3px}
+/* reps */
+.card{background:var(--surface);border-radius:22px;box-shadow:0 1px 2px rgba(13,26,27,.05),0 8px 22px -12px rgba(13,26,27,.18);border:1px solid rgba(227,235,234,.7)}
+.reps{margin-top:16px;padding:16px 18px}
+.rh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.rh h3{font-size:14px;font-weight:700}
+.rh span{font-size:12px;font-weight:700;color:var(--accent)}
+.dots{display:flex;gap:7px}
+.dots i{flex:1;height:26px;border-radius:8px;background:#EDF3F2;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#C0CDCC}
+.dots i.f{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.dots i.a{background:#0D1A1B;color:#fff}
+/* meter */
+.meter{margin-top:14px;padding:18px}
+.mh{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px}
+.mh .l span{display:block}
+.mh .l b{font-size:34px;font-weight:800;letter-spacing:-1.4px;line-height:1}
+.mh .l b small{font-size:15px;font-weight:700;color:var(--muted)}
+.mh .r{text-align:right;font-size:12px;font-weight:700;color:var(--warn)}
+.segs{position:relative;display:flex;gap:3px;height:34px;align-items:flex-end}
+.segs i{flex:1;border-radius:3px;background:#E7EEED}
+.segs i.f{background:linear-gradient(180deg,var(--accent2),var(--accent))}
+.mark{position:absolute;top:-10px;bottom:-6px;width:2px;background:#0D1A1B;left:80%}
+.mark b{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:800;letter-spacing:1.2px;color:#0D1A1B;white-space:nowrap}
+.mfoot{display:flex;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.mfoot div span{display:block;font-size:10px;font-weight:700;letter-spacing:1.4px;color:var(--faint)}
+.mfoot div b{font-size:16px;font-weight:700;letter-spacing:-.3px}
+/* next */
+.sec{display:flex;align-items:baseline;justify-content:space-between;margin:22px 0 11px}
+.sec h2{font-size:17px;font-weight:700;letter-spacing:-.3px}
+.sec a{font-size:12px;font-weight:700;color:var(--accent);text-decoration:none}
+.row{display:flex;align-items:center;gap:13px;padding:13px 16px}
+.row+.row{border-top:1px solid var(--border)}
+.ico{width:38px;height:38px;border-radius:12px;background:#E6F5F1;color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px;flex:none}
+.ico.off{background:#F1F4F4;color:var(--faint)}
+.rw h4{font-size:14px;font-weight:600}
+.rw p{font-size:12px;color:var(--muted);font-weight:500;margin-top:3px}
+.rw{flex:1}
+.mini{font-size:11px;font-weight:700;color:var(--faint);letter-spacing:.6px}
+/* controls */
+.ctrl{display:flex;align-items:center;justify-content:center;gap:22px;margin-top:22px}
+.ghost{width:54px;height:54px;border-radius:18px;background:#fff;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--muted)}
+.main{flex:1;height:60px;border-radius:20px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;display:flex;align-items:center;justify-content:center;gap:9px;font-size:16px;font-weight:700;box-shadow:0 12px 24px -12px rgba(14,155,142,.95)}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="status"><div class="st-time num">9:41</div><div class="island"></div>
+    <div class="st-ic"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></div></div>
+
+  <div class="pad">
+    <div class="nav">
+      <div class="rnd"><i class="fa-solid fa-xmark"></i></div>
+      <div class="segbar"><i class="f"></i><i class="f"></i><i class="f"></i><i class="c"></i><i></i><i></i><i></i></div>
+      <div class="elapsed num">6:41</div>
+    </div>
+    <div class="meta num" style="margin-top:10px">Exercise 4 of 7 · Session 48</div>
+
+    <div class="mirror">
+      <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1787436319671-image-1.png" alt="">
+      <div class="scrim"></div>
+      <div class="tl"><span class="badge live"><i></i>MIRROR ON</span><span class="badge num">SET 2 / 3</span></div>
+      <div class="name"><h2>Wide smile, assisted</h2><p class="num">Hold 5 s · release 3 s · fingertip support</p></div>
+      <div class="timer">
+        <svg width="92" height="92" viewBox="0 0 92 92">
+          <circle cx="46" cy="46" r="38" fill="rgba(9,20,18,.42)" stroke="rgba(255,255,255,.2)" stroke-width="5"/>
+          <circle cx="46" cy="46" r="38" fill="none" stroke="#45C9B0" stroke-width="5" stroke-linecap="round" stroke-dasharray="238.8" stroke-dashoffset="96" transform="rotate(-90 46 46)"/>
+        </svg>
+        <div class="v"><b class="num">3</b><span>HOLD</span></div>
+      </div>
+    </div>
+
+    <div class="card reps">
+      <div class="rh"><h3>Reps</h3><span class="num">6 / 10</span></div>
+      <div class="dots">
+        <i class="f"><i class="fa-solid fa-check"></i></i><i class="f"><i class="fa-solid fa-check"></i></i>
+        <i class="f"><i class="fa-solid fa-check"></i></i><i class="f"><i class="fa-solid fa-check"></i></i>
+        <i class="f"><i class="fa-solid fa-check"></i></i><i class="f"><i class="fa-solid fa-check"></i></i>
+        <i class="a num">7</i><i class="num">8</i><i class="num">9</i><i class="num">10</i>
+      </div>
+    </div>
+
+    <div class="card meter">
+      <div class="mh">
+        <div class="l"><span class="meta">LIVE SYMMETRY</span><b class="num">72<small>%</small></b></div>
+        <div class="r"><span class="meta" style="color:var(--faint)">RIGHT CORNER</span><span class="num" style="font-size:15px">4.1 mm short</span></div>
+      </div>
+      <div class="segs">
+        <i class="f" style="height:40%"></i><i class="f" style="height:46%"></i><i class="f" style="height:52%"></i>
+        <i class="f" style="height:58%"></i><i class="f" style="height:64%"></i><i class="f" style="height:70%"></i>
+        <i class="f" style="height:76%"></i><i class="f" style="height:82%"></i><i class="f" style="height:88%"></i>
+        <i class="f" style="height:94%"></i><i class="f" style="height:100%"></i><i class="f" style="height:96%"></i>
+        <i style="height:88%"></i><i style="height:80%"></i><i style="height:72%"></i><i style="height:64%"></i>
+        <i style="height:56%"></i><i style="height:48%"></i><i style="height:40%"></i><i style="height:34%"></i>
+        <div class="mark"><b>TARGET 80</b></div>
+      </div>
+      <div class="mfoot">
+        <div><span>BEST REP</span><b class="num">81%</b></div>
+        <div><span>SET AVG</span><b class="num">70%</b></div>
+        <div><span>SYNKINESIS</span><b class="num" style="color:var(--accent)">none</b></div>
+      </div>
+    </div>
+
+    <div class="sec"><h2>Up next</h2><a href="#">Full plan <i class="fa-solid fa-chevron-right" style="font-size:9px"></i></a></div>
+    <div class="card">
+      <div class="row">
+        <div class="ico"><i class="fa-solid fa-face-kiss"></i></div>
+        <div class="rw"><h4>Lip pucker, slow</h4><p class="num">3 × 8 · hold 4 s</p></div>
+        <span class="mini num">2:10</span>
+      </div>
+      <div class="row">
+        <div class="ico off"><i class="fa-solid fa-wind"></i></div>
+        <div class="rw"><h4>Cheek puff seal</h4><p class="num">2 × 10 · hold 6 s</p></div>
+        <span class="mini num">3:00</span>
+      </div>
+    </div>
+
+    <div class="ctrl">
+      <div class="ghost"><i class="fa-solid fa-backward-step"></i></div>
+      <div class="main"><i class="fa-solid fa-pause"></i>Pause</div>
+      <div class="ghost"><i class="fa-solid fa-forward-step"></i></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
