@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canyons Hub - Photo Drop</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #F5F7FA; width: 100%; height: 100%; overflow-x: hidden; scrollbar-width: none; position: relative; }
+
+  .status-bar { width: 100%; height: 59px; padding: 0 28px; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 10px; background: #F5F7FA; position: sticky; top: 0; z-index: 100; }
+  .status-time { font-size: 16px; font-weight: 600; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 22px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 40px; }
+
+  .page-head { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+  .back-btn { width: 34px; height: 34px; border-radius: 11px; background: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(15,45,70,0.05); color: #0B2338; font-size: 13px; }
+  .page-title { font-size: 17px; font-weight: 800; color: #0B2338; }
+
+  /* Live event hero */
+  .hero-card { margin-top: 16px; border-radius: 24px; overflow: hidden; position: relative; height: 230px; }
+  .hero-card img { width: 100%; height: 100%; object-fit: cover; }
+  .hero-grad { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.05) 30%, rgba(11,10,15,0.9)); }
+  .live-badge { position: absolute; top: 16px; left: 16px; display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.4); backdrop-filter: blur(6px); padding: 6px 11px; border-radius: 10px; }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #FF4D6D; animation: none; }
+  .live-text { font-size: 10.5px; font-weight: 800; color: #fff; letter-spacing: 0.5px; }
+  .hero-text { position: absolute; left: 18px; right: 18px; bottom: 64px; color: #fff; }
+  .hero-event { font-size: 19px; font-weight: 800; }
+  .hero-meta { font-size: 12px; opacity: 0.85; margin-top: 4px; }
+  .hero-bottom { position: absolute; left: 18px; right: 18px; bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+  .hero-avatars { display: flex; align-items: center; gap: 8px; }
+  .hero-avatars .stack { display: flex; }
+  .hero-avatars .stack img { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #0B0A0F; object-fit: cover; margin-left: -8px; }
+  .hero-avatars .stack img:first-child { margin-left: 0; }
+  .hero-count { font-size: 11.5px; font-weight: 700; color: #fff; }
+  .btn-add { display: flex; align-items: center; gap: 7px; background: linear-gradient(135deg,#E63950,#FF8A65); color: #fff; font-size: 12.5px; font-weight: 700; padding: 9px 15px; border-radius: 13px; box-shadow: 0 6px 16px rgba(230,57,80,0.4); }
+
+  /* Stat row */
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+  .stat-tile { background: #fff; border-radius: 18px; padding: 14px 10px; text-align: center; box-shadow: 0 2px 10px rgba(15,45,70,0.05); }
+  .stat-num { font-size: 27px; font-weight: 800; line-height: 1; color: #0B2338; }
+  .stat-lbl { font-size: 10.5px; color: #8A96A3; font-weight: 600; margin-top: 6px; }
+
+  .section-head { display: flex; justify-content: space-between; align-items: center; margin-top: 26px; margin-bottom: 14px; }
+  .section-title { font-size: 17px; font-weight: 800; color: #0B2338; }
+  .section-link { font-size: 12px; color: #1B6FA8; font-weight: 700; }
+
+  /* Album scroll */
+  .album-scroll { display: flex; gap: 12px; overflow-x: auto; margin: 0 -28px; padding: 0 28px; }
+  .album-card { flex: 0 0 138px; }
+  .album-thumb { width: 138px; height: 138px; border-radius: 18px; overflow: hidden; position: relative; }
+  .album-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .album-count { position: absolute; top: 9px; right: 9px; background: rgba(0,0,0,0.5); color: #fff; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 8px; display: flex; align-items: center; gap: 4px; }
+  .album-name { font-size: 12.5px; font-weight: 700; color: #0B2338; margin-top: 8px; }
+  .album-sub { font-size: 10.5px; color: #8A96A3; margin-top: 2px; }
+
+  /* Featured note */
+  .feature-note { margin-top: 20px; display: flex; align-items: center; gap: 12px; background: #FDECE7; border-radius: 16px; padding: 12px 14px; }
+  .feature-note i { color: #D9541F; font-size: 15px; }
+  .feature-note-text { font-size: 12px; font-weight: 600; color: #B8391A; line-height: 1.4; }
+
+  /* Photo grid */
+  .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 4px; }
+  .photo-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; }
+  .photo-cell { position: relative; }
+  .photo-cell.tall { grid-row: span 2; }
+  .photo-cell.tall img { height: 100%; aspect-ratio: unset; }
+  .photo-heart { position: absolute; bottom: 6px; right: 6px; display: flex; align-items: center; gap: 3px; background: rgba(0,0,0,0.45); color: #fff; font-size: 9.5px; font-weight: 700; padding: 3px 6px; border-radius: 8px; }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="content">
+  <div class="page-head">
+    <div class="back-btn"><i class="fas fa-chevron-left"></i></div>
+    <div class="page-title">Photo Drop</div>
+    <div class="back-btn"><i class="fas fa-camera-retro"></i></div>
+  </div>
+
+  <div class="hero-card">
+    <img src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=700&q=80" alt="">
+    <div class="hero-grad"></div>
+    <div class="live-badge"><div class="live-dot"></div><span class="live-text">LIVE DROP</span></div>
+    <div class="hero-text">
+      <div class="hero-event">Friday Night Lights vs. Corner Canyon</div>
+      <div class="hero-meta">Alta Stadium · Ends at midnight</div>
+    </div>
+    <div class="hero-bottom">
+      <div class="hero-avatars">
+        <div class="stack">
+          <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&q=80" alt="">
+          <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=100&q=80" alt="">
+          <img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=100&q=80" alt="">
+        </div>
+        <span class="hero-count">128 photos</span>
+      </div>
+      <div class="btn-add"><i class="fas fa-plus"></i> Add Photos</div>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-tile"><div class="stat-num" style="color:#E63950;">128</div><div class="stat-lbl">Photos Dropped</div></div>
+    <div class="stat-tile"><div class="stat-num" style="color:#1B6FA8;">42</div><div class="stat-lbl">Contributors</div></div>
+    <div class="stat-tile"><div class="stat-num" style="color:#1FAE5A;">6</div><div class="stat-lbl">Live Drops</div></div>
+  </div>
+
+  <div class="section-head">
+    <div class="section-title">Recent Drops</div>
+    <span class="section-link">See All →</span>
+  </div>
+  <div class="album-scroll">
+    <div class="album-card">
+      <div class="album-thumb">
+        <img src="https://images.unsplash.com/photo-1529390079861-591de354faf5?w=300&q=80" alt="">
+        <div class="album-count"><i class="fas fa-images"></i> 64</div>
+      </div>
+      <div class="album-name">Homecoming</div>
+      <div class="album-sub">Closed · Sat</div>
+    </div>
+    <div class="album-card">
+      <div class="album-thumb">
+        <img src="https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&q=80" alt="">
+        <div class="album-count"><i class="fas fa-images"></i> 37</div>
+      </div>
+      <div class="album-name">Robotics Regionals</div>
+      <div class="album-sub">Closed · Last week</div>
+    </div>
+    <div class="album-card">
+      <div class="album-thumb">
+        <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=300&q=80" alt="">
+        <div class="album-count"><i class="fas fa-images"></i> 51</div>
+      </div>
+      <div class="album-name">Fall Play Rehearsal</div>
+      <div class="album-sub">Closed · Sep 12</div>
+    </div>
+  </div>
+
+  <div class="feature-note">
+    <i class="fas fa-star"></i>
+    <div class="feature-note-text">Top shots from every drop get considered for The Utah View's game recaps and photo essays.</div>
+  </div>
+
+  <div class="section-head">
+    <div class="section-title">Just Dropped</div>
+  </div>
+  <div class="photo-grid">
+    <div class="photo-cell tall">
+      <img src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=300&q=80" alt="">
+      <div class="photo-heart"><i class="fas fa-heart"></i> 24</div>
+    </div>
+    <div class="photo-cell">
+      <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&q=80" alt="">
+    </div>
+    <div class="photo-cell">
+      <img src="https://images.unsplash.com/photo-1529390079861-591de354faf5?w=300&q=80" alt="">
+    </div>
+    <div class="photo-cell">
+      <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&q=80" alt="">
+      <div class="photo-heart"><i class="fas fa-heart"></i> 9</div>
+    </div>
+    <div class="photo-cell">
+      <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&q=80" alt="">
+    </div>
+    <div class="photo-cell">
+      <img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?w=300&q=80" alt="">
+    </div>
+    <div class="photo-cell">
+      <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&q=80" alt="">
+    </div>
+    <div class="photo-cell">
+      <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=300&q=80" alt="">
+      <div class="photo-heart"><i class="fas fa-heart"></i> 15</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
