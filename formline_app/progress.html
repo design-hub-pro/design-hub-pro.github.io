@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formline - Progress</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif}
+*::-webkit-scrollbar{display:none}
+*{scrollbar-width:none}
+:root{--ink:#0B1316;--ink2:#2E3F45;--muted:#6A7B81;--faint:#9DACB1;--border:#E7EDEE;--surface:#F4F8F8;--accent:#0D9488;--accent2:#0B6F66;--soft:#E4F2F0;--ball:#CFEA3F;--good:#2FA36B;--warn:#E5A13A;--bad:#DE5F48}
+html,body{height:100%;overflow:hidden}
+body{background:var(--surface);color:var(--ink);-webkit-font-smoothing:antialiased}
+.num{font-variant-numeric:tabular-nums}
+.screen{position:relative;height:100%;display:flex;flex-direction:column;background:var(--surface)}
+.status{flex:0 0 59px;padding:18px 28px 0;display:flex;align-items:center;justify-content:space-between}
+.status .t{font-size:15px;font-weight:700}
+.island{width:112px;height:31px;background:#000;border-radius:18px}
+.sig{display:flex;gap:6px;align-items:center;font-size:12px}
+.body{flex:1;overflow-y:auto;padding:0 28px 110px}
+.meta{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--faint)}
+.card{background:#fff;border:1px solid var(--border);border-radius:20px;box-shadow:0 1px 2px rgba(11,19,22,.04),0 10px 22px rgba(11,19,22,.045)}
+.sechead{display:flex;align-items:flex-end;justify-content:space-between;margin:22px 0 11px}
+.sechead h3{font-size:17px;font-weight:800;letter-spacing:-.35px}
+.sechead span{font-size:12px;font-weight:700;color:var(--muted)}
+
+.top{display:flex;align-items:flex-end;justify-content:space-between;margin-top:4px}
+.top h2{font-size:28px;font-weight:900;letter-spacing:-.9px}
+.seg{display:flex;background:#fff;border:1px solid var(--border);border-radius:11px;padding:3px}
+.seg div{padding:6px 11px;font-size:11.5px;font-weight:800;color:var(--muted);border-radius:8px}
+.seg div.on{background:var(--ink);color:#fff}
+
+.ch{padding:18px 18px 14px;margin-top:14px}
+.ch .hd{display:flex;align-items:flex-end;justify-content:space-between}
+.ch .hd .l .meta{margin-bottom:4px}
+.ch .hd .l b{font-size:40px;font-weight:900;letter-spacing:-1.8px;line-height:1}
+.ch .hd .r{text-align:right}
+.ch .hd .r .p{display:inline-flex;align-items:center;gap:5px;background:#E8F6EE;color:var(--good);padding:5px 9px;border-radius:9px}
+.ch .hd .r .p b{font-size:12.5px;font-weight:800}
+.ch .hd .r span{display:block;font-size:11px;font-weight:700;color:var(--faint);margin-top:6px}
+.ch svg{margin-top:14px;display:block}
+.ch .ax{display:flex;justify-content:space-between;margin-top:7px}
+.ch .ax span{font-size:9.5px;font-weight:800;color:var(--faint);letter-spacing:.5px}
+
+.dr{display:flex;align-items:center;gap:12px;padding:12px 15px;margin-bottom:8px}
+.dr .g{width:34px;height:40px;border-radius:11px;background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--accent2);flex:0 0 34px}
+.dr .nm{flex:1;font-size:13.5px;font-weight:800;letter-spacing:-.2px}
+.dr .tk{position:relative;width:104px;height:18px;flex:0 0 104px}
+.dr .tk .z{position:absolute;left:50%;top:0;bottom:0;width:1.5px;background:#E2E9E9}
+.dr .tk .b{position:absolute;top:6px;height:7px;border-radius:4px}
+.dr .v{width:34px;text-align:right;font-size:13.5px;font-weight:900;letter-spacing:-.3px}
+.up{color:var(--good)}.dn{color:var(--bad)}
+
+.sl{display:flex;align-items:center;gap:13px;padding:12px 15px;margin-bottom:8px}
+.sl .dt{width:44px;flex:0 0 44px;text-align:center}
+.sl .dt b{display:block;font-size:17px;font-weight:900;letter-spacing:-.5px;line-height:1}
+.sl .dt span{font-size:9.5px;font-weight:800;letter-spacing:1px;color:var(--faint)}
+.sl .mid{flex:1;min-width:0}
+.sl .nm{font-size:13.5px;font-weight:800;letter-spacing:-.2px}
+.sl .mt{font-size:11.5px;font-weight:600;color:var(--muted);margin-top:3px}
+.sl .rt{text-align:right}
+.sl .rt b{font-size:18px;font-weight:900;letter-spacing:-.5px}
+.sl .rt span{display:block;font-size:10.5px;font-weight:800;margin-top:1px}
+
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:94px;background:rgba(255,255,255,.95);backdrop-filter:blur(24px);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:12px 14px 0}
+.tab{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--faint);font-size:10px;font-weight:700;width:58px}
+.tab i{font-size:17px}
+.tab.on{color:var(--accent)}
+.rec{width:56px;height:56px;border-radius:50%;background:linear-gradient(145deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;margin-top:-16px;box-shadow:0 10px 22px rgba(13,148,136,.4)}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="status">
+    <span class="t num">9:41</span><div class="island"></div>
+    <span class="sig"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span>
+  </div>
+
+  <div class="body">
+    <div class="top">
+      <h2>Progress</h2>
+      <div class="seg"><div>4W</div><div class="on">12W</div><div>All</div></div>
+    </div>
+
+    <div class="card ch">
+      <div class="hd">
+        <div class="l"><div class="meta">Form score</div><b class="num">82</b></div>
+        <div class="r"><span class="p"><i class="fa-solid fa-arrow-trend-up" style="font-size:11px"></i><b class="num">+21</b></span><span class="num">from 61 · 8 weeks</span></div>
+      </div>
+      <svg width="100%" height="132" viewBox="0 0 380 132" preserveAspectRatio="none">
+        <line x1="0" y1="20" x2="380" y2="20" stroke="#F0F5F5" stroke-width="1.5"/>
+        <line x1="0" y1="60" x2="380" y2="60" stroke="#F0F5F5" stroke-width="1.5"/>
+        <line x1="0" y1="100" x2="380" y2="100" stroke="#F0F5F5" stroke-width="1.5"/>
+        <defs><linearGradient id="fa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0D9488" stop-opacity=".22"/><stop offset="1" stop-color="#0D9488" stop-opacity="0"/></linearGradient></defs>
+        <path d="M10 101 L61 92 L113 95 L164 76 L216 67 L267 73 L319 48 L370 35 L370 132 L10 132 Z" fill="url(#fa)"/>
+        <path d="M10 101 L61 92 L113 95 L164 76 L216 67 L267 73 L319 48 L370 35" fill="none" stroke="#0D9488" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="10" cy="101" r="3.5" fill="#fff" stroke="#0D9488" stroke-width="2.5"/>
+        <circle cx="113" cy="95" r="3.5" fill="#fff" stroke="#0D9488" stroke-width="2.5"/>
+        <circle cx="216" cy="67" r="3.5" fill="#fff" stroke="#0D9488" stroke-width="2.5"/>
+        <circle cx="319" cy="48" r="3.5" fill="#fff" stroke="#0D9488" stroke-width="2.5"/>
+        <circle cx="370" cy="35" r="6" fill="#0B6F66"/>
+        <circle cx="370" cy="35" r="11" fill="#0D9488" fill-opacity=".16"/>
+      </svg>
+      <div class="ax"><span>W1</span><span>W3</span><span>W5</span><span>W7</span><span>W9</span><span>W11</span><span>NOW</span></div>
+    </div>
+
+    <div class="sechead"><h3>By stroke</h3><span>12 weeks</span></div>
+
+    <div class="card dr">
+      <div class="g"><svg width="22" height="28" viewBox="0 0 24 30" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11.5" cy="4.6" r="2.7"/><path d="M11.5 7.6v9"/><path d="M11.5 16.6 7.5 26"/><path d="M11.5 16.6 16 25.5"/><path d="M11.5 10.2 6.5 5.5"/><path d="M11.5 10.2 17.5 4.2"/></svg></div>
+      <span class="nm">Kick Serve</span>
+      <span class="tk"><span class="z"></span><span class="b" style="left:50%;width:38%;background:var(--good)"></span></span>
+      <span class="v up num">+6</span>
+    </div>
+    <div class="card dr">
+      <div class="g"><svg width="22" height="28" viewBox="0 0 24 30" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11.5" cy="4.6" r="2.7"/><path d="M11.5 7.6v9"/><path d="M11.5 16.6 6 25.5"/><path d="M11.5 16.6 17 26"/><path d="M11.5 11 4.5 8.6"/><path d="M11.5 11 19 13.4"/></svg></div>
+      <span class="nm">Forehand Topspin</span>
+      <span class="tk"><span class="z"></span><span class="b" style="left:50%;width:14%;background:var(--good)"></span></span>
+      <span class="v up num">+2</span>
+    </div>
+    <div class="card dr">
+      <div class="g"><svg width="22" height="28" viewBox="0 0 24 30" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12.5" cy="4.6" r="2.7"/><path d="M12.5 7.6v9"/><path d="M12.5 16.6 7 26"/><path d="M12.5 16.6 18 25.5"/><path d="M12.5 11 19.5 8.6"/><path d="M12.5 11 5 12.4"/></svg></div>
+      <span class="nm">1H Backhand</span>
+      <span class="tk"><span class="z"></span><span class="b" style="right:50%;width:19%;background:var(--bad)"></span></span>
+      <span class="v dn num">-3</span>
+    </div>
+    <div class="card dr">
+      <div class="g"><svg width="22" height="28" viewBox="0 0 24 30" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11.5" cy="4.6" r="2.7"/><path d="M11.5 7.6v8.4"/><path d="M11.5 16 7.5 25"/><path d="M11.5 16 15.5 25"/><path d="M11.5 10.6 6.5 12.4"/><path d="M11.5 10.6 17 9"/></svg></div>
+      <span class="nm">Forehand Volley</span>
+      <span class="tk"><span class="z"></span><span class="b" style="left:50%;width:25%;background:var(--good)"></span></span>
+      <span class="v up num">+4</span>
+    </div>
+    <div class="card dr">
+      <div class="g"><svg width="22" height="28" viewBox="0 0 24 30" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11.5" cy="5.2" r="2.7"/><path d="M11.5 8.2v8.6"/><path d="M11.5 16.8 6.8 25.8"/><path d="M11.5 16.8 16.2 25.8"/><path d="M11.5 10.8 7 4.6"/><path d="M11.5 10.8 16 4.2"/></svg></div>
+      <span class="nm">Overhead Smash</span>
+      <span class="tk"><span class="z"></span><span class="b" style="right:50%;width:13%;background:var(--bad)"></span></span>
+      <span class="v dn num">-2</span>
+    </div>
+
+    <div class="sechead"><h3>Sessions</h3><span class="num">19 total</span></div>
+
+    <div class="card sl">
+      <div class="dt"><b class="num">24</b><span>SEP</span></div>
+      <div class="mid"><div class="nm">Kick Serve · 1H Backhand</div><div class="mt num">64 reps · 38 min · court 3</div></div>
+      <div class="rt"><b class="num">81</b><span class="up num">+5</span></div>
+    </div>
+    <div class="card sl">
+      <div class="dt"><b class="num">21</b><span>SEP</span></div>
+      <div class="mid"><div class="nm">Forehand Topspin</div><div class="mt num">92 reps · 45 min · court 1</div></div>
+      <div class="rt"><b class="num">88</b><span class="up num">+2</span></div>
+    </div>
+    <div class="card sl">
+      <div class="dt"><b class="num">18</b><span>SEP</span></div>
+      <div class="mid"><div class="nm">Volleys · Split Step</div><div class="mt num">77 reps · 31 min · court 3</div></div>
+      <div class="rt"><b class="num">76</b><span class="dn num">-1</span></div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab"><i class="fa-solid fa-house"></i>Home</div>
+    <div class="tab"><i class="fa-solid fa-list-check"></i>Strokes</div>
+    <div class="rec"><i class="fa-solid fa-video"></i></div>
+    <div class="tab on"><i class="fa-solid fa-chart-line"></i>Progress</div>
+    <div class="tab"><i class="fa-solid fa-user"></i>Profile</div>
+  </div>
+</div>
+</body>
+</html>
