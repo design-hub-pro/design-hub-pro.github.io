@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Monitor</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+:root{--ink:#0f172a;--muted:#64748b;--border:#e2e8f0;--surface:#ffffff;--bg:#eef2fa;--accent:#2563eb;--accent2:#0ea5e9;--danger:#ef4444;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+*::-webkit-scrollbar{display:none;} *{scrollbar-width:none;}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--ink);}
+.screen{width:100%;height:100%;position:relative;overflow:hidden;background:var(--bg);}
+.status-bar{height:59px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:600;}
+.dynamic-island{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:120px;height:34px;background:#000;border-radius:20px;}
+.content{padding:6px 28px 0;}
+.tab-bar{position:absolute;bottom:0;left:0;right:0;height:88px;background:rgba(255,255,255,0.94);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding-top:10px;}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--muted);}
+.tab-item.active{color:var(--accent);}
+.tabular{font-variant-numeric:tabular-nums;}
+.header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.h-title{font-size:26px;font-weight:800;}
+.live-badge{display:flex;align-items:center;gap:6px;background:#fee2e2;color:var(--danger);font-size:11px;font-weight:700;letter-spacing:0.5px;padding:6px 10px;border-radius:20px;}
+.pulse-dot{width:7px;height:7px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 4px rgba(239,68,68,0.18);}
+.dial-wrap{position:relative;width:280px;height:280px;margin:6px auto 0;}
+.zone-tag{position:absolute;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.5px;}
+.center-readout{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.center-readout .db{font-size:40px;font-weight:900;letter-spacing:-1px;}
+.center-readout .unit{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:1px;}
+.wave-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:16px 18px;margin-top:14px;box-shadow:0 10px 24px rgba(15,23,42,0.05);}
+.wave-bars{display:flex;align-items:flex-end;gap:3px;height:44px;}
+.wave-bars span{flex:1;background:linear-gradient(180deg,var(--accent2),var(--accent));border-radius:3px;}
+.class-list{margin-top:14px;display:flex;flex-direction:column;gap:10px;}
+.class-row{display:flex;align-items:center;gap:10px;}
+.class-label{width:88px;font-size:12px;font-weight:700;color:var(--ink);}
+.class-track{flex:1;height:7px;background:var(--border);border-radius:6px;overflow:hidden;}
+.class-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.class-pct{width:34px;text-align:right;font-size:12px;font-weight:800;color:var(--muted);}
+.stop-btn{position:absolute;bottom:104px;left:50%;transform:translateX(-50%);width:60px;height:60px;border-radius:50%;background:var(--danger);display:flex;align-items:center;justify-content:center;box-shadow:0 14px 30px rgba(239,68,68,0.4);z-index:2;}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="dynamic-island"></div>
+    <div style="display:flex;gap:6px;"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-three-quarters"></i></div>
+  </div>
+  <div class="content">
+    <div class="header-row">
+      <div class="h-title">Live Monitor</div>
+      <div class="live-badge"><span class="pulse-dot"></span>LISTENING</div>
+    </div>
+
+    <div class="dial-wrap">
+      <svg width="280" height="280" viewBox="0 0 280 280">
+        <circle cx="140" cy="140" r="126" fill="none" stroke="#e2e8f0" stroke-width="14"/>
+        <circle cx="140" cy="140" r="126" fill="none" stroke="url(#g1)" stroke-width="14" stroke-linecap="round" stroke-dasharray="791" stroke-dashoffset="590" transform="rotate(-90 140 140)"/>
+        <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0ea5e9"/><stop offset="100%" stop-color="#2563eb"/></linearGradient></defs>
+        <circle cx="140" cy="140" r="98" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+      </svg>
+      <div class="zone-tag" style="top:2px;left:50%;transform:translateX(-50%);">FRONT LEFT</div>
+      <div class="zone-tag" style="top:2px;right:-6px;color:#2563eb;">FRONT RIGHT</div>
+      <div class="zone-tag" style="bottom:2px;left:-4px;">BACK LEFT</div>
+      <div class="zone-tag" style="bottom:2px;right:-2px;">BACK RIGHT</div>
+      <div class="center-readout">
+        <div class="db tabular">74</div>
+        <div class="unit">DB · FRONT RIGHT</div>
+      </div>
+    </div>
+
+    <div class="wave-card">
+      <div class="wave-bars">
+        <span style="height:30%"></span><span style="height:55%"></span><span style="height:40%"></span><span style="height:80%"></span>
+        <span style="height:100%"></span><span style="height:70%"></span><span style="height:90%"></span><span style="height:60%"></span>
+        <span style="height:35%"></span><span style="height:75%"></span><span style="height:50%"></span><span style="height:85%"></span>
+        <span style="height:45%"></span><span style="height:65%"></span><span style="height:95%"></span><span style="height:55%"></span>
+        <span style="height:30%"></span><span style="height:70%"></span><span style="height:40%"></span><span style="height:60%"></span>
+      </div>
+    </div>
+
+    <div class="class-list">
+      <div class="class-row"><div class="class-label">Siren</div><div class="class-track"><div class="class-fill" style="width:92%"></div></div><div class="class-pct">92%</div></div>
+      <div class="class-row"><div class="class-label">Horn</div><div class="class-track"><div class="class-fill" style="width:4%"></div></div><div class="class-pct">4%</div></div>
+      <div class="class-row"><div class="class-label">Road noise</div><div class="class-track"><div class="class-fill" style="width:3%"></div></div><div class="class-pct">3%</div></div>
+      <div class="class-row"><div class="class-label">Speech</div><div class="class-track"><div class="class-fill" style="width:1%"></div></div><div class="class-pct">1%</div></div>
+    </div>
+  </div>
+  <div class="stop-btn"><i class="fas fa-stop" style="color:#fff;font-size:18px;"></i></div>
+  <div class="tab-bar">
+    <div class="tab-item"><i class="fas fa-house"></i>Home</div>
+    <div class="tab-item active"><i class="fas fa-ear-listen"></i>Listen</div>
+    <div class="tab-item"><i class="fas fa-clock-rotate-left"></i>History</div>
+    <div class="tab-item"><i class="fas fa-gear"></i>Settings</div>
+  </div>
+</div>
+</body>
+</html>
