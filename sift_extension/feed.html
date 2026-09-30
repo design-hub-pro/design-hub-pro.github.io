@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sift — active on a thread</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config={theme:{extend:{colors:{ink:'#17201C',paper:'#FBFAF8',moss:{50:'#F1F6F3',100:'#DDE9E3',200:'#BBD3C8',300:'#8FBAAA',600:'#1F6F5C',700:'#175748',800:'#114235'},clay:{50:'#FCF1EC',100:'#F7DFD4',400:'#D8794F',500:'#C4562F',600:'#A9451F'},amberx:{50:'#FEF6E7',100:'#FAE7C0',600:'#B47A12'}},fontFamily:{serif:['Newsreader','Georgia','serif'],sans:['Inter','system-ui','sans-serif']}}}}
+</script>
+<style>
+body{font-family:'Inter',system-ui,sans-serif;background:#F1F1F1;color:#17201C;}
+.serif{font-family:'Newsreader',Georgia,serif;}
+.blurred{filter:blur(5.5px);user-select:none;}
+</style>
+</head>
+<body class="w-[1440px] h-[900px] overflow-hidden">
+
+<!-- Host site chrome (simulated social site) -->
+<div class="h-[52px] bg-white border-b border-gray-200 flex items-center px-6 gap-5">
+  <div class="flex items-center gap-2">
+    <div class="w-7 h-7 rounded-full bg-[#FF4500] flex items-center justify-center"><i class="fab fa-reddit-alien text-white text-sm"></i></div>
+    <span class="font-bold text-[15px] text-gray-800">reddit</span>
+  </div>
+  <div class="flex-1 max-w-[440px] bg-gray-100 rounded-full px-4 py-1.5 text-[13px] text-gray-500"><i class="fas fa-magnifying-glass text-[11px] mr-2"></i>Search Reddit</div>
+  <div class="flex-1"></div>
+  <!-- Sift toolbar icon, active -->
+  <div class="flex items-center gap-1.5 bg-moss-50 border border-moss-200 rounded-lg pl-2 pr-2.5 py-1">
+    <div class="w-5 h-5 rounded bg-moss-600 flex items-center justify-center"><i class="fas fa-sliders text-white text-[9px]"></i></div>
+    <span class="text-[12px] font-semibold text-moss-700">3</span>
+  </div>
+  <img src="https://i.pravatar.cc/64?img=12" class="w-7 h-7 rounded-full" alt="">
+</div>
+
+<div class="flex h-[848px]">
+  <!-- Thread -->
+  <div class="flex-1 px-10 py-4 overflow-hidden">
+    <div class="max-w-[760px] mx-auto">
+      <!-- Post -->
+      <div class="bg-white rounded-xl border border-gray-200 p-4 mb-3">
+        <p class="text-[12px] text-gray-500 mb-1.5">r/learnprogramming · Posted by u/mira_builds · 6 hours ago</p>
+        <h1 class="text-[20px] font-semibold text-gray-900 mb-1.5">I'm 16 and I just shipped my first real app. 40 users in three days.</h1>
+        <p class="text-[14px] text-gray-700 leading-relaxed">Started it after my school shut down the tutoring signup sheet. Just React and Firebase, but people are actually using it and I still can't quite believe that part.</p>
+        <div class="flex items-center gap-5 mt-3 text-[12px] text-gray-500">
+          <span><i class="fas fa-arrow-up mr-1"></i>2.4k</span>
+          <span><i class="fas fa-comment mr-1"></i>128 comments</span>
+          <span><i class="fas fa-share mr-1"></i>Share</span>
+        </div>
+      </div>
+
+      <!-- Sift page banner -->
+      <div class="flex items-center gap-2.5 bg-moss-50 border border-moss-200 rounded-lg px-4 py-2 mb-3">
+        <i class="fas fa-sliders text-moss-600 text-[11px]"></i>
+        <span class="text-[12.5px] text-moss-800"><span class="font-semibold">128 comments scored here.</span> 3 turned down, 1 kept as banter.</span>
+        <span class="ml-auto text-[11px] text-moss-700"><i class="fas fa-microchip text-[9px] mr-1"></i>Local engine · 41 ms avg</span>
+      </div>
+
+      <!-- Comments -->
+      <div class="space-y-2.5">
+
+        <div class="bg-white rounded-xl border border-gray-200 px-4 py-3.5 flex gap-3">
+          <img src="https://i.pravatar.cc/64?img=51" class="w-8 h-8 rounded-full flex-shrink-0" alt="">
+          <div>
+            <p class="text-[12.5px] font-semibold text-gray-900">u/dev_ana_p <span class="font-normal text-gray-400 ml-1">5h · 418 points</span></p>
+            <p class="text-[14px] text-gray-700 mt-1 leading-relaxed">The part that impresses me isn't the stack, it's that you found a problem in your own building and fixed it. What broke first once real people got on it?</p>
+          </div>
+        </div>
+
+        <!-- Kept because of relationship context -->
+        <div class="bg-white rounded-xl border border-moss-200 px-4 py-3.5">
+          <div class="flex items-center gap-2 mb-2.5">
+            <i class="fas fa-user-group text-moss-600 text-[10px]"></i>
+            <span class="text-[11px] font-semibold text-moss-700">Kept. Scored 0.79 for insult, but you have replied to this account 34 times.</span>
+            <button class="ml-auto text-[11px] text-gray-400 hover:text-gray-700 underline underline-offset-2">Not a friend</button>
+          </div>
+          <div class="flex gap-3">
+            <img src="https://i.pravatar.cc/64?img=68" class="w-8 h-8 rounded-full flex-shrink-0" alt="">
+            <div>
+              <p class="text-[12.5px] font-semibold text-gray-900">u/jonah_qwerty <span class="font-normal text-gray-400 ml-1">5h · 96 points</span></p>
+              <p class="text-[14px] text-gray-700 mt-1 leading-relaxed">shut up you absolute menace. insanely proud of you</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Turned down: insult -->
+        <div class="bg-clay-50/50 rounded-xl border border-clay-100 px-4 py-3.5">
+          <div class="flex items-center gap-2 mb-2.5">
+            <i class="fas fa-eye-slash text-clay-500 text-[10px]"></i>
+            <span class="text-[11px] font-semibold text-clay-600">Turned down by Sift</span>
+            <span class="text-[10px] bg-white border border-clay-100 text-clay-600 px-1.5 py-0.5 rounded font-medium">insult · 0.93</span>
+            <div class="ml-auto flex items-center gap-3">
+              <button class="text-[11px] text-gray-500 hover:text-ink underline underline-offset-2">This is fine</button>
+              <button class="text-[11px] font-medium text-gray-700 hover:text-ink border border-gray-300 rounded px-2 py-0.5 bg-white">Show anyway</button>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <div class="w-8 h-8 rounded-full bg-gray-300 blurred flex-shrink-0"></div>
+            <div class="blurred">
+              <p class="text-[12.5px] font-semibold text-gray-900">u/throwaway_88213</p>
+              <p class="text-[14px] text-gray-700 mt-1 leading-relaxed">40 users lmao. my school project had more and it was garbage too. stop acting like you did something</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Turned down: identity attack -->
+        <div class="bg-clay-50/50 rounded-xl border border-clay-100 px-4 py-3.5">
+          <div class="flex items-center gap-2 mb-2.5">
+            <i class="fas fa-eye-slash text-clay-500 text-[10px]"></i>
+            <span class="text-[11px] font-semibold text-clay-600">Turned down by Sift</span>
+            <span class="text-[10px] bg-white border border-clay-100 text-clay-600 px-1.5 py-0.5 rounded font-medium">identity attack · 0.88</span>
+            <div class="ml-auto flex items-center gap-3">
+              <button class="text-[11px] text-gray-500 hover:text-ink underline underline-offset-2">This is fine</button>
+              <button class="text-[11px] font-medium text-gray-700 hover:text-ink border border-gray-300 rounded px-2 py-0.5 bg-white">Show anyway</button>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <div class="w-8 h-8 rounded-full bg-gray-300 blurred flex-shrink-0"></div>
+            <div class="blurred w-full">
+              <p class="text-[12.5px] font-semibold text-gray-900">u/deleted_user_4471</p>
+              <p class="text-[14px] text-gray-700 mt-1 leading-relaxed">of course a girl gets 2k upvotes for a to do list app, this sub is completely</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Borderline, shown -->
+        <div class="bg-white rounded-xl border border-gray-200 px-4 py-3.5">
+          <div class="flex items-center gap-2 mb-2.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-amberx-600"></span>
+            <span class="text-[11px] text-amberx-600 font-medium">Borderline, 0.61. Below your threshold of 0.80, so it is shown.</span>
+          </div>
+          <div class="flex gap-3">
+            <img src="https://i.pravatar.cc/64?img=8" class="w-8 h-8 rounded-full flex-shrink-0" alt="">
+            <div>
+              <p class="text-[12.5px] font-semibold text-gray-900">u/compilerhates_me <span class="font-normal text-gray-400 ml-1">3h · 12 points</span></p>
+              <p class="text-[14px] text-gray-700 mt-1 leading-relaxed">Honestly this is a pretty basic CRUD app and everyone in here is being weirdly precious about it. Good start though, genuinely.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Sift side panel -->
+  <aside class="w-[336px] bg-white border-l border-gray-200 flex flex-col">
+    <div class="px-5 py-4 border-b border-gray-200 flex items-center gap-2.5">
+      <div class="w-7 h-7 rounded-lg bg-moss-600 flex items-center justify-center"><i class="fas fa-sliders text-white text-[11px]"></i></div>
+      <span class="serif text-[17px] font-semibold">Sift</span>
+      <span class="ml-auto text-[11px] text-moss-700 bg-moss-50 border border-moss-100 px-2 py-0.5 rounded-full font-medium">On for reddit.com</span>
+    </div>
+
+    <!-- Dial -->
+    <div class="px-5 pt-4 pb-3 border-b border-gray-100">
+      <p class="text-[11px] uppercase tracking-wide text-gray-400 font-semibold mb-3">How much gets through</p>
+      <div class="flex items-center justify-center mb-3">
+        <svg width="180" height="104" viewBox="0 0 180 104">
+          <path d="M18 96 A72 72 0 0 1 162 96" fill="none" stroke="#EDEBE6" stroke-width="13" stroke-linecap="round"/>
+          <path d="M18 96 A72 72 0 0 1 137 42" fill="none" stroke="#1F6F5C" stroke-width="13" stroke-linecap="round"/>
+          <circle cx="137" cy="42" r="9" fill="#fff" stroke="#1F6F5C" stroke-width="4"/>
+          <text x="90" y="80" text-anchor="middle" font-family="Newsreader,serif" font-size="30" font-weight="600" fill="#17201C">0.80</text>
+          <text x="90" y="96" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#8A8A85">threshold</text>
+        </svg>
+      </div>
+      <div class="flex justify-between text-[10.5px] text-gray-400 px-1 mb-3">
+        <span>Show me everything</span><span>Very quiet</span>
+      </div>
+      <div class="flex gap-1.5">
+        <button class="flex-1 text-[11.5px] py-1.5 rounded-lg border border-gray-200 text-gray-600">Off</button>
+        <button class="flex-1 text-[11.5px] py-1.5 rounded-lg border border-gray-200 text-gray-600">Light</button>
+        <button class="flex-1 text-[11.5px] py-1.5 rounded-lg bg-moss-600 text-white font-medium">Balanced</button>
+        <button class="flex-1 text-[11.5px] py-1.5 rounded-lg border border-gray-200 text-gray-600">Strict</button>
+      </div>
+    </div>
+
+    <!-- On this page -->
+    <div class="px-5 py-3.5 border-b border-gray-100">
+      <p class="text-[11px] uppercase tracking-wide text-gray-400 font-semibold mb-3">On this page</p>
+      <div class="grid grid-cols-3 gap-2 mb-4">
+        <div class="text-center bg-[#FAF9F6] border border-gray-100 rounded-lg py-2.5">
+          <p class="serif text-[22px] font-semibold leading-none">128</p><p class="text-[10px] text-gray-500 mt-1">scored</p>
+        </div>
+        <div class="text-center bg-clay-50 border border-clay-100 rounded-lg py-2.5">
+          <p class="serif text-[22px] font-semibold leading-none text-clay-600">3</p><p class="text-[10px] text-clay-600 mt-1">turned down</p>
+        </div>
+        <div class="text-center bg-moss-50 border border-moss-100 rounded-lg py-2.5">
+          <p class="serif text-[22px] font-semibold leading-none text-moss-700">1</p><p class="text-[10px] text-moss-700 mt-1">kept, friend</p>
+        </div>
+      </div>
+      <div class="space-y-2">
+        <div class="flex items-center gap-2">
+          <span class="text-[12px] text-gray-600 w-[92px]">Insult</span>
+          <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-clay-400 w-[62%]"></div></div>
+          <span class="text-[11px] text-gray-500 w-4 text-right">2</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[12px] text-gray-600 w-[92px]">Identity attack</span>
+          <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-clay-500 w-[31%]"></div></div>
+          <span class="text-[11px] text-gray-500 w-4 text-right">1</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[12px] text-gray-600 w-[92px]">Threat</span>
+          <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-gray-300 w-0"></div></div>
+          <span class="text-[11px] text-gray-500 w-4 text-right">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cool down -->
+    <div class="px-5 py-3.5 border-b border-gray-100">
+      <p class="text-[11px] uppercase tracking-wide text-gray-400 font-semibold mb-2">Before you reply</p>
+      <a href="mediate.html" class="block w-full text-center bg-[#FAF9F6] hover:bg-moss-50 border border-gray-200 hover:border-moss-200 rounded-lg py-2.5 text-[13px] font-medium text-gray-800">
+        <i class="fas fa-wind text-moss-600 mr-1.5"></i>Cool Down my draft
+      </a>
+      <p class="text-[10.5px] text-gray-400 mt-2 leading-relaxed">Rewrites what you typed. You still press send.</p>
+    </div>
+
+    <div class="px-5 py-3.5">
+      <p class="text-[11px] uppercase tracking-wide text-gray-400 font-semibold mb-2">If it got one wrong</p>
+      <p class="text-[12px] text-gray-600 leading-relaxed mb-2.5">Press <span class="font-medium text-ink">This is fine</span> on any hidden comment. It comes back and joins your review queue.</p>
+      <div class="rounded-lg bg-[#FAF9F6] border border-gray-200 p-3">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-[11.5px] text-gray-500">Your disagreement rate</span>
+          <span class="serif text-[15px] font-semibold">5.1%</span>
+        </div>
+        <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-2"><div class="h-full bg-amberx-600 w-[5.1%]"></div></div>
+        <a href="fairness.html" class="text-[11.5px] text-moss-700 font-medium">11 corrections waiting to be reviewed <i class="fas fa-arrow-right text-[9px]"></i></a>
+      </div>
+    </div>
+
+    <div class="mt-auto px-5 py-3.5 bg-[#FAF9F6] border-t border-gray-200 flex items-center justify-between">
+      <span class="text-[10.5px] text-gray-500"><i class="fas fa-lock text-[9px] mr-1"></i>Nothing left this device</span>
+      <a href="tuning.html" class="text-[11px] text-moss-700 font-medium">Tuning</a>
+    </div>
+  </aside>
+</div>
+
+</body>
+</html>

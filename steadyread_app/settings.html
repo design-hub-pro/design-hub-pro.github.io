@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SteadyRead - Settings</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif; background: #0a0e27; color: #fff; }
+
+  .screen { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+
+  .status-bar {
+    height: 59px; display: flex; justify-content: space-between; align-items: flex-end;
+    padding: 0 28px 8px 28px; position: relative; z-index: 10; flex-shrink: 0;
+  }
+  .status-time { font-size: 17px; font-weight: 600; color: #fff; }
+  .status-icons { display: flex; gap: 6px; align-items: center; color: #fff; font-size: 14px; }
+  .dynamic-island { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 126px; height: 37px; background: #000; border-radius: 20px; }
+
+  .scroll-content { flex: 1; overflow-y: auto; padding: 0 28px 100px 28px; scrollbar-width: none; }
+
+  .page-header {
+    padding-top: 8px; margin-bottom: 24px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .page-title { font-size: 32px; font-weight: 800; }
+
+  /* Comfort profile card */
+  .comfort-profile {
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(0, 206, 201, 0.1));
+    border: 1px solid rgba(108, 92, 231, 0.2);
+    border-radius: 22px;
+    padding: 22px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .comfort-profile::before {
+    content: '';
+    position: absolute; top: -40%; right: -20%;
+    width: 150px; height: 150px;
+    background: radial-gradient(circle, rgba(0, 206, 201, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .cp-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; position: relative; }
+  .cp-icon {
+    width: 48px; height: 48px; border-radius: 16px;
+    background: linear-gradient(135deg, #6c5ce7, #00cec9);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; color: #fff;
+  }
+  .cp-title { font-size: 17px; font-weight: 700; }
+  .cp-subtitle { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+
+  .sensitivity-slider { position: relative; margin-bottom: 8px; }
+  .slider-labels { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .slider-labels span { font-size: 11px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.5px; }
+  .slider-track { height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; position: relative; }
+  .slider-fill { height: 100%; width: 60%; background: linear-gradient(90deg, #00cec9, #6c5ce7); border-radius: 3px; }
+  .slider-thumb {
+    position: absolute; top: 50%; left: 60%; transform: translate(-50%, -50%);
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  /* Settings sections */
+  .section-label {
+    font-size: 12px; color: rgba(255,255,255,0.3);
+    text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
+    margin-bottom: 12px; margin-top: 8px;
+  }
+
+  .settings-group {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .setting-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .setting-item:last-child { border-bottom: none; }
+
+  .setting-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .setting-icon.purple { background: rgba(108, 92, 231, 0.15); color: #a29bfe; }
+  .setting-icon.teal { background: rgba(0, 206, 201, 0.15); color: #00cec9; }
+  .setting-icon.pink { background: rgba(253, 121, 168, 0.15); color: #fd79a8; }
+  .setting-icon.yellow { background: rgba(253, 203, 110, 0.15); color: #fdcb6e; }
+  .setting-icon.blue { background: rgba(9, 132, 227, 0.15); color: #74b9ff; }
+  .setting-icon.green { background: rgba(0, 184, 148, 0.15); color: #55efc4; }
+
+  .setting-info { flex: 1; }
+  .setting-name { font-size: 15px; font-weight: 600; }
+  .setting-desc { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 2px; }
+
+  .toggle {
+    width: 52px; height: 30px; border-radius: 15px;
+    background: rgba(255,255,255,0.1);
+    position: relative; flex-shrink: 0;
+  }
+  .toggle.on { background: #6c5ce7; }
+  .toggle-knob {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #fff; position: absolute;
+    top: 2px; left: 2px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transition: left 0.2s;
+  }
+  .toggle.on .toggle-knob { left: 24px; }
+
+  .setting-value { font-size: 14px; color: rgba(255,255,255,0.35); font-weight: 500; }
+  .setting-chevron { color: rgba(255,255,255,0.15); font-size: 14px; }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 88px;
+    background: rgba(10, 14, 39, 0.92);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; justify-content: space-around; align-items: flex-start;
+    padding-top: 12px;
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .tab-icon { font-size: 22px; color: rgba(255,255,255,0.3); }
+  .tab-icon.active { color: #6c5ce7; }
+  .tab-label { font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 500; }
+  .tab-label.active { color: #6c5ce7; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:15px"></i>
+      <i class="fas fa-wifi" style="font-size:15px"></i>
+      <i class="fas fa-battery-full" style="font-size:17px"></i>
+    </div>
+  </div>
+
+  <div class="scroll-content">
+    <div class="page-header">
+      <span class="page-title">Settings</span>
+    </div>
+
+    <!-- Comfort Profile -->
+    <div class="comfort-profile">
+      <div class="cp-header">
+        <div class="cp-icon"><i class="fas fa-sliders-h"></i></div>
+        <div>
+          <div class="cp-title">Motion Sensitivity</div>
+          <div class="cp-subtitle">Adjust when comfort mode activates</div>
+        </div>
+      </div>
+      <div class="sensitivity-slider">
+        <div class="slider-labels">
+          <span>Less Sensitive</span>
+          <span>More Sensitive</span>
+        </div>
+        <div class="slider-track">
+          <div class="slider-fill"></div>
+          <div class="slider-thumb"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reading Settings -->
+    <div class="section-label">Reading</div>
+    <div class="settings-group">
+      <div class="setting-item">
+        <div class="setting-icon purple"><i class="fas fa-magic"></i></div>
+        <div class="setting-info">
+          <div class="setting-name">Auto Comfort Mode</div>
+          <div class="setting-desc">Adjust layout automatically</div>
+        </div>
+        <div class="toggle on"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="setting-item">
+        <div class="setting-icon teal"><i class="fas fa-headphones-alt"></i></div>
+        <div class="setting-info">
+          <div class="setting-name">Auto Listen Switch</div>
+          <div class="setting-desc">Switch to TTS on high motion</div>
+        </div>
+        <div class="toggle"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="setting-item">
+        <div class="setting-icon pink"><i class="fas fa-highlighter"></i></div>
+        <div class="setting-info">
+          <div class="setting-name">Focus Guide</div>
+          <div class="setting-desc">Highlight current reading line</div>
+        </div>
+        <div class="toggle on"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="setting-item">
+        <div class="setting-icon yellow"><i class="fas fa-font"></i></div>
+        <div class="setting-info">
+          <div class="setting-name">Font Size</div>
+        </div>
+        <span class="setting-value">18pt</span>
+        <i class="fas fa-chevron-right setting-chevron"></i>
+      </div>
+    </div>
+
+    <!-- Voice Settings -->
+    <div class="section-label">Voice & Audio</div>
+    <div class="settings-group">
+      <div class="setting-item">
+        <div class="setting-icon blue"><i class="fas fa-microphone"></i></div>
+        <div class="setting-info">
+          <div class="setting-name">TTS Voice</div>
+        </div>
+        <span class="setting-value">Natural</span>
+        <i class="fas fa-chevron-right setting-chevron"></i>
+      </div>
+      <div class="setting-item">
+        <div class="setting-icon green"><i class="fas fa-tachometer-alt"></i></div>
+        <div class="setting-info">
+          <div class="setting-name">Default Speed</div>
+        </div>
+        <span class="setting-value">1.25x</span>
+        <i class="fas fa-chevron-right setting-chevron"></i>
+      </div>
+    </div>
+
+    <!-- Privacy -->
+    <div class="section-label">Privacy & Data</div>
+    <div class="settings-group">
+      <div class="setting-item">
+        <div class="setting-icon teal"><i class="fas fa-chart-pie"></i></div>
+        <div class="setting-info">
+          <div class="setting-name">Share Motion Data</div>
+          <div class="setting-desc">Anonymized data for research</div>
+        </div>
+        <div class="toggle on"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="setting-item">
+        <div class="setting-icon pink"><i class="fas fa-star"></i></div>
+        <div class="setting-info">
+          <div class="setting-name">Comfort Ratings</div>
+          <div class="setting-desc">Rate reading comfort after sessions</div>
+        </div>
+        <div class="toggle on"><div class="toggle-knob"></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-home tab-icon"></i>
+      <span class="tab-label">Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-book tab-icon"></i>
+      <span class="tab-label">Library</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-wave-square tab-icon"></i>
+      <span class="tab-label">Motion</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user tab-icon active"></i>
+      <span class="tab-label active">Profile</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

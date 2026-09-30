@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CaffeineIQ - Drink Detail</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    scrollbar-width: none;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #F8F6F3;
+    width: 100%; height: 100%;
+    overflow-x: hidden; overflow-y: auto;
+  }
+
+  .status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 28px 0 28px; height: 59px; background: #F8F6F3;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; left: 50%; transform: translateX(-50%); top: 10px;
+  }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+  .battery {
+    width: 27px; height: 12px; border: 1.5px solid #000; border-radius: 3px;
+    position: relative; display: flex; align-items: center; padding: 1.5px;
+  }
+  .battery::after {
+    content: ''; position: absolute; right: -4px; width: 2px; height: 6px;
+    background: #000; border-radius: 0 1px 1px 0;
+  }
+  .battery-fill { width: 75%; height: 100%; background: #000; border-radius: 1.5px; }
+
+  .content { padding: 0 28px 120px 28px; }
+
+  /* Nav */
+  .nav-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0 8px 0;
+  }
+  .nav-back {
+    width: 40px; height: 40px; border-radius: 14px; background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: #1A1A1A; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .nav-actions { display: flex; gap: 8px; }
+  .nav-action {
+    width: 40px; height: 40px; border-radius: 14px; background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: #1A1A1A; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  /* Hero */
+  .drink-hero {
+    background: linear-gradient(145deg, #2D2016, #4A3728);
+    border-radius: 28px; padding: 28px; margin-bottom: 20px;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .drink-hero::before {
+    content: ''; position: absolute; top: -50%; left: -30%;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(198,134,66,0.2) 0%, transparent 70%);
+  }
+  .drink-emoji {
+    font-size: 64px; margin-bottom: 14px; display: block;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+  }
+  .drink-hero-name {
+    font-size: 24px; font-weight: 700; color: #fff;
+    margin-bottom: 4px; letter-spacing: -0.3px;
+  }
+  .drink-hero-brand {
+    font-size: 14px; color: rgba(255,255,255,0.5); font-weight: 400;
+    margin-bottom: 20px;
+  }
+  .caffeine-big {
+    display: flex; align-items: baseline; justify-content: center;
+    gap: 4px;
+  }
+  .caffeine-number {
+    font-size: 56px; font-weight: 800; color: #E8A94A;
+    line-height: 1; letter-spacing: -2px;
+  }
+  .caffeine-unit {
+    font-size: 18px; font-weight: 500; color: rgba(255,255,255,0.5);
+  }
+  .drink-meta-row {
+    display: flex; justify-content: center; gap: 24px; margin-top: 16px;
+  }
+  .drink-meta-item { text-align: center; }
+  .drink-meta-val {
+    font-size: 16px; font-weight: 600; color: #fff;
+  }
+  .drink-meta-label {
+    font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  /* Personalized Alert */
+  .personal-alert {
+    background: linear-gradient(135deg, #FFF8F0, #FFF3E6);
+    border-radius: 20px; padding: 20px; margin-bottom: 20px;
+    border: 1px solid rgba(196,122,32,0.15);
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .alert-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: linear-gradient(135deg, #C47A20, #E8A94A);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 18px; flex-shrink: 0;
+  }
+  .alert-text {
+    font-size: 13px; color: #8B6914; line-height: 1.5; font-weight: 500;
+  }
+  .alert-text strong { font-weight: 700; color: #7A5200; }
+
+  /* Effects Cards */
+  .section-title {
+    font-size: 18px; font-weight: 700; color: #1A1A1A;
+    margin-bottom: 14px; letter-spacing: -0.3px;
+  }
+  .effects-list { margin-bottom: 24px; }
+  .effect-item {
+    background: #fff; border-radius: 18px; padding: 18px;
+    margin-bottom: 10px; display: flex; gap: 14px; align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .effect-icon {
+    width: 44px; height: 44px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .effect-icon.negative { background: #FCE8E8; color: #D44; }
+  .effect-icon.caution { background: #FFF3E6; color: #C47A20; }
+  .effect-icon.positive { background: #E8F5EC; color: #2D8F4E; }
+  .effect-info { flex: 1; }
+  .effect-name {
+    font-size: 14px; font-weight: 600; color: #1A1A1A; margin-bottom: 3px;
+  }
+  .effect-desc { font-size: 12px; color: #999; line-height: 1.4; }
+  .effect-severity {
+    display: flex; gap: 3px; align-items: center;
+  }
+  .severity-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+  }
+  .severity-dot.active-red { background: #D44; }
+  .severity-dot.active-orange { background: #E8A94A; }
+  .severity-dot.active-green { background: #2D8F4E; }
+  .severity-dot.inactive { background: #E8E4DF; }
+
+  /* Caffeine Curve */
+  .curve-card {
+    background: #fff; border-radius: 22px; padding: 22px;
+    margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .curve-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .curve-title {
+    font-size: 15px; font-weight: 600; color: #1A1A1A;
+  }
+  .curve-badge {
+    padding: 4px 12px; border-radius: 10px; font-size: 11px;
+    font-weight: 600; background: #FFF3E6; color: #C47A20;
+  }
+  .curve-chart {
+    height: 140px; position: relative; margin-bottom: 8px;
+  }
+  .curve-svg { width: 100%; height: 100%; }
+  .curve-labels {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: #999;
+  }
+
+  /* Better Alternatives */
+  .alt-scroll {
+    display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px;
+    margin-bottom: 24px;
+  }
+  .alt-card {
+    min-width: 150px; background: #fff; border-radius: 18px;
+    padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    flex-shrink: 0; text-align: center;
+  }
+  .alt-emoji { font-size: 32px; margin-bottom: 8px; display: block; }
+  .alt-name {
+    font-size: 13px; font-weight: 600; color: #1A1A1A; margin-bottom: 4px;
+  }
+  .alt-mg {
+    font-size: 16px; font-weight: 700; color: #2D8F4E;
+  }
+  .alt-mg span { font-size: 11px; font-weight: 400; color: #999; }
+  .alt-tag {
+    display: inline-block; padding: 3px 8px; border-radius: 8px;
+    font-size: 10px; font-weight: 600; background: #E8F5EC;
+    color: #2D8F4E; margin-top: 6px;
+  }
+
+  /* Log Button */
+  .log-btn {
+    width: 100%; padding: 18px; border-radius: 18px;
+    background: linear-gradient(135deg, #C47A20, #E8A94A);
+    color: #fff; font-size: 16px; font-weight: 600;
+    border: none; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 8px 24px rgba(196,122,32,0.3);
+    font-family: inherit; margin-bottom: 20px;
+  }
+
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 90px;
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: flex-start;
+    padding-top: 12px; border-top: 0.5px solid rgba(0,0,0,0.06);
+  }
+  .tab-item {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 4px; font-size: 10px; font-weight: 500; color: #999;
+  }
+  .tab-item.active { color: #C47A20; }
+  .tab-item i { font-size: 22px; }
+  .tab-item .tab-dot { width: 4px; height: 4px; border-radius: 50%; background: #C47A20; }
+  .home-indicator {
+    width: 134px; height: 5px; background: #1A1A1A; border-radius: 3px;
+    position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="nav-bar">
+      <div class="nav-back"><i class="fas fa-chevron-left"></i></div>
+      <div class="nav-actions">
+        <div class="nav-action"><i class="far fa-heart"></i></div>
+        <div class="nav-action"><i class="fas fa-share-nodes"></i></div>
+      </div>
+    </div>
+
+    <!-- Drink Hero -->
+    <div class="drink-hero">
+      <span class="drink-emoji">☕</span>
+      <div class="drink-hero-name">Cold Brew Coffee</div>
+      <div class="drink-hero-brand">Starbucks · Grande (16 oz)</div>
+      <div class="caffeine-big">
+        <span class="caffeine-number">205</span>
+        <span class="caffeine-unit">mg</span>
+      </div>
+      <div class="drink-meta-row">
+        <div class="drink-meta-item">
+          <div class="drink-meta-val">5</div>
+          <div class="drink-meta-label">Calories</div>
+        </div>
+        <div class="drink-meta-item">
+          <div class="drink-meta-val">0g</div>
+          <div class="drink-meta-label">Sugar</div>
+        </div>
+        <div class="drink-meta-item">
+          <div class="drink-meta-val">6h</div>
+          <div class="drink-meta-label">Half-life</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Personalized Alert -->
+    <div class="personal-alert">
+      <div class="alert-icon"><i class="fas fa-sparkles"></i></div>
+      <div class="alert-text">
+        <strong>Based on your pattern:</strong> Drinking this after 2 PM has reduced your deep sleep by 23% over the past week. Consider switching to decaf after lunch.
+      </div>
+    </div>
+
+    <!-- Effects -->
+    <div class="section-title">Predicted Effects</div>
+    <div class="effects-list">
+      <div class="effect-item">
+        <div class="effect-icon caution"><i class="fas fa-moon"></i></div>
+        <div class="effect-info">
+          <div class="effect-name">Sleep Disruption</div>
+          <div class="effect-desc">May delay sleep onset by ~45 min if consumed after 2 PM</div>
+        </div>
+        <div class="effect-severity">
+          <div class="severity-dot active-orange"></div>
+          <div class="severity-dot active-orange"></div>
+          <div class="severity-dot active-orange"></div>
+          <div class="severity-dot inactive"></div>
+        </div>
+      </div>
+      <div class="effect-item">
+        <div class="effect-icon positive"><i class="fas fa-brain"></i></div>
+        <div class="effect-info">
+          <div class="effect-name">Focus Boost</div>
+          <div class="effect-desc">Peak concentration expected 30-90 min after consumption</div>
+        </div>
+        <div class="effect-severity">
+          <div class="severity-dot active-green"></div>
+          <div class="severity-dot active-green"></div>
+          <div class="severity-dot active-green"></div>
+          <div class="severity-dot active-green"></div>
+        </div>
+      </div>
+      <div class="effect-item">
+        <div class="effect-icon negative"><i class="fas fa-heart-pulse"></i></div>
+        <div class="effect-info">
+          <div class="effect-name">Anxiety Risk</div>
+          <div class="effect-desc">Your sensitivity suggests mild jitters possible</div>
+        </div>
+        <div class="effect-severity">
+          <div class="severity-dot active-red"></div>
+          <div class="severity-dot active-red"></div>
+          <div class="severity-dot inactive"></div>
+          <div class="severity-dot inactive"></div>
+        </div>
+      </div>
+      <div class="effect-item">
+        <div class="effect-icon caution"><i class="fas fa-arrow-trend-down"></i></div>
+        <div class="effect-info">
+          <div class="effect-name">Afternoon Crash</div>
+          <div class="effect-desc">Energy dip expected around 4-5 PM based on your data</div>
+        </div>
+        <div class="effect-severity">
+          <div class="severity-dot active-orange"></div>
+          <div class="severity-dot active-orange"></div>
+          <div class="severity-dot inactive"></div>
+          <div class="severity-dot inactive"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Caffeine Curve -->
+    <div class="curve-card">
+      <div class="curve-header">
+        <div class="curve-title">Caffeine Metabolism Curve</div>
+        <div class="curve-badge">Your Profile</div>
+      </div>
+      <div class="curve-chart">
+        <svg class="curve-svg" viewBox="0 0 360 130" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="curveGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" style="stop-color:#E8A94A;stop-opacity:0.3" />
+              <stop offset="100%" style="stop-color:#E8A94A;stop-opacity:0" />
+            </linearGradient>
+          </defs>
+          <!-- Grid lines -->
+          <line x1="0" y1="32" x2="360" y2="32" stroke="#F0EDE8" stroke-width="1" />
+          <line x1="0" y1="65" x2="360" y2="65" stroke="#F0EDE8" stroke-width="1" />
+          <line x1="0" y1="98" x2="360" y2="98" stroke="#F0EDE8" stroke-width="1" />
+          <!-- Fill -->
+          <path d="M0,120 Q30,110 60,80 Q90,20 120,15 Q150,12 180,30 Q210,55 240,70 Q270,85 300,95 Q330,105 360,110 L360,130 L0,130 Z" fill="url(#curveGrad)" />
+          <!-- Line -->
+          <path d="M0,120 Q30,110 60,80 Q90,20 120,15 Q150,12 180,30 Q210,55 240,70 Q270,85 300,95 Q330,105 360,110" fill="none" stroke="#C47A20" stroke-width="2.5" stroke-linecap="round" />
+          <!-- Peak dot -->
+          <circle cx="135" cy="14" r="5" fill="#C47A20" />
+          <circle cx="135" cy="14" r="8" fill="none" stroke="#C47A20" stroke-width="1" opacity="0.3" />
+          <!-- Cutoff line -->
+          <line x1="240" y1="0" x2="240" y2="130" stroke="#D44" stroke-width="1" stroke-dasharray="4,4" opacity="0.5" />
+          <text x="245" y="12" fill="#D44" font-size="9" font-family="Inter">Sleep cutoff</text>
+        </svg>
+      </div>
+      <div class="curve-labels">
+        <span>Now</span>
+        <span>2 PM</span>
+        <span>4 PM</span>
+        <span>6 PM</span>
+        <span>10 PM</span>
+      </div>
+    </div>
+
+    <!-- Alternatives -->
+    <div class="section-title">Lower-Caffeine Alternatives</div>
+    <div class="alt-scroll">
+      <div class="alt-card">
+        <span class="alt-emoji">🍵</span>
+        <div class="alt-name">Green Tea</div>
+        <div class="alt-mg">28 <span>mg</span></div>
+        <div class="alt-tag">Best for PM</div>
+      </div>
+      <div class="alt-card">
+        <span class="alt-emoji">🧋</span>
+        <div class="alt-name">Chai Latte</div>
+        <div class="alt-mg">50 <span>mg</span></div>
+        <div class="alt-tag">Gentle boost</div>
+      </div>
+      <div class="alt-card">
+        <span class="alt-emoji">🫖</span>
+        <div class="alt-name">Decaf Coffee</div>
+        <div class="alt-mg">7 <span>mg</span></div>
+        <div class="alt-tag">Near zero</div>
+      </div>
+    </div>
+
+    <!-- Log Button -->
+    <button class="log-btn">
+      <i class="fas fa-plus-circle"></i> Log This Drink
+    </button>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house"></i><span>Home</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-search"></i><span>Search</span>
+      <div class="tab-dot"></div>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-chart-line"></i><span>Activity</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-lightbulb"></i><span>Insights</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i><span>Profile</span>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

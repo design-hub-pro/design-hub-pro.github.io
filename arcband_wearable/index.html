@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ArcBand — Basketball Shot-Tracking Wristband</title>
+<style>
+  :root{ --ink:#16202B; --soft:#5A6B7A; --line:#E2DED7; --blue:#0B4F6C; --orange:#C4531E; --paper:#FDFCFA; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--paper); color:var(--ink);
+        font:17px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+        overflow-x:hidden; }
+  .wrap{ max-width:720px; margin:0 auto; padding:0 24px; }
+  .wide{ max-width:960px; margin:0 auto; padding:0 24px; }
+  h1,h2,h3{ font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif; font-weight:600; letter-spacing:-0.01em; }
+  h1{ font-size:40px; line-height:1.15; margin:0 0 18px; }
+  h2{ font-size:27px; line-height:1.25; margin:0 0 14px; }
+  h3{ font-size:19px; margin:0 0 8px; }
+  p{ margin:0 0 16px; }
+  .lead{ font-size:20px; color:var(--soft); }
+  .sm{ font-size:15px; color:var(--soft); }
+  .xs{ font-size:13px; color:var(--soft); }
+  section{ padding:52px 0; border-top:1px solid var(--line); }
+  .eyebrow{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--orange); font-weight:600; margin-bottom:10px; }
+  img{ max-width:100%; display:block; border-radius:6px; }
+  figure{ margin:0 0 8px; }
+  figcaption{ font-size:13px; color:var(--soft); margin-top:8px; }
+  a{ color:var(--blue); }
+  .cite{ font-size:13px; color:var(--soft); }
+  .cite a{ color:var(--soft); }
+  table{ width:100%; border-collapse:collapse; font-size:15px; }
+  th,td{ text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ font-weight:600; font-size:13px; letter-spacing:.04em; text-transform:uppercase; color:var(--soft); }
+  td.num{ text-align:right; white-space:nowrap; }
+  .scroll{ overflow-x:auto; }
+  .row{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin:26px 0; }
+  .row div{ padding:18px; border:1px solid var(--line); border-radius:8px; background:#fff; font-size:15px; }
+  .row b{ display:block; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--orange); margin-bottom:6px; }
+  .flag{ background:#FBF3EC; border-left:3px solid var(--orange); padding:20px 22px; border-radius:0 6px 6px 0; margin:26px 0; }
+  .flag p:last-child{ margin-bottom:0; }
+  .duo{ display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start; }
+  @media (max-width:640px){ .duo{ grid-template-columns:1fr; } }
+  details{ border-top:1px solid var(--line); padding:18px 0; }
+  details summary{ cursor:pointer; font-weight:600; list-style:none; font-size:16px; }
+  details summary::-webkit-details-marker{ display:none; }
+  details summary::before{ content:"+ "; color:var(--orange); }
+  details[open] summary::before{ content:"– "; }
+  details .body{ padding-top:14px; font-size:15px; color:#33414F; }
+  details .body ul{ padding-left:20px; }
+  details .body li{ margin-bottom:6px; }
+  footer{ border-top:1px solid var(--line); padding:34px 0 60px; }
+  .backlink{ display:inline-block; margin-bottom:26px; font-size:14px; }
+</style>
+</head>
+<body>
+
+<div class="wrap" style="padding-top:34px;">
+  <a class="backlink" href="../index.html">← Overview</a>
+</div>
+
+<section style="border-top:0;padding-top:0;">
+  <div class="wrap">
+    <div class="eyebrow">Wearable · Basketball Training</div>
+    <h1>ArcBand, a wristband that logs every shot you take</h1>
+    <p class="lead">ArcBand is a wrist-worn sensor that detects each shot's release and sends it to a phone app in real time. It runs a full practice session, about two hours, on one charge.</p>
+    <p class="sm">Shot count and mechanics come from the wrist alone. Make-or-miss needs the optional clip-on RimClip sensor, covered in "Changes to the original plan" below.</p>
+  </div>
+  <div class="wide" style="margin-top:32px;">
+    <figure><img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1789230660486-image-1.png" alt="A basketball player shooting while wearing a slim black wristband on the shooting-hand wrist."></figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Signal Path</div>
+    <h2>Five steps, wrist to phone</h2>
+    <div class="row">
+      <div><b>Sense</b>Wrist motion, 200 Hz</div>
+      <div><b>Process</b>Extract the release spike</div>
+      <div><b>Decide</b>Shot, or just a pass?</div>
+      <div><b>Act</b>Buzz, count ticks up</div>
+      <div><b>Record</b>Log on-band, sync by BLE</div>
+    </div>
+    <p>The step that isn't obvious is Decide: a small on-device model, not a simple threshold, separates a real shot release from a pass, a rebound swipe, or wiping sweat off the forehead.</p>
+  </div>
+  <div class="wide" style="margin-top:32px;">
+    <div class="duo">
+      <figure><svg role="img" aria-label="Block diagram of the signal path from wrist IMU through the classifier to the phone app, with the optional RimClip feeding a timestamp match into the final logging step." style="width:100%;height:auto;display:block;" viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16202B"/></marker></defs>
+<rect width="900" height="320" fill="#FDFCFA"/>
+<line x1="170" y1="76.0" x2="200" y2="76.0" stroke="#16202B" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="350" y1="76.0" x2="380" y2="76.0" stroke="#16202B" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="530" y1="76.0" x2="560" y2="76.0" stroke="#16202B" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="710" y1="76.0" x2="740" y2="76.0" stroke="#16202B" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="530" y1="196" x2="745" y2="112" stroke="#C4531E" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+<rect x="20" y="40" width="150" height="72" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/><text x="95.0" y="70.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">IMU</text><text x="95.0" y="88.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">ICM-42670-P, 200 Hz</text>
+<rect x="200" y="40" width="150" height="72" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/><text x="275.0" y="70.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">MCU window</text><text x="275.0" y="88.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">nRF52832, 250 ms</text>
+<rect x="380" y="40" width="150" height="72" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/><text x="455.0" y="70.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">Classifier</text><text x="455.0" y="88.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">shot vs. non-shot</text>
+<rect x="560" y="40" width="150" height="72" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/><text x="635.0" y="70.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">Haptic + LED</text><text x="635.0" y="88.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">buzz, count +1</text>
+<rect x="740" y="40" width="150" height="72" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/><text x="815.0" y="70.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">Flash + BLE</text><text x="815.0" y="88.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">log, sync to app</text>
+<rect x="380" y="180" width="150" height="66" rx="8" fill="#FBF3EC" stroke="#C4531E" stroke-width="1.5"/><text x="455.0" y="207.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">RimClip</text><text x="455.0" y="225.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">optional, net sensor</text>
+<rect x="582.0" y="132" width="110" height="19" fill="#FDFCFA"/><text x="637" y="145" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" font-weight="600" fill="#C4531E">±400 ms match</text>
+<text x="20" y="295" font-size="11.5" fill="#5A6B7A">Main chain runs on the wristband alone. RimClip is optional and only changes the last box.</text>
+</svg></figure>
+      <figure><img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1789230685167-image-1.png" alt="ArcBand resting in a small charging dock on a desk next to a phone.">
+        <figcaption>Between sessions: about 45 minutes to full charge, and the band holds a session offline until it's back near the phone.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Validation</div>
+    <h2>Checked against video, not against itself</h2>
+    <p>Ground truth comes from a 240 fps camera trained on the release point, with two independent reviewers tagging the exact frame the ball leaves the hand and, when RimClip is fitted, the frame it passes through the net. Wrist and net timestamps are matched against those frames inside a ±1 frame window, 4.2 ms. A camera and two reviewers are the reference here because neither needs the player to wear anything extra, unlike optical motion-capture markers, and because two reviewers disagreeing on a single frame was rare enough in early testing, under one in twenty tagged releases, to trust as ground truth.</p>
+    <p>The pilot runs 12 players across three shot types, catch-and-shoot, off-the-dribble, and free throws, for 560 attempts over six sessions. Recall on true shot releases has to reach 97% or better, and the false-positive rate against non-shot arm motion, dribbling, passing, boxing out, has to stay under 3%. Shot count against a coach's manual tally has to land within one shot per 50-shot session.</p>
+    <p>With RimClip fitted, make-or-miss agreement against video has to reach 95% or better over 300 attempts, and the wrist-to-net timestamp pairing has to resolve inside its 400 ms window at least 98% of the time; anything slower gets logged as unmatched rather than guessed at. If the false-positive rate clears 3% on the pilot cohort, the haptic buzz and shot count revert to a manual double-tap confirmation until the classifier is retrained on whatever gesture caused it.</p>
+    <p class="sm">The recall and false-positive numbers above are the two figures worth putting in front of a coach or a buyer before anything else on this page.</p>
+  </div>
+  <div class="wide" style="margin-top:32px;">
+    <figure><svg role="img" aria-label="Plotted wrist angular velocity over time showing a release spike crossing the detection threshold inside a 250 millisecond window." style="width:100%;height:auto;display:block;" viewBox="0 0 900 340" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui">
+<rect width="900" height="340" fill="#FDFCFA"/>
+<line x1="70" y1="30" x2="70" y2="290" stroke="#5A6B7A" stroke-width="1.2"/>
+<line x1="70" y1="290" x2="870" y2="290" stroke="#5A6B7A" stroke-width="1.2"/>
+<text x="70.0" y="308" text-anchor="middle" font-size="10.5" fill="#5A6B7A">0</text>
+<text x="203.33333333333331" y="308" text-anchor="middle" font-size="10.5" fill="#5A6B7A">200</text>
+<text x="336.66666666666663" y="308" text-anchor="middle" font-size="10.5" fill="#5A6B7A">400</text>
+<text x="470.0" y="308" text-anchor="middle" font-size="10.5" fill="#5A6B7A">600</text>
+<text x="603.3333333333333" y="308" text-anchor="middle" font-size="10.5" fill="#5A6B7A">800</text>
+<text x="736.6666666666667" y="308" text-anchor="middle" font-size="10.5" fill="#5A6B7A">1000</text>
+<text x="870.0" y="308" text-anchor="middle" font-size="10.5" fill="#5A6B7A">1200</text>
+<text x="470.0" y="332" text-anchor="middle" font-size="11.5" fill="#5A6B7A">Time (ms)</text>
+<text x="60" y="294.0" text-anchor="end" font-size="10.5" fill="#5A6B7A">-200</text>
+<text x="60" y="242.0" text-anchor="end" font-size="10.5" fill="#5A6B7A">0</text>
+<text x="60" y="190.0" text-anchor="end" font-size="10.5" fill="#5A6B7A">200</text>
+<text x="60" y="138.0" text-anchor="end" font-size="10.5" fill="#5A6B7A">400</text>
+<text x="60" y="86.0" text-anchor="end" font-size="10.5" fill="#5A6B7A">600</text>
+<text x="60" y="34.0" text-anchor="end" font-size="10.5" fill="#5A6B7A">800</text>
+<text x="16" y="160.0" text-anchor="middle" font-size="11.5" fill="#5A6B7A" transform="rotate(-90,16,160.0)">Wrist angular velocity (deg/s)</text>
+<line x1="70" y1="147.0" x2="870" y2="147.0" stroke="#C4531E" stroke-width="1.3" stroke-dasharray="6,4"/>
+<rect x="356.6666666666667" y="30" width="86.66666666666663" height="260" fill="#C4531E" opacity="0.08"/>
+<path d="M70.0,235.4 L75.3,234.8 L80.7,234.2 L86.0,233.6 L91.3,233.2 L96.7,232.8 L102.0,232.5 L107.3,232.3 L112.7,232.3 L118.0,232.4 L123.3,232.6 L128.7,232.9 L134.0,233.3 L139.3,233.8 L144.7,234.4 L150.0,235.0 L155.3,235.6 L160.7,236.2 L166.0,236.8 L171.3,237.3 L176.7,237.8 L182.0,238.1 L187.3,238.4 L192.7,238.5 L198.0,238.5 L203.3,238.4 L208.7,238.2 L214.0,237.8 L219.3,237.4 L224.7,236.8 L230.0,236.3 L235.3,235.7 L240.7,235.0 L246.0,234.4 L251.3,233.9 L256.7,233.4 L262.0,232.9 L267.3,232.6 L272.7,232.4 L278.0,232.3 L283.3,232.3 L288.7,232.5 L294.0,232.7 L299.3,233.1 L304.7,233.6 L310.0,234.1 L315.3,234.7 L320.7,235.3 L326.0,235.3 L331.3,232.7 L336.7,228.3 L342.0,222.5 L347.3,215.5 L352.7,207.3 L358.0,197.9 L363.3,187.6 L368.7,176.2 L374.0,163.9 L379.3,150.7 L384.7,136.6 L390.0,121.7 L395.3,106.1 L400.7,89.7 L406.0,72.6 L411.3,54.8 L416.7,33.9 L422.0,49.2 L427.3,64.3 L432.7,79.2 L438.0,93.8 L443.3,108.2 L448.7,122.3 L454.0,136.2 L459.3,149.7 L464.7,162.8 L470.0,175.6 L475.3,187.8 L480.7,199.4 L486.0,210.4 L491.3,220.4 L496.7,229.2 L502.0,236.0 L507.3,237.4 L512.7,237.8 L518.0,238.2 L523.3,238.4 L528.7,238.5 L534.0,238.5 L539.3,238.4 L544.7,238.1 L550.0,237.7 L555.3,237.3 L560.7,236.8 L566.0,236.2 L571.3,235.6 L576.7,234.9 L582.0,234.3 L587.3,233.8 L592.7,233.3 L598.0,232.9 L603.3,232.6 L608.7,232.4 L614.0,232.3 L619.3,232.3 L624.7,232.5 L630.0,232.8 L635.3,233.2 L640.7,233.7 L646.0,234.2 L651.3,234.8 L656.7,235.4 L662.0,236.0 L667.3,236.6 L672.7,237.2 L678.0,237.7 L683.3,238.0 L688.7,238.3 L694.0,238.5 L699.3,238.5 L704.7,238.4 L710.0,238.2 L715.3,237.9 L720.7,237.5 L726.0,237.0 L731.3,236.4 L736.7,235.8 L742.0,235.2 L747.3,234.6 L752.7,234.0 L758.0,233.5 L763.3,233.0 L768.7,232.7 L774.0,232.4 L779.3,232.3 L784.7,232.3 L790.0,232.4 L795.3,232.7 L800.7,233.0 L806.0,233.5 L811.3,234.0 L816.7,234.6 L822.0,235.2 L827.3,235.8 L832.7,236.4 L838.0,237.0 L843.3,237.5 L848.7,237.9 L854.0,238.2 L859.3,238.4 L864.7,238.5 L870.0,238.5" fill="none" stroke="#0B4F6C" stroke-width="2.2"/>
+<rect x="866" y="127.5" width="190" height="18.5" fill="#FDFCFA"/><text x="870" y="140.0" text-anchor="end" font-family="ui-sans-serif,system-ui" font-size="10.5" font-weight="400" fill="#C4531E">detection threshold, 350°/s</text>
+<rect x="354.6666666666667" y="32.5" width="160" height="18.5" fill="#FDFCFA"/><text x="358.6666666666667" y="45" text-anchor="start" font-family="ui-sans-serif,system-ui" font-size="10.5" font-weight="400" fill="#C4531E">250 ms detection window</text>
+<circle cx="403.33333333333337" cy="32.60000000000002" r="4.5" fill="#0B4F6C"/>
+<rect x="413.33333333333337" y="-5.399999999999977" width="150" height="20" fill="#FDFCFA"/><text x="417.33333333333337" y="8.600000000000023" text-anchor="start" font-family="ui-sans-serif,system-ui" font-size="12" font-weight="700" fill="#16202B">release detected</text>
+<rect x="413.33333333333337" y="11.100000000000023" width="120" height="18.5" fill="#FDFCFA"/><text x="417.33333333333337" y="23.600000000000023" text-anchor="start" font-family="ui-sans-serif,system-ui" font-size="10.5" font-weight="400" fill="#5A6B7A">t = 500 ms</text>
+</svg>
+      <figcaption><b>Illustrative — not recorded data.</b> Shape of the release signature the classifier keys on.</figcaption>
+    </figure>
+  </div>
+  <div class="wide" style="margin-top:20px;">
+    <figure><svg role="img" aria-label="Validation rig diagram showing the wrist IMU and RimClip timestamps both checked against a 240 frames per second camera." style="width:100%;height:auto;display:block;" viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16202B"/></marker></defs>
+<rect width="900" height="320" fill="#FDFCFA"/>
+<line x1="64" y1="105" x2="598" y2="100" stroke="#16202B" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="236" y1="150" x2="598" y2="112" stroke="#16202B" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="480" y1="95" x2="598" y2="100" stroke="#0B4F6C" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="462" y1="90" x2="236" y2="95" stroke="#0B4F6C" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+<line x1="444" y1="104" x2="232" y2="142" stroke="#0B4F6C" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+<line x1="730" y1="160" x2="730" y2="198" stroke="#16202B" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="40" y="60" width="16" height="90" rx="8" fill="none" stroke="#16202B" stroke-width="2"/>
+<rect x="32" y="95" width="32" height="18" rx="6" fill="#C4531E"/>
+<rect x="-12.0" y="168" width="120" height="20" fill="#FDFCFA"/><text x="48" y="182" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="12" font-weight="700" fill="#16202B">Wrist IMU</text>
+<rect x="-17.0" y="186.5" width="130" height="18.5" fill="#FDFCFA"/><text x="48" y="199" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="10.5" font-weight="400" fill="#5A6B7A">release event, t1</text>
+<circle cx="230" cy="90" r="16" fill="none" stroke="#C4531E" stroke-width="2"/>
+<line x1="180" y1="150" x2="280" y2="150" stroke="#16202B" stroke-width="3"/>
+<path d="M185,150 L195,220 M275,150 L265,220" stroke="#5A6B7A" stroke-width="1"/>
+<circle cx="230" cy="150" r="6" fill="#C4531E"/>
+<rect x="175.0" y="228" width="110" height="20" fill="#FDFCFA"/><text x="230" y="242" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="12" font-weight="700" fill="#16202B">RimClip</text>
+<rect x="150.0" y="246.5" width="160" height="18.5" fill="#FDFCFA"/><text x="230" y="259" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="10.5" font-weight="400" fill="#5A6B7A">net-through event, t2</text>
+<rect x="420" y="70" width="60" height="40" rx="4" fill="none" stroke="#0B4F6C" stroke-width="2"/>
+<circle cx="450" cy="90" r="12" fill="none" stroke="#0B4F6C" stroke-width="2"/>
+<rect x="475" y="80" width="14" height="20" fill="none" stroke="#0B4F6C" stroke-width="2"/>
+<rect x="375.0" y="118" width="150" height="20" fill="#FDFCFA"/><text x="450" y="132" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="12" font-weight="700" fill="#16202B">240 fps camera</text>
+<rect x="345.0" y="136.5" width="210" height="18.5" fill="#FDFCFA"/><text x="450" y="149" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="10.5" font-weight="400" fill="#5A6B7A">two reviewers tag each frame</text>
+<rect x="600" y="70" width="260" height="90" rx="8" fill="#EFF5F7" stroke="#0B4F6C" stroke-width="1.5"/><text x="730.0" y="109.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">Compare timestamps</text><text x="730.0" y="127.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">±1 frame = 4.2 ms window</text>
+<rect x="600" y="200" width="260" height="80" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/><text x="730.0" y="234.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">Agreement result</text><text x="730.0" y="252.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">recall, false-positive, make/miss %</text>
+</svg></figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Changes To The Original Plan</div>
+    <h2>Three corrections before this gets built</h2>
+
+    <h3>Make and miss need a second sensor</h3>
+    <p>The wrist alone cannot tell a make from a miss: the ball leaves the hand roughly a meter from the wrist, and the band never sees the rim. The fix is RimClip, a coin-cell net clip with a Hall-effect sensor and a small magnet stitched into the net, that fires on ball-through-net and matches its timestamp against the wrist release event inside a 400 ms window. Wristband-only mode ships first, tracking attempts and mechanics; make-or-miss turns on only once a clip is paired.</p>
+
+    <h3>Drop the "release angle in degrees" claim</h3>
+    <p>A single wrist IMU measures forearm rotation, not the ball's flight path, and the two only loosely correlate, since shooters split the work between wrist snap and shoulder-elbow drive differently. Publishing a false-precision number like "42° release angle" would be wrong more often than right. Replace it with a release-consistency score, a unitless 0-100 rating of how repeatable the wrist's rotation-rate profile is shot to shot, benchmarked against that player's own first 20 shots rather than an absolute angle.</p>
+
+    <h3>A coin cell can't drive the haptic buzz</h3>
+    <p>The original plan put a CR2032 coin cell behind the whole band, but the haptic motor pulls about 90 mA for 80 ms, and a coin cell's internal resistance sags voltage well below the motor's 2.5 V minimum under that load, likely browning out the MCU on every buzz. Swap in a 110 mAh LiPo cell with a linear charge IC (MCP73831) and a 220 µF capacitor across the haptic rail. Adds $2.20 to the unit cost and about 4 mm of case thickness. The coin cell stays, on RimClip, where the only load is a 60 µA BLE beacon.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Build Cost</div>
+    <h2>Parts and approximate price</h2>
+    <p class="sm">Prices are approximate, for small quantities. Building two wristbands and two RimClips runs about $60 total, a spare if one prototype fails on demo day. One of each is enough to start bench testing for about $30.</p>
+  </div>
+  <div class="wide" style="margin-top:20px;">
+    <div class="duo">
+      <figure><img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1789230667414-image-1.png" alt="The ArcBand wristband on a plain surface next to a ruler, shown at a three-quarter angle."></figure>
+      <figure><img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1789230672718-image-1.png" alt="ArcBand worn on a wrist while the player holds a basketball."></figure>
+    </div>
+  </div>
+  <div class="wrap" style="margin-top:28px;">
+    <div class="scroll">
+    <table>
+      <tr><th>Part</th><th>What it does</th><th>Price</th></tr>
+      <tr><td colspan="3"><b>Wristband</b></td></tr>
+      <tr><td>nRF52832 BLE SoC module</td><td>Runs the classifier, talks to the phone</td><td class="num">$4.20</td></tr>
+      <tr><td>ICM-42670-P, 6-axis IMU</td><td>Reads wrist acceleration and rotation</td><td class="num">$2.50</td></tr>
+      <tr><td>DRV2605L + ERM motor</td><td>Buzzes on each logged shot</td><td class="num">$2.00</td></tr>
+      <tr><td>3-LED status indicator</td><td>Shows battery and pairing state</td><td class="num">$0.60</td></tr>
+      <tr><td>LiPo cell, 110 mAh</td><td>Powers a 2-hour session plus standby</td><td class="num">$3.00</td></tr>
+      <tr><td>MCP73831 + USB-C</td><td>Recharges over USB-C</td><td class="num">$1.50</td></tr>
+      <tr><td>2-layer PCB, small run</td><td>Carries the parts above</td><td class="num">$3.00</td></tr>
+      <tr><td>Silicone strap + enclosure</td><td>Holds the band on the wrist</td><td class="num">$4.00</td></tr>
+      <tr><td>Passives, antenna, misc</td><td>Decoupling, matching, connectors</td><td class="num">$2.20</td></tr>
+      <tr><td colspan="2"><b>Wristband subtotal</b></td><td class="num"><b>$23.00</b></td></tr>
+      <tr><td colspan="3"><b>RimClip</b></td></tr>
+      <tr><td>nRF52810 BLE SoC</td><td>Sends the net-trigger timestamp</td><td class="num">$2.80</td></tr>
+      <tr><td>Hall-effect sensor + magnet</td><td>Detects the ball passing through the net</td><td class="num">$1.50</td></tr>
+      <tr><td>CR2032 + holder</td><td>Powers the clip, about 8 months</td><td class="num">$0.90</td></tr>
+      <tr><td>Molded clip enclosure</td><td>Grips the net without slipping</td><td class="num">$2.00</td></tr>
+      <tr><td colspan="2"><b>RimClip subtotal</b></td><td class="num"><b>$7.20</b></td></tr>
+      <tr><td colspan="2"><b>Total, one wristband + one RimClip</b></td><td class="num"><b>$30.20</b></td></tr>
+    </table>
+    </div>
+  </div>
+  <div class="wide" style="margin-top:28px;">
+    <figure><svg role="img" aria-label="Exploded diagram of the wristband case layers: polycarbonate cover, PCB assembly, LiPo cell, silicone strap shell." style="width:100%;height:auto;display:block;" viewBox="0 0 1000 420" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui">
+<rect width="1000" height="420" fill="#FDFCFA"/>
+<rect x="100.0" y="60" width="480" height="34" rx="6" fill="#EDEBE6" stroke="#16202B" stroke-width="1.3"/>
+<line x1="590.0" y1="77" x2="630.0" y2="77" stroke="#5A6B7A" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="636.0" y="73" font-size="13" font-weight="600" fill="#16202B">Polycarbonate cover</text>
+<text x="636.0" y="88" font-size="11" fill="#5A6B7A">1.2 mm, scratch-resistant</text>
+<rect x="113.0" y="140" width="454" height="34" rx="6" fill="#DCE7EA" stroke="#16202B" stroke-width="1.3"/>
+<line x1="577.0" y1="157" x2="617.0" y2="157" stroke="#5A6B7A" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="623.0" y="153" font-size="13" font-weight="600" fill="#16202B">PCB assembly</text>
+<text x="623.0" y="168" font-size="11" fill="#5A6B7A">0.8 mm, MCU + IMU + driver</text>
+<rect x="126.0" y="220" width="428" height="34" rx="6" fill="#F6E3D6" stroke="#16202B" stroke-width="1.3"/>
+<line x1="564.0" y1="237" x2="604.0" y2="237" stroke="#5A6B7A" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="610.0" y="233" font-size="13" font-weight="600" fill="#16202B">LiPo cell</text>
+<text x="610.0" y="248" font-size="11" fill="#5A6B7A">3.5 mm, 110 mAh</text>
+<rect x="139.0" y="300" width="402" height="34" rx="6" fill="#3A4552" stroke="#16202B" stroke-width="1.3"/>
+<line x1="551.0" y1="317" x2="591.0" y2="317" stroke="#5A6B7A" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="597.0" y="313" font-size="13" font-weight="600" fill="#16202B">Silicone strap shell</text>
+<text x="597.0" y="328" font-size="11" fill="#5A6B7A">2.5 mm, 24 mm width</text>
+<text x="340" y="40" text-anchor="middle" font-size="12" fill="#5A6B7A">Exploded, top to bottom (case thickness overall: 9.6 mm)</text>
+</svg></figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Risk</div>
+    <h2>What could go wrong</h2>
+    <p>The hard part is not the soldering, which is a weekend. It's teaching Decide to tell a shot release from a pass or a rebound swipe across different shooting styles without a large false-positive rate, and keeping RimClip's timestamp lined up with the wrist event over a BLE link that occasionally drops a packet.</p>
+    <p>If the on-device classifier isn't hitting 97% recall by the four-week mark, ArcBand falls back to a manual mode: a double-tap on the band's face marks a shot attempt by hand, no model required, and ships as the default while automatic detection keeps training in the background and arrives later as an OTA update.</p>
+    <p>Sweat corrodes exposed charging pins over a season, and a hard block or a dunk can pop RimClip loose from the net entirely. Both call for a magnetic charge contact instead of exposed pins, and a deeper clip bite than a first prototype will have.</p>
+  </div>
+  <div class="wide" style="margin-top:32px;">
+    <figure><img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1789230679070-image-1.png" alt="Two hands clipping RimClip onto the net of a basketball hoop."></figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">For The Specialist</div>
+    <h2>Build detail</h2>
+    <p class="sm">Working specification. Not needed to understand the project.</p>
+  </div>
+  <div class="wide" style="margin-top:28px;margin-bottom:28px;">
+    <figure><svg role="img" aria-label="Power chain diagram: USB-C into a charge IC into the LiPo cell, with the MCU, IMU, haptic driver, LED, and reservoir capacitor all hanging off a shared 3.3 volt rail; RimClip shown as a separate coin-cell chain." style="width:100%;height:auto;display:block;" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16202B"/></marker></defs>
+<rect width="1000" height="500" fill="#FDFCFA"/>
+<text x="30" y="24" font-size="13" font-weight="700" fill="#16202B">Wristband</text>
+<rect x="30" y="36" width="150" height="50" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/><text x="105.0" y="55.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">USB-C in</text><text x="105.0" y="73.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">5V</text>
+<rect x="220" y="36" width="170" height="50" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/><text x="305.0" y="55.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">MCP73831</text><text x="305.0" y="73.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">charge IC, 100 mA</text>
+<rect x="430" y="36" width="150" height="50" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/><text x="505.0" y="55.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">LiPo 110 mAh</text><text x="505.0" y="73.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">3.7 V, 1C</text>
+<line x1="180" y1="61" x2="218" y2="61" stroke="#16202B" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="390" y1="61" x2="428" y2="61" stroke="#16202B" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="80" y1="86" x2="80" y2="150" stroke="#16202B" stroke-width="1.5"/>
+<line x1="80" y1="150" x2="950" y2="150" stroke="#16202B" stroke-width="2.5"/>
+<line x1="110" y1="150" x2="110" y2="180" stroke="#16202B" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="30" y="180" width="160" height="54" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/><text x="110.0" y="201.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">nRF52832</text><text x="110.0" y="219.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">BLE + logic, 4-8 mA active</text>
+<line x1="300" y1="150" x2="300" y2="180" stroke="#16202B" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="220" y="180" width="160" height="54" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/><text x="300.0" y="201.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">ICM-42670-P</text><text x="300.0" y="219.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">IMU, I2C, 0.9 mA @200Hz</text>
+<line x1="490" y1="150" x2="490" y2="180" stroke="#16202B" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="410" y="180" width="160" height="54" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/><text x="490.0" y="201.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">DRV2605L + ERM</text><text x="490.0" y="219.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">haptic, 90 mA / 80 ms pulse</text>
+<line x1="680" y1="150" x2="680" y2="180" stroke="#16202B" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="600" y="180" width="160" height="54" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/><text x="680.0" y="201.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">Status LED</text><text x="680.0" y="219.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">2 mA, 3 colors</text>
+<line x1="870" y1="150" x2="870" y2="180" stroke="#16202B" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="790" y="180" width="160" height="54" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/><text x="870.0" y="201.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">220 uF cap</text><text x="870.0" y="219.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">local reservoir, haptic rail</text>
+<rect x="96" y="138" width="90" height="20" fill="#FDFCFA"/><text x="100" y="152" text-anchor="start" font-family="ui-sans-serif,system-ui" font-size="12" font-weight="700" fill="#16202B">3.3 V rail</text>
+<text x="30" y="260" font-size="11" fill="#5A6B7A">All loads hang off the same rail. None are chained through another load.</text>
+<text x="30" y="290" font-size="13" font-weight="700" fill="#16202B">RimClip (separate device)</text>
+<rect x="30" y="302" width="150" height="50" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/><text x="105.0" y="321.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">CR2032</text><text x="105.0" y="339.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">3 V coin cell</text>
+<line x1="105" y1="352" x2="105" y2="382" stroke="#16202B" stroke-width="2.5"/>
+<line x1="105" y1="382" x2="510" y2="382" stroke="#16202B" stroke-width="2.5"/>
+<line x1="160" y1="382" x2="160" y2="402" stroke="#16202B" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="85" y="402" width="150" height="50" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/><text x="160.0" y="421.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">nRF52810</text><text x="160.0" y="439.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">BLE beacon, 60 uA avg</text>
+<line x1="380" y1="382" x2="380" y2="402" stroke="#16202B" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="305" y="402" width="150" height="50" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/><text x="380.0" y="421.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#16202B">Hall sensor</text><text x="380.0" y="439.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#5A6B7A">wake on magnet pass</text>
+<text x="30" y="475" font-size="11" fill="#5A6B7A">Expected life at 60 uA average: about 8 months on a 225 mAh coin cell.</text>
+</svg></figure>
+  </div>
+  <div class="wrap">
+
+    <details>
+      <summary>Detection algorithm</summary>
+      <div class="body">
+        <ul>
+          <li>IMU sampled at 200 Hz, 6-axis (accel + gyro), I2C to the MCU</li>
+          <li>250 ms sliding window, updated every 50 ms</li>
+          <li>Stage 1: gyro-magnitude threshold, 350°/s, cheap first filter</li>
+          <li>Stage 2: on-device decision tree (under 20 KB) scores the windowed feature set (peak angular velocity, jerk, window energy) to reject non-shot motion that also crosses the stage-1 threshold</li>
+          <li>Output: shot-event flag, confidence 0-100, timestamp to the millisecond</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>RimClip pairing state machine</summary>
+      <div class="body">
+        <ul>
+          <li>Idle → Hall sensor fires on magnet pass → net-trigger event queued with timestamp</li>
+          <li>Wristband broadcasts each shot-event timestamp over BLE on detection</li>
+          <li>Match: net-trigger within 400 ms after a shot-event → logged as make</li>
+          <li>No match within window → shot-event logged as miss (if RimClip is paired) or attempt-only (if not)</li>
+          <li>Net-trigger with no shot-event in the prior 400 ms → discarded as ambient (someone else's shot on a shared hoop)</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>Power budget</summary>
+      <div class="body">
+        <ul>
+          <li>nRF52832: 4-8 mA active with BLE connection, under 10 µA in deep sleep</li>
+          <li>IMU: 0.9 mA continuous at 200 Hz</li>
+          <li>Haptic: 90 mA for 80 ms, roughly 10 pulses per session</li>
+          <li>Status LED: 2 mA when lit</li>
+          <li>Average draw across a 2-hour active session: 3-5 mA</li>
+          <li>110 mAh LiPo, derated 20% for aging (about 88 mAh usable): roughly 20-25 hours of continuous active tracking, or 5-7 days of typical practice-and-standby use between charges</li>
+          <li>RimClip: 60 µA average on a 225 mAh CR2032, about 8 months</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>Data and memory</summary>
+      <div class="body">
+        <ul>
+          <li>4 MB SPI flash on the wristband for offline logging when the phone is out of range</li>
+          <li>Each shot event: timestamp, confidence score, RimClip match result, ~24 bytes</li>
+          <li>A full 200-shot session logs under 5 KB; BLE sync is a batch transfer, not a stream</li>
+          <li>Raw 200 Hz IMU trace exported only on request, for coaching review, not stored by default</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>Bring-up order</summary>
+      <div class="body">
+        <ul>
+          <li>1. Power rails and charge circuit alone, no MCU load</li>
+          <li>2. MCU boots, advertises over BLE, visible to a phone</li>
+          <li>3. IMU on I2C, raw samples streamed to a serial console</li>
+          <li>4. Haptic driver alone, pulse timing checked on a scope</li>
+          <li>5. RimClip standalone: Hall sensor and magnet trigger test</li>
+          <li>6. Full wristband assembly in its enclosure</li>
+          <li>7. Two-device BLE pairing and timestamp-sync test</li>
+          <li>8. End-to-end shooting test against the validation rig</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>Validation checklist</summary>
+      <div class="body">
+        <ul>
+          <li>Recall and false-positive rate against 240 fps video, 12 players, 560 attempts</li>
+          <li>Shot count against a coach's manual tally, ±1 per 50 shots</li>
+          <li>Make/miss agreement with RimClip fitted, 300 attempts, ≥95%</li>
+          <li>Wrist-to-net pairing latency, ≥98% inside the 400 ms window</li>
+          <li>Battery cycle test, 20 charge cycles, capacity checked against spec</li>
+          <li>1.2 m drop test onto a hardwood court surface, 3 axes</li>
+          <li>Splash resistance under a simulated sweat/rain rating of IPX7</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>What this device cannot do</summary>
+      <div class="body">
+        <ul>
+          <li>Cannot measure the ball's actual launch angle or spin rate; that needs a ball-embedded sensor or a camera, not a wrist IMU</li>
+          <li>Cannot detect makes or misses without a RimClip fitted to that hoop</li>
+          <li>Cannot separate two players sharing one hoop unless each wristband is individually paired to that hoop's RimClip; an unpaired band nearby can log a false match</li>
+          <li>Not rated for submersion, only splash and sweat (IPX7); not a pool or heavy-rain device</li>
+          <li>Does not analyze shooting form (elbow, knee, base) the way a camera-based tool does; ArcBand measures timing and count, not posture</li>
+        </ul>
+      </div>
+    </details>
+
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="sm" style="margin-bottom:8px;">A companion phone app (session history, drills, and the plain shot-count view most players will actually open) is a separate design pass, not covered on this hardware page.</p>
+    <p class="xs" style="margin-top:26px;">ArcBand · Hardware design brief · September 2026</p>
+  </div>
+</footer>
+
+</body>
+</html>

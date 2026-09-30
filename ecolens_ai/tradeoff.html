@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoLens AI - Trade-off Engine</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; scrollbar-width: none; font-family: 'Inter', sans-serif; }
+  body { background: #f8faf8; color: #1a2e1a; position: relative; }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center;
+    position: relative; z-index: 100; background: #f8faf8;
+  }
+  .status-time { font-size: 15px; font-weight: 700; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  }
+
+  .content { height: calc(100% - 59px); overflow-y: auto; scrollbar-width: none; padding-bottom: 100px; }
+  .content::-webkit-scrollbar { display: none; }
+
+  .nav { display: flex; align-items: center; padding: 4px 28px 0; gap: 14px; }
+  .nav-back { font-size: 18px; color: #2d8a4e; }
+  .nav-title { font-size: 17px; font-weight: 700; }
+
+  /* Score Radar */
+  .radar-card {
+    margin: 16px 28px; padding: 22px; border-radius: 24px;
+    background: linear-gradient(135deg, #1a3d2a, #2d5a3e);
+    position: relative; overflow: hidden;
+  }
+  .radar-card::after {
+    content: ''; position: absolute; bottom: -40px; right: -40px;
+    width: 160px; height: 160px; border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  .radar-label { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.5); margin-bottom: 14px; }
+
+  .score-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .score-item {
+    padding: 16px; border-radius: 16px; background: rgba(255,255,255,0.08);
+    position: relative;
+  }
+  .score-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
+  .score-label i { font-size: 12px; }
+  .score-value { font-size: 32px; font-weight: 900; color: #fff; line-height: 1; }
+  .score-bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.1); margin-top: 8px; }
+  .score-fill { height: 100%; border-radius: 2px; }
+  .score-fill.eco { background: #4ade80; width: 72%; }
+  .score-fill.safe { background: #60a5fa; width: 85%; }
+  .score-fill.dur { background: #fbbf24; width: 60%; }
+  .score-fill.roi { background: #f472b6; width: 78%; }
+
+  /* Comparison */
+  .compare-section { padding: 20px 28px 0; }
+  .compare-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+
+  .compare-card {
+    padding: 16px; border-radius: 20px; background: #fff;
+    border: 1px solid #e0ebe0; margin-bottom: 12px;
+  }
+  .compare-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .compare-thumb {
+    width: 50px; height: 50px; border-radius: 14px; overflow: hidden;
+  }
+  .compare-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .compare-name { font-size: 14px; font-weight: 700; }
+  .compare-type { font-size: 11px; color: #7a9a7a; }
+  .compare-badge {
+    margin-left: auto; padding: 5px 12px; border-radius: 10px;
+    font-size: 11px; font-weight: 700;
+  }
+  .compare-badge.current { background: #f0f0f0; color: #7a7a7a; }
+  .compare-badge.better { background: #e8f5e8; color: #2d8a4e; }
+
+  .compare-bars { display: flex; gap: 6px; }
+  .bar-item { flex: 1; }
+  .bar-label { font-size: 10px; font-weight: 600; color: #7a9a7a; margin-bottom: 4px; text-align: center; }
+  .bar-track { height: 28px; border-radius: 8px; background: #f5f5f5; position: relative; overflow: hidden; }
+  .bar-fill {
+    height: 100%; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: #fff;
+  }
+
+  /* Financial ROI Card */
+  .roi-card {
+    margin: 14px 28px; padding: 18px; border-radius: 20px; background: #fff;
+    border: 1px solid #e0ebe0;
+  }
+  .roi-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .roi-title { font-size: 14px; font-weight: 700; }
+  .roi-sub { font-size: 11px; color: #7a9a7a; }
+
+  .roi-comparison { display: flex; gap: 10px; }
+  .roi-item {
+    flex: 1; padding: 14px; border-radius: 14px; text-align: center;
+  }
+  .roi-item.plastic { background: #fef3e0; }
+  .roi-item.steel { background: #e8f5e8; }
+  .roi-emoji { font-size: 24px; margin-bottom: 6px; }
+  .roi-name { font-size: 11px; font-weight: 600; color: #5a7a5a; margin-bottom: 6px; }
+  .roi-price { font-size: 20px; font-weight: 900; }
+  .roi-item.plastic .roi-price { color: #c87b00; }
+  .roi-item.steel .roi-price { color: #2d8a4e; }
+  .roi-detail { font-size: 10px; color: #7a9a7a; margin-top: 4px; }
+  .roi-savings {
+    margin-top: 14px; padding: 12px; border-radius: 12px;
+    background: linear-gradient(135deg, #e8f5e8, #d0ecd0);
+    text-align: center; font-size: 13px; font-weight: 700; color: #2d8a4e;
+  }
+  .roi-savings span { font-size: 20px; }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(248,250,248,0.95); backdrop-filter: blur(30px);
+    border-top: 1px solid #e0ebe0;
+    display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px;
+    z-index: 200;
+  }
+  .tab-item { text-align: center; width: 60px; }
+  .tab-icon { font-size: 22px; color: #b0c0b0; margin-bottom: 4px; }
+  .tab-label { font-size: 10px; color: #b0c0b0; font-weight: 600; }
+  .tab-item.active .tab-icon { color: #2d8a4e; }
+  .tab-item.active .tab-label { color: #2d8a4e; }
+  .home-indicator {
+    width: 134px; height: 5px; background: #1a2e1a; border-radius: 3px;
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); opacity: 0.2;
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="nav">
+      <i class="fas fa-chevron-left nav-back"></i>
+      <div class="nav-title">Trade-off Engine</div>
+    </div>
+
+    <div class="radar-card">
+      <div class="radar-label">MULTI-DIMENSIONAL ASSESSMENT</div>
+      <div class="score-grid">
+        <div class="score-item">
+          <div class="score-label"><i class="fas fa-leaf"></i> Eco-Score</div>
+          <div class="score-value">72</div>
+          <div class="score-bar"><div class="score-fill eco"></div></div>
+        </div>
+        <div class="score-item">
+          <div class="score-label"><i class="fas fa-shield-halved"></i> Safety</div>
+          <div class="score-value">85</div>
+          <div class="score-bar"><div class="score-fill safe"></div></div>
+        </div>
+        <div class="score-item">
+          <div class="score-label"><i class="fas fa-clock"></i> Durability</div>
+          <div class="score-value">60</div>
+          <div class="score-bar"><div class="score-fill dur"></div></div>
+        </div>
+        <div class="score-item">
+          <div class="score-label"><i class="fas fa-chart-line"></i> Financial ROI</div>
+          <div class="score-value">78</div>
+          <div class="score-bar"><div class="score-fill roi"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="compare-section">
+      <div class="compare-title">Material Comparison</div>
+
+      <div class="compare-card">
+        <div class="compare-header">
+          <div class="compare-thumb">
+            <img src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=100&h=100&fit=crop" alt="">
+          </div>
+          <div>
+            <div class="compare-name">PET Plastic Bottle</div>
+            <div class="compare-type">Current · Single-use</div>
+          </div>
+          <div class="compare-badge current">Current</div>
+        </div>
+        <div class="compare-bars">
+          <div class="bar-item">
+            <div class="bar-label">Eco</div>
+            <div class="bar-track"><div class="bar-fill" style="width:45%;background:#fbbf24;">45</div></div>
+          </div>
+          <div class="bar-item">
+            <div class="bar-label">Safe</div>
+            <div class="bar-track"><div class="bar-fill" style="width:65%;background:#60a5fa;">65</div></div>
+          </div>
+          <div class="bar-item">
+            <div class="bar-label">Durable</div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%;background:#fbbf24;">20</div></div>
+          </div>
+          <div class="bar-item">
+            <div class="bar-label">ROI</div>
+            <div class="bar-track"><div class="bar-fill" style="width:30%;background:#f87171;">30</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="compare-card">
+        <div class="compare-header">
+          <div class="compare-thumb">
+            <img src="https://images.unsplash.com/photo-1570831739435-6601aa3fa4fb?w=100&h=100&fit=crop" alt="">
+          </div>
+          <div>
+            <div class="compare-name">Stainless Steel Bottle</div>
+            <div class="compare-type">Recommended · Reusable</div>
+          </div>
+          <div class="compare-badge better">+58%</div>
+        </div>
+        <div class="compare-bars">
+          <div class="bar-item">
+            <div class="bar-label">Eco</div>
+            <div class="bar-track"><div class="bar-fill" style="width:92%;background:#4ade80;">92</div></div>
+          </div>
+          <div class="bar-item">
+            <div class="bar-label">Safe</div>
+            <div class="bar-track"><div class="bar-fill" style="width:95%;background:#4ade80;">95</div></div>
+          </div>
+          <div class="bar-item">
+            <div class="bar-label">Durable</div>
+            <div class="bar-track"><div class="bar-fill" style="width:98%;background:#4ade80;">98</div></div>
+          </div>
+          <div class="bar-item">
+            <div class="bar-label">ROI</div>
+            <div class="bar-track"><div class="bar-fill" style="width:88%;background:#4ade80;">88</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="roi-card">
+      <div class="roi-header">
+        <div>
+          <div class="roi-title">Cost Per Use Analysis</div>
+          <div class="roi-sub">Based on 500 uses over 2 years</div>
+        </div>
+      </div>
+      <div class="roi-comparison">
+        <div class="roi-item plastic">
+          <div class="roi-emoji">🥤</div>
+          <div class="roi-name">Disposable PET</div>
+          <div class="roi-price">$0.85</div>
+          <div class="roi-detail">per use · $425 total</div>
+        </div>
+        <div class="roi-item steel">
+          <div class="roi-emoji">🫙</div>
+          <div class="roi-name">Stainless Steel</div>
+          <div class="roi-price">$0.07</div>
+          <div class="roi-detail">per use · $35 total</div>
+        </div>
+      </div>
+      <div class="roi-savings">
+        You save <span>$390</span> over 2 years
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-home"></i></div>
+      <div class="tab-label">Home</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-camera"></i></div>
+      <div class="tab-label">Scan</div>
+    </div>
+    <div class="tab-item active">
+      <div class="tab-icon"><i class="fas fa-scale-balanced"></i></div>
+      <div class="tab-label">Trade-off</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-arrows-rotate"></i></div>
+      <div class="tab-label">Swap</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-chart-line"></i></div>
+      <div class="tab-label">Impact</div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

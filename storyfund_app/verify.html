@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>StoryFund — Verify Proof</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#FAF6F1; color:#221B2E; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:120px; background:#FAF6F1; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; }
+  .status-bar .time { font-size:17px; font-weight:700; } .status-bar .icons { display:flex; gap:6px; } .status-bar .icons i { font-size:14px; }
+
+  .topnav { display:flex; align-items:center; justify-content:space-between; padding:6px 24px 4px; }
+  .nav-btn { width:40px; height:40px; border-radius:50%; background:#fff; border:1px solid rgba(34,27,46,0.07); display:flex; align-items:center; justify-content:center; } .nav-btn i { font-size:15px; }
+  .topnav b { font-size:16px; font-weight:850; }
+  .pad { padding:0 28px; }
+
+  .lead { padding:10px 28px 4px; }
+  .lead h1 { font-size:24px; font-weight:900; letter-spacing:-0.7px; line-height:1.18; }
+  .lead h1 span { color:#16A37A; }
+  .lead p { font-size:13px; color:#8C8798; line-height:1.55; margin-top:8px; }
+
+  /* trust stats */
+  .tstats { display:flex; gap:11px; padding:16px 28px 0; }
+  .tstat { flex:1; background:#fff; border:1px solid rgba(34,27,46,0.06); border-radius:16px; padding:14px; }
+  .tstat b { font-size:22px; font-weight:900; letter-spacing:-1px; display:block; } .tstat span { font-size:10px; color:#8C8798; font-weight:600; margin-top:3px; display:block; }
+
+  .lbl { font-size:12.5px; font-weight:800; color:#8C8798; letter-spacing:0.3px; text-transform:uppercase; margin:24px 28px 13px; }
+
+  /* verification card */
+  .ver { margin:0 28px 14px; background:#fff; border:1px solid rgba(34,27,46,0.06); border-radius:20px; padding:16px; box-shadow:0 10px 26px -18px rgba(34,27,46,0.3); }
+  .ver-head { display:flex; align-items:center; gap:11px; }
+  .ver-head img { width:38px; height:38px; border-radius:50%; object-fit:cover; }
+  .ver-head .who { flex:1; } .ver-head .who b { font-size:13px; font-weight:800; } .ver-head .who span { font-size:10.5px; color:#8C8798; display:block; margin-top:1px; }
+  .ver-kind { font-size:9.5px; font-weight:800; padding:5px 10px; border-radius:8px; background:rgba(22,163,122,0.12); color:#16A37A; }
+  .claim { font-size:12.5px; color:#4A4555; line-height:1.55; margin:13px 0; } .claim b { color:#221B2E; }
+
+  /* evidence preview */
+  .evi { border-radius:14px; overflow:hidden; border:1px solid rgba(34,27,46,0.08); background:#F5F1F7; position:relative; }
+  .evi img { width:100%; height:180px; object-fit:cover; display:block; }
+  .evi-tag { position:absolute; top:10px; left:10px; background:rgba(0,0,0,0.6); backdrop-filter:blur(6px); color:#fff; font-size:10px; font-weight:700; padding:5px 10px; border-radius:8px; display:flex; align-items:center; gap:6px; }
+  .evi-zoom { position:absolute; bottom:10px; right:10px; width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,0.92); display:flex; align-items:center; justify-content:center; } .evi-zoom i { font-size:13px; color:#221B2E; }
+
+  /* checklist */
+  .check { display:flex; align-items:center; gap:11px; padding:11px 0; } .check + .check { border-top:1px solid rgba(34,27,46,0.05); }
+  .check-box { width:24px; height:24px; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; border:2px solid #DCD6E2; }
+  .check.ok .check-box { background:#16A37A; border-color:#16A37A; } .check.ok .check-box i { color:#fff; font-size:11px; }
+  .check span { font-size:12.5px; font-weight:600; flex:1; } .check.ok span { color:#221B2E; }
+  .check .auto { font-size:9px; font-weight:800; color:#16A37A; background:rgba(22,163,122,0.1); padding:3px 8px; border-radius:7px; }
+
+  /* consensus */
+  .cons { display:flex; align-items:center; gap:11px; background:#FFFBEB; border:1px solid rgba(245,158,11,0.2); border-radius:13px; padding:12px; margin-top:13px; }
+  .cons-dots { display:flex; gap:6px; }
+  .cons-dots i { width:12px; height:12px; border-radius:50%; }
+  .cons-dots .filled { background:#16A37A; } .cons-dots .empty { background:#EAD9A8; }
+  .cons p { font-size:11px; color:#92670C; line-height:1.45; flex:1; } .cons p b { color:#7A5408; }
+
+  /* actions */
+  .ver-actions { display:flex; gap:10px; margin-top:15px; }
+  .act { height:48px; border-radius:13px; display:flex; align-items:center; justify-content:center; gap:7px; font-size:13px; font-weight:850; }
+  .act-flag { width:48px; background:#FFF1F1; color:#E2425A; flex-shrink:0; }
+  .act-unsure { flex:1; background:#F5F1F7; color:#8C8798; font-weight:800; }
+  .act-confirm { flex:2; background:linear-gradient(135deg,#16A37A,#34D399); color:#fff; box-shadow:0 8px 18px -8px rgba(22,163,122,0.6); }
+
+  .privacy { display:flex; gap:9px; background:linear-gradient(135deg,#F0FBF6,#E8F8F0); border:1px solid rgba(22,163,122,0.18); border-radius:14px; padding:13px; margin:0 28px; }
+  .privacy i { color:#16A37A; font-size:14px; margin-top:1px; } .privacy p { font-size:11px; color:#3E7A65; line-height:1.5; } .privacy p b { color:#0F6B50; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar"><span class="time">9:41</span><div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div></div>
+
+  <div class="topnav">
+    <div class="nav-btn"><i class="fas fa-arrow-left"></i></div>
+    <b>Verify proof</b>
+    <div class="nav-btn"><i class="fas fa-filter"></i></div>
+  </div>
+
+  <div class="lead">
+    <h1>Be a trust guardian.<br><span>Confirm the facts are real.</span></h1>
+    <p>Donors give freely when proof is checked by real people. Three independent verifiers confirm each one.</p>
+  </div>
+
+  <div class="tstats">
+    <div class="tstat"><b style="color:#16A37A">38</b><span>Proofs verified</span></div>
+    <div class="tstat"><b>99%</b><span>Accuracy</span></div>
+    <div class="tstat"><b style="color:#FF4D77">L3</b><span>Trust level</span></div>
+  </div>
+
+  <div class="lbl">Awaiting your check</div>
+
+  <div class="ver">
+    <div class="ver-head">
+      <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&q=80" alt="">
+      <div class="who"><b>Submitted by Sofia, 10th</b><span>Student writer · Lincoln High</span></div>
+      <span class="ver-kind">Document</span>
+    </div>
+
+    <div class="claim">Claim: <b>Rosa's ramp will cost $1,500</b> — backed by a contractor's written quote.</div>
+
+    <div class="evi">
+      <img src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600&q=80" alt="">
+      <span class="evi-tag"><i class="fas fa-file-invoice-dollar"></i> Contractor quote.pdf</span>
+      <div class="evi-zoom"><i class="fas fa-up-right-and-down-left-from-center"></i></div>
+    </div>
+
+    <div style="margin-top:14px">
+      <div class="check ok"><div class="check-box"><i class="fas fa-check"></i></div><span>Document is legible & complete</span></div>
+      <div class="check ok"><div class="check-box"><i class="fas fa-check"></i></div><span>Amount matches the $1,500 goal</span><span class="auto">Auto ✓</span></div>
+      <div class="check"><div class="check-box"></div><span>Business name looks legitimate</span></div>
+      <div class="check"><div class="check-box"></div><span>No private info (SSN, full address) exposed</span></div>
+    </div>
+
+    <div class="cons">
+      <div class="cons-dots"><i class="filled"></i><i class="filled"></i><i class="empty"></i></div>
+      <p><b>2 of 3</b> verifiers confirmed. Your check decides if this proof goes live.</p>
+    </div>
+
+    <div class="ver-actions">
+      <div class="act act-flag"><i class="fas fa-flag"></i></div>
+      <div class="act act-unsure">Can't tell</div>
+      <div class="act act-confirm"><i class="fas fa-shield-check"></i> Confirm proof</div>
+    </div>
+  </div>
+
+  <div class="privacy">
+    <i class="fas fa-user-shield"></i>
+    <p><b>Privacy first.</b> Sensitive fields are auto-blurred. Flag anything that exposes a beneficiary — never download or reshare proof.</p>
+  </div>
+
+</div>
+</body>
+</html>

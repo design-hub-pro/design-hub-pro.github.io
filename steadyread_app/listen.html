@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SteadyRead - Listen Mode</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif; background: #0a0e27; color: #fff; }
+
+  .screen {
+    width: 100%; height: 100%;
+    background: linear-gradient(170deg, #0a0e27 0%, #1a1040 40%, #0a0e27 100%);
+    display: flex; flex-direction: column; position: relative; overflow: hidden;
+  }
+
+  .status-bar {
+    height: 59px; display: flex; justify-content: space-between; align-items: flex-end;
+    padding: 0 28px 8px 28px; position: relative; z-index: 10; flex-shrink: 0;
+  }
+  .status-time { font-size: 17px; font-weight: 600; color: #fff; }
+  .status-icons { display: flex; gap: 6px; align-items: center; color: #fff; font-size: 14px; }
+  .dynamic-island { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 126px; height: 37px; background: #000; border-radius: 20px; }
+
+  .reader-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 28px 16px 28px; flex-shrink: 0;
+  }
+  .back-btn { display: flex; align-items: center; gap: 8px; color: #6c5ce7; font-size: 16px; font-weight: 600; }
+  .reader-actions { display: flex; gap: 18px; }
+  .reader-actions i { font-size: 20px; color: rgba(255,255,255,0.5); }
+
+  /* Listen mode content */
+  .listen-content {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 0 28px;
+    position: relative;
+  }
+
+  /* Animated audio visualizer */
+  .audio-visual {
+    width: 220px; height: 220px;
+    position: relative;
+    margin-bottom: 40px;
+  }
+
+  .ring-outer {
+    position: absolute;
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    border: 2px solid rgba(108, 92, 231, 0.15);
+    animation: rotate 20s linear infinite;
+  }
+  .ring-outer::before {
+    content: '';
+    position: absolute;
+    top: -4px; left: 50%;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #6c5ce7;
+    transform: translateX(-50%);
+  }
+  @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .ring-middle {
+    position: absolute;
+    top: 20px; left: 20px; right: 20px; bottom: 20px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 206, 201, 0.1);
+    animation: rotate 15s linear infinite reverse;
+  }
+  .ring-middle::before {
+    content: '';
+    position: absolute;
+    bottom: -3px; left: 50%;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #00cec9;
+    transform: translateX(-50%);
+  }
+
+  .play-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 40px rgba(108, 92, 231, 0.4);
+  }
+  .play-center i { font-size: 32px; color: #fff; margin-left: 4px; }
+
+  /* Waveform bars */
+  .waveform {
+    display: flex; gap: 3px; align-items: center;
+    height: 40px; margin-bottom: 30px;
+  }
+  .wave-bar {
+    width: 4px;
+    background: linear-gradient(180deg, #6c5ce7, #00cec9);
+    border-radius: 2px;
+    animation: wave 1.2s ease-in-out infinite;
+  }
+  .wave-bar:nth-child(1) { height: 12px; animation-delay: 0s; }
+  .wave-bar:nth-child(2) { height: 20px; animation-delay: 0.1s; }
+  .wave-bar:nth-child(3) { height: 32px; animation-delay: 0.15s; }
+  .wave-bar:nth-child(4) { height: 24px; animation-delay: 0.2s; }
+  .wave-bar:nth-child(5) { height: 38px; animation-delay: 0.25s; }
+  .wave-bar:nth-child(6) { height: 28px; animation-delay: 0.3s; }
+  .wave-bar:nth-child(7) { height: 16px; animation-delay: 0.35s; }
+  .wave-bar:nth-child(8) { height: 36px; animation-delay: 0.4s; }
+  .wave-bar:nth-child(9) { height: 22px; animation-delay: 0.45s; }
+  .wave-bar:nth-child(10) { height: 30px; animation-delay: 0.5s; }
+  .wave-bar:nth-child(11) { height: 18px; animation-delay: 0.55s; }
+  .wave-bar:nth-child(12) { height: 34px; animation-delay: 0.6s; }
+  .wave-bar:nth-child(13) { height: 26px; animation-delay: 0.65s; }
+  .wave-bar:nth-child(14) { height: 14px; animation-delay: 0.7s; }
+  .wave-bar:nth-child(15) { height: 20px; animation-delay: 0.75s; }
+  .wave-bar:nth-child(16) { height: 30px; animation-delay: 0.8s; }
+  .wave-bar:nth-child(17) { height: 24px; animation-delay: 0.85s; }
+  .wave-bar:nth-child(18) { height: 16px; animation-delay: 0.9s; }
+  .wave-bar:nth-child(19) { height: 28px; animation-delay: 0.95s; }
+  .wave-bar:nth-child(20) { height: 20px; animation-delay: 1s; }
+
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
+    50% { transform: scaleY(1); opacity: 1; }
+  }
+
+  .book-title-listen { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .chapter-listen { font-size: 14px; color: rgba(255,255,255,0.4); margin-bottom: 4px; }
+  .author-listen { font-size: 13px; color: rgba(255,255,255,0.3); margin-bottom: 28px; }
+
+  /* Timeline */
+  .timeline { width: 100%; max-width: 340px; margin-bottom: 28px; }
+  .time-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; position: relative; overflow: hidden; }
+  .time-fill { width: 42%; height: 100%; background: linear-gradient(90deg, #6c5ce7, #00cec9); border-radius: 2px; }
+  .time-labels { display: flex; justify-content: space-between; margin-top: 8px; }
+  .time-labels span { font-size: 12px; color: rgba(255,255,255,0.3); }
+
+  /* Controls */
+  .controls { display: flex; align-items: center; gap: 28px; margin-bottom: 32px; }
+  .ctrl { color: rgba(255,255,255,0.4); font-size: 22px; }
+  .ctrl-main {
+    width: 66px; height: 66px; border-radius: 50%;
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: #fff;
+    box-shadow: 0 4px 20px rgba(108, 92, 231, 0.4);
+  }
+
+  /* Speed and voice controls */
+  .extras { display: flex; gap: 14px; }
+  .extra-btn {
+    padding: 8px 18px; border-radius: 14px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; gap: 8px;
+    color: rgba(255,255,255,0.5); font-size: 13px; font-weight: 600;
+  }
+  .extra-btn i { font-size: 14px; color: #6c5ce7; }
+
+  /* Motion status badge */
+  .motion-listen-badge {
+    position: absolute;
+    top: 12px; right: 28px;
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 12px;
+    background: rgba(253, 121, 168, 0.1);
+    border: 1px solid rgba(253, 121, 168, 0.2);
+  }
+  .motion-dot { width: 6px; height: 6px; border-radius: 50%; background: #fd79a8; animation: blink 1.5s infinite; }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .motion-badge-text { font-size: 11px; color: #fd79a8; font-weight: 600; }
+
+  .home-indicator {
+    width: 140px; height: 5px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 3px;
+    margin: 0 auto 10px;
+  }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="status-bar">
+    <span class="status-time">9:45</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:15px"></i>
+      <i class="fas fa-wifi" style="font-size:15px"></i>
+      <i class="fas fa-battery-full" style="font-size:17px"></i>
+    </div>
+  </div>
+
+  <div class="reader-nav">
+    <div class="back-btn">
+      <i class="fas fa-chevron-left"></i>
+      <span>Reader</span>
+    </div>
+    <div class="reader-actions">
+      <i class="fas fa-sliders-h"></i>
+      <i class="fas fa-ellipsis-h"></i>
+    </div>
+  </div>
+
+  <div class="listen-content">
+    <div class="motion-listen-badge">
+      <div class="motion-dot"></div>
+      <span class="motion-badge-text">High Motion</span>
+    </div>
+
+    <!-- Audio visual -->
+    <div class="audio-visual">
+      <div class="ring-outer"></div>
+      <div class="ring-middle"></div>
+      <div class="play-center">
+        <i class="fas fa-pause"></i>
+      </div>
+    </div>
+
+    <!-- Waveform -->
+    <div class="waveform">
+      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+      <div class="wave-bar"></div><div class="wave-bar"></div>
+    </div>
+
+    <div class="book-title-listen">Atomic Habits</div>
+    <div class="chapter-listen">Chapter 5 - The Surprising Power</div>
+    <div class="author-listen">James Clear</div>
+
+    <!-- Timeline -->
+    <div class="timeline">
+      <div class="time-bar"><div class="time-fill"></div></div>
+      <div class="time-labels">
+        <span>12:34</span>
+        <span>-17:26</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <i class="fas fa-backward ctrl"></i>
+      <i class="fas fa-undo ctrl" style="font-size:20px"></i>
+      <div class="ctrl-main"><i class="fas fa-pause"></i></div>
+      <i class="fas fa-redo ctrl" style="font-size:20px"></i>
+      <i class="fas fa-forward ctrl"></i>
+    </div>
+
+    <!-- Extra controls -->
+    <div class="extras">
+      <div class="extra-btn"><i class="fas fa-tachometer-alt"></i> 1.25x</div>
+      <div class="extra-btn"><i class="fas fa-microphone"></i> Natural</div>
+      <div class="extra-btn"><i class="fas fa-moon"></i> Sleep</div>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+</body>
+</html>

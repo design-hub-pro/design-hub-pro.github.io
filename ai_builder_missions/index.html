@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Builder · Mission Bank — 任务库</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Archivo+Black&family=VT323&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+  *{font-family:'Inter','Noto Sans SC',sans-serif;-webkit-font-smoothing:antialiased}
+  *::-webkit-scrollbar{display:none}*{scrollbar-width:none}
+  body{background:#FFF8F0;color:#0F0F0F}
+  .display{font-family:'Archivo Black',sans-serif;letter-spacing:-0.025em}
+  .grotesk{font-family:'Space Grotesk',sans-serif}
+  .pixel{font-family:'VT323',monospace;letter-spacing:0.04em}
+  .ring-ink{box-shadow:0 0 0 2.5px #0F0F0F}
+  .pop-shadow{box-shadow:6px 6px 0 0 #0F0F0F}
+  .pop-shadow-sm{box-shadow:4px 4px 0 0 #0F0F0F}
+  .tag{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:5px 10px;border-radius:999px;background:#FFF8F0;color:#0F0F0F;border:1.5px solid #0F0F0F}
+  .tag-dark{background:#0F0F0F;color:#FFD93D;border-color:#0F0F0F}
+  .gold{color:#FFB627}.orange{color:#FF6B35}.navy{color:#1E40AF}
+  .paper{background-image:radial-gradient(circle at 1px 1px, rgba(15,15,15,0.04) 1px, transparent 0);background-size:24px 24px}
+
+  /* ========================================================
+     MISSION CARD · CINEMATIC / GAME-SCENE STYLE
+  ======================================================== */
+
+  /* Outer pixel-checker frame */
+  .mission-frame{
+    position:relative;
+    border-radius:40px;
+    padding:18px;
+    background:var(--frame-bg, #F3EAFE);
+  }
+  .mission-frame::before{
+    content:"";position:absolute;inset:8px;
+    border-radius:32px;
+    background:
+      linear-gradient(90deg, var(--accent) 50%, transparent 50%) top/14px 4px repeat-x,
+      linear-gradient(90deg, var(--accent) 50%, transparent 50%) bottom/14px 4px repeat-x,
+      linear-gradient(0deg, var(--accent) 50%, transparent 50%) left/4px 14px repeat-y,
+      linear-gradient(0deg, var(--accent) 50%, transparent 50%) right/4px 14px repeat-y;
+    pointer-events:none;
+  }
+
+  /* Inner card */
+  .mission-card{
+    position:relative;
+    background:#FFFFFF;
+    border-radius:28px;
+    box-shadow:0 0 0 2.5px #0F0F0F, 10px 10px 0 0 #0F0F0F;
+    overflow:hidden;
+  }
+
+  /* ===== Cinematic Hero Strip ===== */
+  .cinema-hero{
+    position:relative;
+    aspect-ratio:16/6.2;
+    overflow:hidden;
+    border-bottom:3px solid #0F0F0F;
+    background:#0F0F0F;
+  }
+  .cinema-hero .bg{
+    position:absolute;inset:0;
+    background-size:cover;background-position:center;
+    filter:saturate(1.05) contrast(1.05);
+    transform:scale(1.03);
+  }
+  .cinema-hero .vignette{
+    position:absolute;inset:0;z-index:1;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 38%, rgba(0,0,0,0.92) 100%),
+      linear-gradient(90deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 50%);
+  }
+  .cinema-hero .scanlines{
+    position:absolute;inset:0;z-index:2;pointer-events:none;
+    background-image:repeating-linear-gradient(0deg, rgba(0,0,0,0.18) 0 1px, transparent 1px 3px);
+    mix-blend-mode:multiply;opacity:.6;
+  }
+  .cinema-hero .grain{
+    position:absolute;inset:0;z-index:2;pointer-events:none;opacity:.18;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.8'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.5'/></svg>");
+  }
+  /* HUD corner brackets */
+  .cinema-hero .hud-tl, .cinema-hero .hud-tr, .cinema-hero .hud-bl, .cinema-hero .hud-br{
+    position:absolute;width:30px;height:30px;z-index:3;
+    border-color:var(--accent);
+  }
+  .cinema-hero .hud-tl{top:18px;left:18px;border-top:3px solid;border-left:3px solid}
+  .cinema-hero .hud-tr{top:18px;right:18px;border-top:3px solid;border-right:3px solid}
+  .cinema-hero .hud-bl{bottom:18px;left:18px;border-bottom:3px solid;border-left:3px solid}
+  .cinema-hero .hud-br{bottom:18px;right:18px;border-bottom:3px solid;border-right:3px solid}
+
+  /* Cinema scene slug top-left */
+  .scene-slug{
+    position:absolute;top:32px;left:36px;z-index:5;
+    display:inline-flex;align-items:center;gap:8px;
+    background:#FFD93D;color:#0F0F0F;
+    padding:5px 14px;border-radius:4px;
+    border:2px solid #0F0F0F;
+    font-family:'VT323',monospace;font-size:16px;
+    letter-spacing:.14em;text-transform:uppercase;
+    box-shadow:3px 3px 0 0 #0F0F0F;
+  }
+  .scene-slug i{ font-size:11px;color:#0F0F0F }
+
+  /* LIVE badge top-right */
+  .live-badge{
+    position:absolute;top:32px;right:36px;z-index:5;
+    display:inline-flex;align-items:center;gap:8px;
+    background:rgba(15,15,15,0.78);backdrop-filter:blur(6px);
+    border:1.5px solid var(--accent);border-radius:999px;
+    padding:5px 12px;
+    font-family:'VT323',monospace;font-size:14px;
+    color:#FFFFFF;letter-spacing:.16em;
+  }
+  .live-badge .dot{ width:7px;height:7px;border-radius:50%;background:#EF4444;animation:blink 1.4s infinite }
+  @keyframes blink{ 0%,100%{opacity:1;box-shadow:0 0 8px #EF4444} 50%{opacity:.35;box-shadow:0 0 0 #EF4444} }
+
+  /* Title overlay bottom */
+  .cinema-title{
+    position:absolute;left:36px;right:36px;bottom:30px;z-index:5;
+    color:#FFFFFF;
+  }
+  .cinema-title .mission-id{
+    font-family:'VT323',monospace;
+    font-size:18px;
+    letter-spacing:.18em;
+    color:var(--accent);
+    margin-bottom:6px;
+    display:inline-flex;align-items:center;gap:10px;
+  }
+  .cinema-title .mission-id::before{ content:"// "; opacity:.7 }
+  .cinema-title h2{
+    font-family:'Archivo Black',sans-serif;
+    font-size:62px;line-height:0.92;letter-spacing:-0.02em;
+    color:#FFFFFF;
+    text-shadow:0 4px 24px rgba(0,0,0,0.6);
+    margin-bottom:8px;
+  }
+  .cinema-title .logline{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:17px;font-weight:500;
+    color:rgba(255,255,255,0.88);
+    max-width:640px;
+    font-style:italic;
+    padding-left:14px;
+    border-left:3px solid var(--accent);
+  }
+
+  /* ===== Body ===== */
+  .mission-body{ padding:36px 40px 40px }
+
+  /* Character Dossier */
+  .dossier{
+    background:#0F0F0F;
+    border-radius:20px;
+    padding:22px 22px 24px;
+    color:#FFFFFF;
+    position:relative;
+    border:2.5px solid #0F0F0F;
+    box-shadow:6px 6px 0 0 var(--accent);
+  }
+  .dossier .file-tag{
+    position:absolute;top:-12px;left:18px;
+    background:var(--accent);color:#0F0F0F;
+    padding:3px 12px;border-radius:6px;
+    font-family:'VT323',monospace;font-size:14px;
+    letter-spacing:.18em;
+    border:2px solid #0F0F0F;
+  }
+  .dossier .portrait-wrap{
+    width:100%;aspect-ratio:1/1;
+    background:linear-gradient(135deg, var(--accent) 0%, rgba(0,0,0,0.4) 100%);
+    border-radius:14px;
+    border:2px solid var(--accent);
+    display:flex;align-items:center;justify-content:center;
+    margin-top:8px;margin-bottom:14px;
+    position:relative;overflow:hidden;
+  }
+  .dossier .portrait-wrap::before{
+    content:"";position:absolute;inset:0;
+    background-image:repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 3px);
+  }
+  .dossier .portrait-wrap svg{ width:62%;height:62%;position:relative;z-index:2 }
+  .dossier .name{
+    font-family:'Archivo Black',sans-serif;
+    font-size:22px;line-height:1;letter-spacing:-0.01em;
+  }
+  .dossier .handle{
+    font-family:'VT323',monospace;font-size:16px;
+    color:var(--accent);letter-spacing:.08em;
+    margin-top:2px;
+  }
+  .dossier .stat-row{
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:'VT323',monospace;font-size:15px;
+    color:rgba(255,255,255,0.85);
+    letter-spacing:.05em;
+    padding:7px 0;
+    border-bottom:1px dashed rgba(255,255,255,0.12);
+  }
+  .dossier .stat-row .k{ color:rgba(255,255,255,0.5);text-transform:uppercase;font-size:12px;letter-spacing:.14em }
+  .dossier .stat-row .v{ color:#FFFFFF }
+  .dossier .stat-row .v.acc{ color:var(--accent) }
+  .dossier .section-label{
+    font-family:'VT323',monospace;font-size:12px;
+    letter-spacing:.18em;text-transform:uppercase;
+    color:var(--accent);margin-top:14px;margin-bottom:8px;
+  }
+  .dossier .loadout li{
+    font-family:'VT323',monospace;font-size:14.5px;
+    color:rgba(255,255,255,0.85);
+    padding:4px 0 4px 16px;position:relative;
+    letter-spacing:.04em;
+  }
+  .dossier .loadout li::before{
+    content:"▸";position:absolute;left:0;top:4px;
+    color:var(--accent);font-size:12px;
+  }
+  .dossier .skill-pills{ display:flex;flex-wrap:wrap;gap:6px;margin-top:4px }
+  .dossier .skill-pills span{
+    font-family:'VT323',monospace;font-size:13px;letter-spacing:.08em;
+    padding:3px 9px;border-radius:999px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.18);
+    color:#FFFFFF;
+  }
+  .dossier .quote{
+    margin-top:16px;
+    padding:14px 16px;
+    background:rgba(255,255,255,0.05);
+    border-left:3px solid var(--accent);
+    border-radius:6px;
+    font-family:'Space Grotesk',sans-serif;
+    font-size:14px;font-style:italic;
+    color:rgba(255,255,255,0.95);
+    line-height:1.5;
+  }
+
+  /* Transmission (story) */
+  .transmission{
+    background:#FFF8F0;
+    border:2.5px solid #0F0F0F;
+    border-radius:20px;
+    padding:24px 26px;
+    position:relative;
+    box-shadow:6px 6px 0 0 #0F0F0F;
+  }
+  .transmission-head{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:14px;
+    padding-bottom:12px;
+    border-bottom:2px dashed rgba(0,0,0,0.18);
+  }
+  .transmission-head .lbl{
+    font-family:'VT323',monospace;font-size:15px;
+    letter-spacing:.18em;text-transform:uppercase;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .transmission-head .lbl .pulse{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--accent);
+    box-shadow:0 0 0 4px rgba(255,107,53,0.18);
+    animation:blink 1.6s infinite;
+  }
+  .transmission-head .id{
+    font-family:'VT323',monospace;font-size:14px;
+    color:#6B7280;letter-spacing:.14em;
+  }
+  .transmission p{
+    color:#1F2937;line-height:1.78;font-size:16px;
+    margin-bottom:14px;
+    font-family:'Inter',sans-serif;
+  }
+  .transmission p:first-of-type::before{
+    content:"❝ ";
+    font-family:'Archivo Black',sans-serif;
+    font-size:32px;color:var(--accent);
+    line-height:0;vertical-align:-12px;margin-right:4px;
+  }
+  .transmission p b{ background:linear-gradient(180deg, transparent 60%, var(--accent) 60%); padding:0 3px }
+
+  /* Quest log */
+  .quest-log{
+    margin-top:18px;
+    background:#0F0F0F;
+    border-radius:20px;
+    padding:22px 26px 24px;
+    color:#FFFFFF;
+    box-shadow:6px 6px 0 0 var(--accent);
+  }
+  .quest-log-head{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:14px;padding-bottom:10px;
+    border-bottom:1px dashed rgba(255,255,255,0.15);
+  }
+  .quest-log-head .lbl{
+    font-family:'Archivo Black',sans-serif;
+    font-size:15px;letter-spacing:.04em;
+    display:inline-flex;align-items:center;gap:8px;
+    color:var(--accent);
+  }
+  .quest-log-head .count{
+    font-family:'VT323',monospace;font-size:14px;
+    color:rgba(255,255,255,0.5);letter-spacing:.14em;
+  }
+  .quest-log ul{ display:flex;flex-direction:column;gap:0 }
+  .quest-log li{
+    display:flex;align-items:flex-start;gap:14px;
+    padding:10px 0;
+    border-bottom:1px dashed rgba(255,255,255,0.08);
+    font-size:14.5px;line-height:1.5;
+    color:rgba(255,255,255,0.94);
+  }
+  .quest-log li:last-child{ border-bottom:0 }
+  .quest-log li .chk{
+    width:20px;height:20px;border-radius:5px;
+    border:2px solid var(--accent);
+    flex-shrink:0;margin-top:1px;
+    background:rgba(255,255,255,0.04);
+    position:relative;
+  }
+  .quest-log li .num{
+    font-family:'VT323',monospace;
+    color:var(--accent);font-size:13px;
+    flex-shrink:0;margin-top:3px;letter-spacing:.1em;
+  }
+
+  /* Bottom 4-stat grid (Runtime / Difficulty / Genre / Reward) */
+  .stat-grid{
+    display:grid;grid-template-columns:repeat(4, 1fr);gap:14px;
+    margin-top:24px;
+  }
+  .stat-card{
+    background:#FFF8F0;
+    border:2.5px solid #0F0F0F;
+    border-radius:16px;
+    padding:14px 16px;
+    box-shadow:4px 4px 0 0 #0F0F0F;
+    position:relative;
+  }
+  .stat-card .ico{
+    font-size:20px;line-height:1;
+  }
+  .stat-card .k{
+    font-family:'VT323',monospace;font-size:12.5px;
+    letter-spacing:.18em;text-transform:uppercase;
+    color:#6B7280;margin-top:8px;
+  }
+  .stat-card .v{
+    font-family:'Archivo Black',sans-serif;
+    font-size:18px;line-height:1.05;
+    color:#0F0F0F;margin-top:4px;
+  }
+  .stat-card .sub{
+    font-size:11px;color:#6B7280;margin-top:3px;
+    font-family:'Space Grotesk',sans-serif;
+  }
+
+  /* Accept footer */
+  .accept-footer{
+    margin-top:26px;
+    display:flex;align-items:center;justify-content:space-between;
+    padding-top:22px;border-top:3px dashed rgba(0,0,0,0.16);
+  }
+  .accept-meta{
+    font-family:'VT323',monospace;font-size:15px;
+    color:#6B7280;letter-spacing:.1em;
+    display:flex;flex-direction:column;gap:4px;
+  }
+  .accept-meta b{ color:#0F0F0F }
+  .accept-meta .status{
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .accept-meta .status .d{
+    width:8px;height:8px;border-radius:50%;
+    background:#22C55E;animation:blink 1.4s infinite;
+  }
+  .console-btn{
+    display:inline-flex;align-items:center;gap:14px;
+    background:#0F0F0F;color:#FFFFFF;
+    padding:16px 26px;border-radius:14px;
+    font-family:'Archivo Black',sans-serif;
+    font-size:14px;letter-spacing:.04em;
+    border:2.5px solid var(--accent);
+    box-shadow:6px 6px 0 0 var(--accent);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .console-btn:hover{ transform:translate(3px,3px);box-shadow:3px 3px 0 0 var(--accent) }
+  .console-btn .pre{ font-family:'VT323',monospace;font-size:14px;color:var(--accent);letter-spacing:.18em }
+  .console-btn .key{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:32px;height:32px;border-radius:6px;
+    background:var(--accent);color:#0F0F0F;
+    font-family:'VT323',monospace;font-size:18px;
+    border:2px solid #0F0F0F;
+  }
+  .console-btn .ar{ font-size:18px }
+
+  /* Side ribbon */
+  .mission-ribbon{
+    position:absolute;top:0;left:32px;z-index:30;
+    background:#0F0F0F;color:#FFD93D;
+    font-family:'VT323',monospace;font-size:15px;
+    padding:6px 14px 8px;border-radius:0 0 10px 10px;
+    border:2px solid var(--accent);border-top:0;
+    letter-spacing:.18em;
+    box-shadow:0 4px 0 0 var(--accent);
+  }
+  .mission-ribbon::after{
+    content:"";position:absolute;left:-4px;top:0;bottom:0;width:4px;
+    background:repeating-linear-gradient(180deg, var(--accent) 0 4px, transparent 4px 8px);
+  }
+  /* Make stat card kind-specific */
+  .stat-card.dark{ background:#0F0F0F;color:#FFFFFF }
+  .stat-card.dark .k{ color:rgba(255,255,255,0.55) }
+  .stat-card.dark .v{ color:#FFFFFF }
+  .stat-card.dark .sub{ color:rgba(255,255,255,0.55) }
+  .stat-card.accent{ background:var(--accent);color:#0F0F0F }
+  .stat-card.accent .k{ color:rgba(15,15,15,0.65) }
+  .stat-card.accent .v{ color:#0F0F0F }
+  .stat-card.accent .sub{ color:rgba(15,15,15,0.7) }
+
+  .hr-thick{height:3px;background:#0F0F0F;border:0}
+</style>
+</head>
+<body>
+
+<!-- ============= HERO ============= -->
+<header class="relative overflow-hidden paper" style="background:#FFF8F0">
+  <div class="absolute top-10 right-10 w-72 h-72 rounded-full" style="background:#FFB627;filter:blur(80px);opacity:0.4"></div>
+  <div class="absolute bottom-10 left-10 w-72 h-72 rounded-full" style="background:#FF6B35;filter:blur(90px);opacity:0.3"></div>
+
+  <div class="relative max-w-6xl mx-auto px-10 pt-20 pb-14">
+    <div class="flex items-center gap-3 mb-8">
+      <span class="tag tag-dark">AI PRODUCT CREATION PATHWAY · STAGE 1</span>
+      <span class="tag">8 个任务 · 8 部客户简报电影</span>
+    </div>
+
+    <div class="display text-black mb-4" style="font-size:88px;line-height:0.92">
+      AI BUILDER<br>
+      <span class="orange">MISSION BANK.</span>
+    </div>
+
+    <div class="grid grid-cols-12 gap-10 mt-10 items-end">
+      <div class="col-span-7">
+        <div class="grotesk text-2xl font-semibold leading-snug mb-4">每一个任务都是一段<u class="decoration-[#FF6B35] decoration-4 underline-offset-4">电影级的客户简报</u>，<br>请孩子像主角一样接下任务，用 AI 把它真正做出来。</div>
+        <p class="text-gray-700 text-base leading-relaxed max-w-xl">
+          AI Builder 是 AI Product Creation Pathway 的第一阶段。这里的每一个任务都不是"做一个网页"——
+          而是由一位虚拟客户人物（玩家、搭建狂、未来创业者、青少年顾问…）从场景里走出来，
+          亲口向你下达简报。孩子用 Vibe Coding 和 AI 工作流，把简报变成一个家长能引以为傲的真实数字作品。
+        </p>
+      </div>
+      <div class="col-span-5">
+        <div class="grid grid-cols-3 gap-3">
+          <div class="bg-white ring-ink rounded-2xl p-4">
+            <div class="display orange" style="font-size:42px;line-height:1">8</div>
+            <div class="text-[11px] uppercase tracking-wider text-gray-600 mt-1">Mission Briefs</div>
+          </div>
+          <div class="bg-white ring-ink rounded-2xl p-4">
+            <div class="display navy" style="font-size:42px;line-height:1">8</div>
+            <div class="text-[11px] uppercase tracking-wider text-gray-600 mt-1">Client NPCs</div>
+          </div>
+          <div class="bg-black rounded-2xl p-4">
+            <div class="display" style="font-size:42px;line-height:1;color:#FFD93D">MBA</div>
+            <div class="text-[11px] uppercase tracking-wider text-white/70 mt-1">Case Style</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============= COURSE POSITIONING ============= -->
+<section class="py-16 bg-white border-t-2 border-black">
+  <div class="max-w-6xl mx-auto px-10">
+    <div class="flex items-center gap-3 mb-8">
+      <span class="display text-sm orange">01 ·</span>
+      <span class="grotesk font-semibold text-sm uppercase tracking-widest">COURSE POSITIONING · 课程定位</span>
+    </div>
+    <div class="grid grid-cols-4 gap-5">
+      <div class="rounded-2xl p-6 ring-ink" style="background:#FFE4D6">
+        <div class="text-3xl mb-3">🎯</div>
+        <div class="display text-lg mb-2 leading-tight">INTEREST-DRIVEN</div>
+        <p class="text-xs text-gray-800 leading-relaxed">真正贴近孩子关心的：游戏、YouTube、乐高、运动、太空、餐饮与创业。</p>
+      </div>
+      <div class="rounded-2xl p-6 ring-ink" style="background:#FFF4D6">
+        <div class="text-3xl mb-3">📊</div>
+        <div class="display text-lg mb-2 leading-tight">MBA-CASE FRAMING</div>
+        <p class="text-xs text-gray-800 leading-relaxed">每个任务都是品牌升级、数字化转型、创新与商业表达的小型案例。</p>
+      </div>
+      <div class="rounded-2xl p-6 ring-ink" style="background:#E4F1FF">
+        <div class="text-3xl mb-3">🤖</div>
+        <div class="display text-lg mb-2 leading-tight">AI WORKFLOW</div>
+        <p class="text-xs text-gray-800 leading-relaxed">用 AI 完成调研、策划、设计、写作和视觉呈现，掌握真实的 Vibe Coding 流程。</p>
+      </div>
+      <div class="rounded-2xl p-6 ring-ink" style="background:#0F0F0F">
+        <div class="text-3xl mb-3">✨</div>
+        <div class="display text-lg mb-2 leading-tight gold">PORTFOLIO-READY</div>
+        <p class="text-xs text-white/85 leading-relaxed">最终交付的是一个让家长一眼能看到专业度的网站作品。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============= MISSIONS HEADER ============= -->
+<section class="pt-20 pb-10" style="background:#FFF8F0">
+  <div class="max-w-6xl mx-auto px-10 text-center">
+    <div class="flex items-center justify-center gap-3 mb-6">
+      <span class="display text-sm orange">02 ·</span>
+      <span class="grotesk font-semibold text-sm uppercase tracking-widest">THE MISSION BRIEFS · 任务简报</span>
+    </div>
+    <div class="display text-black" style="font-size:64px;line-height:0.95">EIGHT CLIENTS.<br><span class="navy">EIGHT BRIEFS.</span></div>
+    <p class="text-gray-600 mt-5 max-w-2xl mx-auto">每张简报像一幕电影场景：场景注解、角色档案、传输内容、任务清单、奖励。<br class="hidden md:block">读完，按 <span class="grotesk font-bold">▶ ACCEPT MISSION</span>，进入你的下一段创作旅程。</p>
+    <div class="flex items-center justify-center gap-4 mt-7 grotesk text-xs uppercase tracking-widest text-gray-500">
+      <span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-[#FF6B35]"></span>Brief</span>
+      <span>›</span>
+      <span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-[#FFB627]"></span>Research</span>
+      <span>›</span>
+      <span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-[#1E40AF]"></span>Build with AI</span>
+      <span>›</span>
+      <span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-[#0F0F0F]"></span>Ship</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============= MISSION BRIEFING CARDS ============= -->
+<section class="pb-20" style="background:#FFF8F0">
+  <div class="max-w-6xl mx-auto px-8 space-y-14">
+
+
+    <!-- ================================================================
+         MISSION 01 · GAMESTOP REBOOT
+    ================================================================ -->
+    <article class="mission-frame" style="--accent:#FF6B35;--frame-bg:#FFE4D6">
+      <div class="mission-card">
+        <div class="mission-ribbon" style="--accent:#FF6B35">MISSION_01</div>
+
+        <!-- Cinema hero -->
+        <div class="cinema-hero" style="--accent:#FF6B35">
+          <div class="bg" style="background-image:url('https://cm-idea-images.s3.us-west-1.amazonaws.com/1778878929165-image-1.png')"></div>
+          <div class="vignette"></div>
+          <div class="scanlines"></div>
+          <div class="grain"></div>
+          <div class="hud-tl"></div><div class="hud-tr"></div><div class="hud-bl"></div><div class="hud-br"></div>
+
+          <div class="scene-slug"><i class="fa-solid fa-film"></i> INT. GAMESTOP MALL STORE — NIGHT</div>
+          <div class="live-badge" style="--accent:#FF6B35"><span class="dot"></span>LIVE BRIEFING</div>
+
+          <div class="cinema-title">
+            <div class="mission-id">MISSION_01 / RETAIL DIGITAL OPS / GENRE: RETAIL HEIST</div>
+            <h2>GAMESTOP REBOOT</h2>
+            <div class="logline">"零售货架像 2008 年定格了。我要你帮我把它重新启动——这次，是 Z 世代的数字社区。"</div>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div class="mission-body">
+          <div class="grid grid-cols-12 gap-6">
+            <!-- LEFT · Dossier -->
+            <div class="col-span-4">
+              <div class="dossier" style="--accent:#FF6B35">
+                <div class="file-tag">CLIENT FILE · 01</div>
+                <div class="portrait-wrap" style="--accent:#FF6B35">
+                  <svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <g fill="#0F0F0F">
+                      <rect x="5" y="2" width="6" height="1"/>
+                      <rect x="4" y="3" width="8" height="1"/>
+                      <rect x="3" y="4" width="10" height="6"/>
+                      <rect x="5" y="6" width="2" height="2" fill="#FFD93D"/>
+                      <rect x="9" y="6" width="2" height="2" fill="#FFD93D"/>
+                      <rect x="6" y="9" width="4" height="1" fill="#FF6B35"/>
+                      <rect x="2" y="10" width="12" height="1"/>
+                      <rect x="3" y="11" width="10" height="3"/>
+                      <rect x="3" y="14" width="3" height="2"/>
+                      <rect x="10" y="14" width="3" height="2"/>
+                    </g>
+                  </svg>
+                </div>
+                <div class="name">阿凯 · ACE</div>
+                <div class="handle">@ace_riot</div>
+                <div style="margin-top:14px">
+                  <div class="stat-row"><span class="k">Class</span><span class="v acc">STREAMER · LV.17</span></div>
+                  <div class="stat-row"><span class="k">Region</span><span class="v">Brooklyn, NY</span></div>
+                  <div class="stat-row"><span class="k">Squad</span><span class="v">Discord · 12.4k</span></div>
+                </div>
+                <div class="section-label">Loadout</div>
+                <ul class="loadout">
+                  <li>PS5 Pro · DualSense Edge</li>
+                  <li>Ring Light · OBS Studio</li>
+                  <li>5 件 GameStop 经典周边</li>
+                </ul>
+                <div class="section-label">Skills</div>
+                <div class="skill-pills">
+                  <span>直播</span><span>玩家社区</span><span>二手交易</span><span>Drop 文化</span>
+                </div>
+                <div class="quote">"GG, retail. 该让 GameStop respawn 了。"</div>
+              </div>
+            </div>
+
+            <!-- RIGHT · Transmission + Quest log -->
+            <div class="col-span-8">
+              <div class="transmission" style="--accent:#FF6B35">
+                <div class="transmission-head">
+                  <div class="lbl" style="color:#FF6B35"><span class="pulse" style="--accent:#FF6B35"></span>TRANSMISSION INCOMING</div>
+                  <div class="id">SIGNAL · 01 / FREQ 88.6 MHz</div>
+                </div>
+                <p>"我在 GameStop 买过我的第一台 PS5。但说实话，店里的货架像 2008 年定格了——海报褪色、玩家不交流、网站像个简陋的目录。我和朋友早就只逛 Discord 了。"</p>
+                <p>我要你帮我把 GameStop 重新设计成一个年轻玩家会想"走进去"的 <b>数字社区</b>——能直播、办 esports、交易二手游戏、加入会员俱乐部。</p>
+                <p>最好让网站有一种"游戏化"的感觉——XP 进度条、玩家档案、本周热门游戏排行榜、Drop 限定货。让家长看到这不是一家旧零售店，而是一个文化中心。</p>
+              </div>
+
+              <div class="quest-log" style="--accent:#FF6B35">
+                <div class="quest-log-head">
+                  <div class="lbl">▶ MAIN OBJECTIVES</div>
+                  <div class="count">04 / 04 · MAIN QUESTS</div>
+                </div>
+                <ul>
+                  <li><div class="chk"></div><span class="num">Q.01</span><span>重新设计零售 → 数字社区入口，建立 GameStop 的"主城"</span></li>
+                  <li><div class="chk"></div><span class="num">Q.02</span><span>接入 XP / 玩家档案 / 会员俱乐部系统</span></li>
+                  <li><div class="chk"></div><span class="num">Q.03</span><span>设计本周 Top 10 与限定 Drop 板块（带倒计时）</span></li>
+                  <li><div class="chk"></div><span class="num">Q.04</span><span>整合 esports 直播 & 二手游戏交易入口</span></li>
+                </ul>
+              </div>
+
+              <!-- Stats -->
+              <div class="stat-grid">
+                <div class="stat-card">
+                  <div class="ico">⏱</div>
+                  <div class="k">Runtime</div>
+                  <div class="v">6 WEEKS</div>
+                  <div class="sub">12 课时 · 自学</div>
+                </div>
+                <div class="stat-card">
+                  <div class="ico">⚡</div>
+                  <div class="k">Difficulty</div>
+                  <div class="v">⭐⭐⭐</div>
+                  <div class="sub">Intermediate</div>
+                </div>
+                <div class="stat-card dark">
+                  <div class="ico" style="color:#FF6B35">🎬</div>
+                  <div class="k">Genre</div>
+                  <div class="v">RETAIL HEIST</div>
+                  <div class="sub">数字化转型</div>
+                </div>
+                <div class="stat-card accent" style="--accent:#FF6B35;background:#FF6B35">
+                  <div class="ico">🏆</div>
+                  <div class="k">Reward</div>
+                  <div class="v">PORTFOLIO + CERT</div>
+                  <div class="sub">零售数字化转型证书</div>
+                </div>
+              </div>
+
+              <!-- Accept footer -->
+              <div class="accept-footer">
+                <div class="accept-meta">
+                  <div><b>MISSION ID</b> · GS-2026-01</div>
+                  <div class="status"><span class="d"></span> STATUS: AVAILABLE · SLOTS OPEN</div>
+                </div>
+                <button class="console-btn" style="--accent:#FF6B35">
+                  <span class="pre">▶ ACCEPT</span>
+                  <span>MISSION</span>
+                  <span class="key">A</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+
+    <!-- ================================================================
+         MISSION 02 · LEGO CREATOR LAB
+    ================================================================ -->
+    <article class="mission-frame" style="--accent:#FFB627;--frame-bg:#FFF4D6">
+      <div class="mission-card">
+        <div class="mission-ribbon" style="--accent:#FFB627">MISSION_02</div>
+
+        <div class="cinema-hero" style="--accent:#FFB627">
+          <div class="bg" style="background-image:url('https://cm-idea-images.s3.us-west-1.amazonaws.com/1778878937454-image-1.png')"></div>
+          <div class="vignette"></div>
+          <div class="scanlines"></div>
+          <div class="grain"></div>
+          <div class="hud-tl"></div><div class="hud-tr"></div><div class="hud-bl"></div><div class="hud-br"></div>
+          <div class="scene-slug"><i class="fa-solid fa-film"></i> INT. KAI 的卧室 · 砖头要塞 — DAY</div>
+          <div class="live-badge" style="--accent:#FFB627"><span class="dot"></span>LIVE BRIEFING</div>
+          <div class="cinema-title">
+            <div class="mission-id">MISSION_02 / COMMUNITY × STEM / GENRE: BUILDER ADVENTURE</div>
+            <h2>LEGO CREATOR LAB</h2>
+            <div class="logline">"我有 4 万块乐高，没人能听我讲我的世界。我要一个属于青少年搭建者的实验室。"</div>
+          </div>
+        </div>
+
+        <div class="mission-body">
+          <div class="grid grid-cols-12 gap-6">
+            <div class="col-span-4">
+              <div class="dossier" style="--accent:#FFB627">
+                <div class="file-tag">CLIENT FILE · 02</div>
+                <div class="portrait-wrap" style="--accent:#FFB627">
+                  <svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <g fill="#0F0F0F">
+                      <rect x="4" y="1" width="8" height="3"/>
+                      <rect x="3" y="4" width="10" height="5"/>
+                      <rect x="5" y="6" width="1" height="1" fill="#FFF8F0"/>
+                      <rect x="10" y="6" width="1" height="1" fill="#FFF8F0"/>
+                      <rect x="6" y="8" width="4" height="1" fill="#FFB627"/>
+                      <rect x="2" y="9" width="12" height="1"/>
+                      <rect x="3" y="10" width="10" height="4"/>
+                      <rect x="3" y="14" width="3" height="2"/>
+                      <rect x="10" y="14" width="3" height="2"/>
+                    </g>
+                  </svg>
+                </div>
+                <div class="name">KAI · BRICKMASTER</div>
+                <div class="handle">@kai_brickmaster</div>
+                <div style="margin-top:14px">
+                  <div class="stat-row"><span class="k">Class</span><span class="v acc">BUILDER · LV.13</span></div>
+                  <div class="stat-row"><span class="k">Region</span><span class="v">Copenhagen</span></div>
+                  <div class="stat-row"><span class="k">Bricks</span><span class="v">40,184 块</span></div>
+                </div>
+                <div class="section-label">Loadout</div>
+                <ul class="loadout">
+                  <li>40k+ 块 LEGO 库存</li>
+                  <li>镊子 · 砖头分拣盒</li>
+                  <li>草图本 · Stud.io 软件</li>
+                </ul>
+                <div class="section-label">Skills</div>
+                <div class="skill-pills">
+                  <span>结构</span><span>对称</span><span>传动</span><span>叙事搭建</span>
+                </div>
+                <div class="quote">"One stud at a time. 我搭的是世界，不是玩具。"</div>
+              </div>
+            </div>
+
+            <div class="col-span-8">
+              <div class="transmission" style="--accent:#FFB627">
+                <div class="transmission-head">
+                  <div class="lbl" style="color:#B45309"><span class="pulse" style="--accent:#FFB627"></span>TRANSMISSION INCOMING</div>
+                  <div class="id">SIGNAL · 02 / FREQ 102.4 MHz</div>
+                </div>
+                <p>"我有 4 万块乐高。我每周搭一个新作品。但 LEGO IDEAS 网站太成人化了，我希望有一个像我这样年龄的 <b>搭建者社区</b>。"</p>
+                <p>我想看到每周搭建挑战、其他孩子的作品集、按主题（太空船、城市、机甲）筛选的库。我应该能上传我的作品、加上零件清单、写一段搭建故事。</p>
+                <p>请加一个 STEM 视角——让我能学到结构、对称、传动这些原理。让家长觉得这不只是玩，是 <b>创造力训练</b>。</p>
+              </div>
+
+              <div class="quest-log" style="--accent:#FFB627">
+                <div class="quest-log-head">
+                  <div class="lbl">▶ MAIN OBJECTIVES</div>
+                  <div class="count">04 / 04 · MAIN QUESTS</div>
+                </div>
+                <ul>
+                  <li><div class="chk"></div><span class="num">Q.01</span><span>创作者个人主页 & 作品库（含主题筛选）</span></li>
+                  <li><div class="chk"></div><span class="num">Q.02</span><span>每周搭建挑战 + 校际排行榜</span></li>
+                  <li><div class="chk"></div><span class="num">Q.03</span><span>零件清单 & 搭建故事编辑器</span></li>
+                  <li><div class="chk"></div><span class="num">Q.04</span><span>嵌入 STEM 原理小课堂（结构 / 对称 / 传动）</span></li>
+                </ul>
+              </div>
+
+              <div class="stat-grid">
+                <div class="stat-card">
+                  <div class="ico">⏱</div><div class="k">Runtime</div><div class="v">5 WEEKS</div><div class="sub">10 课时 · 自学</div>
+                </div>
+                <div class="stat-card">
+                  <div class="ico">⚡</div><div class="k">Difficulty</div><div class="v">⭐⭐</div><div class="sub">Easy-Mid</div>
+                </div>
+                <div class="stat-card dark">
+                  <div class="ico" style="color:#FFB627">🎬</div><div class="k">Genre</div><div class="v">BUILDER ADV.</div><div class="sub">STEM × UGC</div>
+                </div>
+                <div class="stat-card accent" style="--accent:#FFB627;background:#FFB627">
+                  <div class="ico">🏆</div><div class="k">Reward</div><div class="v">PORTFOLIO + BADGE</div><div class="sub">社区运营徽章</div>
+                </div>
+              </div>
+
+              <div class="accept-footer">
+                <div class="accept-meta">
+                  <div><b>MISSION ID</b> · LG-2026-02</div>
+                  <div class="status"><span class="d"></span> STATUS: AVAILABLE · SLOTS OPEN</div>
+                </div>
+                <button class="console-btn" style="--accent:#FFB627">
+                  <span class="pre">▶ ACCEPT</span><span>MISSION</span><span class="key">A</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+
+    <!-- ================================================================
+         MISSION 03 · ROBLOX ACADEMY
+    ================================================================ -->
+    <article class="mission-frame" style="--accent:#4ADE80;--frame-bg:#DCFCE7">
+      <div class="mission-card">
+        <div class="mission-ribbon" style="--accent:#4ADE80">MISSION_03</div>
+
+        <div class="cinema-hero" style="--accent:#4ADE80">
+          <div class="bg" style="background-image:url('https://cm-idea-images.s3.us-west-1.amazonaws.com/1778878945196-image-1.png')"></div>
+          <div class="vignette"></div>
+          <div class="scanlines"></div>
+          <div class="grain"></div>
+          <div class="hud-tl"></div><div class="hud-tr"></div><div class="hud-bl"></div><div class="hud-br"></div>
+          <div class="scene-slug"><i class="fa-solid fa-film"></i> INT. 地下工作室 — LATE NIGHT</div>
+          <div class="live-badge" style="--accent:#4ADE80"><span class="dot"></span>LIVE BRIEFING</div>
+          <div class="cinema-title">
+            <div class="mission-id">MISSION_03 / CREATOR ECONOMY / GENRE: CREATOR RPG</div>
+            <h2>ROBLOX ACADEMY</h2>
+            <div class="logline">"我朋友的游戏一周赚了 800 美金。我也想做。请把'玩家 → 创业者'拆成关卡给我。"</div>
+          </div>
+        </div>
+
+        <div class="mission-body">
+          <div class="grid grid-cols-12 gap-6">
+            <div class="col-span-4">
+              <div class="dossier" style="--accent:#4ADE80">
+                <div class="file-tag">CLIENT FILE · 03</div>
+                <div class="portrait-wrap" style="--accent:#4ADE80">
+                  <svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <g fill="#0F0F0F">
+                      <rect x="4" y="1" width="8" height="3"/>
+                      <rect x="3" y="4" width="10" height="5"/>
+                      <rect x="5" y="6" width="2" height="1" fill="#4ADE80"/>
+                      <rect x="9" y="6" width="2" height="1" fill="#4ADE80"/>
+                      <rect x="6" y="8" width="4" height="1" fill="#FFFFFF"/>
+                      <rect x="2" y="9" width="12" height="1"/>
+                      <rect x="3" y="10" width="10" height="4"/>
+                      <rect x="1" y="11" width="2" height="3"/>
+                      <rect x="13" y="11" width="2" height="3"/>
+                      <rect x="3" y="14" width="3" height="2"/>
+                      <rect x="10" y="14" width="3" height="2"/>
+                    </g>
+                  </svg>
+                </div>
+                <div class="name">NOVA · WORLDBUILDER</div>
+                <div class="handle">@nova_worldbuilder</div>
+                <div style="margin-top:14px">
+                  <div class="stat-row"><span class="k">Class</span><span class="v acc">CREATOR · LV.14</span></div>
+                  <div class="stat-row"><span class="k">Region</span><span class="v">Seoul, KR</span></div>
+                  <div class="stat-row"><span class="k">Hours/Wk</span><span class="v">25 hrs in Studio</span></div>
+                </div>
+                <div class="section-label">Loadout</div>
+                <ul class="loadout">
+                  <li>Roblox Studio · Lua 手册</li>
+                  <li>双显示器 · 机械键盘</li>
+                  <li>朋友圈：3 位 Robux 玩家</li>
+                </ul>
+                <div class="section-label">Skills</div>
+                <div class="skill-pills">
+                  <span>Lua</span><span>关卡设计</span><span>经济系统</span><span>Discord 运营</span>
+                </div>
+                <div class="quote">"I'm shipping my world. 我不只是玩家，我要做发行人。"</div>
+              </div>
+            </div>
+
+            <div class="col-span-8">
+              <div class="transmission" style="--accent:#4ADE80">
+                <div class="transmission-head">
+                  <div class="lbl" style="color:#15803D"><span class="pulse" style="--accent:#4ADE80"></span>TRANSMISSION INCOMING</div>
+                  <div class="id">SIGNAL · 03 / FREQ 91.7 MHz</div>
+                </div>
+                <p>"我在 Roblox 玩了 5 年。我朋友的 game 一周赚了 800 美元，我也想做。但 Roblox Studio 太硬核了，YouTube 教程乱七八糟。"</p>
+                <p>我希望有一个学院网站，把"玩家 → 创作者 → 创业者"的路径拆成 <b>关卡</b>：第 1 关学 Lua、第 2 关搭建 obby、第 3 关赚 Robux、第 4 关运营社区。</p>
+                <p>每个关卡有任务、视频、社区代码评审。最后我应该能 <b>发布自己的游戏</b> 并拿到我的"毕业证"。</p>
+              </div>
+
+              <div class="quest-log" style="--accent:#4ADE80">
+                <div class="quest-log-head">
+                  <div class="lbl">▶ MAIN OBJECTIVES</div>
+                  <div class="count">04 / 04 · MAIN QUESTS</div>
+                </div>
+                <ul>
+                  <li><div class="chk"></div><span class="num">Q.01</span><span>设计 4 个关卡：Lua / Obby / Robux / Community</span></li>
+                  <li><div class="chk"></div><span class="num">Q.02</span><span>每关配任务 + 教学视频 + 同伴代码评审</span></li>
+                  <li><div class="chk"></div><span class="num">Q.03</span><span>设计创作者毕业证 & 发布流程</span></li>
+                  <li><div class="chk"></div><span class="num">Q.04</span><span>嵌入收入估算计算器 & 案例榜</span></li>
+                </ul>
+              </div>
+
+              <div class="stat-grid">
+                <div class="stat-card"><div class="ico">⏱</div><div class="k">Runtime</div><div class="v">7 WEEKS</div><div class="sub">14 课时</div></div>
+                <div class="stat-card"><div class="ico">⚡</div><div class="k">Difficulty</div><div class="v">⭐⭐⭐⭐</div><div class="sub">Hard</div></div>
+                <div class="stat-card dark"><div class="ico" style="color:#4ADE80">🎬</div><div class="k">Genre</div><div class="v">CREATOR RPG</div><div class="sub">EdTech × Creator</div></div>
+                <div class="stat-card accent" style="--accent:#4ADE80;background:#4ADE80"><div class="ico">🏆</div><div class="k">Reward</div><div class="v">PORTFOLIO + CERT</div><div class="sub">创作者经济进阶证书</div></div>
+              </div>
+
+              <div class="accept-footer">
+                <div class="accept-meta">
+                  <div><b>MISSION ID</b> · RX-2026-03</div>
+                  <div class="status"><span class="d"></span> STATUS: AVAILABLE · ADVANCED TIER</div>
+                </div>
+                <button class="console-btn" style="--accent:#4ADE80">
+                  <span class="pre">▶ ACCEPT</span><span>MISSION</span><span class="key">A</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+
+    <!-- ================================================================
+         MISSION 04 · NIKE KIDS MOVE
+    ================================================================ -->
+    <article class="mission-frame" style="--accent:#1E40AF;--frame-bg:#DBEAFE">
+      <div class="mission-card">
+        <div class="mission-ribbon" style="--accent:#1E40AF">MISSION_04</div>
+
+        <div class="cinema-hero" style="--accent:#1E40AF">
+          <div class="bg" style="background-image:url('https://cm-idea-images.s3.us-west-1.amazonaws.com/1778878953635-image-1.png')"></div>
+          <div class="vignette"></div>
+          <div class="scanlines"></div>
+          <div class="grain"></div>
+          <div class="hud-tl"></div><div class="hud-tr"></div><div class="hud-bl"></div><div class="hud-br"></div>
+          <div class="scene-slug"><i class="fa-solid fa-film"></i> EXT. 学校操场 · 跑道 — GOLDEN HOUR</div>
+          <div class="live-badge" style="--accent:#1E40AF"><span class="dot"></span>LIVE BRIEFING</div>
+          <div class="cinema-title">
+            <div class="mission-id">MISSION_04 / BEHAVIORAL DESIGN / GENRE: SPORTS QUEST</div>
+            <h2>NIKE KIDS MOVE</h2>
+            <div class="logline">"运动手环只给数据，不给故事。让运动像 Fortnite 一样有任务感。"</div>
+          </div>
+        </div>
+
+        <div class="mission-body">
+          <div class="grid grid-cols-12 gap-6">
+            <div class="col-span-4">
+              <div class="dossier" style="--accent:#1E40AF">
+                <div class="file-tag">CLIENT FILE · 04</div>
+                <div class="portrait-wrap" style="--accent:#1E40AF">
+                  <svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <g fill="#FFFFFF">
+                      <rect x="5" y="1" width="6" height="3"/>
+                      <rect x="6" y="2" width="1" height="1" fill="#0F0F0F"/>
+                      <rect x="9" y="2" width="1" height="1" fill="#0F0F0F"/>
+                      <rect x="3" y="4" width="10" height="5"/>
+                      <rect x="2" y="6" width="2" height="2"/>
+                      <rect x="12" y="6" width="2" height="2"/>
+                      <rect x="3" y="9" width="10" height="1"/>
+                      <rect x="3" y="10" width="10" height="4"/>
+                      <rect x="3" y="14" width="3" height="2"/>
+                      <rect x="10" y="14" width="3" height="2"/>
+                    </g>
+                  </svg>
+                </div>
+                <div class="name">COACH Z · SPRINT</div>
+                <div class="handle">@coachz_sprint</div>
+                <div style="margin-top:14px">
+                  <div class="stat-row"><span class="k">Class</span><span class="v acc">COACH · LV.MAX</span></div>
+                  <div class="stat-row"><span class="k">Region</span><span class="v">Los Angeles</span></div>
+                  <div class="stat-row"><span class="k">Squad</span><span class="v">240+ 学生</span></div>
+                </div>
+                <div class="section-label">Loadout</div>
+                <ul class="loadout">
+                  <li>哨子 · Apple Watch Ultra</li>
+                  <li>跑道 · 班级积分板</li>
+                  <li>20 年青少年体能经验</li>
+                </ul>
+                <div class="section-label">Skills</div>
+                <div class="skill-pills">
+                  <span>行为激励</span><span>团队设计</span><span>排行榜</span><span>奖励心理学</span>
+                </div>
+                <div class="quote">"Move different. Earn loot. 运动应该有战利品。"</div>
+              </div>
+            </div>
+
+            <div class="col-span-8">
+              <div class="transmission" style="--accent:#1E40AF">
+                <div class="transmission-head">
+                  <div class="lbl" style="color:#1E40AF"><span class="pulse" style="--accent:#1E40AF"></span>TRANSMISSION INCOMING</div>
+                  <div class="id">SIGNAL · 04 / FREQ 97.1 MHz</div>
+                </div>
+                <p>"我们孩子的体育课像例行公事。运动手环只给数据，不给故事。"</p>
+                <p>我希望 Nike Kids Move 是一个把运动游戏化的网站——每天有一个"动作任务"（30 次跳绳、2 公里慢跑、俯卧撑挑战），完成可以解锁 <b>装备徽章</b> 或团队战利品。</p>
+                <p>我应该能加入一个班级队伍，看到我们队的总步数排名。年终积分能换 Nike 真实奖品。让运动像 Fortnite 一样令人期待。</p>
+              </div>
+
+              <div class="quest-log" style="--accent:#1E40AF">
+                <div class="quest-log-head">
+                  <div class="lbl">▶ MAIN OBJECTIVES</div>
+                  <div class="count">04 / 04 · MAIN QUESTS</div>
+                </div>
+                <ul>
+                  <li><div class="chk"></div><span class="num">Q.01</span><span>设计"每日动作任务"模板（30+ 动作池）</span></li>
+                  <li><div class="chk"></div><span class="num">Q.02</span><span>搭建班级队伍 + 校际实时排行榜</span></li>
+                  <li><div class="chk"></div><span class="num">Q.03</span><span>设计徽章 / 战利品收集系统</span></li>
+                  <li><div class="chk"></div><span class="num">Q.04</span><span>年终积分兑换 Nike 实物商城</span></li>
+                </ul>
+              </div>
+
+              <div class="stat-grid">
+                <div class="stat-card"><div class="ico">⏱</div><div class="k">Runtime</div><div class="v">5 WEEKS</div><div class="sub">10 课时</div></div>
+                <div class="stat-card"><div class="ico">⚡</div><div class="k">Difficulty</div><div class="v">⭐⭐⭐</div><div class="sub">Intermediate</div></div>
+                <div class="stat-card dark"><div class="ico" style="color:#60A5FA">🎬</div><div class="k">Genre</div><div class="v">SPORTS QUEST</div><div class="sub">行为 × 游戏化</div></div>
+                <div class="stat-card accent" style="--accent:#1E40AF;background:#1E40AF;color:#FFFFFF">
+                  <div class="ico">🏆</div>
+                  <div class="k" style="color:rgba(255,255,255,0.65)">Reward</div>
+                  <div class="v" style="color:#FFFFFF">PORTFOLIO + BADGE</div>
+                  <div class="sub" style="color:rgba(255,255,255,0.75)">游戏化激励设计徽章</div>
+                </div>
+              </div>
+
+              <div class="accept-footer">
+                <div class="accept-meta">
+                  <div><b>MISSION ID</b> · NK-2026-04</div>
+                  <div class="status"><span class="d"></span> STATUS: AVAILABLE · SLOTS OPEN</div>
+                </div>
+                <button class="console-btn" style="--accent:#1E40AF">
+                  <span class="pre">▶ ACCEPT</span><span>MISSION</span><span class="key">A</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+
+    <!-- ================================================================
+         MISSION 05 · CREATOR STUDIO (YOUTUBE)
+    ================================================================ -->
+    <article class="mission-frame" style="--accent:#DC2626;--frame-bg:#FEE2E2">
+      <div class="mission-card">
+        <div class="mission-ribbon" style="--accent:#DC2626">MISSION_05</div>
+
+        <div class="cinema-hero" style="--accent:#DC2626">
+          <div class="bg" style="background-image:url('https://cm-idea-images.s3.us-west-1.amazonaws.com/1778878965362-image-1.png')"></div>
+          <div class="vignette"></div>
+          <div class="scanlines"></div>
+          <div class="grain"></div>
+          <div class="hud-tl"></div><div class="hud-tr"></div><div class="hud-bl"></div><div class="hud-br"></div>
+          <div class="scene-slug"><i class="fa-solid fa-film"></i> INT. 卧室直播间 — RING LIGHT ON</div>
+          <div class="live-badge" style="--accent:#DC2626"><span class="dot"></span>LIVE BRIEFING</div>
+          <div class="cinema-title">
+            <div class="mission-id">MISSION_05 / PERSONAL BRAND / GENRE: STUDIO DRAMA</div>
+            <h2>CREATOR STUDIO</h2>
+            <div class="logline">"我有 234 个订阅者，目标 100 万。请把 MrBeast、MKBHD、Emma 拆给我看。"</div>
+          </div>
+        </div>
+
+        <div class="mission-body">
+          <div class="grid grid-cols-12 gap-6">
+            <div class="col-span-4">
+              <div class="dossier" style="--accent:#DC2626">
+                <div class="file-tag">CLIENT FILE · 05</div>
+                <div class="portrait-wrap" style="--accent:#DC2626">
+                  <svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <g fill="#0F0F0F">
+                      <rect x="4" y="2" width="8" height="3"/>
+                      <rect x="3" y="5" width="10" height="5"/>
+                      <rect x="5" y="7" width="1" height="1" fill="#FFFFFF"/>
+                      <rect x="10" y="7" width="1" height="1" fill="#FFFFFF"/>
+                      <rect x="6" y="9" width="4" height="1" fill="#DC2626"/>
+                      <rect x="2" y="10" width="12" height="1"/>
+                      <rect x="3" y="11" width="10" height="3"/>
+                      <rect x="3" y="14" width="3" height="2"/>
+                      <rect x="10" y="14" width="3" height="2"/>
+                      <rect x="13" y="3" width="2" height="2"/>
+                    </g>
+                  </svg>
+                </div>
+                <div class="name">MILA · ON LENS</div>
+                <div class="handle">@milaonlens</div>
+                <div style="margin-top:14px">
+                  <div class="stat-row"><span class="k">Class</span><span class="v acc">DIRECTOR · LV.14</span></div>
+                  <div class="stat-row"><span class="k">Region</span><span class="v">Austin, TX</span></div>
+                  <div class="stat-row"><span class="k">Subs</span><span class="v">234 → 1M (goal)</span></div>
+                </div>
+                <div class="section-label">Loadout</div>
+                <ul class="loadout">
+                  <li>Sony α6400 · 三脚架</li>
+                  <li>Ring Light · 静音键盘</li>
+                  <li>自制脚本本（已写满 3 本）</li>
+                </ul>
+                <div class="section-label">Skills</div>
+                <div class="skill-pills">
+                  <span>剪辑</span><span>写脚本</span><span>缩略图</span><span>个人品牌</span>
+                </div>
+                <div class="quote">"Frame one, take infinity. 我要把热爱拍成事业。"</div>
+              </div>
+            </div>
+
+            <div class="col-span-8">
+              <div class="transmission" style="--accent:#DC2626">
+                <div class="transmission-head">
+                  <div class="lbl" style="color:#DC2626"><span class="pulse" style="--accent:#DC2626"></span>TRANSMISSION INCOMING</div>
+                  <div class="id">SIGNAL · 05 / FREQ 104.8 MHz</div>
+                </div>
+                <p>"我有 234 个订阅者。我希望涨到 100 万。但每次拍视频我都不知道选什么主题、怎么写脚本、缩略图怎么做。"</p>
+                <p>请给我一个 <b>创作者方法论</b> 网站——拆解 MrBeast、Emma Chamberlain、MKBHD 的频道策略，给出可复用的脚本模板、剪辑节奏、缩略图公式。</p>
+                <p>我应该能输入我的主题，AI 帮我生成视频大纲和 3 个候选标题。让家长看到 YouTube 不是浪费时间，而是 <b>一门个人品牌学</b>。</p>
+              </div>
+
+              <div class="quest-log" style="--accent:#DC2626">
+                <div class="quest-log-head">
+                  <div class="lbl">▶ MAIN OBJECTIVES</div>
+                  <div class="count">04 / 04 · MAIN QUESTS</div>
+                </div>
+                <ul>
+                  <li><div class="chk"></div><span class="num">Q.01</span><span>解构 MrBeast / MKBHD / Emma 三位的频道公式</span></li>
+                  <li><div class="chk"></div><span class="num">Q.02</span><span>脚本 + 剪辑节奏 + 缩略图模板库</span></li>
+                  <li><div class="chk"></div><span class="num">Q.03</span><span>AI 助手：标题 / 大纲一键生成</span></li>
+                  <li><div class="chk"></div><span class="num">Q.04</span><span>个人品牌定位测试 + 频道 30 天计划</span></li>
+                </ul>
+              </div>
+
+              <div class="stat-grid">
+                <div class="stat-card"><div class="ico">⏱</div><div class="k">Runtime</div><div class="v">6 WEEKS</div><div class="sub">12 课时</div></div>
+                <div class="stat-card"><div class="ico">⚡</div><div class="k">Difficulty</div><div class="v">⭐⭐⭐</div><div class="sub">Intermediate</div></div>
+                <div class="stat-card dark"><div class="ico" style="color:#F87171">🎬</div><div class="k">Genre</div><div class="v">STUDIO DRAMA</div><div class="sub">个人 IP × Prompt</div></div>
+                <div class="stat-card accent" style="--accent:#DC2626;background:#DC2626;color:#FFFFFF">
+                  <div class="ico">🏆</div>
+                  <div class="k" style="color:rgba(255,255,255,0.65)">Reward</div>
+                  <div class="v" style="color:#FFFFFF">PORTFOLIO + KIT</div>
+                  <div class="sub" style="color:rgba(255,255,255,0.75)">个人品牌方法论手册</div>
+                </div>
+              </div>
+
+              <div class="accept-footer">
+                <div class="accept-meta">
+                  <div><b>MISSION ID</b> · YT-2026-05</div>
+                  <div class="status"><span class="d"></span> STATUS: AVAILABLE · SLOTS OPEN</div>
+                </div>
+                <button class="console-btn" style="--accent:#DC2626">
+                  <span class="pre">▶ ACCEPT</span><span>MISSION</span><span class="key">A</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+
+    <!-- ================================================================
+         MISSION 06 · SPACEX MISSION CONTROL
+    ================================================================ -->
+    <article class="mission-frame" style="--accent:#6366F1;--frame-bg:#E0E7FF">
+      <div class="mission-card">
+        <div class="mission-ribbon" style="--accent:#6366F1">MISSION_06</div>
+
+        <div class="cinema-hero" style="--accent:#6366F1">
+          <div class="bg" style="background-image:url('https://cm-idea-images.s3.us-west-1.amazonaws.com/1778878972428-image-1.png')"></div>
+          <div class="vignette"></div>
+          <div class="scanlines"></div>
+          <div class="grain"></div>
+          <div class="hud-tl"></div><div class="hud-tr"></div><div class="hud-bl"></div><div class="hud-br"></div>
+          <div class="scene-slug"><i class="fa-solid fa-film"></i> EXT. 发射台 — T-MINUS 00:00:30</div>
+          <div class="live-badge" style="--accent:#6366F1"><span class="dot"></span>LIVE BRIEFING</div>
+          <div class="cinema-title">
+            <div class="mission-id">MISSION_06 / SCIENCE STORYTELLING / GENRE: SPACE OPERA</div>
+            <h2>MISSION CONTROL</h2>
+            <div class="logline">"SpaceX 官网像写给工程师的。我要一个让 11 岁也能追火箭比赛的版本。"</div>
+          </div>
+        </div>
+
+        <div class="mission-body">
+          <div class="grid grid-cols-12 gap-6">
+            <div class="col-span-4">
+              <div class="dossier" style="--accent:#6366F1">
+                <div class="file-tag">CLIENT FILE · 06</div>
+                <div class="portrait-wrap" style="--accent:#6366F1">
+                  <svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <g fill="#FFFFFF">
+                      <rect x="6" y="0" width="4" height="2"/>
+                      <rect x="4" y="2" width="8" height="2"/>
+                      <rect x="3" y="4" width="10" height="5"/>
+                      <rect x="5" y="6" width="2" height="2" fill="#0F0F0F"/>
+                      <rect x="9" y="6" width="2" height="2" fill="#0F0F0F"/>
+                      <rect x="6" y="8" width="4" height="1" fill="#6366F1"/>
+                      <rect x="2" y="9" width="12" height="1"/>
+                      <rect x="3" y="10" width="10" height="3"/>
+                      <rect x="4" y="13" width="2" height="3" fill="#FF6B35"/>
+                      <rect x="10" y="13" width="2" height="3" fill="#FF6B35"/>
+                    </g>
+                  </svg>
+                </div>
+                <div class="name">CMDR · ORION</div>
+                <div class="handle">@cmdr_orion</div>
+                <div style="margin-top:14px">
+                  <div class="stat-row"><span class="k">Class</span><span class="v acc">COMMANDER · LV.11</span></div>
+                  <div class="stat-row"><span class="k">Region</span><span class="v">Cape Canaveral</span></div>
+                  <div class="stat-row"><span class="k">Patches</span><span class="v">22 / 30 missions</span></div>
+                </div>
+                <div class="section-label">Loadout</div>
+                <ul class="loadout">
+                  <li>任务徽章 22 枚</li>
+                  <li>天文望远镜 · 倒计时手表</li>
+                  <li>Falcon 9 发射史（背诵）</li>
+                </ul>
+                <div class="section-label">Skills</div>
+                <div class="skill-pills">
+                  <span>科学叙事</span><span>数据可视化</span><span>太空史</span><span>公众解说</span>
+                </div>
+                <div class="quote">"T-minus zero. All systems go. 我们这一代会去火星。"</div>
+              </div>
+            </div>
+
+            <div class="col-span-8">
+              <div class="transmission" style="--accent:#6366F1">
+                <div class="transmission-head">
+                  <div class="lbl" style="color:#4338CA"><span class="pulse" style="--accent:#6366F1"></span>TRANSMISSION INCOMING</div>
+                  <div class="id">SIGNAL · 06 / FREQ 108.0 MHz</div>
+                </div>
+                <p>"我能背出每一台 Falcon 9 的发射时间表。但 SpaceX 的官网像写给航天工程师的，我朋友看不懂。"</p>
+                <p>请帮我把它重新设计成一个青少年版的 <b>任务中心</b>——猎鹰 9 倒数、星舰最新测试、月球门户计划、火星殖民地路线图。</p>
+                <p>每个任务有"背景 / 目标 / 风险 / 进展"四个板块，像看一场体育比赛一样跟着 SpaceX。让我们这一代真的相信我们会去 <b>火星</b>。</p>
+              </div>
+
+              <div class="quest-log" style="--accent:#6366F1">
+                <div class="quest-log-head">
+                  <div class="lbl">▶ MAIN OBJECTIVES</div>
+                  <div class="count">04 / 04 · MAIN QUESTS</div>
+                </div>
+                <ul>
+                  <li><div class="chk"></div><span class="num">Q.01</span><span>发射倒计时仪表盘 + 实时数据嵌入</span></li>
+                  <li><div class="chk"></div><span class="num">Q.02</span><span>任务卡：背景 / 目标 / 风险 / 进展</span></li>
+                  <li><div class="chk"></div><span class="num">Q.03</span><span>月球门户 + 火星殖民地路线图</span></li>
+                  <li><div class="chk"></div><span class="num">Q.04</span><span>历史发射档案 + 青少年解读</span></li>
+                </ul>
+              </div>
+
+              <div class="stat-grid">
+                <div class="stat-card"><div class="ico">⏱</div><div class="k">Runtime</div><div class="v">7 WEEKS</div><div class="sub">14 课时</div></div>
+                <div class="stat-card"><div class="ico">⚡</div><div class="k">Difficulty</div><div class="v">⭐⭐⭐⭐</div><div class="sub">Hard</div></div>
+                <div class="stat-card dark"><div class="ico" style="color:#A5B4FC">🎬</div><div class="k">Genre</div><div class="v">SPACE OPERA</div><div class="sub">科技 × 公众教育</div></div>
+                <div class="stat-card accent" style="--accent:#6366F1;background:#6366F1;color:#FFFFFF">
+                  <div class="ico">🏆</div>
+                  <div class="k" style="color:rgba(255,255,255,0.7)">Reward</div>
+                  <div class="v" style="color:#FFFFFF">PORTFOLIO + BADGE</div>
+                  <div class="sub" style="color:rgba(255,255,255,0.8)">科技公众传播高阶徽章</div>
+                </div>
+              </div>
+
+              <div class="accept-footer">
+                <div class="accept-meta">
+                  <div><b>MISSION ID</b> · SX-2026-06</div>
+                  <div class="status"><span class="d"></span> STATUS: AVAILABLE · ADVANCED TIER</div>
+                </div>
+                <button class="console-btn" style="--accent:#6366F1">
+                  <span class="pre">▶ ACCEPT</span><span>MISSION</span><span class="key">A</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+
+    <!-- ================================================================
+         MISSION 07 · CHICK-FIL-A YOUTH CHALLENGE
+    ================================================================ -->
+    <article class="mission-frame" style="--accent:#EC4899;--frame-bg:#FCE7F3">
+      <div class="mission-card">
+        <div class="mission-ribbon" style="--accent:#EC4899">MISSION_07</div>
+
+        <div class="cinema-hero" style="--accent:#EC4899">
+          <div class="bg" style="background-image:url('https://cm-idea-images.s3.us-west-1.amazonaws.com/1778878981649-image-1.png')"></div>
+          <div class="vignette"></div>
+          <div class="scanlines"></div>
+          <div class="grain"></div>
+          <div class="hud-tl"></div><div class="hud-tr"></div><div class="hud-bl"></div><div class="hud-br"></div>
+          <div class="scene-slug"><i class="fa-solid fa-film"></i> INT. 得来速排队 — 周二 18:00</div>
+          <div class="live-badge" style="--accent:#EC4899"><span class="dot"></span>LIVE BRIEFING</div>
+          <div class="cinema-title">
+            <div class="mission-id">MISSION_07 / SERVICE INNOVATION / GENRE: BUSINESS THRILLER</div>
+            <h2>YOUTH CHALLENGE</h2>
+            <div class="logline">"排队 30 分钟、菜单不健康、还要下载 app。请把我当年轻顾问，重设 2030 餐厅。"</div>
+          </div>
+        </div>
+
+        <div class="mission-body">
+          <div class="grid grid-cols-12 gap-6">
+            <div class="col-span-4">
+              <div class="dossier" style="--accent:#EC4899">
+                <div class="file-tag">CLIENT FILE · 07</div>
+                <div class="portrait-wrap" style="--accent:#EC4899">
+                  <svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <g fill="#0F0F0F">
+                      <rect x="4" y="0" width="8" height="2"/>
+                      <rect x="3" y="2" width="10" height="4"/>
+                      <rect x="5" y="4" width="1" height="1" fill="#FFFFFF"/>
+                      <rect x="10" y="4" width="1" height="1" fill="#FFFFFF"/>
+                      <rect x="6" y="6" width="4" height="1" fill="#EC4899"/>
+                      <rect x="2" y="7" width="12" height="1"/>
+                      <rect x="3" y="8" width="10" height="5"/>
+                      <rect x="2" y="13" width="3" height="3"/>
+                      <rect x="11" y="13" width="3" height="3"/>
+                    </g>
+                  </svg>
+                </div>
+                <div class="name">PENNY · CRISP</div>
+                <div class="handle">@pennycrisp</div>
+                <div style="margin-top:14px">
+                  <div class="stat-row"><span class="k">Class</span><span class="v acc">CONSULTANT · LV.12</span></div>
+                  <div class="stat-row"><span class="k">Region</span><span class="v">Atlanta, GA</span></div>
+                  <div class="stat-row"><span class="k">Visits</span><span class="v">156 周三晚餐</span></div>
+                </div>
+                <div class="section-label">Loadout</div>
+                <ul class="loadout">
+                  <li>调研笔记本 · 客户访谈卡</li>
+                  <li>计算器 · 流程图模板</li>
+                  <li>麦肯锡风格的便签</li>
+                </ul>
+                <div class="section-label">Skills</div>
+                <div class="skill-pills">
+                  <span>商业写作</span><span>ROI 估算</span><span>用户调研</span><span>服务设计</span>
+                </div>
+                <div class="quote">"My pleasure, scaled. 让排队变成体验，让菜单变成产品。"</div>
+              </div>
+            </div>
+
+            <div class="col-span-8">
+              <div class="transmission" style="--accent:#EC4899">
+                <div class="transmission-head">
+                  <div class="lbl" style="color:#BE185D"><span class="pulse" style="--accent:#EC4899"></span>TRANSMISSION INCOMING</div>
+                  <div class="id">SIGNAL · 07 / FREQ 95.3 MHz</div>
+                </div>
+                <p>"我妈妈每周三都开车带我去 Chick-fil-A。但排队 30 分钟、菜单上没什么健康选择、点餐还要下载 app。"</p>
+                <p>请把我当成一名 <b>年轻商业顾问</b>——帮 Chick-fil-A 设计"2030 年的快餐店"。包括语音点单、健康儿童套餐、二维码桌边支付、外送无人车。</p>
+                <p>请用案例研究的格式：问题 → 调研 → 方案 → ROI 估算。让我能把这个网站交给餐厅的 <b>CEO</b>。</p>
+              </div>
+
+              <div class="quest-log" style="--accent:#EC4899">
+                <div class="quest-log-head">
+                  <div class="lbl">▶ MAIN OBJECTIVES</div>
+                  <div class="count">04 / 04 · MAIN QUESTS</div>
+                </div>
+                <ul>
+                  <li><div class="chk"></div><span class="num">Q.01</span><span>用户调研报告（10+ 顾客访谈）</span></li>
+                  <li><div class="chk"></div><span class="num">Q.02</span><span>2030 餐厅服务流程图（点餐 → 取餐 → 反馈）</span></li>
+                  <li><div class="chk"></div><span class="num">Q.03</span><span>3 个核心创新方案（语音 / 健康 / 桌边）</span></li>
+                  <li><div class="chk"></div><span class="num">Q.04</span><span>ROI 估算 + 给 CEO 的提案版</span></li>
+                </ul>
+              </div>
+
+              <div class="stat-grid">
+                <div class="stat-card"><div class="ico">⏱</div><div class="k">Runtime</div><div class="v">5 WEEKS</div><div class="sub">10 课时</div></div>
+                <div class="stat-card"><div class="ico">⚡</div><div class="k">Difficulty</div><div class="v">⭐⭐⭐</div><div class="sub">Intermediate</div></div>
+                <div class="stat-card dark"><div class="ico" style="color:#F472B6">🎬</div><div class="k">Genre</div><div class="v">BUSINESS THRILLER</div><div class="sub">咨询 × 服务设计</div></div>
+                <div class="stat-card accent" style="--accent:#EC4899;background:#EC4899;color:#FFFFFF">
+                  <div class="ico">🏆</div>
+                  <div class="k" style="color:rgba(255,255,255,0.7)">Reward</div>
+                  <div class="v" style="color:#FFFFFF">PORTFOLIO + DECK</div>
+                  <div class="sub" style="color:rgba(255,255,255,0.85)">商业咨询案例集</div>
+                </div>
+              </div>
+
+              <div class="accept-footer">
+                <div class="accept-meta">
+                  <div><b>MISSION ID</b> · CF-2026-07</div>
+                  <div class="status"><span class="d"></span> STATUS: AVAILABLE · SLOTS OPEN</div>
+                </div>
+                <button class="console-btn" style="--accent:#EC4899">
+                  <span class="pre">▶ ACCEPT</span><span>MISSION</span><span class="key">A</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+
+    <!-- ================================================================
+         MISSION 08 · FOUNDER HALL
+    ================================================================ -->
+    <article class="mission-frame" style="--accent:#FFD93D;--frame-bg:#FEF9C3">
+      <div class="mission-card">
+        <div class="mission-ribbon" style="--accent:#FFD93D">MISSION_08</div>
+
+        <div class="cinema-hero" style="--accent:#FFD93D">
+          <div class="bg" style="background-image:url('https://cm-idea-images.s3.us-west-1.amazonaws.com/1778878988536-image-1.png')"></div>
+          <div class="vignette"></div>
+          <div class="scanlines"></div>
+          <div class="grain"></div>
+          <div class="hud-tl"></div><div class="hud-tr"></div><div class="hud-bl"></div><div class="hud-br"></div>
+          <div class="scene-slug"><i class="fa-solid fa-film"></i> INT. 卧室 · 创业海报墙 — RAINY EVENING</div>
+          <div class="live-badge" style="--accent:#FFD93D"><span class="dot"></span>LIVE BRIEFING</div>
+          <div class="cinema-title">
+            <div class="mission-id">MISSION_08 / FOUNDER STUDY / GENRE: DOCUMENTARY</div>
+            <h2>FOUNDER HALL</h2>
+            <div class="logline">"Jobs、Musk、Whitney Wolfe 在我房间墙上看着我。请帮我做一座属于他们的故事馆。"</div>
+          </div>
+        </div>
+
+        <div class="mission-body">
+          <div class="grid grid-cols-12 gap-6">
+            <div class="col-span-4">
+              <div class="dossier" style="--accent:#FFD93D">
+                <div class="file-tag">CLIENT FILE · 08</div>
+                <div class="portrait-wrap" style="--accent:#FFD93D">
+                  <svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <g fill="#0F0F0F">
+                      <rect x="5" y="0" width="6" height="1"/>
+                      <rect x="4" y="1" width="8" height="4"/>
+                      <rect x="5" y="3" width="1" height="1" fill="#FFD93D"/>
+                      <rect x="10" y="3" width="1" height="1" fill="#FFD93D"/>
+                      <rect x="3" y="5" width="10" height="1"/>
+                      <rect x="3" y="6" width="10" height="5"/>
+                      <rect x="5" y="8" width="6" height="2" fill="#FFD93D"/>
+                      <rect x="3" y="11" width="3" height="5"/>
+                      <rect x="10" y="11" width="3" height="5"/>
+                    </g>
+                  </svg>
+                </div>
+                <div class="name">VEE · CAPITAL</div>
+                <div class="handle">@veecapital</div>
+                <div style="margin-top:14px">
+                  <div class="stat-row"><span class="k">Class</span><span class="v acc">ARCHIVIST · LV.12</span></div>
+                  <div class="stat-row"><span class="k">Region</span><span class="v">Cupertino, CA</span></div>
+                  <div class="stat-row"><span class="k">Books</span><span class="v">16 创始人传记</span></div>
+                </div>
+                <div class="section-label">Loadout</div>
+                <ul class="loadout">
+                  <li>创始人传记 16 本</li>
+                  <li>便签 · 时间线工具</li>
+                  <li>10 场 Founders Podcast 已听</li>
+                </ul>
+                <div class="section-label">Skills</div>
+                <div class="skill-pills">
+                  <span>人物研究</span><span>视觉叙事</span><span>纪录片解说</span><span>引用整理</span>
+                </div>
+                <div class="quote">"Some build companies. Some build legends. 我要做的，是后者的展览馆。"</div>
+              </div>
+            </div>
+
+            <div class="col-span-8">
+              <div class="transmission" style="--accent:#FFD93D">
+                <div class="transmission-head">
+                  <div class="lbl" style="color:#A16207"><span class="pulse" style="--accent:#FFD93D"></span>TRANSMISSION INCOMING</div>
+                  <div class="id">SIGNAL · 08 / FREQ 99.5 MHz</div>
+                </div>
+                <p>"我房间里贴着 Jobs、Musk 和 Whitney Wolfe 的海报。我想做下一代里的他们。"</p>
+                <p>请帮我做一座 <b>创业者名人堂</b>——选 6-10 位世界级创始人，每人一个故事页：早年 / 转折 / 失败 / 突破 / 留给世界的东西。</p>
+                <p>请用纪录片的语气，配真实的引用、时间线、产品演变图。让这个网站成为我创业灵感的 <b>"圣经"</b>。</p>
+              </div>
+
+              <div class="quest-log" style="--accent:#FFD93D">
+                <div class="quest-log-head">
+                  <div class="lbl">▶ MAIN OBJECTIVES</div>
+                  <div class="count">04 / 04 · MAIN QUESTS</div>
+                </div>
+                <ul>
+                  <li><div class="chk"></div><span class="num">Q.01</span><span>选定 6-10 位世界级创始人（含调研报告）</span></li>
+                  <li><div class="chk"></div><span class="num">Q.02</span><span>每人故事页：早年 / 转折 / 失败 / 突破 / 遗产</span></li>
+                  <li><div class="chk"></div><span class="num">Q.03</span><span>时间线 + 产品演变图（视觉化）</span></li>
+                  <li><div class="chk"></div><span class="num">Q.04</span><span>录制 1 段配音纪录片导览（3 分钟）</span></li>
+                </ul>
+              </div>
+
+              <div class="stat-grid">
+                <div class="stat-card"><div class="ico">⏱</div><div class="k">Runtime</div><div class="v">8 WEEKS</div><div class="sub">16 课时</div></div>
+                <div class="stat-card"><div class="ico">⚡</div><div class="k">Difficulty</div><div class="v">⭐⭐⭐⭐⭐</div><div class="sub">Capstone</div></div>
+                <div class="stat-card dark"><div class="ico" style="color:#FDE047">🎬</div><div class="k">Genre</div><div class="v">DOCUMENTARY</div><div class="sub">人物 × 叙事</div></div>
+                <div class="stat-card accent" style="--accent:#FFD93D;background:#FFD93D">
+                  <div class="ico">🏆</div>
+                  <div class="k">Reward</div>
+                  <div class="v">CAPSTONE PORTFOLIO</div>
+                  <div class="sub">毕业级展示项目</div>
+                </div>
+              </div>
+
+              <div class="accept-footer">
+                <div class="accept-meta">
+                  <div><b>MISSION ID</b> · FH-2026-08</div>
+                  <div class="status"><span class="d"></span> STATUS: AVAILABLE · CAPSTONE TIER</div>
+                </div>
+                <button class="console-btn" style="--accent:#FFD93D">
+                  <span class="pre">▶ ACCEPT</span><span>MISSION</span><span class="key">A</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+
+  </div>
+</section>
+
+<!-- ============= LEARNING OUTCOMES ============= -->
+<section class="py-20" style="background:#0F0F0F">
+  <div class="max-w-6xl mx-auto px-10">
+    <div class="flex items-center gap-3 mb-8">
+      <span class="display text-sm" style="color:#FF6B35">03 ·</span>
+      <span class="grotesk font-semibold text-sm uppercase tracking-widest text-white/80">LEARNING OUTCOMES · 学习成果</span>
+    </div>
+
+    <div class="grid grid-cols-12 gap-10 mb-12">
+      <div class="col-span-7">
+        <div class="display text-white" style="font-size:56px;line-height:0.95">WHAT THEY<br><span class="gold">ACTUALLY LEARN.</span></div>
+      </div>
+      <div class="col-span-5 flex items-end">
+        <p class="text-white/70 text-base leading-relaxed">完成 AI Builder 任务库后，学生会带走的不是几个网页，而是一整套面向未来的能力：把 AI 当作创意与技术伙伴，用专业作品表达真实世界的主题。</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-4 gap-4">
+      <div class="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-5">
+        <div class="text-xs gold font-bold uppercase tracking-widest mb-2">01</div>
+        <div class="grotesk text-white text-base font-semibold leading-tight">AI 作为创意伙伴</div>
+        <p class="text-xs text-white/60 mt-2 leading-relaxed">把 AI 当作可对话的设计、写作和编程合作者。</p>
+      </div>
+      <div class="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-5">
+        <div class="text-xs gold font-bold uppercase tracking-widest mb-2">02</div>
+        <div class="grotesk text-white text-base font-semibold leading-tight">想法 → 落地页</div>
+        <p class="text-xs text-white/60 mt-2 leading-relaxed">独立生成项目想法、文案、视觉概念，并搭建为专业落地页。</p>
+      </div>
+      <div class="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-5">
+        <div class="text-xs gold font-bold uppercase tracking-widest mb-2">03</div>
+        <div class="grotesk text-white text-base font-semibold leading-tight">Vibe Coding</div>
+        <p class="text-xs text-white/60 mt-2 leading-relaxed">用 AI 辅助构建和修改网站，掌握真实的 Vibe Coding 工作流。</p>
+      </div>
+      <div class="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-5">
+        <div class="text-xs gold font-bold uppercase tracking-widest mb-2">04</div>
+        <div class="grotesk text-white text-base font-semibold leading-tight">Prompt Engineering</div>
+        <p class="text-xs text-white/60 mt-2 leading-relaxed">针对设计、内容和调试，写出精准、可复现的 prompt。</p>
+      </div>
+      <div class="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-5">
+        <div class="text-xs gold font-bold uppercase tracking-widest mb-2">05</div>
+        <div class="grotesk text-white text-base font-semibold leading-tight">真实世界表达</div>
+        <p class="text-xs text-white/60 mt-2 leading-relaxed">用数字作品讲述游戏、太空、运动、餐饮、创业等真实主题。</p>
+      </div>
+      <div class="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-5">
+        <div class="text-xs gold font-bold uppercase tracking-widest mb-2">06</div>
+        <div class="grotesk text-white text-base font-semibold leading-tight">兴趣 × 商业</div>
+        <p class="text-xs text-white/60 mt-2 leading-relaxed">把个人兴趣与商业、STEM、媒体和创业能力结合起来。</p>
+      </div>
+      <div class="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-5">
+        <div class="text-xs gold font-bold uppercase tracking-widest mb-2">07</div>
+        <div class="grotesk text-white text-base font-semibold leading-tight">专业表达能力</div>
+        <p class="text-xs text-white/60 mt-2 leading-relaxed">练习商业写作、视觉叙事、案例研究与说服性表达。</p>
+      </div>
+      <div class="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-5" style="background:linear-gradient(135deg,#FF6B35,#FFB627);border:0">
+        <div class="text-xs text-black font-bold uppercase tracking-widest mb-2">08</div>
+        <div class="grotesk text-black text-base font-semibold leading-tight">家长可见的作品集</div>
+        <p class="text-xs text-black/80 mt-2 leading-relaxed">最终交付一个让家长一眼看到专业度与价值的作品集项目。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============= CTA ============= -->
+<section class="py-20 paper" style="background:#FFF8F0">
+  <div class="max-w-4xl mx-auto px-10 text-center">
+    <div class="display text-black mb-4" style="font-size:64px;line-height:0.95">PICK A BRIEF.<br><span class="orange">SHIP THE PROJECT.</span></div>
+    <p class="text-gray-600 text-lg mb-8">8 位客户在等你的回复。每一个 "▶ ACCEPT MISSION" 都是一次完整的 AI 产品创作训练。</p>
+    <div class="inline-flex items-center gap-3">
+      <button class="display text-white text-base px-7 py-4 rounded-2xl pop-shadow" style="background:#0F0F0F">
+        START YOUR AI BUILDER JOURNEY <i class="fas fa-arrow-right ml-2"></i>
+      </button>
+      <button class="grotesk font-semibold text-sm px-6 py-4 rounded-2xl bg-white ring-ink">为孩子选一个任务 →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============= FOOTER ============= -->
+<footer class="py-10 text-center border-t-2 border-black" style="background:#FFF8F0">
+  <div class="display text-black text-xl">AI BUILDER · MISSION BANK</div>
+  <div class="text-xs text-gray-500 mt-1 grotesk uppercase tracking-widest">Stage 1 of the AI Product Creation Pathway</div>
+</footer>
+
+</body>
+</html>

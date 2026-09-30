@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoLens AI - Scan Result</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; scrollbar-width: none; font-family: 'Inter', sans-serif; }
+  body { background: #f8faf8; color: #1a2e1a; position: relative; }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center;
+    position: relative; z-index: 100; background: #f8faf8;
+  }
+  .status-time { font-size: 15px; font-weight: 700; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  }
+
+  .content { height: calc(100% - 59px); overflow-y: auto; scrollbar-width: none; padding-bottom: 40px; }
+  .content::-webkit-scrollbar { display: none; }
+
+  /* Nav */
+  .nav { display: flex; align-items: center; padding: 4px 28px 12px; gap: 14px; }
+  .nav-back { font-size: 18px; color: #2d8a4e; }
+  .nav-title { font-size: 17px; font-weight: 700; }
+
+  /* Product Hero */
+  .product-hero {
+    margin: 0 28px; border-radius: 24px; overflow: hidden; position: relative;
+    height: 200px;
+  }
+  .product-hero img { width: 100%; height: 100%; object-fit: cover; }
+  .product-hero-overlay {
+    position: absolute; bottom: 0; left: 0; right: 0; padding: 20px;
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.7));
+  }
+  .product-hero-name { font-size: 22px; font-weight: 800; color: #fff; }
+  .product-hero-type { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+
+  /* Chemical Info */
+  .chem-card {
+    margin: 16px 28px; padding: 18px; border-radius: 20px; background: #fff;
+    border: 1px solid #e0ebe0;
+  }
+  .chem-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .chem-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, #e8f5e8, #d0ecd0);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: #2d8a4e;
+  }
+  .chem-title { font-size: 15px; font-weight: 700; }
+  .chem-sub { font-size: 11px; color: #7a9a7a; }
+
+  .molecule-row {
+    display: flex; align-items: center; gap: 12px; padding: 10px 0;
+    border-bottom: 1px solid #f0f5f0;
+  }
+  .molecule-row:last-child { border: none; }
+  .mol-formula {
+    width: 44px; height: 44px; border-radius: 12px; background: #f0f7f0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; color: #2d8a4e;
+  }
+  .mol-info { flex: 1; }
+  .mol-name { font-size: 13px; font-weight: 600; }
+  .mol-detail { font-size: 11px; color: #7a9a7a; margin-top: 1px; }
+  .mol-badge {
+    padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 700;
+    background: #e8f5e8; color: #2d8a4e;
+  }
+  .mol-badge.caution { background: #fef3e0; color: #c87b00; }
+
+  /* Safety Scenarios */
+  .scenarios {
+    margin: 0 28px; display: flex; gap: 10px;
+  }
+  .scenario-card {
+    flex: 1; padding: 14px; border-radius: 16px; background: #fff;
+    border: 1px solid #e0ebe0; text-align: center;
+  }
+  .scenario-icon { font-size: 28px; margin-bottom: 6px; }
+  .scenario-name { font-size: 11px; font-weight: 600; color: #5a7a5a; margin-bottom: 6px; }
+  .scenario-status {
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    font-size: 11px; font-weight: 700;
+  }
+  .scenario-status.safe { color: #2d8a4e; }
+  .scenario-status.warn { color: #c87b00; }
+  .scenario-status.danger { color: #d04040; }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+  }
+  .status-dot.green { background: #2d8a4e; }
+  .status-dot.yellow { background: #c87b00; }
+  .status-dot.red { background: #d04040; }
+
+  /* Degradation Timeline */
+  .degrade-card {
+    margin: 14px 28px; padding: 18px; border-radius: 20px; background: #fff;
+    border: 1px solid #e0ebe0;
+  }
+  .degrade-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .degrade-title { font-size: 14px; font-weight: 700; }
+  .degrade-time { font-size: 22px; font-weight: 900; color: #c87b00; }
+  .degrade-time span { font-size: 12px; font-weight: 600; color: #7a9a7a; }
+  .timeline {
+    height: 8px; border-radius: 4px; background: #f0f0f0; position: relative; overflow: hidden;
+  }
+  .timeline-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, #2d8a4e, #c87b00, #d04040);
+    width: 35%;
+  }
+  .timeline-labels {
+    display: flex; justify-content: space-between; margin-top: 6px;
+    font-size: 10px; color: #7a9a7a; font-weight: 500;
+  }
+
+  /* Action Button */
+  .action-btn {
+    margin: 18px 28px; padding: 16px; border-radius: 16px;
+    background: linear-gradient(135deg, #2d8a4e, #34a85a);
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    font-size: 15px; font-weight: 700; color: #fff;
+    box-shadow: 0 6px 24px rgba(45,138,78,0.3);
+  }
+  .action-btn i { font-size: 18px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="nav">
+      <i class="fas fa-chevron-left nav-back"></i>
+      <div class="nav-title">Scan Result</div>
+    </div>
+
+    <div class="product-hero">
+      <img src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=500&h=300&fit=crop" alt="">
+      <div class="product-hero-overlay">
+        <div class="product-hero-name">PET Water Bottle</div>
+        <div class="product-hero-type">Polyethylene Terephthalate · Resin Code #1</div>
+      </div>
+    </div>
+
+    <div class="chem-card">
+      <div class="chem-header">
+        <div class="chem-icon"><i class="fas fa-atom"></i></div>
+        <div>
+          <div class="chem-title">Chemical Composition</div>
+          <div class="chem-sub">Molecular analysis result</div>
+        </div>
+      </div>
+      <div class="molecule-row">
+        <div class="mol-formula">C₁₀</div>
+        <div class="mol-info">
+          <div class="mol-name">Ethylene Glycol Unit</div>
+          <div class="mol-detail">Primary monomer · Stable below 80°C</div>
+        </div>
+        <div class="mol-badge">Stable</div>
+      </div>
+      <div class="molecule-row">
+        <div class="mol-formula">TPA</div>
+        <div class="mol-info">
+          <div class="mol-name">Terephthalic Acid</div>
+          <div class="mol-detail">Aromatic compound · Low migration</div>
+        </div>
+        <div class="mol-badge">Stable</div>
+      </div>
+      <div class="molecule-row">
+        <div class="mol-formula">Sb₂O₃</div>
+        <div class="mol-info">
+          <div class="mol-name">Antimony Trioxide</div>
+          <div class="mol-detail">Catalyst residue · Trace level</div>
+        </div>
+        <div class="mol-badge caution">Trace</div>
+      </div>
+    </div>
+
+    <div class="scenarios">
+      <div class="scenario-card">
+        <div class="scenario-icon">🥤</div>
+        <div class="scenario-name">Cold Drink</div>
+        <div class="scenario-status safe">
+          <div class="status-dot green"></div> Safe
+        </div>
+      </div>
+      <div class="scenario-card">
+        <div class="scenario-icon">☀️</div>
+        <div class="scenario-name">Sun Exposure</div>
+        <div class="scenario-status warn">
+          <div class="status-dot yellow"></div> Caution
+        </div>
+      </div>
+      <div class="scenario-card">
+        <div class="scenario-icon">🔥</div>
+        <div class="scenario-name">Microwave</div>
+        <div class="scenario-status danger">
+          <div class="status-dot red"></div> Avoid
+        </div>
+      </div>
+    </div>
+
+    <div class="degrade-card">
+      <div class="degrade-header">
+        <div class="degrade-title">Degradation Cycle</div>
+        <div class="degrade-time">450 <span>years</span></div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-fill"></div>
+      </div>
+      <div class="timeline-labels">
+        <span>Produced</span>
+        <span>Fragmentation</span>
+        <span>Full Decay</span>
+      </div>
+    </div>
+
+    <div class="action-btn">
+      <i class="fas fa-arrows-rotate"></i>
+      Find Sustainable Swap
+    </div>
+  </div>
+</body>
+</html>

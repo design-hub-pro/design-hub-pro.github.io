@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoLens AI - Profile</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; scrollbar-width: none; font-family: 'Inter', sans-serif; }
+  body { background: #f8faf8; color: #1a2e1a; position: relative; }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center;
+    position: relative; z-index: 100; background: #f8faf8;
+  }
+  .status-time { font-size: 15px; font-weight: 700; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  }
+
+  .content { height: calc(100% - 59px); overflow-y: auto; scrollbar-width: none; padding-bottom: 100px; }
+  .content::-webkit-scrollbar { display: none; }
+
+  /* Profile Header */
+  .profile-header {
+    text-align: center; padding: 16px 28px 0;
+  }
+  .profile-avatar {
+    width: 84px; height: 84px; border-radius: 50%; margin: 0 auto 12px;
+    overflow: hidden; border: 3px solid #2d8a4e;
+    box-shadow: 0 4px 20px rgba(45,138,78,0.2);
+  }
+  .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .profile-name { font-size: 22px; font-weight: 800; }
+  .profile-handle { font-size: 13px; color: #7a9a7a; margin-top: 2px; }
+  .profile-badges {
+    display: flex; justify-content: center; gap: 8px; margin-top: 12px;
+  }
+  .badge-item {
+    padding: 6px 14px; border-radius: 12px; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .badge-item.eco { background: #e8f5e8; color: #2d8a4e; }
+  .badge-item.tier { background: linear-gradient(135deg, #fef3e0, #fde8c0); color: #b45309; }
+
+  /* Stats Grid */
+  .stats-row {
+    margin: 18px 28px; display: flex; gap: 8px;
+  }
+  .stat-item {
+    flex: 1; padding: 16px 10px; border-radius: 18px; background: #fff;
+    border: 1px solid #e0ebe0; text-align: center;
+  }
+  .stat-num { font-size: 24px; font-weight: 900; color: #2d8a4e; }
+  .stat-label { font-size: 10px; color: #7a9a7a; font-weight: 600; margin-top: 2px; }
+
+  /* Achievements */
+  .section-title { padding: 14px 28px 10px; font-size: 15px; font-weight: 700; }
+  .achievements {
+    display: flex; gap: 10px; padding: 0 28px; overflow-x: auto; scrollbar-width: none;
+  }
+  .achievements::-webkit-scrollbar { display: none; }
+  .achievement {
+    min-width: 90px; padding: 14px 10px; border-radius: 18px; text-align: center;
+    background: #fff; border: 1px solid #e0ebe0;
+  }
+  .achievement.earned { border-color: #2d8a4e; background: linear-gradient(180deg, #f0f7f0, #fff); }
+  .achievement-icon { font-size: 30px; margin-bottom: 6px; }
+  .achievement-name { font-size: 10px; font-weight: 700; color: #1a2e1a; }
+  .achievement.locked { opacity: 0.4; }
+  .achievement.locked .achievement-name { color: #b0c0b0; }
+
+  /* Settings List */
+  .settings-list { padding: 0 28px; }
+  .settings-group {
+    background: #fff; border-radius: 18px; border: 1px solid #e0ebe0;
+    overflow: hidden; margin-bottom: 12px;
+  }
+  .setting-item {
+    display: flex; align-items: center; gap: 14px; padding: 15px 16px;
+    border-bottom: 1px solid #f0f5f0;
+  }
+  .setting-item:last-child { border: none; }
+  .setting-icon {
+    width: 36px; height: 36px; border-radius: 10px; display: flex;
+    align-items: center; justify-content: center; font-size: 15px;
+  }
+  .setting-icon.green { background: #e8f5e8; color: #2d8a4e; }
+  .setting-icon.blue { background: #e8f0f5; color: #2d6a8a; }
+  .setting-icon.amber { background: #fef3e0; color: #b45309; }
+  .setting-icon.purple { background: #f0e8f5; color: #6a2d8a; }
+  .setting-icon.red { background: #fee8e8; color: #d04040; }
+  .setting-label { flex: 1; font-size: 14px; font-weight: 600; }
+  .setting-arrow { font-size: 13px; color: #c0d0c0; }
+  .setting-toggle {
+    width: 48px; height: 28px; border-radius: 14px; background: #2d8a4e;
+    position: relative;
+  }
+  .toggle-dot {
+    width: 22px; height: 22px; border-radius: 50%; background: #fff;
+    position: absolute; top: 3px; right: 3px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(248,250,248,0.95); backdrop-filter: blur(30px);
+    border-top: 1px solid #e0ebe0;
+    display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px;
+    z-index: 200;
+  }
+  .tab-item { text-align: center; width: 60px; }
+  .tab-icon { font-size: 22px; color: #b0c0b0; margin-bottom: 4px; }
+  .tab-label { font-size: 10px; color: #b0c0b0; font-weight: 600; }
+  .tab-item.active .tab-icon { color: #2d8a4e; }
+  .tab-item.active .tab-label { color: #2d8a4e; }
+  .home-indicator {
+    width: 134px; height: 5px; background: #1a2e1a; border-radius: 3px;
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); opacity: 0.2;
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="profile-header">
+      <div class="profile-avatar">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face" alt="">
+      </div>
+      <div class="profile-name">Caleb</div>
+      <div class="profile-handle">@caleb · Joined Dec 2024</div>
+      <div class="profile-badges">
+        <div class="badge-item eco"><i class="fas fa-leaf"></i> Eco Hero</div>
+        <div class="badge-item tier"><i class="fas fa-gem"></i> Gold</div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-item">
+        <div class="stat-num">24</div>
+        <div class="stat-label">Scans</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">12</div>
+        <div class="stat-label">Swaps</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">724</div>
+        <div class="stat-label">Green Pts</div>
+      </div>
+    </div>
+
+    <div class="section-title">Achievements</div>
+    <div class="achievements">
+      <div class="achievement earned">
+        <div class="achievement-icon">🌱</div>
+        <div class="achievement-name">First Scan</div>
+      </div>
+      <div class="achievement earned">
+        <div class="achievement-icon">♻️</div>
+        <div class="achievement-name">First Swap</div>
+      </div>
+      <div class="achievement earned">
+        <div class="achievement-icon">🏆</div>
+        <div class="achievement-name">10 Scans</div>
+      </div>
+      <div class="achievement earned">
+        <div class="achievement-icon">💎</div>
+        <div class="achievement-name">Gold Tier</div>
+      </div>
+      <div class="achievement locked">
+        <div class="achievement-icon">🌍</div>
+        <div class="achievement-name">50 Scans</div>
+      </div>
+      <div class="achievement locked">
+        <div class="achievement-icon">👑</div>
+        <div class="achievement-name">Platinum</div>
+      </div>
+    </div>
+
+    <div class="section-title">Settings</div>
+    <div class="settings-list">
+      <div class="settings-group">
+        <div class="setting-item">
+          <div class="setting-icon green"><i class="fas fa-bell"></i></div>
+          <div class="setting-label">Notifications</div>
+          <div class="setting-toggle"><div class="toggle-dot"></div></div>
+        </div>
+        <div class="setting-item">
+          <div class="setting-icon blue"><i class="fas fa-globe"></i></div>
+          <div class="setting-label">Region</div>
+          <i class="fas fa-chevron-right setting-arrow"></i>
+        </div>
+        <div class="setting-item">
+          <div class="setting-icon amber"><i class="fas fa-database"></i></div>
+          <div class="setting-label">Data & Privacy</div>
+          <i class="fas fa-chevron-right setting-arrow"></i>
+        </div>
+      </div>
+      <div class="settings-group">
+        <div class="setting-item">
+          <div class="setting-icon purple"><i class="fas fa-question-circle"></i></div>
+          <div class="setting-label">Help & Support</div>
+          <i class="fas fa-chevron-right setting-arrow"></i>
+        </div>
+        <div class="setting-item">
+          <div class="setting-icon red"><i class="fas fa-sign-out-alt"></i></div>
+          <div class="setting-label">Sign Out</div>
+          <i class="fas fa-chevron-right setting-arrow"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-home"></i></div>
+      <div class="tab-label">Home</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-camera"></i></div>
+      <div class="tab-label">Scan</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-scale-balanced"></i></div>
+      <div class="tab-label">Trade-off</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-arrows-rotate"></i></div>
+      <div class="tab-label">Swap</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-chart-line"></i></div>
+      <div class="tab-label">Impact</div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

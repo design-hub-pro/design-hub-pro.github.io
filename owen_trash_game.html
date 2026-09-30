@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owen's Garbage Truck Game! 🚛</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { overflow: hidden; background: #87CEEB; font-family: 'Comic Sans MS', 'Chalkboard SE', cursive; user-select: none; -webkit-user-select: none; }
+        canvas { display: block; cursor: pointer; }
+    </style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+// ── Audio ──
+let audioCtx;
+function ensureAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+
+function playHonk() {
+    ensureAudio();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'square';
+    o.frequency.setValueAtTime(180, audioCtx.currentTime);
+    o.frequency.setValueAtTime(220, audioCtx.currentTime + 0.15);
+    o.frequency.setValueAtTime(180, audioCtx.currentTime + 0.3);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+    o.start(); o.stop(audioCtx.currentTime + 0.5);
+}
+function playVroom() {
+    ensureAudio();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(70, audioCtx.currentTime);
+    o.frequency.linearRampToValueAtTime(130, audioCtx.currentTime + 0.3);
+    o.frequency.linearRampToValueAtTime(90, audioCtx.currentTime + 0.5);
+    g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+    o.start(); o.stop(audioCtx.currentTime + 0.6);
+}
+function playGrab() {
+    ensureAudio();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(200, audioCtx.currentTime);
+    o.frequency.linearRampToValueAtTime(500, audioCtx.currentTime + 0.2);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+    o.start(); o.stop(audioCtx.currentTime + 0.3);
+}
+function playDump() {
+    ensureAudio();
+    // Crash/dump sound
+    const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.4, audioCtx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.08)) * 0.3;
+    }
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    src.connect(audioCtx.destination);
+    src.start();
+}
+function playDing() {
+    ensureAudio();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(800, audioCtx.currentTime);
+    o.frequency.setValueAtTime(1200, audioCtx.currentTime + 0.1);
+    o.frequency.setValueAtTime(1600, audioCtx.currentTime + 0.2);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+    o.start(); o.stop(audioCtx.currentTime + 0.5);
+}
+function playWin() {
+    ensureAudio();
+    [0, 0.15, 0.3, 0.45].forEach((delay, i) => {
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.connect(g); g.connect(audioCtx.destination);
+        o.type = 'triangle';
+        o.frequency.setValueAtTime([523, 659, 784, 1047][i], audioCtx.currentTime + delay);
+        g.gain.setValueAtTime(0.15, audioCtx.currentTime + delay);
+        g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + delay + 0.3);
+        o.start(audioCtx.currentTime + delay);
+        o.stop(audioCtx.currentTime + delay + 0.3);
+    });
+}
+
+// ── Game State ──
+let keysDown = {};
+let worldOffset = 0;
+let truckWheelAngle = 0;
+let moving = false;
+let honking = false, honkTimer = 0;
+let sparkles = [], confetti = [], exhaustPuffs = [], stinkLines = [];
+let exhaustTimer = 0;
+let nameTimer = 0;
+let score = 0;
+const TOTAL_BINS = 8;
+
+// Pickup animation state
+let pickupState = 'idle'; // idle, approaching, grabbing, lifting, dumping, lowering, done
+let pickupTimer = 0;
+let pickupBin = null;
+let armAngle = 0;
+let trashParticles = [];
+
+// Bin colors & types
+const binTypes = [
+    { color: '#2E7D32', lid: '#1B5E20', label: '♻', type: 'Recycle' },
+    { color: '#1565C0', lid: '#0D47A1', label: '📦', type: 'Paper' },
+    { color: '#424242', lid: '#212121', label: '🗑', type: 'Trash' },
+    { color: '#F9A825', lid: '#F57F17', label: '⚠', type: 'Compost' },
+];
+
+let bins = [];
+let clouds = [];
+let trees = [];
+let houses = [];
+
+function initScene() {
+    clouds = [];
+    for (let i = 0; i < 6; i++) {
+        clouds.push({ x: Math.random() * canvas.width * 2, y: 25 + Math.random() * canvas.height * 0.12, w: 70 + Math.random() * 90, speed: 0.15 + Math.random() * 0.25 });
+    }
+    trees = [];
+    for (let i = 0; i < 10; i++) {
+        trees.push({ x: Math.random() * canvas.width * 3 });
+    }
+    houses = [];
+    const hColors = ['#FFCDD2','#B3E5FC','#FFF9C4','#C8E6C9','#E1BEE7','#FFE0B2'];
+    for (let i = 0; i < 5; i++) {
+        houses.push({ x: 150 + i * canvas.width * 0.45, color: hColors[i % hColors.length] });
+    }
+    resetBins();
+}
+
+function resetBins() {
+    bins = [];
+    score = 0;
+    worldOffset = 0;
+    pickupState = 'idle';
+    pickupBin = null;
+    for (let i = 0; i < TOTAL_BINS; i++) {
+        const bt = binTypes[i % binTypes.length];
+        bins.push({
+            worldX: 350 + i * 320,
+            collected: false,
+            color: bt.color,
+            lid: bt.lid,
+            label: bt.label,
+            type: bt.type,
+            wobble: 0,
+            falling: false,
+            fallAngle: 0,
+            scaleY: 1,
+            offsetY: 0,
+            lidOpen: 0,
+        });
+    }
+}
+
+initScene();
+
+// ── Drawing helpers ──
+function drawCloud(x, y, w) {
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.beginPath();
+    ctx.arc(x, y, w * 0.3, 0, Math.PI * 2);
+    ctx.arc(x + w * 0.25, y - w * 0.15, w * 0.35, 0, Math.PI * 2);
+    ctx.arc(x + w * 0.55, y, w * 0.28, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function drawTree(x, gy) {
+    ctx.fillStyle = '#795548';
+    ctx.fillRect(x - 7, gy - 65, 14, 65);
+    ctx.fillStyle = '#2E7D32';
+    ctx.beginPath(); ctx.arc(x, gy - 75, 30, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#388E3C';
+    ctx.beginPath(); ctx.arc(x - 10, gy - 65, 22, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + 13, gy - 70, 25, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawHouse(x, gy, color) {
+    const hw = 75, hh = 65;
+    ctx.fillStyle = color;
+    ctx.fillRect(x, gy - hh, hw, hh);
+    ctx.fillStyle = '#5D4037';
+    ctx.beginPath();
+    ctx.moveTo(x - 8, gy - hh);
+    ctx.lineTo(x + hw/2, gy - hh - 35);
+    ctx.lineTo(x + hw + 8, gy - hh);
+    ctx.fill();
+    ctx.fillStyle = '#FFF9C4';
+    ctx.fillRect(x + 12, gy - hh + 14, 18, 18);
+    ctx.fillRect(x + 44, gy - hh + 14, 18, 18);
+    ctx.fillStyle = '#6D4C41';
+    ctx.fillRect(x + 28, gy - 32, 18, 32);
+}
+
+function drawSun() {
+    const sx = canvas.width - 90, sy = 70;
+    ctx.fillStyle = '#FFF176';
+    ctx.shadowColor = '#FFEB3B'; ctx.shadowBlur = 35;
+    ctx.beginPath(); ctx.arc(sx, sy, 32, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#FFD600'; ctx.lineWidth = 3;
+    for (let i = 0; i < 8; i++) {
+        const a = (Math.PI * 2 / 8) * i + Date.now() * 0.001;
+        ctx.beginPath();
+        ctx.moveTo(sx + Math.cos(a) * 38, sy + Math.sin(a) * 38);
+        ctx.lineTo(sx + Math.cos(a) * 50, sy + Math.sin(a) * 50);
+        ctx.stroke();
+    }
+}
+
+// ── Draw Trash Bin ──
+function drawBin(bin, groundY) {
+    const sx = bin.worldX - worldOffset;
+    if (sx < -60 || sx > canvas.width + 60) return;
+    if (bin.collected) return;
+
+    ctx.save();
+    const bx = sx, by = groundY;
+    const bw = 30, bh = 42;
+    const binBottom = by;
+
+    ctx.translate(bx, binBottom + bin.offsetY);
+    if (bin.falling) ctx.rotate(bin.fallAngle);
+    ctx.scale(1, bin.scaleY);
+
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+    ctx.beginPath();
+    ctx.ellipse(0, 2, bw * 0.6, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Can body
+    ctx.fillStyle = bin.color;
+    ctx.beginPath();
+    ctx.roundRect(-bw/2, -bh, bw, bh, 4);
+    ctx.fill();
+
+    // Highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fillRect(-bw/2 + 3, -bh + 4, 6, bh - 8);
+
+    // Ridges
+    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+    ctx.lineWidth = 1;
+    for (let r = 0; r < 3; r++) {
+        const ry = -bh + 12 + r * 10;
+        ctx.beginPath(); ctx.moveTo(-bw/2 + 2, ry); ctx.lineTo(bw/2 - 2, ry); ctx.stroke();
+    }
+
+    // Lid
+    ctx.save();
+    ctx.translate(0, -bh);
+    ctx.rotate(-bin.lidOpen * 1.2);
+    ctx.fillStyle = bin.lid;
+    ctx.beginPath();
+    ctx.roundRect(-bw/2 - 2, -7, bw + 4, 9, [3, 3, 0, 0]);
+    ctx.fill();
+    // Handle
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillRect(-4, -10, 8, 5);
+    ctx.restore();
+
+    // Label emoji
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(bin.label, 0, -bh/2 + 6);
+
+    // Wobble effect
+    if (bin.wobble > 0) {
+        const wob = Math.sin(bin.wobble * 12) * bin.wobble * 3;
+        ctx.translate(wob, 0);
+    }
+
+    ctx.restore();
+
+    // Type label below
+    ctx.fillStyle = '#555';
+    ctx.font = 'bold 10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(bin.type, sx, binBottom + 15 + bin.offsetY);
+}
+
+// ── Draw Garbage Truck ──
+function drawTruck(x, y, w, h, armAng, grabbing) {
+    const r = 10;
+
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    ctx.beginPath();
+    ctx.ellipse(x + w/2, y + h + 10, w * 0.45, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Rear compactor body
+    ctx.fillStyle = '#388E3C';
+    ctx.beginPath(); ctx.roundRect(x, y, w * 0.6, h, r); ctx.fill();
+
+    // Body gradient overlay
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    ctx.fillRect(x + 3, y + 3, w * 0.6 - 6, h * 0.4);
+
+    // Panel lines
+    ctx.strokeStyle = '#2E7D32';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x + w * 0.2, y + 3); ctx.lineTo(x + w * 0.2, y + h - 3); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x + w * 0.4, y + 3); ctx.lineTo(x + w * 0.4, y + h - 3); ctx.stroke();
+
+    // Compactor opening (rear)
+    ctx.fillStyle = '#1B5E20';
+    ctx.beginPath(); ctx.roundRect(x - 4, y + h * 0.25, 8, h * 0.5, 3); ctx.fill();
+
+    // Fill level indicator
+    const fillPct = score / TOTAL_BINS;
+    ctx.fillStyle = '#795548';
+    ctx.fillRect(x + 6, y + h * 0.15, w * 0.12, h * 0.7);
+    ctx.fillStyle = '#8D6E63';
+    ctx.fillRect(x + 6, y + h * 0.15 + h * 0.7 * (1 - fillPct), w * 0.12, h * 0.7 * fillPct);
+    ctx.strokeStyle = '#5D4037';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x + 6, y + h * 0.15, w * 0.12, h * 0.7);
+
+    // Cab
+    ctx.fillStyle = '#E8E8E8';
+    ctx.beginPath(); ctx.roundRect(x + w * 0.57, y + h * 0.12, w * 0.43, h * 0.88, [0, r, r, 0]); ctx.fill();
+
+    // Cab window
+    ctx.fillStyle = '#64B5F6';
+    ctx.beginPath(); ctx.roundRect(x + w * 0.67, y + h * 0.2, w * 0.26, h * 0.33, 4); ctx.fill();
+    // Window glare
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.beginPath();
+    ctx.moveTo(x + w * 0.67 + 3, y + h * 0.2 + 3);
+    ctx.lineTo(x + w * 0.67 + 12, y + h * 0.2 + 3);
+    ctx.lineTo(x + w * 0.67 + 3, y + h * 0.2 + 15);
+    ctx.fill();
+
+    // Driver silhouette
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.arc(x + w * 0.8, y + h * 0.35, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(x + w * 0.76, y + h * 0.42, 8, 8);
+
+    // Green stripe
+    ctx.fillStyle = '#43A047';
+    ctx.fillRect(x + w * 0.57, y + h * 0.65, w * 0.43, h * 0.08);
+
+    // "WASTE CO." text
+    ctx.fillStyle = '#fff';
+    ctx.font = `bold ${Math.max(10, w * 0.045)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('OWEN\'S TRASH CO.', x + w * 0.3, y + h * 0.55);
+
+    // Headlights
+    ctx.fillStyle = '#FFF9C4';
+    ctx.shadowColor = '#FFEB3B'; ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.arc(x + w + 2, y + h * 0.55, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + w + 2, y + h * 0.72, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Rear lights
+    ctx.fillStyle = '#F44336';
+    ctx.beginPath(); ctx.arc(x - 2, y + h * 0.4, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x - 2, y + h * 0.6, 4, 0, Math.PI * 2); ctx.fill();
+
+    // Bumpers
+    ctx.fillStyle = '#999';
+    ctx.fillRect(x + w - 2, y + h * 0.84, 10, h * 0.1);
+    ctx.fillRect(x - 6, y + h * 0.84, 10, h * 0.1);
+
+    // ── Hydraulic Arm ──
+    ctx.save();
+    const armPivotX = x + w * 0.08;
+    const armPivotY = y + h * 0.1;
+    ctx.translate(armPivotX, armPivotY);
+    ctx.rotate(armAng);
+
+    const armLen = w * 0.55;
+    // Arm base
+    ctx.fillStyle = '#F57F17';
+    ctx.beginPath(); ctx.roundRect(-6, -4, armLen, 10, 4); ctx.fill();
+    // Hydraulic cylinder
+    ctx.fillStyle = '#BDBDBD';
+    ctx.fillRect(8, -2, armLen * 0.5, 6);
+    ctx.fillStyle = '#9E9E9E';
+    ctx.fillRect(8 + armLen * 0.3, -1, armLen * 0.25, 4);
+
+    // Fork/grabber at end
+    ctx.save();
+    ctx.translate(armLen - 2, 3);
+    const forkOpen = grabbing ? 0.15 : 0.5;
+    // Left prong
+    ctx.fillStyle = '#E65100';
+    ctx.save(); ctx.rotate(forkOpen);
+    ctx.fillRect(0, 0, 4, 25); ctx.fillRect(-2, 22, 8, 4);
+    ctx.restore();
+    // Right prong
+    ctx.save(); ctx.rotate(-forkOpen);
+    ctx.fillRect(-4, 0, 4, 25); ctx.fillRect(-6, 22, 8, 4);
+    ctx.restore();
+    ctx.restore();
+
+    ctx.restore();
+
+    // Wheels
+    const wheelR = h * 0.2;
+    const w1x = x + w * 0.17, w2x = x + w * 0.76;
+    const wy = y + h + 2;
+    [w1x, w2x].forEach(wx => {
+        ctx.fillStyle = '#222';
+        ctx.beginPath(); ctx.arc(wx, wy, wheelR, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#444';
+        ctx.beginPath(); ctx.arc(wx, wy, wheelR * 0.6, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#666'; ctx.lineWidth = 2;
+        for (let s = 0; s < 5; s++) {
+            const a = truckWheelAngle + (Math.PI * 2 / 5) * s;
+            ctx.beginPath();
+            ctx.moveTo(wx, wy);
+            ctx.lineTo(wx + Math.cos(a) * wheelR * 0.55, wy + Math.sin(a) * wheelR * 0.55);
+            ctx.stroke();
+        }
+        ctx.fillStyle = '#777';
+        ctx.beginPath(); ctx.arc(wx, wy, wheelR * 0.15, 0, Math.PI * 2); ctx.fill();
+    });
+
+    // Honk
+    if (honking) {
+        ctx.font = `bold ${28 + honkTimer * 2}px sans-serif`;
+        ctx.fillStyle = `rgba(56,142,60,${1 - honkTimer / 25})`;
+        ctx.textAlign = 'center';
+        ctx.fillText('HONK HONK!', x + w/2, y - 20 - honkTimer * 2);
+    }
+}
+
+// ── Trash Particles ──
+function spawnTrashParticles(x, y) {
+    const colors = ['#8D6E63','#A1887F','#6D4C41','#795548','#9E9E9E','#78909C'];
+    const shapes = ['rect','circle'];
+    for (let i = 0; i < 15; i++) {
+        trashParticles.push({
+            x: x + (Math.random() - 0.5) * 20,
+            y: y,
+            vx: (Math.random() - 0.5) * 4,
+            vy: -Math.random() * 6 - 2,
+            size: 3 + Math.random() * 5,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            shape: shapes[Math.floor(Math.random() * shapes.length)],
+            rot: Math.random() * Math.PI * 2,
+            rotV: (Math.random() - 0.5) * 0.3,
+            life: 40 + Math.random() * 30,
+            maxLife: 70,
+        });
+    }
+}
+
+function spawnSparkles(x, y, count) {
+    for (let i = 0; i < count; i++) {
+        sparkles.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 5,
+            vy: (Math.random() - 0.5) * 5 - 2,
+            size: 3 + Math.random() * 6,
+            life: 25 + Math.random() * 20,
+            maxLife: 45,
+        });
+    }
+}
+
+function spawnConfetti(x, y) {
+    const colors = ['#FF6B6B','#4ECDC4','#FFE66D','#A78BFA','#FB923C','#34D399','#FF69B4','#4FC3F7'];
+    for (let i = 0; i < 50; i++) {
+        confetti.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 14,
+            vy: -Math.random() * 12 - 4,
+            w: 5 + Math.random() * 7,
+            h: 3 + Math.random() * 5,
+            rot: Math.random() * Math.PI * 2,
+            rotV: (Math.random() - 0.5) * 0.4,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            life: 80 + Math.random() * 50,
+        });
+    }
+}
+
+function spawnStink(x, y) {
+    for (let i = 0; i < 4; i++) {
+        stinkLines.push({
+            x: x + (Math.random() - 0.5) * 15,
+            y: y,
+            life: 30 + Math.random() * 20,
+            maxLife: 50,
+            wiggle: Math.random() * Math.PI * 2,
+        });
+    }
+}
+
+// ── Game Loop ──
+let lastTime = 0;
+function gameLoop(time) {
+    const dt = Math.min((time - lastTime) / 16.67, 3);
+    lastTime = time;
+    const W = canvas.width, H = canvas.height;
+    const groundY = H * 0.72;
+    const roadY = groundY + 10;
+    const roadH = H * 0.14;
+
+    // ── Sky ──
+    const sky = ctx.createLinearGradient(0, 0, 0, groundY);
+    sky.addColorStop(0, '#42A5F5');
+    sky.addColorStop(1, '#BBDEFB');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, groundY);
+    drawSun();
+
+    // ── Movement ──
+    let moveDir = 0;
+    if (keysDown['ArrowRight']) moveDir = 1;
+    else if (keysDown['ArrowLeft']) moveDir = -1;
+
+    const canMove = pickupState === 'idle';
+    if (moveDir !== 0 && canMove) {
+        if (!moving) { moving = true; playVroom(); }
+        worldOffset += 3.5 * moveDir * dt;
+        if (worldOffset < 0) worldOffset = 0;
+        truckWheelAngle += 0.15 * moveDir * dt;
+    } else if (pickupState === 'idle') {
+        moving = false;
+    }
+
+    // ── Clouds ──
+    clouds.forEach(c => {
+        c.x -= c.speed * dt;
+        if (moving) c.x -= 1 * moveDir * dt;
+        if (c.x + c.w < -50) c.x = W + 100;
+        if (c.x > W + 150) c.x = -c.w - 50;
+        drawCloud(c.x, c.y, c.w);
+    });
+
+    // ── Ground ──
+    ctx.fillStyle = '#4CAF50';
+    ctx.fillRect(0, groundY, W, H - groundY);
+
+    // Road
+    ctx.fillStyle = '#616161';
+    ctx.fillRect(0, roadY, W, roadH);
+    // Curb
+    ctx.fillStyle = '#9E9E9E';
+    ctx.fillRect(0, roadY - 3, W, 5);
+    // Dashes
+    ctx.setLineDash([18, 14]);
+    ctx.strokeStyle = '#FFD600'; ctx.lineWidth = 3;
+    ctx.lineDashOffset = -worldOffset;
+    ctx.beginPath(); ctx.moveTo(0, roadY + roadH * 0.5); ctx.lineTo(W, roadY + roadH * 0.5); ctx.stroke();
+    ctx.setLineDash([]); ctx.lineDashOffset = 0;
+
+    // Grass
+    ctx.fillStyle = '#388E3C';
+    const gOff = -(worldOffset % 28);
+    for (let i = gOff; i < W + 28; i += 28) {
+        ctx.beginPath(); ctx.moveTo(i, groundY + 10); ctx.lineTo(i + 5, groundY); ctx.lineTo(i + 10, groundY + 10); ctx.fill();
+    }
+
+    // ── Background scenery ──
+    trees.forEach(t => {
+        const sx = ((t.x - worldOffset * 0.6) % (W * 3) + W * 3) % (W * 3) - W * 0.3;
+        drawTree(sx, groundY);
+    });
+    houses.forEach(h => {
+        const sx = ((h.x - worldOffset * 0.5) % (W * 2.5) + W * 2.5) % (W * 2.5) - W * 0.2;
+        drawHouse(sx, groundY, h.color);
+    });
+
+    // ── Truck dimensions ──
+    const tw = Math.min(340, W * 0.34);
+    const th = tw * 0.36;
+    const tx = W * 0.12;
+    const truckBounce = moving ? Math.sin(Date.now() * 0.008) * 2 : 0;
+    const ty = roadY + (roadH - th) / 2 - 10 + truckBounce;
+
+    // ── Auto-stop near bin ──
+    if (moving && moveDir >= 0 && pickupState === 'idle') {
+        const nextBin = bins.find(b => !b.collected);
+        if (nextBin) {
+            const binSX = nextBin.worldX - worldOffset;
+            if (binSX < tx + tw * 0.2 && binSX > tx - 30) {
+                moving = false;
+                keysDown['ArrowRight'] = false;
+                keysDown['ArrowLeft'] = false;
+            }
+        }
+    }
+
+    // ── Draw bins ──
+    bins.forEach(b => drawBin(b, groundY));
+
+    // ── Pickup animation state machine ──
+    if (pickupState !== 'idle') {
+        pickupTimer += dt;
+        const bin = pickupBin;
+        const binSX = bin.worldX - worldOffset;
+
+        switch (pickupState) {
+            case 'wobble':
+                // Bin wobbles excitedly
+                bin.wobble = Math.max(0, 1.5 - pickupTimer * 0.05);
+                if (pickupTimer > 20) {
+                    pickupState = 'lid_open';
+                    pickupTimer = 0;
+                    playGrab();
+                }
+                break;
+            case 'lid_open':
+                // Lid pops open
+                bin.lidOpen = Math.min(1, pickupTimer * 0.08);
+                bin.wobble = Math.sin(pickupTimer * 0.5) * 0.2;
+                spawnStink(binSX, groundY - 50);
+                if (pickupTimer > 18) {
+                    pickupState = 'grab';
+                    pickupTimer = 0;
+                }
+                break;
+            case 'grab':
+                // Arm swings down
+                armAngle = Math.min(1.8, pickupTimer * 0.12);
+                if (pickupTimer > 16) {
+                    pickupState = 'lift';
+                    pickupTimer = 0;
+                    playGrab();
+                }
+                break;
+            case 'lift':
+                // Arm lifts bin up
+                armAngle = 1.8 - pickupTimer * 0.08;
+                bin.offsetY = Math.min(0, -pickupTimer * 4);
+                bin.scaleY = Math.max(0.7, 1 - pickupTimer * 0.015);
+                if (armAngle <= 0.3) {
+                    pickupState = 'dump';
+                    pickupTimer = 0;
+                    playDump();
+                    spawnTrashParticles(tx + tw * 0.15, ty);
+                    spawnStink(tx + tw * 0.15, ty - 10);
+                }
+                break;
+            case 'dump':
+                // Bin tips over and trash falls out
+                armAngle = 0.3 - pickupTimer * 0.02;
+                bin.fallAngle = Math.min(2.5, pickupTimer * 0.2);
+                bin.offsetY = -80 + pickupTimer * 0.5;
+                if (pickupTimer > 20) {
+                    pickupState = 'crush';
+                    pickupTimer = 0;
+                    playDump();
+                }
+                break;
+            case 'crush':
+                // Compactor crushes - truck shakes
+                bin.collected = true;
+                armAngle = Math.max(-0.5, armAngle - 0.05 * dt);
+                if (pickupTimer > 15) {
+                    pickupState = 'celebrate';
+                    pickupTimer = 0;
+                    score++;
+                    playDing();
+                    spawnSparkles(tx + tw/2, ty, 20);
+                    if (score >= TOTAL_BINS) {
+                        playWin();
+                        spawnConfetti(W/2, H * 0.35);
+                    }
+                }
+                break;
+            case 'celebrate':
+                armAngle = Math.max(-0.5, armAngle + ((-0.5 - armAngle) * 0.08));
+                if (pickupTimer > 20) {
+                    pickupState = 'idle';
+                    pickupTimer = 0;
+                    armAngle = -0.5;
+                    pickupBin = null;
+                }
+                break;
+        }
+    }
+
+    // ── Exhaust ──
+    if (moving) {
+        exhaustTimer += dt;
+        if (exhaustTimer > 4) {
+            exhaustTimer = 0;
+            exhaustPuffs.push({
+                x: tx - 5, y: ty + th * 0.7,
+                r: 4 + Math.random() * 3,
+                vx: -1.2 - Math.random(), vy: -0.4 - Math.random() * 0.4,
+                life: 28, maxLife: 28,
+            });
+        }
+    }
+    exhaustPuffs = exhaustPuffs.filter(p => p.life > 0);
+    exhaustPuffs.forEach(p => {
+        p.x += p.vx * dt; p.y += p.vy * dt; p.r += 0.12 * dt; p.life -= dt;
+        ctx.fillStyle = `rgba(180,180,180,${p.life / p.maxLife * 0.35})`;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+    });
+
+    // ── Draw truck ──
+    const isGrabbing = pickupState === 'lift' || pickupState === 'dump';
+    drawTruck(tx, ty, tw, th, armAngle, isGrabbing);
+
+    // ── Trash particles ──
+    trashParticles = trashParticles.filter(p => p.life > 0);
+    trashParticles.forEach(p => {
+        p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 0.2 * dt;
+        p.rot += p.rotV * dt; p.life -= dt;
+        ctx.save();
+        ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.globalAlpha = Math.min(1, p.life / 15);
+        ctx.fillStyle = p.color;
+        if (p.shape === 'circle') {
+            ctx.beginPath(); ctx.arc(0, 0, p.size/2, 0, Math.PI * 2); ctx.fill();
+        } else {
+            ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+        }
+        ctx.restore();
+    });
+
+    // ── Stink lines ──
+    stinkLines = stinkLines.filter(s => s.life > 0);
+    stinkLines.forEach(s => {
+        s.y -= 0.8 * dt; s.life -= dt; s.wiggle += 0.15 * dt;
+        const alpha = s.life / s.maxLife * 0.4;
+        ctx.strokeStyle = `rgba(150,180,50,${alpha})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        for (let i = 0; i < 12; i++) {
+            const px = s.x + Math.sin(s.wiggle + i * 0.5) * 6;
+            const py = s.y - i * 2;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+    });
+
+    // ── Sparkles ──
+    sparkles = sparkles.filter(s => s.life > 0);
+    sparkles.forEach(s => {
+        s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;
+        ctx.save();
+        ctx.globalAlpha = s.life / s.maxLife;
+        ctx.fillStyle = '#FFD700';
+        ctx.translate(s.x, s.y);
+        for (let i = 0; i < 4; i++) {
+            ctx.rotate(Math.PI / 4);
+            ctx.fillRect(-1, -s.size, 2, s.size * 2);
+        }
+        ctx.restore();
+    });
+
+    // ── Confetti ──
+    confetti = confetti.filter(c => c.life > 0);
+    confetti.forEach(c => {
+        c.x += c.vx * dt; c.y += c.vy * dt; c.vy += 0.15 * dt;
+        c.rot += c.rotV * dt; c.life -= dt;
+        ctx.save();
+        ctx.translate(c.x, c.y); ctx.rotate(c.rot);
+        ctx.fillStyle = c.color;
+        ctx.globalAlpha = Math.min(1, c.life / 15);
+        ctx.fillRect(-c.w/2, -c.h/2, c.w, c.h);
+        ctx.restore();
+    });
+
+    // ── HUD ──
+    // Title
+    nameTimer += dt;
+    ctx.font = `bold ${Math.min(44, W * 0.045)}px 'Comic Sans MS', cursive`;
+    ctx.textAlign = 'center';
+    const nY = 48 + Math.sin(nameTimer * 0.05) * 4;
+    const grad = ctx.createLinearGradient(W/2 - 160, 0, W/2 + 160, 0);
+    grad.addColorStop(0, '#2E7D32'); grad.addColorStop(0.5, '#43A047'); grad.addColorStop(1, '#66BB6A');
+    ctx.fillStyle = grad;
+    ctx.fillText("Owen's Trash Truck! 🚛", W/2, nY);
+
+    // Score
+    ctx.fillStyle = '#333';
+    ctx.font = `bold ${Math.min(26, W * 0.028)}px sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.fillText(`Bins: ${score}/${TOTAL_BINS}`, 20, 38);
+
+    // Progress bar
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.beginPath(); ctx.roundRect(20, 48, 140, 14, 7); ctx.fill();
+    ctx.fillStyle = '#43A047';
+    ctx.beginPath(); ctx.roundRect(20, 48, 140 * (score / TOTAL_BINS), 14, 7); ctx.fill();
+    for (let i = 0; i < TOTAL_BINS; i++) {
+        ctx.font = '13px sans-serif';
+        ctx.fillText(i < score ? '⭐' : '☆', 20 + i * 17, 80);
+    }
+
+    // Pickup prompt
+    if (pickupState === 'idle') {
+        const nextBin = bins.find(b => !b.collected);
+        if (nextBin) {
+            const binSX = nextBin.worldX - worldOffset;
+            if (Math.abs(binSX - (tx + tw * 0.15)) < 80) {
+                // Pulsing "PICK UP!" prompt
+                const pulse = 0.8 + Math.sin(Date.now() * 0.006) * 0.2;
+                ctx.save();
+                ctx.globalAlpha = pulse;
+                ctx.fillStyle = '#43A047';
+                ctx.font = `bold ${Math.min(22, W * 0.025)}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.fillText('⬇ TAP PICK UP! ⬇', tx + tw/2, ty - 30);
+                ctx.restore();
+            }
+        }
+    }
+
+    // Pickup state text
+    if (pickupState !== 'idle' && pickupState !== 'celebrate') {
+        const stateLabels = {
+            wobble: '🫨 Wobble!',
+            lid_open: '💨 Stinky!',
+            grab: '🦾 Grabbing...',
+            lift: '⬆ Lifting!',
+            dump: '🗑 Dumping!',
+            crush: '💪 Crushing!',
+        };
+        ctx.fillStyle = '#333';
+        ctx.font = `bold ${Math.min(20, W * 0.023)}px 'Comic Sans MS', cursive`;
+        ctx.textAlign = 'center';
+        ctx.fillText(stateLabels[pickupState] || '', tx + tw/2, ty - 25);
+    }
+
+    // Win
+    if (score >= TOTAL_BINS) {
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        ctx.fillRect(0, H * 0.3, W, H * 0.22);
+        ctx.fillStyle = '#43A047';
+        ctx.font = `bold ${Math.min(50, W * 0.055)}px 'Comic Sans MS', cursive`;
+        ctx.textAlign = 'center';
+        ctx.fillText('All Clean, Owen! 🎉🚛', W/2, H * 0.4);
+        ctx.fillStyle = 'white';
+        ctx.font = `${Math.min(22, W * 0.025)}px sans-serif`;
+        ctx.fillText('Tap anywhere to play again!', W/2, H * 0.47);
+    }
+
+    // ── Buttons ──
+    const bw = Math.min(130, W * 0.13);
+    const bh = Math.min(65, H * 0.085);
+    const gap = 10;
+    const btnY = H - bh - 18;
+    const btns = [
+        { id: 'honk', x: 18, y: btnY, w: bw, h: bh, label: 'HONK!', icon: '📢', color: '#FF7043' },
+        { id: 'pickup', x: 18 + bw + gap, y: btnY, w: bw, h: bh, label: 'PICK UP', icon: '🦾', color: pickupState !== 'idle' ? '#9E9E9E' : '#43A047' },
+    ];
+
+    btns.forEach(b => {
+        ctx.fillStyle = 'rgba(0,0,0,0.12)';
+        ctx.beginPath(); ctx.roundRect(b.x + 2, b.y + 3, b.w, b.h, 14); ctx.fill();
+        ctx.fillStyle = b.color;
+        ctx.beginPath(); ctx.roundRect(b.x, b.y, b.w, b.h, 14); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.18)';
+        ctx.beginPath(); ctx.roundRect(b.x, b.y, b.w, b.h * 0.48, [14, 14, 0, 0]); ctx.fill();
+        ctx.fillStyle = 'white';
+        ctx.font = `${Math.min(20, b.w * 0.17)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(b.icon, b.x + b.w/2, b.y + b.h * 0.37);
+        ctx.font = `bold ${Math.min(14, b.w * 0.12)}px sans-serif`;
+        ctx.fillText(b.label, b.x + b.w/2, b.y + b.h * 0.72);
+    });
+
+    // Arrow key indicators
+    const aSize = Math.min(52, W * 0.048);
+    const aGap = 8;
+    const aRX = W - aSize - 18;
+    const aLX = aRX - aSize - aGap;
+    const aY = H - aSize - 20;
+    // Left
+    ctx.fillStyle = keysDown['ArrowLeft'] ? '#43A047' : 'rgba(0,0,0,0.22)';
+    ctx.beginPath(); ctx.roundRect(aLX, aY, aSize, aSize, 13); ctx.fill();
+    ctx.fillStyle = 'white'; ctx.font = `bold ${aSize * 0.45}px sans-serif`; ctx.textAlign = 'center';
+    ctx.fillText('◀', aLX + aSize/2, aY + aSize * 0.62);
+    // Right
+    ctx.fillStyle = keysDown['ArrowRight'] ? '#43A047' : 'rgba(0,0,0,0.22)';
+    ctx.beginPath(); ctx.roundRect(aRX, aY, aSize, aSize, 13); ctx.fill();
+    ctx.fillStyle = 'white';
+    ctx.fillText('▶', aRX + aSize/2, aY + aSize * 0.62);
+
+    requestAnimationFrame(gameLoop);
+}
+
+// ── Start Pickup ──
+function startPickup() {
+    if (pickupState !== 'idle') return;
+    const W = canvas.width;
+    const tw = Math.min(340, W * 0.34);
+    const tx = W * 0.12;
+    const nextBin = bins.find(b => !b.collected);
+    if (!nextBin) return;
+    const binSX = nextBin.worldX - worldOffset;
+    if (Math.abs(binSX - (tx + tw * 0.15)) < 100) {
+        pickupBin = nextBin;
+        pickupState = 'wobble';
+        pickupTimer = 0;
+        armAngle = -0.5;
+        playGrab();
+    }
+}
+
+// ── Click handler ──
+canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const W = canvas.width, H = canvas.height;
+
+    if (score >= TOTAL_BINS) {
+        resetBins();
+        return;
+    }
+
+    // Buttons
+    const bw = Math.min(130, W * 0.13);
+    const bh = Math.min(65, H * 0.085);
+    const gap = 10;
+    const btnY = H - bh - 18;
+    // Honk
+    if (x >= 18 && x <= 18 + bw && y >= btnY && y <= btnY + bh) {
+        honking = true; honkTimer = 0; playHonk(); return;
+    }
+    // Pickup
+    if (x >= 18 + bw + gap && x <= 18 + bw * 2 + gap && y >= btnY && y <= btnY + bh) {
+        startPickup(); return;
+    }
+
+    // Arrow buttons
+    const aSize = Math.min(52, W * 0.048);
+    const aGap = 8;
+    const aRX = W - aSize - 18;
+    const aLX = aRX - aSize - aGap;
+    const aY = H - aSize - 20;
+    if (x >= aLX && x <= aLX + aSize && y >= aY && y <= aY + aSize) {
+        keysDown['ArrowLeft'] = true;
+        if (!moving) { moving = true; playVroom(); }
+        setTimeout(() => { keysDown['ArrowLeft'] = false; moving = false; }, 500);
+        return;
+    }
+    if (x >= aRX && x <= aRX + aSize && y >= aY && y <= aY + aSize) {
+        keysDown['ArrowRight'] = true;
+        if (!moving) { moving = true; playVroom(); }
+        setTimeout(() => { keysDown['ArrowRight'] = false; moving = false; }, 500);
+        return;
+    }
+
+    // Tap truck = honk
+    const tw = Math.min(340, W * 0.34);
+    const th = tw * 0.36;
+    const tx = W * 0.12;
+    const roadY = H * 0.72 + 10;
+    const ty = roadY + (H * 0.14 - th) / 2 - 10;
+    if (x >= tx && x <= tx + tw && y >= ty && y <= ty + th + 20) {
+        honking = true; honkTimer = 0; playHonk();
+        spawnSparkles(x, y, 8);
+    }
+});
+
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const t = e.touches[0];
+    canvas.dispatchEvent(new MouseEvent('click', { clientX: t.clientX, clientY: t.clientY }));
+}, { passive: false });
+
+// Keyboard
+window.addEventListener('keydown', (e) => {
+    keysDown[e.key] = true;
+    if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault();
+    }
+    if (e.key === ' ' || e.key === 'ArrowUp') {
+        startPickup();
+    }
+});
+window.addEventListener('keyup', (e) => {
+    keysDown[e.key] = false;
+});
+
+// Honk timer in loop
+setInterval(() => {
+    if (honking) {
+        honkTimer += 1;
+        if (honkTimer > 25) { honking = false; honkTimer = 0; }
+    }
+}, 60);
+
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>

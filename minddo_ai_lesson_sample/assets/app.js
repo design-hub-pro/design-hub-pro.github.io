@@ -6,11 +6,18 @@ const STUDENT_WORK = {
   totalFields: 15,
   filledFields: 8,
   progressPct: 35,
-  mantou: { earned: 7, total: 35 },
+  mantou: { earned: 8, total: 36 },
   course: { name: "Mobile App Dev with AI", missionNum: 7, totalMissions: 20, missionsDone: 6 },
   activeMilestone: 3,
   activeMilestoneTitle: "Feature Planning",
   milestones: [
+    {
+      n: 0, color: "c0", emoji: "📺",
+      title: "Mission Briefing (Watch)", status: "done",
+      fields: [
+        { label: "Watched", value: "Yes — full 5-minute briefing complete." }
+      ]
+    },
     {
       n: 1, color: "c1", emoji: "🔍",
       title: "Understand the Mission", status: "done",
@@ -127,6 +134,53 @@ function renderDrawer() {
 }
 renderDrawer();
 
+// ============= GLOBAL HELP MODAL =============
+function renderHelpModal() {
+  const html = `
+    <div class="help-modal" id="help-modal" aria-hidden="true">
+      <div class="help-modal-card">
+        <button class="help-modal-close" id="help-close" aria-label="Close">×</button>
+        <h2><span class="em">💬</span>Need help?</h2>
+        <p class="lead">Stuck on something? Pick the channel that fits — Coach Mei reads every one of these within 24 hours.</p>
+        <div class="help-options">
+          <button type="button" class="help-option">
+            <span class="opt-em">✉️</span>
+            <div class="info"><b>Send Coach Mei a message</b><small>About this milestone or the whole mission</small></div>
+            <span class="arrow">→</span>
+          </button>
+          <button type="button" class="help-option">
+            <span class="opt-em">📖</span>
+            <div class="info"><b>Browse the FAQ</b><small>Common questions, quick answers</small></div>
+            <span class="arrow">→</span>
+          </button>
+          <button type="button" class="help-option">
+            <span class="opt-em">💬</span>
+            <div class="info"><b>Join the cohort Discord</b><small>Live help from other students</small></div>
+            <span class="arrow">→</span>
+          </button>
+          <button type="button" class="help-option">
+            <span class="opt-em">🐛</span>
+            <div class="info"><b>Report a bug or issue</b><small>Found something broken in the app?</small></div>
+            <span class="arrow">→</span>
+          </button>
+        </div>
+        <div class="help-modal-foot">
+          You're on <b>Mission #07 · Bubble Tea Brand</b> — Coach Mei knows where you are.
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', html);
+  const modal = document.getElementById('help-modal');
+  const close = () => { modal.classList.remove('open'); document.body.style.overflow = ''; };
+  const open = () => { modal.classList.add('open'); document.body.style.overflow = 'hidden'; };
+  document.querySelectorAll('[data-open-help]').forEach(b => b.addEventListener('click', open));
+  document.getElementById('help-close').addEventListener('click', close);
+  modal.addEventListener('click', e => { if (e.target === modal) close(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('open')) close(); });
+}
+renderHelpModal();
+
 // ============= COPY PROMPTS =============
 document.querySelectorAll('.copy-btn').forEach(b=>{
   b.addEventListener('click',e=>{
@@ -178,6 +232,7 @@ document.querySelectorAll('[data-fade]').forEach(el=>{
 // ============= REWARD POPUP =============
 // Per-milestone reward config
 const MILESTONE_REWARDS = {
+  0: { mantou: 1, title: "Mission Briefing", emoji: "📺", praise: "Briefing watched. You know why this mission matters." },
   1: { mantou: 3, title: "Discovery", emoji: "🔍", praise: "You found the angle. The user is real now." },
   2: { mantou: 4, title: "Brand Identity", emoji: "🪪", praise: "Your brand has a face. Take it out for a spin." },
   3: { mantou: 5, title: "Feature Planning", emoji: "🧠", praise: "You picked the moves that make this app unmistakable." },

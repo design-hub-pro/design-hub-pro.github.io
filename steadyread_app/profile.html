@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SteadyRead - Profile</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif; background: #0a0e27; color: #fff; }
+
+  .screen { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+
+  .status-bar {
+    height: 59px; display: flex; justify-content: space-between; align-items: flex-end;
+    padding: 0 28px 8px 28px; position: relative; z-index: 10; flex-shrink: 0;
+  }
+  .status-time { font-size: 17px; font-weight: 600; color: #fff; }
+  .status-icons { display: flex; gap: 6px; align-items: center; color: #fff; font-size: 14px; }
+  .dynamic-island { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 126px; height: 37px; background: #000; border-radius: 20px; }
+
+  .scroll-content { flex: 1; overflow-y: auto; padding: 0 28px 100px 28px; scrollbar-width: none; }
+
+  /* Profile Header */
+  .profile-header {
+    display: flex; flex-direction: column; align-items: center;
+    padding-top: 16px; margin-bottom: 28px;
+  }
+  .profile-avatar {
+    width: 90px; height: 90px; border-radius: 50%;
+    overflow: hidden; margin-bottom: 14px;
+    border: 3px solid rgba(108, 92, 231, 0.4);
+    position: relative;
+  }
+  .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .profile-name { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+  .profile-email { font-size: 14px; color: rgba(255,255,255,0.35); margin-bottom: 6px; }
+  .member-badge {
+    padding: 4px 14px; border-radius: 10px;
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(0, 206, 201, 0.15));
+    border: 1px solid rgba(108, 92, 231, 0.25);
+    font-size: 12px; color: #a29bfe; font-weight: 600;
+  }
+
+  /* Lifetime Stats */
+  .lifetime-stats {
+    display: flex; gap: 0; margin-bottom: 28px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .ls-item {
+    flex: 1; text-align: center;
+    padding: 18px 8px;
+    border-right: 1px solid rgba(255,255,255,0.04);
+  }
+  .ls-item:last-child { border-right: none; }
+  .ls-value { font-size: 26px; font-weight: 800; }
+  .ls-value.purple { color: #a29bfe; }
+  .ls-value.teal { color: #00cec9; }
+  .ls-value.pink { color: #fd79a8; }
+  .ls-label { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Achievements */
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .section-title { font-size: 18px; font-weight: 700; }
+  .see-all { font-size: 13px; color: #6c5ce7; font-weight: 600; }
+
+  .achievements-row {
+    display: flex; gap: 12px; overflow-x: auto;
+    margin-bottom: 28px; scrollbar-width: none;
+  }
+  .achievement {
+    flex-shrink: 0;
+    width: 100px;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 8px;
+  }
+  .ach-icon {
+    width: 64px; height: 64px; border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+  }
+  .ach-icon.gold { background: linear-gradient(135deg, rgba(253, 203, 110, 0.2), rgba(225, 177, 44, 0.1)); color: #fdcb6e; border: 1px solid rgba(253, 203, 110, 0.2); }
+  .ach-icon.silver { background: linear-gradient(135deg, rgba(178, 190, 195, 0.2), rgba(99, 110, 114, 0.1)); color: #b2bec3; border: 1px solid rgba(178, 190, 195, 0.2); }
+  .ach-icon.locked { background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.05); }
+  .ach-label { font-size: 11px; color: rgba(255,255,255,0.4); text-align: center; font-weight: 500; }
+
+  /* Reading streak */
+  .streak-card {
+    background: linear-gradient(135deg, rgba(253, 121, 168, 0.1), rgba(108, 92, 231, 0.08));
+    border: 1px solid rgba(253, 121, 168, 0.15);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 18px;
+  }
+  .streak-flame { font-size: 42px; }
+  .streak-info { flex: 1; }
+  .streak-num { font-size: 32px; font-weight: 800; color: #fd79a8; }
+  .streak-text { font-size: 14px; color: rgba(255,255,255,0.5); }
+  .streak-days {
+    display: flex; gap: 6px; margin-top: 10px;
+  }
+  .day-dot {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+  }
+  .day-dot.done { background: rgba(253, 121, 168, 0.2); color: #fd79a8; }
+  .day-dot.today { background: linear-gradient(135deg, #fd79a8, #a29bfe); color: #fff; }
+  .day-dot.future { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.2); }
+
+  /* Menu items */
+  .menu-group {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .menu-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .menu-item:last-child { border-bottom: none; }
+  .menu-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .menu-icon.purple { background: rgba(108, 92, 231, 0.15); color: #a29bfe; }
+  .menu-icon.teal { background: rgba(0, 206, 201, 0.15); color: #00cec9; }
+  .menu-icon.orange { background: rgba(255, 159, 67, 0.15); color: #ff9f43; }
+  .menu-label { flex: 1; font-size: 15px; font-weight: 600; }
+  .menu-chevron { color: rgba(255,255,255,0.15); font-size: 14px; }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 88px;
+    background: rgba(10, 14, 39, 0.92);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; justify-content: space-around; align-items: flex-start;
+    padding-top: 12px;
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .tab-icon { font-size: 22px; color: rgba(255,255,255,0.3); }
+  .tab-icon.active { color: #6c5ce7; }
+  .tab-label { font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 500; }
+  .tab-label.active { color: #6c5ce7; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:15px"></i>
+      <i class="fas fa-wifi" style="font-size:15px"></i>
+      <i class="fas fa-battery-full" style="font-size:17px"></i>
+    </div>
+  </div>
+
+  <div class="scroll-content">
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div class="profile-avatar">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face" alt="avatar">
+      </div>
+      <div class="profile-name">Alex Johnson</div>
+      <div class="profile-email">alex@steadyread.app</div>
+      <div class="member-badge">Pro Member</div>
+    </div>
+
+    <!-- Lifetime Stats -->
+    <div class="lifetime-stats">
+      <div class="ls-item">
+        <div class="ls-value purple">142</div>
+        <div class="ls-label">Hours</div>
+      </div>
+      <div class="ls-item">
+        <div class="ls-value teal">28</div>
+        <div class="ls-label">Books</div>
+      </div>
+      <div class="ls-item">
+        <div class="ls-value pink">89%</div>
+        <div class="ls-label">Comfort</div>
+      </div>
+    </div>
+
+    <!-- Reading Streak -->
+    <div class="streak-card">
+      <div class="streak-flame">🔥</div>
+      <div class="streak-info">
+        <div class="streak-num">12</div>
+        <div class="streak-text">Day Reading Streak</div>
+        <div class="streak-days">
+          <div class="day-dot done">M</div>
+          <div class="day-dot done">T</div>
+          <div class="day-dot done">W</div>
+          <div class="day-dot done">T</div>
+          <div class="day-dot today">F</div>
+          <div class="day-dot future">S</div>
+          <div class="day-dot future">S</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Achievements -->
+    <div class="section-header">
+      <span class="section-title">Achievements</span>
+      <span class="see-all">See All</span>
+    </div>
+    <div class="achievements-row">
+      <div class="achievement">
+        <div class="ach-icon gold"><i class="fas fa-road"></i></div>
+        <div class="ach-label">Road Scholar</div>
+      </div>
+      <div class="achievement">
+        <div class="ach-icon gold"><i class="fas fa-book-reader"></i></div>
+        <div class="ach-label">10 Books</div>
+      </div>
+      <div class="achievement">
+        <div class="ach-icon silver"><i class="fas fa-headphones-alt"></i></div>
+        <div class="ach-label">Listener</div>
+      </div>
+      <div class="achievement">
+        <div class="ach-icon locked"><i class="fas fa-trophy"></i></div>
+        <div class="ach-label">100 Hours</div>
+      </div>
+    </div>
+
+    <!-- Menu -->
+    <div class="menu-group">
+      <div class="menu-item">
+        <div class="menu-icon purple"><i class="fas fa-cog"></i></div>
+        <span class="menu-label">Settings</span>
+        <i class="fas fa-chevron-right menu-chevron"></i>
+      </div>
+      <div class="menu-item">
+        <div class="menu-icon teal"><i class="fas fa-share-alt"></i></div>
+        <span class="menu-label">Share SteadyRead</span>
+        <i class="fas fa-chevron-right menu-chevron"></i>
+      </div>
+      <div class="menu-item">
+        <div class="menu-icon orange"><i class="fas fa-question-circle"></i></div>
+        <span class="menu-label">Help & Feedback</span>
+        <i class="fas fa-chevron-right menu-chevron"></i>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-home tab-icon"></i>
+      <span class="tab-label">Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-book tab-icon"></i>
+      <span class="tab-label">Library</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-wave-square tab-icon"></i>
+      <span class="tab-label">Motion</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user tab-icon active"></i>
+      <span class="tab-label active">Profile</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BirdVision AI - Species Detail</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;
+    scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif;
+    background: #FAFBFC;
+  }
+
+  .hero {
+    position: relative; height: 300px; overflow: hidden;
+  }
+  .hero img { width: 100%; height: 100%; object-fit: cover; }
+  .hero-grad {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 160px;
+    background: linear-gradient(transparent, #FAFBFC);
+  }
+
+  .status-bar {
+    height: 59px; padding: 0 28px; display: flex; align-items: flex-end;
+    justify-content: space-between; padding-bottom: 12px;
+    position: absolute; top: 0; left: 0; right: 0; z-index: 100; color: #fff;
+  }
+  .status-time { font-size: 16px; font-weight: 600; letter-spacing: -0.5px; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island {
+    width: 126px; height: 37px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  }
+
+  .hero-nav {
+    position: absolute; top: 64px; left: 28px; right: 28px;
+    display: flex; justify-content: space-between;
+  }
+  .nav-btn {
+    width: 36px; height: 36px; background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px); border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-btn i { color: #fff; font-size: 14px; }
+
+  .content { padding: 0 28px 40px; margin-top: -30px; position: relative; z-index: 10; }
+
+  .species-name { text-align: center; }
+  .species-name h1 { font-size: 26px; font-weight: 800; color: #1C1C1E; }
+  .species-name .sci { font-size: 14px; color: #8E8E93; font-style: italic; margin-top: 2px; }
+
+  .tag-row {
+    display: flex; justify-content: center; gap: 8px; margin-top: 10px;
+  }
+  .tag {
+    padding: 5px 12px; border-radius: 10px; font-size: 11px; font-weight: 600;
+    display: flex; align-items: center; gap: 4px;
+  }
+
+  .gallery-scroll {
+    display: flex; gap: 10px; margin-top: 22px; overflow-x: auto;
+    margin-left: -28px; margin-right: -28px; padding: 0 28px 4px;
+    scrollbar-width: none;
+  }
+  .gallery-scroll::-webkit-scrollbar { display: none; }
+  .gallery-item {
+    min-width: 100px; height: 100px; border-radius: 16px; overflow: hidden;
+    flex-shrink: 0;
+  }
+  .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+
+  .info-section {
+    margin-top: 22px;
+  }
+  .info-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .info-item {
+    background: #fff; border-radius: 16px; padding: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+  .info-item-icon {
+    width: 32px; height: 32px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .info-item-label { font-size: 11px; color: #8E8E93; margin-top: 8px; }
+  .info-item-value { font-size: 15px; font-weight: 700; color: #1C1C1E; margin-top: 2px; }
+
+  .song-section {
+    margin-top: 22px;
+  }
+  .song-title { font-size: 16px; font-weight: 700; color: #1C1C1E; margin-bottom: 10px; }
+  .song-player {
+    background: linear-gradient(135deg, #1C1C1E, #2C2C2E);
+    border-radius: 18px; padding: 16px;
+  }
+  .song-player-header {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .song-play-btn {
+    width: 44px; height: 44px; background: #34C759;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .song-play-btn i { color: #fff; font-size: 16px; }
+  .song-player-info { flex: 1; }
+  .song-player-name { font-size: 14px; font-weight: 600; color: #fff; }
+  .song-player-type { font-size: 11px; color: #8E8E93; margin-top: 1px; }
+  .song-waveform {
+    display: flex; align-items: center; gap: 2px; height: 30px; margin-top: 12px;
+  }
+  .sw-bar { width: 3px; border-radius: 2px; }
+  .sw-played { background: #34C759; }
+  .sw-unplayed { background: #3A3A3C; }
+  .song-time {
+    display: flex; justify-content: space-between; margin-top: 6px;
+  }
+  .song-time span { font-size: 10px; color: #8E8E93; }
+
+  .song-types {
+    display: flex; gap: 8px; margin-top: 12px;
+  }
+  .song-type {
+    flex: 1; background: #2C2C2E; border-radius: 12px; padding: 10px;
+    text-align: center;
+  }
+  .song-type-icon { font-size: 18px; }
+  .song-type-label { font-size: 10px; color: #8E8E93; margin-top: 4px; }
+
+  .range-section { margin-top: 22px; }
+  .range-title { font-size: 16px; font-weight: 700; color: #1C1C1E; margin-bottom: 10px; }
+  .range-map {
+    width: 100%; height: 150px; border-radius: 18px; overflow: hidden;
+    background: #E8F9ED;
+  }
+  .range-map img { width: 100%; height: 100%; object-fit: cover; }
+
+  .similar-section { margin-top: 22px; }
+  .similar-title { font-size: 16px; font-weight: 700; color: #1C1C1E; margin-bottom: 10px; }
+  .similar-scroll {
+    display: flex; gap: 12px; overflow-x: auto;
+    margin: 0 -28px; padding: 0 28px 4px;
+    scrollbar-width: none;
+  }
+  .similar-scroll::-webkit-scrollbar { display: none; }
+  .similar-card {
+    min-width: 130px; background: #fff; border-radius: 16px;
+    overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    flex-shrink: 0;
+  }
+  .similar-card-img {
+    width: 100%; height: 90px; overflow: hidden;
+  }
+  .similar-card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .similar-card-info { padding: 10px; }
+  .similar-card-name { font-size: 12px; font-weight: 700; color: #1C1C1E; }
+  .similar-card-sim { font-size: 10px; color: #34C759; font-weight: 600; margin-top: 2px; }
+</style>
+</head>
+<body>
+  <div class="hero">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="dynamic-island"></div>
+      <div class="status-icons">
+        <i class="fas fa-signal"></i>
+        <i class="fas fa-wifi"></i>
+        <i class="fas fa-battery-full"></i>
+      </div>
+    </div>
+    <img src="https://images.unsplash.com/photo-1444464666168-49d633b86797?w=800&q=80" alt="Blue Jay">
+    <div class="hero-grad"></div>
+    <div class="hero-nav">
+      <div class="nav-btn"><i class="fas fa-chevron-left"></i></div>
+      <div class="nav-btn"><i class="fas fa-heart"></i></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="species-name">
+      <h1>Blue Jay</h1>
+      <div class="sci">Cyanocitta cristata</div>
+    </div>
+
+    <div class="tag-row">
+      <div class="tag" style="background:#E8F0FE;color:#007AFF;">
+        <i class="fas fa-circle" style="font-size:5px;"></i> Corvid
+      </div>
+      <div class="tag" style="background:#E8F9ED;color:#34C759;">
+        <i class="fas fa-circle" style="font-size:5px;"></i> Least Concern
+      </div>
+      <div class="tag" style="background:#FFF3E0;color:#FF9500;">
+        <i class="fas fa-circle" style="font-size:5px;"></i> Resident
+      </div>
+    </div>
+
+    <div class="gallery-scroll">
+      <div class="gallery-item">
+        <img src="https://images.unsplash.com/photo-1444464666168-49d633b86797?w=300&q=80" alt="">
+      </div>
+      <div class="gallery-item">
+        <img src="https://images.unsplash.com/photo-1591608971362-f08b2a75731a?w=300&q=80" alt="">
+      </div>
+      <div class="gallery-item">
+        <img src="https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=300&q=80" alt="">
+      </div>
+      <div class="gallery-item">
+        <img src="https://images.unsplash.com/photo-1590845947376-2638caa89309?w=300&q=80" alt="">
+      </div>
+    </div>
+
+    <div class="info-section">
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-item-icon" style="background:#E8F0FE;color:#007AFF;">
+            <i class="fas fa-ruler"></i>
+          </div>
+          <div class="info-item-label">Length</div>
+          <div class="info-item-value">25-30 cm</div>
+        </div>
+        <div class="info-item">
+          <div class="info-item-icon" style="background:#F0F0FE;color:#AF52DE;">
+            <i class="fas fa-weight-hanging"></i>
+          </div>
+          <div class="info-item-label">Weight</div>
+          <div class="info-item-value">70-100 g</div>
+        </div>
+        <div class="info-item">
+          <div class="info-item-icon" style="background:#E8F9ED;color:#34C759;">
+            <i class="fas fa-maximize"></i>
+          </div>
+          <div class="info-item-label">Wingspan</div>
+          <div class="info-item-value">34-43 cm</div>
+        </div>
+        <div class="info-item">
+          <div class="info-item-icon" style="background:#FFF3E0;color:#FF9500;">
+            <i class="fas fa-calendar"></i>
+          </div>
+          <div class="info-item-label">Lifespan</div>
+          <div class="info-item-value">7 years</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="song-section">
+      <div class="song-title">Songs & Calls</div>
+      <div class="song-player">
+        <div class="song-player-header">
+          <div class="song-play-btn"><i class="fas fa-play"></i></div>
+          <div class="song-player-info">
+            <div class="song-player-name">Jay Call</div>
+            <div class="song-player-type">Alarm / Contact call</div>
+          </div>
+        </div>
+        <div class="song-waveform">
+          <div class="sw-bar sw-played" style="height:10px"></div>
+          <div class="sw-bar sw-played" style="height:18px"></div>
+          <div class="sw-bar sw-played" style="height:6px"></div>
+          <div class="sw-bar sw-played" style="height:24px"></div>
+          <div class="sw-bar sw-played" style="height:14px"></div>
+          <div class="sw-bar sw-played" style="height:28px"></div>
+          <div class="sw-bar sw-played" style="height:10px"></div>
+          <div class="sw-bar sw-played" style="height:20px"></div>
+          <div class="sw-bar sw-unplayed" style="height:8px"></div>
+          <div class="sw-bar sw-unplayed" style="height:22px"></div>
+          <div class="sw-bar sw-unplayed" style="height:12px"></div>
+          <div class="sw-bar sw-unplayed" style="height:26px"></div>
+          <div class="sw-bar sw-unplayed" style="height:16px"></div>
+          <div class="sw-bar sw-unplayed" style="height:10px"></div>
+          <div class="sw-bar sw-unplayed" style="height:20px"></div>
+          <div class="sw-bar sw-unplayed" style="height:8px"></div>
+          <div class="sw-bar sw-unplayed" style="height:24px"></div>
+          <div class="sw-bar sw-unplayed" style="height:14px"></div>
+          <div class="sw-bar sw-unplayed" style="height:18px"></div>
+          <div class="sw-bar sw-unplayed" style="height:6px"></div>
+        </div>
+        <div class="song-time">
+          <span>0:04</span>
+          <span>0:12</span>
+        </div>
+        <div class="song-types">
+          <div class="song-type">
+            <div class="song-type-icon">🎵</div>
+            <div class="song-type-label">Song</div>
+          </div>
+          <div class="song-type">
+            <div class="song-type-icon">📢</div>
+            <div class="song-type-label">Call</div>
+          </div>
+          <div class="song-type">
+            <div class="song-type-icon">⚠️</div>
+            <div class="song-type-label">Alarm</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="range-section">
+      <div class="range-title">Range Map</div>
+      <div class="range-map">
+        <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&q=80" alt="Map">
+      </div>
+    </div>
+
+    <div class="similar-section">
+      <div class="similar-title">Similar Species</div>
+      <div class="similar-scroll">
+        <div class="similar-card">
+          <div class="similar-card-img">
+            <img src="https://images.unsplash.com/photo-1590845947376-2638caa89309?w=300&q=80" alt="">
+          </div>
+          <div class="similar-card-info">
+            <div class="similar-card-name">Eastern Bluebird</div>
+            <div class="similar-card-sim">78% similar</div>
+          </div>
+        </div>
+        <div class="similar-card">
+          <div class="similar-card-img">
+            <img src="https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=300&q=80" alt="">
+          </div>
+          <div class="similar-card-info">
+            <div class="similar-card-name">Northern Cardinal</div>
+            <div class="similar-card-sim">65% similar</div>
+          </div>
+        </div>
+        <div class="similar-card">
+          <div class="similar-card-img">
+            <img src="https://images.unsplash.com/photo-1591608971362-f08b2a75731a?w=300&q=80" alt="">
+          </div>
+          <div class="similar-card-info">
+            <div class="similar-card-name">American Robin</div>
+            <div class="similar-card-sim">62% similar</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

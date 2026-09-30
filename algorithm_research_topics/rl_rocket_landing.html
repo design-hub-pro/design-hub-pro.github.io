@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reinforcement Learning for Rocket Landing Control — Research Topic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700;9..144,900&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --bg-2: #11141c;
+    --card: #161a24;
+    --ink: #f4ede0;
+    --ink-dim: #b9b3a7;
+    --ink-mute: #7a7468;
+    --accent: #7c8cff;
+    --accent-soft: #aab6ff;
+    --accent-deep: #5867cc;
+    --magenta: #c46bff;
+    --gold: #f5c451;
+    --border: rgba(255,255,255,0.08);
+    --shadow: 0 20px 60px -20px rgba(0,0,0,0.5);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  .container { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+  nav.top { position: sticky; top: 0; z-index: 30; background: rgba(11,13,18,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+  nav.top .inner { max-width: 1180px; margin: 0 auto; padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: 0.02em; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 18px var(--accent); }
+  .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-dim); }
+  .nav-links a:hover { color: var(--ink); }
+  @media (max-width: 720px) { .nav-links { display: none; } }
+
+  .hero { position: relative; min-height: 92vh; display: flex; align-items: center; overflow: hidden; }
+  .hero::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: url('https://cm-idea-images.s3.us-west-1.amazonaws.com/1779285987424-image-1.png');
+    background-size: cover; background-position: center;
+    opacity: 0.55;
+  }
+  .hero::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(11,13,18,0.55) 0%, rgba(11,13,18,0.85) 60%, rgba(11,13,18,1) 100%),
+                radial-gradient(ellipse at top right, rgba(196,107,255,0.20), transparent 60%);
+  }
+  .hero .container { position: relative; z-index: 2; padding-top: 80px; padding-bottom: 80px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 8px 16px; border-radius: 999px;
+    background: rgba(124,140,255,0.13); border: 1px solid rgba(124,140,255,0.35);
+    color: var(--accent-soft); font-size: 13px; font-weight: 600; letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  h1.headline { font-family: 'Fraunces', serif; font-weight: 700; font-size: clamp(38px, 6vw, 72px); line-height: 1.05; margin: 28px 0 24px; letter-spacing: -0.02em; }
+  h1.headline .grad { background: linear-gradient(120deg, var(--accent) 0%, var(--magenta) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p.lead { font-size: clamp(16px, 1.5vw, 19px); color: var(--ink-dim); max-width: 740px; margin: 0 0 36px; }
+  .cta-row { display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 24px; border-radius: 12px; font-weight: 600; font-size: 15px; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .btn-primary { background: linear-gradient(120deg, var(--accent) 0%, var(--magenta) 100%); color: #0c0f24; box-shadow: 0 12px 32px -10px rgba(124,140,255,0.5); }
+  .btn-primary:hover { transform: translateY(-2px); }
+  .btn-ghost { background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--ink); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.08); }
+
+  .stat-strip { margin-top: 64px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; padding-top: 36px; border-top: 1px solid var(--border); }
+  @media (max-width: 760px) { .stat-strip { grid-template-columns: repeat(2, 1fr); } }
+  .stat .num { font-family: 'Fraunces', serif; font-size: 36px; font-weight: 700; color: var(--gold); }
+  .stat .lbl { font-size: 13px; color: var(--ink-dim); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 4px; }
+
+  section { padding: 100px 0; position: relative; }
+  section.alt { background: var(--bg-2); }
+  .eyebrow { display: inline-block; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent-soft); font-weight: 700; margin-bottom: 14px; }
+  h2.section-title { font-family: 'Fraunces', serif; font-size: clamp(30px, 4vw, 48px); font-weight: 700; line-height: 1.1; margin: 0 0 22px; letter-spacing: -0.01em; }
+  .lead { font-size: 17px; color: var(--ink-dim); max-width: 760px; margin: 0; }
+  .split { display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; margin-top: 56px; }
+  @media (max-width: 880px) { .split { grid-template-columns: 1fr; gap: 32px; } }
+  .img-card { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); }
+  .img-card img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .img-caption { position: absolute; left: 14px; bottom: 14px; background: rgba(11,13,18,0.78); border: 1px solid var(--border); padding: 7px 12px; border-radius: 8px; font-size: 12px; color: var(--ink-dim); letter-spacing: 0.04em; }
+
+  blockquote.pull { margin: 48px 0; padding: 24px 28px; border-left: 4px solid var(--magenta); background: linear-gradient(90deg, rgba(196,107,255,0.10), transparent 80%); font-family: 'Fraunces', serif; font-size: clamp(22px, 2.6vw, 32px); font-style: italic; font-weight: 500; line-height: 1.35; color: var(--ink); border-radius: 0 12px 12px 0; }
+
+  .chart-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; margin-top: 48px; }
+  @media (max-width: 880px) { .chart-grid { grid-template-columns: 1fr; } }
+  .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 28px; box-shadow: var(--shadow); }
+  .chart-card h4 { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
+  .chart-card .subtitle { font-size: 12px; color: var(--ink-mute); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 18px; }
+  .chart-wrap { position: relative; height: 280px; }
+
+  .q-feature { margin-top: 48px; padding: 48px; border-radius: 22px; background: radial-gradient(ellipse at top right, rgba(124,140,255,0.16), transparent 60%), var(--card); border: 1px solid var(--border); text-align: center; }
+  .q-feature .label { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent-soft); font-weight: 700; margin-bottom: 18px; }
+  .q-feature .q { font-family: 'Fraunces', serif; font-size: clamp(24px, 3.2vw, 38px); font-weight: 600; line-height: 1.25; max-width: 920px; margin: 0 auto; }
+  .sub-grid { margin-top: 36px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  @media (max-width: 760px) { .sub-grid { grid-template-columns: 1fr; } }
+  .sub-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 26px; display: flex; gap: 18px; align-items: flex-start; }
+  .sub-num { font-family: 'Fraunces', serif; font-size: 36px; font-weight: 700; color: var(--accent); line-height: 1; min-width: 50px; }
+
+  .workflow { margin-top: 48px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  @media (max-width: 880px) { .workflow { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .workflow { grid-template-columns: 1fr; } }
+  .step-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 26px; }
+  .step-badge { width: 38px; height: 38px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(120deg, var(--accent), var(--magenta)); color: #0c0f24; font-weight: 700; font-family: 'Fraunces', serif; font-size: 17px; margin-bottom: 16px; }
+  .step-card h5 { margin: 0 0 8px; font-size: 16px; font-weight: 600; }
+  .step-card ul { margin: 8px 0 0; padding-left: 20px; font-size: 14px; color: var(--ink-dim); }
+  .step-card ul li { margin-bottom: 4px; }
+  .step-card p { margin: 0; font-size: 14px; color: var(--ink-dim); }
+
+  .outcome-wrap { margin-top: 56px; display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+  @media (max-width: 880px) { .outcome-wrap { grid-template-columns: 1fr; } }
+  .outcome-text p { color: var(--ink-dim); font-size: 17px; line-height: 1.7; }
+
+  .ref-list { margin-top: 36px; display: grid; gap: 14px; }
+  .ref { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; display: flex; gap: 18px; align-items: flex-start; }
+  .ref-num { font-family: 'Fraunces', serif; font-weight: 700; color: var(--gold); font-size: 22px; min-width: 32px; }
+  .ref-text { font-size: 14px; color: var(--ink-dim); line-height: 1.6; }
+  .ref-text a { color: var(--accent-soft); border-bottom: 1px dashed rgba(170,182,255,0.4); }
+  .ref-text a:hover { color: var(--accent); }
+
+  footer { padding: 60px 0 40px; text-align: center; border-top: 1px solid var(--border); background: var(--bg); }
+  footer .brand { justify-content: center; margin-bottom: 14px; }
+  footer .meta { font-size: 13px; color: var(--ink-mute); letter-spacing: 0.05em; }
+
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <div class="inner">
+    <div class="brand"><span class="dot"></span> Reinforcement Learning · Rocket Landing</div>
+    <div class="nav-links">
+      <a href="#background">Background</a>
+      <a href="#question">Question</a>
+      <a href="#plan">Plan</a>
+      <a href="#outcome">Outcome</a>
+      <a href="#refs">References</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="container">
+    <span class="pill">Topic 3 · AI · Control Theory · 2026 Research</span>
+    <h1 class="headline">Reinforcement Learning for <span class="grad">Rocket Landing Control</span></h1>
+    <p class="lead">A rocket must land safely while managing fuel, speed, position, angle, and engine thrust. The system is difficult because the rocket is unstable, nonlinear, and affected by gravity and motion constraints.</p>
+    <div class="cta-row">
+      <a href="#question" class="btn btn-primary">View Research Question →</a>
+      <a href="#plan" class="btn btn-ghost">Research Plan</a>
+    </div>
+    <div class="stat-strip">
+      <div class="stat"><div class="num">2D</div><div class="lbl">Simulation environment</div></div>
+      <div class="stat"><div class="num">PPO</div><div class="lbl">/ DQN / Q-Learning</div></div>
+      <div class="stat"><div class="num">5</div><div class="lbl">Reward components</div></div>
+      <div class="stat"><div class="num">5</div><div class="lbl">Evaluation metrics</div></div>
+    </div>
+  </div>
+</header>
+
+<section id="background">
+  <div class="container">
+    <span class="eyebrow reveal">Basic Background</span>
+    <h2 class="section-title reveal">A trial-and-error path to a stable landing policy</h2>
+    <div class="split reveal">
+      <div>
+        <p class="lead">Rocket landing is a challenging control problem. A rocket must land safely while managing fuel, speed, position, angle, and engine thrust. The system is difficult because the rocket is unstable, nonlinear, and affected by gravity and motion constraints.</p>
+        <p class="lead" style="margin-top:18px;">Traditional control methods use physics-based models and mathematical controllers. Reinforcement learning provides another approach: an agent learns how to control the rocket by repeatedly trying to land in a simulated environment. The agent observes the rocket's state, chooses an action, receives a reward or penalty, and gradually learns a better landing policy.</p>
+        <p class="lead" style="margin-top:18px;">This topic is more AI-related than the first two, but it is still strongly connected to <strong>algorithms, control theory, simulation, optimization, and sequential decision-making</strong>.</p>
+      </div>
+      <div class="img-card">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1779285990064-image-1.png" alt="Rocket descent with engines firing"/>
+        <div class="img-caption">Unstable, nonlinear control problem</div>
+      </div>
+    </div>
+
+    <blockquote class="pull reveal">The agent observes the rocket's state, chooses an action, receives a reward or penalty, and gradually learns a better landing policy.</blockquote>
+
+    <div class="chart-grid reveal">
+      <div class="chart-card">
+        <h4>State Variables (illustrative)</h4>
+        <div class="subtitle">Position, velocity, angle, angular velocity, fuel</div>
+        <div class="chart-wrap"><canvas id="chart1"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h4>Reward Composition</h4>
+        <div class="subtitle">Five components of the reward function</div>
+        <div class="chart-wrap"><canvas id="chart2"></canvas></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="question" class="alt">
+  <div class="container">
+    <span class="eyebrow reveal">Research Question</span>
+    <h2 class="section-title reveal">The core question driving this study</h2>
+    <p class="lead reveal">Can reinforcement learning balance safety, fuel efficiency, and stability — and how does reward design shape the policy?</p>
+
+    <div class="q-feature reveal">
+      <div class="label">Core Research Question</div>
+      <div class="q">Can a reinforcement learning agent learn a stable and fuel-efficient rocket landing policy in a simulated environment?</div>
+    </div>
+
+    <div class="sub-grid">
+      <div class="sub-card reveal"><div class="sub-num">01</div><div>Which reward design leads to better landing performance?</div></div>
+      <div class="sub-card reveal"><div class="sub-num">02</div><div>Can the agent balance landing accuracy and fuel efficiency?</div></div>
+      <div class="sub-card reveal"><div class="sub-num">03</div><div>How robust is the learned policy under wind, sensor noise, or different starting positions?</div></div>
+      <div class="sub-card reveal"><div class="sub-num">04</div><div>How does reinforcement learning compare with a simple rule-based controller?</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="plan">
+  <div class="container">
+    <span class="eyebrow reveal">Brief Research Plan</span>
+    <h2 class="section-title reveal">Five-step training & evaluation pipeline</h2>
+    <p class="lead reveal">Simulator → reward design → RL training → baseline comparison → evaluation under multiple conditions.</p>
+
+    <div class="workflow">
+      <div class="step-card reveal">
+        <div class="step-badge">1</div>
+        <h5>Create or use a rocket landing simulator</h5>
+        <ul>
+          <li>Start with a 2D simulation.</li>
+          <li>State variables may include position, velocity, angle, angular velocity, and fuel.</li>
+          <li>Actions may include main engine thrust and side thrusters.</li>
+        </ul>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-badge">2</div>
+        <h5>Define the reward function</h5>
+        <ul>
+          <li>Positive reward for safe landing.</li>
+          <li>Penalty for crashing.</li>
+          <li>Penalty for high landing speed.</li>
+          <li>Penalty for using too much fuel.</li>
+          <li>Penalty for large tilt angle near landing.</li>
+        </ul>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-badge">3</div>
+        <h5>Train reinforcement learning models</h5>
+        <ul>
+          <li>Start with a standard RL algorithm such as Q-learning for simple discrete control or PPO/DQN for more advanced simulation.</li>
+          <li>Train over many simulated landing attempts.</li>
+        </ul>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-badge">4</div>
+        <h5>Compare with baseline controllers</h5>
+        <ul>
+          <li>Random controller.</li>
+          <li>Rule-based controller.</li>
+          <li>Proportional control or simple physics-based controller.</li>
+        </ul>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-badge">5</div>
+        <h5>Evaluate performance</h5>
+        <ul>
+          <li>Landing success rate.</li>
+          <li>Average fuel consumption.</li>
+          <li>Final landing speed.</li>
+          <li>Final landing distance from target.</li>
+          <li>Robustness under different initial conditions.</li>
+        </ul>
+      </div>
+      <div class="step-card reveal" style="background: linear-gradient(135deg, rgba(124,140,255,0.08), rgba(196,107,255,0.06)); border-color: rgba(124,140,255,0.25);">
+        <div class="step-badge" style="background: linear-gradient(120deg, var(--magenta), var(--accent));">★</div>
+        <h5>Reward-design study</h5>
+        <p>A strong version of the project would compare different reward functions and show how reward design affects safety, fuel efficiency, and stability.</p>
+      </div>
+    </div>
+
+    <div class="chart-grid reveal">
+      <div class="chart-card">
+        <h4>Training Reward Curve</h4>
+        <div class="subtitle">Representative — episode reward over training</div>
+        <div class="chart-wrap"><canvas id="chart3"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h4>Controller Comparison — Landing Success Rate</h4>
+        <div class="subtitle">Illustrative comparison</div>
+        <div class="chart-wrap"><canvas id="chart4"></canvas></div>
+      </div>
+    </div>
+
+    <div class="split reveal" style="margin-top: 56px;">
+      <div class="img-card">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1779285993122-image-1.png" alt="RL trajectories from chaotic to converged"/>
+        <div class="img-caption">Trajectories converge from chaotic to optimal</div>
+      </div>
+      <div class="img-card">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1779285996832-image-1.png" alt="2D rocket landing simulator visualization"/>
+        <div class="img-caption">2D landing simulator — success vs crash</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="outcome" class="alt">
+  <div class="container">
+    <span class="eyebrow reveal">Expected Outcome</span>
+    <h2 class="section-title reveal">What this project should demonstrate</h2>
+    <div class="outcome-wrap reveal">
+      <div class="outcome-text">
+        <p>The project should show how reinforcement learning can learn a control strategy through trial and error.</p>
+        <p>A strong version of the project would compare different reward functions and show how reward design affects safety, fuel efficiency, and stability.</p>
+      </div>
+      <div class="img-card">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1779285999228-image-1.png" alt="Mission control dashboard mockup"/>
+        <div class="img-caption">Mission telemetry dashboard — illustrative</div>
+      </div>
+    </div>
+
+    <div class="split reveal" style="margin-top: 72px;">
+      <div class="img-card">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1779286000651-image-1.png" alt="Mission control team"/>
+        <div class="img-caption">Sequential decision-making in practice</div>
+      </div>
+      <div>
+        <p class="lead">Evaluate using landing success rate, average fuel consumption, final landing speed, final landing distance from target, and robustness under different initial conditions.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="refs">
+  <div class="container">
+    <span class="eyebrow reveal">References</span>
+    <h2 class="section-title reveal">Source literature</h2>
+    <div class="ref-list">
+      <div class="ref reveal">
+        <div class="ref-num">1</div>
+        <div class="ref-text">Yuxuan Jiang et al., "Rocket Landing Control with Random Annealing Jump Start Reinforcement Learning," arXiv, 2024. <a href="https://arxiv.org/abs/2407.15083" target="_blank" rel="noopener">arxiv.org ↗</a></div>
+      </div>
+      <div class="ref reveal">
+        <div class="ref-num">2</div>
+        <div class="ref-text">D. Iafrate et al., "Propulsive Landing of Launchers' First Stages with Deep Reinforcement Learning," <em>Acta Astronautica</em>, 2025. <a href="https://www.sciencedirect.com/science/article/abs/pii/S0094576524006751" target="_blank" rel="noopener">sciencedirect.com ↗</a></div>
+      </div>
+      <div class="ref reveal">
+        <div class="ref-num">3</div>
+        <div class="ref-text">Stanford CS229 Project Report, "Applying Deep Reinforcement Learning to Control a Rocket Landing," 2021. <a href="https://cs229.stanford.edu/proj2021spr/report2/81873359.pdf" target="_blank" rel="noopener">cs229.stanford.edu ↗</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="brand"><span class="dot"></span> Reinforcement Learning · Rocket Landing</div>
+  <div class="meta">Topic 3 · Control Theory · PPO / DQN / Q-Learning · Sequential Decision-Making</div>
+</footer>
+
+<script>
+  Chart.defaults.color = '#b9b3a7';
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+
+  function vGrad(ctx, c1, c2) {
+    const g = ctx.createLinearGradient(0,0,0,280);
+    g.addColorStop(0, c1); g.addColorStop(1, c2);
+    return g;
+  }
+
+  // Chart 1: State variables radar
+  const c1 = document.getElementById('chart1').getContext('2d');
+  new Chart(c1, {
+    type: 'radar',
+    data: {
+      labels: ['Position','Velocity','Angle','Angular Velocity','Fuel'],
+      datasets: [{
+        label: 'Initial state (high-risk)',
+        data: [85, 80, 60, 70, 95],
+        backgroundColor: 'rgba(196,107,255,0.25)', borderColor: '#c46bff', borderWidth: 2, pointBackgroundColor: '#c46bff'
+      },{
+        label: 'Pre-landing (controlled)',
+        data: [20, 15, 10, 8, 30],
+        backgroundColor: 'rgba(124,140,255,0.25)', borderColor: '#7c8cff', borderWidth: 2, pointBackgroundColor: '#7c8cff'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: { r: { angleLines: { color: 'rgba(255,255,255,0.08)' }, grid: { color: 'rgba(255,255,255,0.05)' }, pointLabels: { color: '#b9b3a7' }, ticks: { color: '#7a7468', backdropColor: 'transparent' }, suggestedMin: 0, suggestedMax: 100 } },
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 14 } } }
+    }
+  });
+
+  // Chart 2: Reward composition - doughnut
+  const c2 = document.getElementById('chart2').getContext('2d');
+  new Chart(c2, {
+    type: 'doughnut',
+    data: {
+      labels: ['Safe landing (+)','Crash (–)','Landing speed (–)','Fuel use (–)','Tilt angle (–)'],
+      datasets: [{
+        data: [30, 25, 15, 15, 15],
+        backgroundColor: ['#7c8cff','#c46bff','#aab6ff','#f5c451','#5867cc'],
+        borderColor: '#161a24', borderWidth: 3
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '60%',
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10 } } }
+    }
+  });
+
+  // Chart 3: Training reward curve
+  const c3 = document.getElementById('chart3').getContext('2d');
+  new Chart(c3, {
+    type: 'line',
+    data: {
+      labels: ['0','1k','5k','10k','25k','50k','100k','200k','500k'],
+      datasets: [
+        {
+          label: 'PPO',
+          data: [-300, -260, -180, -90, 30, 110, 180, 220, 240],
+          borderColor: '#7c8cff',
+          backgroundColor: vGrad(c3, 'rgba(124,140,255,0.35)', 'rgba(124,140,255,0)'),
+          tension: 0.35, fill: true, borderWidth: 3, pointRadius: 0
+        },
+        {
+          label: 'DQN',
+          data: [-300, -280, -220, -160, -50, 30, 110, 160, 190],
+          borderColor: '#c46bff',
+          tension: 0.35, borderWidth: 2, pointRadius: 0
+        },
+        {
+          label: 'Q-Learning',
+          data: [-300, -290, -260, -220, -150, -80, -20, 30, 60],
+          borderColor: '#f5c451',
+          borderDash: [5,4], borderWidth: 2, pointRadius: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: { y: { ticks: { color: '#b9b3a7' }, grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'Episode reward', color: '#7a7468' } }, x: { grid: { display: false }, title: { display: true, text: 'Training episodes', color: '#7a7468' } } },
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 14 } } }
+    }
+  });
+
+  // Chart 4: Controller comparison - horizontal bar
+  const c4 = document.getElementById('chart4').getContext('2d');
+  new Chart(c4, {
+    type: 'bar',
+    data: {
+      labels: ['Random','Rule-based','Proportional','PPO (RL)'],
+      datasets: [{
+        label: 'Landing success rate (%)',
+        data: [8, 35, 58, 88],
+        backgroundColor: ['#5867cc','#aab6ff','#f5c451','#c46bff'],
+        borderRadius: 8,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#b9b3a7' }, suggestedMax: 100 }, y: { grid: { display: false } } },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // Reveal
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>

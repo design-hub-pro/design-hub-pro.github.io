@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FenceAI - Analyze</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #000; color: #fff;
+  }
+
+  .camera-view {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    overflow: hidden;
+  }
+  .camera-view img {
+    width: 100%; height: 100%; object-fit: cover;
+    filter: brightness(0.85);
+  }
+
+  /* Pose Overlay Lines */
+  .pose-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+  }
+  .pose-overlay svg { width: 100%; height: 100%; }
+  .pose-line { stroke: #1a5cff; stroke-width: 3; stroke-linecap: round; opacity: 0.8; }
+  .pose-dot { fill: #1a5cff; filter: drop-shadow(0 0 6px rgba(26,92,255,0.8)); }
+  .pose-dot-good { fill: #22c55e; filter: drop-shadow(0 0 6px rgba(34,197,94,0.8)); }
+  .pose-dot-warn { fill: #f97316; filter: drop-shadow(0 0 6px rgba(249,115,22,0.8)); }
+
+  /* Status Bar */
+  .status-bar {
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 59px; display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 28px 8px; z-index: 100;
+  }
+  .status-time { font-size: 17px; font-weight: 600; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 14px; }
+  .dynamic-island {
+    width: 126px; height: 37px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  }
+
+  /* Top Controls */
+  .top-controls {
+    position: absolute; top: 70px; left: 28px; right: 28px;
+    display: flex; justify-content: space-between; align-items: center; z-index: 10;
+  }
+  .back-btn {
+    width: 42px; height: 42px; background: rgba(0,0,0,0.5);
+    border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);
+  }
+  .back-btn i { font-size: 18px; }
+  .rec-badge {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(239,68,68,0.3); border: 1px solid rgba(239,68,68,0.5);
+    border-radius: 12px; padding: 8px 14px; backdrop-filter: blur(20px);
+  }
+  .rec-dot { width: 8px; height: 8px; background: #ef4444; border-radius: 50%; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .rec-text { font-size: 13px; font-weight: 600; }
+  .settings-btn {
+    width: 42px; height: 42px; background: rgba(0,0,0,0.5);
+    border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);
+  }
+  .settings-btn i { font-size: 16px; }
+
+  /* Live Score Panel */
+  .live-panel {
+    position: absolute; top: 130px; left: 28px;
+    background: rgba(0,0,0,0.6); border-radius: 20px; padding: 16px;
+    backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.08);
+    z-index: 10;
+  }
+  .live-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #888; margin-bottom: 4px; }
+  .live-score { font-size: 42px; font-weight: 800; letter-spacing: -1px; }
+  .live-score span { font-size: 18px; color: #888; }
+  .live-detail { display: flex; gap: 12px; margin-top: 8px; }
+  .live-tag {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 600; padding: 4px 10px;
+    border-radius: 8px;
+  }
+  .live-tag.good { background: rgba(34,197,94,0.15); color: #22c55e; }
+  .live-tag.warn { background: rgba(249,115,22,0.15); color: #f97316; }
+
+  /* Feedback Cards */
+  .feedback-strip {
+    position: absolute; top: 290px; right: 28px;
+    display: flex; flex-direction: column; gap: 8px; z-index: 10;
+  }
+  .fb-card {
+    background: rgba(0,0,0,0.6); border-radius: 14px; padding: 10px 14px;
+    backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; gap: 8px; max-width: 180px;
+  }
+  .fb-icon {
+    width: 28px; height: 28px; border-radius: 8px; display: flex;
+    align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0;
+  }
+  .fb-icon.green { background: rgba(34,197,94,0.2); color: #22c55e; }
+  .fb-icon.orange { background: rgba(249,115,22,0.2); color: #f97316; }
+  .fb-icon.red { background: rgba(239,68,68,0.2); color: #ef4444; }
+  .fb-text { font-size: 11px; font-weight: 500; line-height: 1.3; }
+
+  /* Bottom Panel */
+  .bottom-panel {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.9) 40%);
+    padding: 60px 28px 50px; z-index: 10;
+  }
+  .drill-info {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .drill-name { font-size: 18px; font-weight: 700; }
+  .drill-timer { font-size: 28px; font-weight: 800; color: #1a5cff; letter-spacing: -0.5px; }
+  .drill-progress { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-bottom: 20px; overflow: hidden; }
+  .drill-progress-fill { height: 100%; width: 65%; background: linear-gradient(90deg, #1a5cff, #7c3aed); border-radius: 2px; }
+
+  .action-row { display: flex; gap: 14px; justify-content: center; align-items: center; }
+  .action-btn-sm {
+    width: 52px; height: 52px; background: rgba(255,255,255,0.1);
+    border-radius: 16px; display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
+  }
+  .action-btn-sm i { font-size: 20px; }
+  .action-btn-main {
+    width: 68px; height: 68px; background: linear-gradient(135deg, #ef4444, #dc2626);
+    border-radius: 22px; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 24px rgba(239,68,68,0.4);
+  }
+  .action-btn-main i { font-size: 24px; }
+</style>
+</head>
+<body>
+
+<div class="camera-view">
+  <img src="https://images.unsplash.com/photo-1636812028800-a0bfb6b4f0d9?w=800&h=1200&fit=crop" alt="fencer">
+</div>
+
+<div class="pose-overlay">
+  <svg viewBox="0 0 400 850">
+    <!-- Skeleton lines -->
+    <line class="pose-line" x1="200" y1="180" x2="200" y2="280"/>
+    <line class="pose-line" x1="200" y1="220" x2="150" y2="310"/>
+    <line class="pose-line" x1="200" y1="220" x2="260" y2="290"/>
+    <line class="pose-line" x1="150" y1="310" x2="110" y2="380"/>
+    <line class="pose-line" x1="260" y1="290" x2="320" y2="260"/>
+    <line class="pose-line" x1="200" y1="280" x2="170" y2="400"/>
+    <line class="pose-line" x1="200" y1="280" x2="240" y2="400"/>
+    <line class="pose-line" x1="170" y1="400" x2="160" y2="510"/>
+    <line class="pose-line" x1="240" y1="400" x2="260" y2="510"/>
+    <!-- Joints -->
+    <circle class="pose-dot-good" cx="200" cy="180" r="8"/>
+    <circle class="pose-dot-good" cx="200" cy="220" r="6"/>
+    <circle class="pose-dot-good" cx="150" cy="310" r="6"/>
+    <circle class="pose-dot" cx="260" cy="290" r="6"/>
+    <circle class="pose-dot-good" cx="110" cy="380" r="6"/>
+    <circle class="pose-dot-warn" cx="320" cy="260" r="8"/>
+    <circle class="pose-dot-good" cx="200" cy="280" r="6"/>
+    <circle class="pose-dot" cx="170" cy="400" r="6"/>
+    <circle class="pose-dot" cx="240" cy="400" r="6"/>
+    <circle class="pose-dot-good" cx="160" cy="510" r="6"/>
+    <circle class="pose-dot-warn" cx="260" cy="510" r="6"/>
+    <!-- Angle indicator -->
+    <path d="M 155 305 A 20 20 0 0 1 145 285" fill="none" stroke="#22c55e" stroke-width="2"/>
+    <text x="130" y="298" fill="#22c55e" font-size="11" font-weight="700" font-family="Inter">142°</text>
+    <path d="M 245 395 A 20 20 0 0 1 235 375" fill="none" stroke="#f97316" stroke-width="2"/>
+    <text x="248" y="392" fill="#f97316" font-size="11" font-weight="700" font-family="Inter">98°</text>
+  </svg>
+</div>
+
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="top-controls">
+  <div class="back-btn"><i class="fas fa-chevron-left"></i></div>
+  <div class="rec-badge">
+    <div class="rec-dot"></div>
+    <span class="rec-text">LIVE</span>
+  </div>
+  <div class="settings-btn"><i class="fas fa-sliders"></i></div>
+</div>
+
+<div class="live-panel">
+  <div class="live-label">Live Score</div>
+  <div class="live-score">87<span>/100</span></div>
+  <div class="live-detail">
+    <div class="live-tag good"><i class="fas fa-check-circle"></i> Posture</div>
+    <div class="live-tag warn"><i class="fas fa-exclamation-circle"></i> Knee</div>
+  </div>
+</div>
+
+<div class="feedback-strip">
+  <div class="fb-card">
+    <div class="fb-icon green"><i class="fas fa-check"></i></div>
+    <div class="fb-text">Arm extension is great</div>
+  </div>
+  <div class="fb-card">
+    <div class="fb-icon orange"><i class="fas fa-exclamation"></i></div>
+    <div class="fb-text">Bend front knee more</div>
+  </div>
+  <div class="fb-card">
+    <div class="fb-icon red"><i class="fas fa-times"></i></div>
+    <div class="fb-text">Back heel lifting</div>
+  </div>
+</div>
+
+<div class="bottom-panel">
+  <div class="drill-info">
+    <div class="drill-name">Lunge Analysis</div>
+    <div class="drill-timer">14:32</div>
+  </div>
+  <div class="drill-progress"><div class="drill-progress-fill"></div></div>
+  <div class="action-row">
+    <div class="action-btn-sm"><i class="fas fa-redo"></i></div>
+    <div class="action-btn-main"><i class="fas fa-stop"></i></div>
+    <div class="action-btn-sm"><i class="fas fa-camera"></i></div>
+  </div>
+</div>
+
+</body>
+</html>

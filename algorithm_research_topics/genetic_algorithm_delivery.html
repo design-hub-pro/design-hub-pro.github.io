@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Genetic Algorithm for Multi-Stop Delivery Route Optimization — Research Topic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700;9..144,900&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --bg-2: #11141c;
+    --card: #161a24;
+    --ink: #f4ede0;
+    --ink-dim: #b9b3a7;
+    --ink-mute: #7a7468;
+    --accent: #4fd1c7;
+    --accent-soft: #80e0d0;
+    --accent-deep: #2b8d85;
+    --gold: #f5c451;
+    --border: rgba(255,255,255,0.08);
+    --shadow: 0 20px 60px -20px rgba(0,0,0,0.5);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  .container { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+  /* Nav */
+  nav.top {
+    position: sticky; top: 0; z-index: 30;
+    background: rgba(11,13,18,0.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav.top .inner {
+    max-width: 1180px; margin: 0 auto; padding: 18px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: 0.02em; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 18px var(--accent); }
+  .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-dim); }
+  .nav-links a:hover { color: var(--ink); }
+  @media (max-width: 720px) { .nav-links { display: none; } }
+
+  /* Hero */
+  .hero {
+    position: relative; min-height: 92vh; display: flex; align-items: center;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: url('https://cm-idea-images.s3.us-west-1.amazonaws.com/1779285954087-image-1.png');
+    background-size: cover; background-position: center;
+    opacity: 0.5;
+  }
+  .hero::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(11,13,18,0.6) 0%, rgba(11,13,18,0.85) 60%, rgba(11,13,18,1) 100%),
+                radial-gradient(ellipse at top right, rgba(79,209,199,0.18), transparent 60%);
+  }
+  .hero .container { position: relative; z-index: 2; padding-top: 80px; padding-bottom: 80px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 8px 16px; border-radius: 999px;
+    background: rgba(79,209,199,0.12); border: 1px solid rgba(79,209,199,0.35);
+    color: var(--accent-soft); font-size: 13px; font-weight: 600; letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  h1.headline {
+    font-family: 'Fraunces', serif; font-weight: 700;
+    font-size: clamp(38px, 6vw, 72px);
+    line-height: 1.05; margin: 28px 0 24px;
+    letter-spacing: -0.02em;
+  }
+  h1.headline .grad {
+    background: linear-gradient(120deg, var(--accent) 0%, var(--gold) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero p.lead {
+    font-size: clamp(16px, 1.5vw, 19px); color: var(--ink-dim);
+    max-width: 720px; margin: 0 0 36px;
+  }
+  .cta-row { display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 24px; border-radius: 12px;
+    font-weight: 600; font-size: 15px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .btn-primary {
+    background: linear-gradient(120deg, var(--accent) 0%, var(--accent-deep) 100%);
+    color: #061515; box-shadow: 0 12px 32px -10px rgba(79,209,199,0.5);
+  }
+  .btn-primary:hover { transform: translateY(-2px); }
+  .btn-ghost {
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--ink);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.08); }
+
+  .stat-strip {
+    margin-top: 64px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+    padding-top: 36px; border-top: 1px solid var(--border);
+  }
+  @media (max-width: 760px) { .stat-strip { grid-template-columns: repeat(2, 1fr); } }
+  .stat .num { font-family: 'Fraunces', serif; font-size: 36px; font-weight: 700; color: var(--gold); }
+  .stat .lbl { font-size: 13px; color: var(--ink-dim); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 4px; }
+
+  /* Sections */
+  section { padding: 100px 0; position: relative; }
+  section.alt { background: var(--bg-2); }
+  .eyebrow {
+    display: inline-block; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--accent-soft); font-weight: 700; margin-bottom: 14px;
+  }
+  h2.section-title {
+    font-family: 'Fraunces', serif; font-size: clamp(30px, 4vw, 48px);
+    font-weight: 700; line-height: 1.1; margin: 0 0 22px; letter-spacing: -0.01em;
+  }
+  .lead { font-size: 17px; color: var(--ink-dim); max-width: 760px; margin: 0; }
+  .split {
+    display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; margin-top: 56px;
+  }
+  @media (max-width: 880px) { .split { grid-template-columns: 1fr; gap: 32px; } }
+  .img-card {
+    position: relative; border-radius: 18px; overflow: hidden;
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+  }
+  .img-card img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .img-caption {
+    position: absolute; left: 14px; bottom: 14px;
+    background: rgba(11,13,18,0.78); border: 1px solid var(--border);
+    padding: 7px 12px; border-radius: 8px; font-size: 12px;
+    color: var(--ink-dim); letter-spacing: 0.04em;
+  }
+
+  blockquote.pull {
+    margin: 48px 0; padding: 24px 28px;
+    border-left: 4px solid var(--accent);
+    background: linear-gradient(90deg, rgba(79,209,199,0.08), transparent 80%);
+    font-family: 'Fraunces', serif; font-size: clamp(22px, 2.6vw, 32px);
+    font-style: italic; font-weight: 500; line-height: 1.35; color: var(--ink);
+    border-radius: 0 12px 12px 0;
+  }
+
+  /* Charts */
+  .chart-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; margin-top: 48px; }
+  @media (max-width: 880px) { .chart-grid { grid-template-columns: 1fr; } }
+  .chart-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 28px; box-shadow: var(--shadow);
+  }
+  .chart-card h4 { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
+  .chart-card .subtitle { font-size: 12px; color: var(--ink-mute); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 18px; }
+  .chart-wrap { position: relative; height: 280px; }
+
+  /* Research questions */
+  .q-feature {
+    margin-top: 48px;
+    padding: 48px;
+    border-radius: 22px;
+    background: radial-gradient(ellipse at top right, rgba(79,209,199,0.16), transparent 60%), var(--card);
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+  .q-feature .label {
+    font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--accent-soft); font-weight: 700; margin-bottom: 18px;
+  }
+  .q-feature .q {
+    font-family: 'Fraunces', serif; font-size: clamp(24px, 3.2vw, 38px);
+    font-weight: 600; line-height: 1.25; max-width: 920px; margin: 0 auto;
+  }
+  .sub-grid {
+    margin-top: 36px;
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
+  }
+  @media (max-width: 760px) { .sub-grid { grid-template-columns: 1fr; } }
+  .sub-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 26px; display: flex; gap: 18px; align-items: flex-start;
+  }
+  .sub-num {
+    font-family: 'Fraunces', serif; font-size: 36px; font-weight: 700;
+    color: var(--accent); line-height: 1; min-width: 50px;
+  }
+
+  /* Workflow */
+  .workflow {
+    margin-top: 48px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+  }
+  @media (max-width: 880px) { .workflow { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .workflow { grid-template-columns: 1fr; } }
+  .step-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 26px;
+  }
+  .step-badge {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(120deg, var(--accent), var(--gold));
+    color: #061515; font-weight: 700; font-family: 'Fraunces', serif;
+    font-size: 17px; margin-bottom: 16px;
+  }
+  .step-card h5 { margin: 0 0 8px; font-size: 16px; font-weight: 600; }
+  .step-card ul { margin: 8px 0 0; padding-left: 20px; font-size: 14px; color: var(--ink-dim); }
+  .step-card ul li { margin-bottom: 4px; }
+  .step-card p { margin: 0; font-size: 14px; color: var(--ink-dim); }
+
+  /* Outcome */
+  .outcome-wrap {
+    margin-top: 56px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center;
+  }
+  @media (max-width: 880px) { .outcome-wrap { grid-template-columns: 1fr; } }
+  .outcome-text p { color: var(--ink-dim); font-size: 17px; line-height: 1.7; }
+
+  /* References */
+  .ref-list { margin-top: 36px; display: grid; gap: 14px; }
+  .ref {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 24px; display: flex; gap: 18px; align-items: flex-start;
+  }
+  .ref-num {
+    font-family: 'Fraunces', serif; font-weight: 700; color: var(--gold);
+    font-size: 22px; min-width: 32px;
+  }
+  .ref-text { font-size: 14px; color: var(--ink-dim); line-height: 1.6; }
+  .ref-text a {
+    color: var(--accent-soft); border-bottom: 1px dashed rgba(128,224,208,0.4);
+  }
+  .ref-text a:hover { color: var(--accent); }
+
+  /* Footer */
+  footer {
+    padding: 60px 0 40px; text-align: center;
+    border-top: 1px solid var(--border); background: var(--bg);
+  }
+  footer .brand { justify-content: center; margin-bottom: 14px; }
+  footer .meta { font-size: 13px; color: var(--ink-mute); letter-spacing: 0.05em; }
+
+  /* Reveal */
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <div class="inner">
+    <div class="brand"><span class="dot"></span> Genetic Algorithm · Route Optimization</div>
+    <div class="nav-links">
+      <a href="#background">Background</a>
+      <a href="#question">Question</a>
+      <a href="#plan">Plan</a>
+      <a href="#outcome">Outcome</a>
+      <a href="#refs">References</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="container">
+    <span class="pill">Topic 1 · Algorithms · Optimization · 2026 Research</span>
+    <h1 class="headline">Genetic Algorithm for <span class="grad">Multi-Stop Delivery Route Optimization</span></h1>
+    <p class="lead">A driver or delivery vehicle must visit many locations while minimizing total travel distance, travel time, fuel cost, or late deliveries. This problem is closely related to the Traveling Salesman Problem (TSP) and the Vehicle Routing Problem (VRP).</p>
+    <div class="cta-row">
+      <a href="#question" class="btn btn-primary">View Research Question →</a>
+      <a href="#plan" class="btn btn-ghost">Research Plan</a>
+    </div>
+    <div class="stat-strip">
+      <div class="stat"><div class="num">10</div><div class="lbl">Stops · millions of orderings</div></div>
+      <div class="stat"><div class="num">TSP</div><div class="lbl">Traveling Salesman</div></div>
+      <div class="stat"><div class="num">VRP</div><div class="lbl">Vehicle Routing</div></div>
+      <div class="stat"><div class="num">100</div><div class="lbl">Stops tested at scale</div></div>
+    </div>
+  </div>
+</header>
+
+<section id="background">
+  <div class="container">
+    <span class="eyebrow reveal">Basic Background</span>
+    <h2 class="section-title reveal">From shortest path to the best visiting order</h2>
+    <div class="split reveal">
+      <div>
+        <p class="lead">Multi-stop delivery routing is a classic optimization problem. A driver or delivery vehicle must visit many locations while minimizing total travel distance, travel time, fuel cost, or late deliveries. This problem is closely related to the <strong>Traveling Salesman Problem (TSP)</strong> and the <strong>Vehicle Routing Problem (VRP)</strong>.</p>
+        <p class="lead" style="margin-top:18px;">A simple shortest-path algorithm such as Dijkstra can find the shortest path between two locations, but it does not directly solve the harder question: <strong>what is the best order to visit many delivery stops?</strong> As the number of stops increases, the number of possible routes grows extremely quickly. For example, 10 stops already create millions of possible orderings.</p>
+        <p class="lead" style="margin-top:18px;">A <strong>genetic algorithm</strong> is useful because it does not need to check every possible route. Instead, it starts with many possible routes, evaluates them using a fitness function, keeps better routes, combines parts of good routes, adds small mutations, and gradually improves the solution.</p>
+      </div>
+      <div class="img-card">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1779285955733-image-1.png" alt="Multi-stop delivery problem"/>
+        <div class="img-caption">Real-world multi-stop logistics</div>
+      </div>
+    </div>
+
+    <blockquote class="pull reveal">"What is the best order to visit many delivery stops?" — 10 stops already create millions of possible orderings.</blockquote>
+
+    <div class="chart-grid reveal">
+      <div class="chart-card">
+        <h4>Combinatorial Explosion of TSP</h4>
+        <div class="subtitle">Possible orderings — (n-1)!/2 — illustrative</div>
+        <div class="chart-wrap"><canvas id="chart1"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h4>GA Loop Composition</h4>
+        <div class="subtitle">Components of a genetic algorithm</div>
+        <div class="chart-wrap"><canvas id="chart2"></canvas></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="question" class="alt">
+  <div class="container">
+    <span class="eyebrow reveal">Research Question</span>
+    <h2 class="section-title reveal">The core question driving this study</h2>
+    <p class="lead reveal">A genetic algorithm starts with many possible routes, evaluates them using a fitness function, keeps better routes, combines parts of good routes, adds small mutations, and gradually improves the solution.</p>
+
+    <div class="q-feature reveal">
+      <div class="label">Core Research Question</div>
+      <div class="q">Can a genetic algorithm efficiently find near-optimal multi-stop delivery routes under real-world constraints such as distance, delivery deadlines, and vehicle capacity?</div>
+    </div>
+
+    <div class="sub-grid">
+      <div class="sub-card reveal">
+        <div class="sub-num">01</div>
+        <div>How close is the genetic algorithm's route to the best-known or baseline route?</div>
+      </div>
+      <div class="sub-card reveal">
+        <div class="sub-num">02</div>
+        <div>How does performance change as the number of delivery stops increases?</div>
+      </div>
+      <div class="sub-card reveal">
+        <div class="sub-num">03</div>
+        <div>How do constraints such as time windows or vehicle capacity affect route quality?</div>
+      </div>
+      <div class="sub-card reveal">
+        <div class="sub-num">04</div>
+        <div>Can a hybrid method using Dijkstra plus genetic algorithm improve performance?</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="plan">
+  <div class="container">
+    <span class="eyebrow reveal">Brief Research Plan</span>
+    <h2 class="section-title reveal">Five-step methodology</h2>
+    <p class="lead reveal">From data collection through evaluation, with a hybrid Dijkstra + GA option.</p>
+
+    <div class="workflow">
+      <div class="step-card reveal">
+        <div class="step-badge">1</div>
+        <h5>Create or collect delivery-location data</h5>
+        <ul>
+          <li>Use a small city map, school campus map, or simulated delivery points.</li>
+          <li>Each location has coordinates, demand size, and optional delivery deadline.</li>
+        </ul>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-badge">2</div>
+        <h5>Build baseline algorithms</h5>
+        <ul>
+          <li>Nearest-neighbor greedy algorithm.</li>
+          <li>Random route generation.</li>
+          <li>Optional: exact brute-force search for very small cases.</li>
+        </ul>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-badge">3</div>
+        <h5>Implement the genetic algorithm</h5>
+        <ul>
+          <li>Each chromosome represents one possible delivery order.</li>
+          <li>Fitness function measures total distance, lateness penalty, and capacity penalty.</li>
+          <li>Use selection, crossover, and mutation to evolve routes.</li>
+        </ul>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-badge">4</div>
+        <h5>Optional hybrid design</h5>
+        <ul>
+          <li>Use Dijkstra to compute shortest-path distances between all pairs of delivery locations.</li>
+          <li>Use genetic algorithm to optimize the visiting order.</li>
+        </ul>
+      </div>
+      <div class="step-card reveal">
+        <div class="step-badge">5</div>
+        <h5>Evaluate performance</h5>
+        <ul>
+          <li>Compare route distance, runtime, number of late deliveries, and scalability.</li>
+          <li>Test with 10, 20, 50, and 100 stops.</li>
+        </ul>
+      </div>
+      <div class="step-card reveal" style="background: linear-gradient(135deg, rgba(79,209,199,0.08), rgba(245,196,81,0.06)); border-color: rgba(79,209,199,0.25);">
+        <div class="step-badge" style="background: linear-gradient(120deg, var(--gold), var(--accent));">★</div>
+        <h5>Visualization</h5>
+        <p>The student can also build a visualization showing how the route improves over generations.</p>
+      </div>
+    </div>
+
+    <div class="chart-grid reveal">
+      <div class="chart-card">
+        <h4>Fitness Convergence Across Generations</h4>
+        <div class="subtitle">Representative — best route fitness improves over generations</div>
+        <div class="chart-wrap"><canvas id="chart3"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h4>Scalability Test Set</h4>
+        <div class="subtitle">Stops to be evaluated</div>
+        <div class="chart-wrap"><canvas id="chart4"></canvas></div>
+      </div>
+    </div>
+
+    <div class="split reveal" style="margin-top: 56px;">
+      <div class="img-card">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1779285958133-image-1.png" alt="TSP route graph visualization"/>
+        <div class="img-caption">Routes as chromosomes — visiting orders evolve</div>
+      </div>
+      <div class="img-card">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1779285961803-image-1.png" alt="Optimized delivery route on a map"/>
+        <div class="img-caption">Optimized route vs. random route — illustrative</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="outcome" class="alt">
+  <div class="container">
+    <span class="eyebrow reveal">Expected Outcome</span>
+    <h2 class="section-title reveal">What this project should demonstrate</h2>
+    <div class="outcome-wrap reveal">
+      <div class="outcome-text">
+        <p>The project should show that genetic algorithms are practical for large multi-stop delivery problems where exact search is too slow. The student can also build a visualization showing how the route improves over generations.</p>
+      </div>
+      <div class="img-card">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1779285964760-image-1.png" alt="Logistics dashboard mockup"/>
+        <div class="img-caption">Operations dashboard — illustrative</div>
+      </div>
+    </div>
+
+    <div class="split reveal" style="margin-top: 72px;">
+      <div class="img-card">
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1779285967311-image-1.png" alt="Customer receiving a delivery"/>
+        <div class="img-caption">From algorithm to doorstep</div>
+      </div>
+      <div>
+        <p class="lead">Evaluate using route distance, runtime, number of late deliveries, and scalability — testing with 10, 20, 50, and 100 stops.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="refs">
+  <div class="container">
+    <span class="eyebrow reveal">References</span>
+    <h2 class="section-title reveal">Source literature</h2>
+    <div class="ref-list">
+      <div class="ref reveal">
+        <div class="ref-num">1</div>
+        <div class="ref-text">Sabah Sadiq, "The Traveling Salesman Problem: Optimizing Delivery Routes Using Genetic Algorithms," SAS Global Forum Proceedings, 2012. <a href="https://support.sas.com/resources/papers/proceedings12/161-2012.pdf" target="_blank" rel="noopener">support.sas.com ↗</a></div>
+      </div>
+      <div class="ref reveal">
+        <div class="ref-num">2</div>
+        <div class="ref-text">Ahmed Hussain et al., "Genetic Algorithm for Traveling Salesman Problem with Modified Cycle Crossover Operator," <em>Computational Intelligence and Neuroscience</em>, 2017. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5676484/" target="_blank" rel="noopener">pmc.ncbi.nlm.nih.gov ↗</a></div>
+      </div>
+      <div class="ref reveal">
+        <div class="ref-num">3</div>
+        <div class="ref-text">K. Bryant, "Genetic Algorithms and the Travelling Salesman Problem," Harvey Mudd College Senior Thesis, 2000. <a href="https://scholarship.claremont.edu/cgi/viewcontent.cgi?article=1129&context=hmc_theses" target="_blank" rel="noopener">scholarship.claremont.edu ↗</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="brand"><span class="dot"></span> Genetic Algorithm · Route Optimization</div>
+  <div class="meta">Topic 1 · TSP · VRP · Dijkstra · Genetic Algorithms</div>
+</footer>
+
+<script>
+  Chart.defaults.color = '#b9b3a7';
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+
+  function vGrad(ctx, c1, c2) {
+    const g = ctx.createLinearGradient(0,0,0,280);
+    g.addColorStop(0, c1); g.addColorStop(1, c2);
+    return g;
+  }
+
+  // Chart 1: Combinatorial explosion (n-1)!/2 for n stops
+  const c1 = document.getElementById('chart1').getContext('2d');
+  new Chart(c1, {
+    type: 'bar',
+    data: {
+      labels: ['5 stops','7','10','12','15'],
+      datasets: [{
+        label: 'Possible orderings',
+        data: [12, 360, 181440, 19958400, 43589145600],
+        backgroundColor: vGrad(c1, 'rgba(79,209,199,0.9)', 'rgba(79,209,199,0.15)'),
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        y: { type: 'logarithmic', ticks: { color: '#b9b3a7' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        x: { grid: { display: false } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // Chart 2: GA loop composition - doughnut
+  const c2 = document.getElementById('chart2').getContext('2d');
+  new Chart(c2, {
+    type: 'doughnut',
+    data: {
+      labels: ['Selection','Crossover','Mutation','Fitness Eval'],
+      datasets: [{
+        data: [25, 30, 15, 30],
+        backgroundColor: ['#4fd1c7','#f5c451','#2b8d85','#80e0d0'],
+        borderColor: '#161a24', borderWidth: 3
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '60%',
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 12 } } }
+    }
+  });
+
+  // Chart 3: Fitness convergence (representative)
+  const c3 = document.getElementById('chart3').getContext('2d');
+  new Chart(c3, {
+    type: 'line',
+    data: {
+      labels: ['Gen 0','25','50','75','100','150','200','300','500'],
+      datasets: [
+        {
+          label: 'Best route (GA)',
+          data: [100, 78, 62, 52, 45, 38, 34, 32, 31],
+          borderColor: '#4fd1c7', backgroundColor: vGrad(c3, 'rgba(79,209,199,0.35)', 'rgba(79,209,199,0)'),
+          tension: 0.35, fill: true, borderWidth: 3, pointRadius: 0
+        },
+        {
+          label: 'Average route',
+          data: [100, 88, 76, 68, 60, 53, 48, 45, 43],
+          borderColor: '#f5c451', backgroundColor: 'transparent',
+          tension: 0.35, borderDash: [6,4], borderWidth: 2, pointRadius: 0
+        },
+        {
+          label: 'Nearest-neighbor baseline',
+          data: [55, 55, 55, 55, 55, 55, 55, 55, 55],
+          borderColor: '#b9b3a7', backgroundColor: 'transparent',
+          borderDash: [3,3], borderWidth: 2, pointRadius: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        y: { ticks: { color: '#b9b3a7' }, grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'Normalized route cost', color: '#7a7468' } },
+        x: { grid: { display: false } }
+      },
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 14 } } }
+    }
+  });
+
+  // Chart 4: Stops tested - bar
+  const c4 = document.getElementById('chart4').getContext('2d');
+  new Chart(c4, {
+    type: 'bar',
+    data: {
+      labels: ['10','20','50','100'],
+      datasets: [{
+        label: 'Stops',
+        data: [10, 20, 50, 100],
+        backgroundColor: ['#4fd1c7','#80e0d0','#f5c451','#ff8a3c'],
+        borderRadius: 8,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' } }, y: { grid: { display: false } } },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // Reveal on scroll
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>

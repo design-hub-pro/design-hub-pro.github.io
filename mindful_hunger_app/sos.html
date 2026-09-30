@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MindfulHunger - SOS Mode</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; font-family: 'Inter', -apple-system, sans-serif; scrollbar-width: none; background: #0A0A0A; color: #fff; }
+
+  .status-bar {
+    height: 59px; display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 28px 8px 28px; background: #0A0A0A; position: sticky; top: 0; z-index: 100;
+  }
+  .status-bar .time { font-size: 17px; font-weight: 600; color: #fff; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .status-bar .icons i { font-size: 14px; color: #fff; }
+  .dynamic-island { width: 120px; height: 36px; background: #000; border-radius: 20px; position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 101; }
+
+  .content { padding: 0 28px 120px 28px; }
+
+  .sos-header {
+    text-align: center; margin-bottom: 28px; padding-top: 4px;
+  }
+
+  .sos-icon {
+    width: 72px; height: 72px; border-radius: 24px;
+    background: linear-gradient(135deg, #FF6B6B, #FF3B30);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px auto; box-shadow: 0 8px 32px rgba(255,59,48,0.4);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 8px 32px rgba(255,59,48,0.4); }
+    50% { box-shadow: 0 8px 48px rgba(255,59,48,0.7); }
+  }
+
+  .sos-icon i { font-size: 32px; color: #fff; }
+
+  .sos-title { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .sos-subtitle { font-size: 14px; color: rgba(255,255,255,0.5); }
+
+  .craving-meter {
+    background: rgba(255,255,255,0.06); border-radius: 24px; padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .meter-label {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+  }
+
+  .meter-label span { font-size: 14px; font-weight: 600; }
+  .meter-level { font-size: 28px; font-weight: 800; color: #FF6B6B; }
+
+  .meter-bar {
+    width: 100%; height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;
+    overflow: hidden; margin-bottom: 10px;
+  }
+
+  .meter-fill {
+    width: 72%; height: 100%; border-radius: 5px;
+    background: linear-gradient(90deg, #4CAF50, #FFB74D, #FF6B6B);
+  }
+
+  .meter-labels {
+    display: flex; justify-content: space-between;
+  }
+  .meter-labels span { font-size: 10px; color: rgba(255,255,255,0.3); }
+
+  .quick-actions {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 28px;
+  }
+
+  .quick-action-card {
+    border-radius: 20px; padding: 22px 18px; position: relative; overflow: hidden;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+
+  .quick-action-card .bg-icon {
+    position: absolute; right: -8px; bottom: -8px; font-size: 60px; opacity: 0.1;
+  }
+
+  .quick-action-icon {
+    width: 44px; height: 44px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+  }
+
+  .quick-action-title { font-size: 15px; font-weight: 700; }
+  .quick-action-desc { font-size: 11px; color: rgba(255,255,255,0.6); line-height: 1.4; }
+  .quick-action-time { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.4); display: flex; align-items: center; gap: 4px; }
+
+  .breathe-card {
+    border-radius: 24px; overflow: hidden; position: relative; margin-bottom: 28px;
+    background: linear-gradient(135deg, #1a237e, #0d47a1);
+    padding: 28px; text-align: center;
+  }
+
+  .breathe-circle {
+    width: 140px; height: 140px; border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px auto; position: relative;
+  }
+
+  .breathe-inner {
+    width: 100px; height: 100px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(100,181,246,0.4), transparent);
+    display: flex; align-items: center; justify-content: center;
+    animation: breathe 4s ease-in-out infinite;
+  }
+
+  @keyframes breathe {
+    0%, 100% { transform: scale(0.8); opacity: 0.6; }
+    50% { transform: scale(1.1); opacity: 1; }
+  }
+
+  .breathe-inner span { font-size: 16px; font-weight: 700; color: #fff; }
+
+  .breathe-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .breathe-desc { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 20px; }
+
+  .breathe-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
+    padding: 12px 28px; border-radius: 30px; font-size: 15px; font-weight: 600; color: #fff;
+  }
+
+  .affirmation-card {
+    background: rgba(255,255,255,0.06); border-radius: 24px; padding: 28px;
+    margin-bottom: 28px; position: relative; overflow: hidden;
+  }
+
+  .affirmation-quote {
+    font-size: 20px; font-weight: 700; line-height: 1.5; margin-bottom: 16px;
+    background: linear-gradient(135deg, #fff, rgba(255,255,255,0.7));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .affirmation-quote::before {
+    content: '"'; font-size: 48px; font-weight: 800; color: rgba(255,107,107,0.3);
+    position: absolute; top: 12px; left: 20px; line-height: 1;
+  }
+
+  .affirmation-action {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .affirmation-refresh {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: #FF6B6B; font-weight: 600;
+  }
+
+  .affirmation-share {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center;
+  }
+
+  .affirmation-share i { font-size: 16px; color: rgba(255,255,255,0.5); }
+
+  .timer-section {
+    background: rgba(255,255,255,0.06); border-radius: 24px; padding: 24px;
+    margin-bottom: 28px; text-align: center;
+  }
+
+  .timer-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.5); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+  .timer-value { font-size: 48px; font-weight: 800; color: #4CAF50; margin-bottom: 6px; }
+  .timer-label { font-size: 13px; color: rgba(255,255,255,0.4); }
+
+  .tab-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(10,10,10,0.95); backdrop-filter: blur(20px);
+    display: flex; align-items: flex-start; justify-content: space-around; padding-top: 10px;
+    border-top: 0.5px solid rgba(255,255,255,0.1);
+  }
+
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; min-width: 60px; }
+  .tab-item i { font-size: 22px; color: rgba(255,255,255,0.4); }
+  .tab-item span { font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 500; }
+  .tab-item.active i { color: #fff; }
+  .tab-item.active span { color: #fff; }
+
+  .sos-btn-tab {
+    width: 52px; height: 52px; border-radius: 16px; border: none;
+    background: linear-gradient(135deg, #FF6B6B, #FF3B30);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(255,59,48,0.4); margin-top: -10px;
+  }
+  .sos-btn-tab i { font-size: 22px; color: #fff; }
+</style>
+</head>
+<body>
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="sos-header">
+      <div class="sos-icon"><i class="fas fa-bolt"></i></div>
+      <div class="sos-title">SOS Mode</div>
+      <div class="sos-subtitle">Stay strong. We've got you.</div>
+    </div>
+
+    <!-- Craving Meter -->
+    <div class="craving-meter">
+      <div class="meter-label">
+        <span>Craving Level</span>
+        <span class="meter-level">7/10</span>
+      </div>
+      <div class="meter-bar">
+        <div class="meter-fill"></div>
+      </div>
+      <div class="meter-labels">
+        <span>Mild</span>
+        <span>Moderate</span>
+        <span>Intense</span>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <div class="quick-action-card" style="background: linear-gradient(135deg, #0D47A1, #1A237E); grid-column: 1 / -1;">
+        <div class="bg-icon">🎯</div>
+        <div class="quick-action-icon" style="background:rgba(0,229,255,0.2)"><i class="fas fa-gamepad" style="color:#00E5FF"></i></div>
+        <div class="quick-action-title">Play Focus Game</div>
+        <div class="quick-action-desc">Redirect your brain with a Stroop challenge or memory game</div>
+        <div class="quick-action-time"><i class="fas fa-clock"></i> 3-5 min <span style="margin-left:8px;color:#00E5FF">Recommended</span></div>
+      </div>
+      <div class="quick-action-card" style="background: linear-gradient(135deg, #4A148C, #6A1B9A);">
+        <div class="bg-icon">🧘</div>
+        <div class="quick-action-icon" style="background:rgba(255,255,255,0.15)"><i class="fas fa-spa" style="color:#CE93D8"></i></div>
+        <div class="quick-action-title">Meditate</div>
+        <div class="quick-action-desc">Calm your mind</div>
+        <div class="quick-action-time"><i class="fas fa-clock"></i> 3 min</div>
+      </div>
+      <div class="quick-action-card" style="background: linear-gradient(135deg, #E65100, #F57C00);">
+        <div class="bg-icon">💧</div>
+        <div class="quick-action-icon" style="background:rgba(255,255,255,0.15)"><i class="fas fa-glass-water" style="color:#FFB74D"></i></div>
+        <div class="quick-action-title">Drink Water</div>
+        <div class="quick-action-desc">Hydrate instead</div>
+        <div class="quick-action-time"><i class="fas fa-clock"></i> 1 min</div>
+      </div>
+    </div>
+
+    <!-- Breathing Exercise -->
+    <div class="breathe-card">
+      <div class="breathe-circle">
+        <div class="breathe-inner">
+          <span>Breathe</span>
+        </div>
+      </div>
+      <div class="breathe-title">Box Breathing</div>
+      <div class="breathe-desc">4 seconds in, hold 4, out 4, hold 4</div>
+      <div class="breathe-btn">
+        <i class="fas fa-play"></i> Start Session
+      </div>
+    </div>
+
+    <!-- Affirmation -->
+    <div class="affirmation-card">
+      <div class="affirmation-quote">You don't need food right now. You need strength. And you already have it.</div>
+      <div class="affirmation-action">
+        <div class="affirmation-refresh">
+          <i class="fas fa-sync-alt"></i> New Quote
+        </div>
+        <div class="affirmation-share">
+          <i class="fas fa-share-alt"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timer -->
+    <div class="timer-section">
+      <div class="timer-title">Craving Timer</div>
+      <div class="timer-value">8:42</div>
+      <div class="timer-label">Cravings typically pass in 10 minutes</div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-compass"></i>
+      <span>Discover</span>
+    </div>
+    <div class="tab-item active">
+      <button class="sos-btn-tab"><i class="fas fa-bolt"></i></button>
+      <span style="color:#FF6B6B;font-size:10px;margin-top:4px">SOS</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-chart-line"></i>
+      <span>Progress</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-gamepad"></i>
+      <span>Games</span>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FenceAI - Training</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;
+    scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif;
+    background: #000; color: #fff;
+  }
+
+  .status-bar {
+    height: 59px; display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 28px 8px; position: sticky; top: 0; z-index: 100;
+    background: linear-gradient(to bottom, #000 60%, transparent);
+  }
+  .status-time { font-size: 17px; font-weight: 600; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 14px; }
+  .dynamic-island {
+    width: 126px; height: 37px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  }
+
+  .content { padding: 0 28px 120px; }
+
+  .page-title { font-size: 32px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 20px; }
+
+  /* Filter Chips */
+  .filters { display: flex; gap: 8px; margin-bottom: 24px; overflow-x: auto; }
+  .chip {
+    padding: 8px 18px; border-radius: 12px; font-size: 13px; font-weight: 600;
+    white-space: nowrap; background: #111; color: #888; border: 1px solid #222;
+  }
+  .chip.active { background: #1a5cff; color: #fff; border-color: #1a5cff; }
+
+  /* Featured Program */
+  .featured {
+    border-radius: 24px; overflow: hidden; position: relative; height: 220px;
+    margin-bottom: 24px;
+  }
+  .featured img { width: 100%; height: 100%; object-fit: cover; }
+  .featured-overlay {
+    position: absolute; bottom: 0; left: 0; right: 0; padding: 24px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.9));
+  }
+  .featured-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(26,92,255,0.3); border: 1px solid rgba(26,92,255,0.5);
+    padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+    color: #5b9aff;
+  }
+  .featured-title { font-size: 20px; font-weight: 800; }
+  .featured-meta { font-size: 12px; color: #aaa; margin-top: 4px; display: flex; gap: 12px; }
+  .featured-play {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 56px; height: 56px; background: rgba(255,255,255,0.2);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(20px); border: 2px solid rgba(255,255,255,0.3);
+  }
+  .featured-play i { font-size: 22px; margin-left: 3px; }
+
+  /* Section Header */
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .section-title { font-size: 20px; font-weight: 700; }
+  .section-more { font-size: 13px; color: #1a5cff; font-weight: 600; }
+
+  /* Technique Cards */
+  .technique-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+  .tech-card {
+    background: #111; border-radius: 20px; overflow: hidden;
+    border: 1px solid #1a1a1a;
+  }
+  .tech-img { width: 100%; height: 110px; object-fit: cover; position: relative; }
+  .tech-img img { width: 100%; height: 100%; object-fit: cover; }
+  .tech-duration {
+    position: absolute; bottom: 8px; right: 8px;
+    background: rgba(0,0,0,0.7); padding: 3px 8px; border-radius: 6px;
+    font-size: 10px; font-weight: 600; backdrop-filter: blur(10px);
+  }
+  .tech-body { padding: 14px; }
+  .tech-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .tech-level { font-size: 11px; color: #888; display: flex; align-items: center; gap: 6px; }
+  .level-dots { display: flex; gap: 3px; }
+  .level-dot { width: 6px; height: 6px; border-radius: 50%; background: #333; }
+  .level-dot.filled { background: #1a5cff; }
+
+  /* Video List */
+  .video-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+  .video-item {
+    display: flex; gap: 14px; background: #111; border-radius: 18px;
+    padding: 12px; align-items: center; border: 1px solid #1a1a1a;
+  }
+  .video-thumb {
+    width: 80px; height: 60px; border-radius: 12px; overflow: hidden;
+    position: relative; flex-shrink: 0;
+  }
+  .video-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .video-play {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 28px; height: 28px; background: rgba(0,0,0,0.5); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(10px);
+  }
+  .video-play i { font-size: 10px; margin-left: 2px; }
+  .video-info { flex: 1; }
+  .video-title { font-size: 14px; font-weight: 600; }
+  .video-meta { font-size: 11px; color: #666; margin-top: 3px; }
+  .video-progress { height: 3px; background: #222; border-radius: 2px; margin-top: 6px; overflow: hidden; }
+  .video-progress-fill { height: 100%; background: #1a5cff; border-radius: 2px; }
+
+  /* Weekly Plan */
+  .weekly { display: flex; gap: 8px; margin-bottom: 28px; overflow-x: auto; }
+  .week-day {
+    min-width: 60px; text-align: center; padding: 14px 8px;
+    background: #111; border-radius: 16px; border: 1px solid #1a1a1a;
+  }
+  .week-day.today { background: #1a5cff; border-color: #1a5cff; }
+  .week-day.done { border-color: #22c55e; }
+  .wd-name { font-size: 11px; color: #888; font-weight: 600; }
+  .week-day.today .wd-name { color: rgba(255,255,255,0.7); }
+  .wd-num { font-size: 20px; font-weight: 800; margin: 4px 0; }
+  .wd-dot { width: 6px; height: 6px; border-radius: 50%; margin: 0 auto; }
+  .wd-dot.check { background: #22c55e; }
+  .wd-dot.pending { background: #333; }
+  .week-day.today .wd-dot { background: #fff; }
+
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 96px;
+    background: rgba(10,10,10,0.92); backdrop-filter: blur(30px);
+    display: flex; justify-content: space-around; align-items: flex-start;
+    padding-top: 12px; border-top: 0.5px solid #222;
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .tab-item i { font-size: 22px; color: #555; }
+  .tab-item span { font-size: 10px; color: #555; font-weight: 500; }
+  .tab-item.active i { color: #1a5cff; }
+  .tab-item.active span { color: #1a5cff; }
+  .tab-center {
+    width: 56px; height: 56px; background: linear-gradient(135deg, #1a5cff, #7c3aed);
+    border-radius: 18px; display: flex; align-items: center; justify-content: center;
+    margin-top: -8px; box-shadow: 0 4px 20px rgba(26,92,255,0.4);
+  }
+  .tab-center i { font-size: 24px; color: #fff !important; }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="content">
+  <div class="page-title">Training</div>
+
+  <div class="filters">
+    <div class="chip active">All</div>
+    <div class="chip">Footwork</div>
+    <div class="chip">Attacks</div>
+    <div class="chip">Defense</div>
+    <div class="chip">Strategy</div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">This Week</div>
+  </div>
+  <div class="weekly">
+    <div class="week-day done">
+      <div class="wd-name">Mon</div>
+      <div class="wd-num">3</div>
+      <div class="wd-dot check"></div>
+    </div>
+    <div class="week-day done">
+      <div class="wd-name">Tue</div>
+      <div class="wd-num">4</div>
+      <div class="wd-dot check"></div>
+    </div>
+    <div class="week-day done">
+      <div class="wd-name">Wed</div>
+      <div class="wd-num">5</div>
+      <div class="wd-dot check"></div>
+    </div>
+    <div class="week-day today">
+      <div class="wd-name">Thu</div>
+      <div class="wd-num">6</div>
+      <div class="wd-dot"></div>
+    </div>
+    <div class="week-day">
+      <div class="wd-name">Fri</div>
+      <div class="wd-num">7</div>
+      <div class="wd-dot pending"></div>
+    </div>
+    <div class="week-day">
+      <div class="wd-name">Sat</div>
+      <div class="wd-num">8</div>
+      <div class="wd-dot pending"></div>
+    </div>
+    <div class="week-day">
+      <div class="wd-name">Sun</div>
+      <div class="wd-num">9</div>
+      <div class="wd-dot pending"></div>
+    </div>
+  </div>
+
+  <div class="featured">
+    <img src="https://images.unsplash.com/photo-1636812028753-6c6b51c8ad9a?w=800&h=500&fit=crop" alt="featured">
+    <div class="featured-play"><i class="fas fa-play"></i></div>
+    <div class="featured-overlay">
+      <div class="featured-badge"><i class="fas fa-star"></i> Featured Program</div>
+      <div class="featured-title">Complete Épée Mastery</div>
+      <div class="featured-meta">
+        <span><i class="fas fa-clock"></i> 6 weeks</span>
+        <span><i class="fas fa-signal"></i> Intermediate</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Techniques</div>
+    <div class="section-more">See All</div>
+  </div>
+
+  <div class="technique-grid">
+    <div class="tech-card">
+      <div class="tech-img">
+        <img src="https://images.unsplash.com/photo-1636812028800-a0bfb6b4f0d9?w=400&h=300&fit=crop" alt="lunge">
+        <div class="tech-duration">8 min</div>
+      </div>
+      <div class="tech-body">
+        <div class="tech-name">Lunge Form</div>
+        <div class="tech-level">
+          <div class="level-dots">
+            <div class="level-dot filled"></div>
+            <div class="level-dot"></div>
+            <div class="level-dot"></div>
+          </div>
+          Beginner
+        </div>
+      </div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-img">
+        <img src="https://images.unsplash.com/photo-1636812029061-3a744041c4e8?w=400&h=300&fit=crop" alt="parry">
+        <div class="tech-duration">12 min</div>
+      </div>
+      <div class="tech-body">
+        <div class="tech-name">Parry Quarte</div>
+        <div class="tech-level">
+          <div class="level-dots">
+            <div class="level-dot filled"></div>
+            <div class="level-dot filled"></div>
+            <div class="level-dot"></div>
+          </div>
+          Intermediate
+        </div>
+      </div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-img">
+        <img src="https://images.unsplash.com/photo-1636812028922-023445fbab51?w=400&h=300&fit=crop" alt="riposte">
+        <div class="tech-duration">15 min</div>
+      </div>
+      <div class="tech-body">
+        <div class="tech-name">Riposte Timing</div>
+        <div class="tech-level">
+          <div class="level-dots">
+            <div class="level-dot filled"></div>
+            <div class="level-dot filled"></div>
+            <div class="level-dot filled"></div>
+          </div>
+          Advanced
+        </div>
+      </div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-img">
+        <img src="https://images.unsplash.com/photo-1636812028801-7cfcd197f732?w=400&h=300&fit=crop" alt="footwork">
+        <div class="tech-duration">10 min</div>
+      </div>
+      <div class="tech-body">
+        <div class="tech-name">Advance-Retreat</div>
+        <div class="tech-level">
+          <div class="level-dots">
+            <div class="level-dot filled"></div>
+            <div class="level-dot"></div>
+            <div class="level-dot"></div>
+          </div>
+          Beginner
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Video Lessons</div>
+    <div class="section-more">See All</div>
+  </div>
+
+  <div class="video-list">
+    <div class="video-item">
+      <div class="video-thumb">
+        <img src="https://images.unsplash.com/photo-1636812028988-c55f5794d310?w=200&h=150&fit=crop" alt="video">
+        <div class="video-play"><i class="fas fa-play"></i></div>
+      </div>
+      <div class="video-info">
+        <div class="video-title">En Garde Fundamentals</div>
+        <div class="video-meta">12:30 · Coach Martinez</div>
+        <div class="video-progress"><div class="video-progress-fill" style="width:80%"></div></div>
+      </div>
+    </div>
+    <div class="video-item">
+      <div class="video-thumb">
+        <img src="https://images.unsplash.com/photo-1636812028734-c3889b4cbb0b?w=200&h=150&fit=crop" alt="video">
+        <div class="video-play"><i class="fas fa-play"></i></div>
+      </div>
+      <div class="video-info">
+        <div class="video-title">Blade Work Mastery</div>
+        <div class="video-meta">18:45 · Coach Liu</div>
+        <div class="video-progress"><div class="video-progress-fill" style="width:30%"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item">
+    <i class="fas fa-home"></i>
+    <span>Home</span>
+  </div>
+  <div class="tab-item active">
+    <i class="fas fa-dumbbell"></i>
+    <span>Train</span>
+  </div>
+  <div class="tab-item">
+    <div class="tab-center"><i class="fas fa-video"></i></div>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-chart-line"></i>
+    <span>Stats</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-user"></i>
+    <span>Profile</span>
+  </div>
+</div>
+
+</body>
+</html>

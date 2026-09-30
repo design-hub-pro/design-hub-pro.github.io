@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EquiStride - Live Tracking</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif; background: #0A0A0A; width: 100%; height: 100%; overflow-x: hidden; color: #fff; }
+
+  .status-bar {
+    height: 59px; display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 28px 8px; position: sticky; top: 0; z-index: 100; color: #fff;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .status-bar .icons i { font-size: 13px; }
+  .dynamic-island { width: 120px; height: 34px; background: #1A1A1A; border-radius: 20px; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+
+  /* Top Bar */
+  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .top-bar .back { font-size: 18px; color: #4A7C23; }
+  .top-bar .title { font-size: 17px; font-weight: 600; }
+  .top-bar .end-btn { background: #FF3B30; color: #fff; padding: 7px 16px; border-radius: 18px; font-size: 13px; font-weight: 600; border: none; }
+
+  /* Map Area */
+  .map-area {
+    width: 100%; height: 260px; border-radius: 20px; overflow: hidden; margin-bottom: 20px;
+    background: linear-gradient(145deg, #1a2a1a, #0d1f0d); position: relative;
+  }
+  .map-area img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+  .map-overlay {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .map-path { position: absolute; inset: 0; }
+  .map-path svg { width: 100%; height: 100%; }
+  .horse-pin {
+    position: absolute; top: 35%; left: 55%;
+    width: 40px; height: 40px; background: #4A7C23; border-radius: 50%;
+    border: 3px solid #fff; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 20px rgba(74,124,35,0.5);
+    animation: pinPulse 2s infinite;
+  }
+  @keyframes pinPulse { 0%, 100% { box-shadow: 0 0 20px rgba(74,124,35,0.5); } 50% { box-shadow: 0 0 40px rgba(74,124,35,0.8); } }
+  .horse-pin i { color: #fff; font-size: 16px; }
+
+  /* Timer */
+  .timer-section { text-align: center; margin-bottom: 24px; }
+  .timer { font-size: 48px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
+  .timer-label { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+  /* Live Stats Grid */
+  .live-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+  .live-stat-card {
+    background: rgba(255,255,255,0.08); border-radius: 16px; padding: 16px; text-align: center;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .live-stat-card .icon { font-size: 18px; margin-bottom: 8px; }
+  .live-stat-card .value { font-size: 24px; font-weight: 800; }
+  .live-stat-card .label { font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+  /* Current Gait */
+  .gait-indicator {
+    background: linear-gradient(145deg, rgba(74,124,35,0.2), rgba(74,124,35,0.1));
+    border: 1px solid rgba(74,124,35,0.3); border-radius: 20px; padding: 18px;
+    display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
+  }
+  .gait-circle {
+    width: 56px; height: 56px; border-radius: 50%; background: #4A7C23;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .gait-circle i { font-size: 22px; color: #fff; }
+  .gait-info h4 { font-size: 20px; font-weight: 700; }
+  .gait-info p { font-size: 12px; color: rgba(255,255,255,0.5); }
+  .gait-bpm { margin-left: auto; text-align: right; }
+  .gait-bpm .val { font-size: 28px; font-weight: 800; color: #FF6B6B; }
+  .gait-bpm .lbl { font-size: 10px; color: rgba(255,255,255,0.5); }
+
+  /* Sensor Status */
+  .sensors {
+    background: rgba(255,255,255,0.05); border-radius: 18px; padding: 16px; margin-bottom: 20px;
+  }
+  .sensors h4 { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.6); margin-bottom: 12px; }
+  .sensor-row { display: flex; justify-content: space-between; }
+  .sensor-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .sensor-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-green { background: #34C759; box-shadow: 0 0 8px rgba(52,199,89,0.5); }
+  .dot-yellow { background: #FFCC00; box-shadow: 0 0 8px rgba(255,204,0,0.5); }
+  .sensor-name { font-size: 11px; color: rgba(255,255,255,0.5); }
+
+  /* Alerts */
+  .alert-card {
+    background: rgba(255,149,0,0.15); border: 1px solid rgba(255,149,0,0.3);
+    border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+  }
+  .alert-card i { color: #FF9500; font-size: 20px; }
+  .alert-card .text { flex: 1; }
+  .alert-card .text h4 { font-size: 14px; font-weight: 600; }
+  .alert-card .text p { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(20,20,20,0.95); backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px;
+    border-top: 0.5px solid rgba(255,255,255,0.1);
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .tab-item i { font-size: 22px; color: #666; }
+  .tab-item span { font-size: 10px; font-weight: 500; color: #666; }
+  .tab-item.active i { color: #4A7C23; }
+  .tab-item.active span { color: #4A7C23; font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="top-bar">
+      <i class="fas fa-chevron-left back"></i>
+      <span class="title">Live Session</span>
+      <button class="end-btn">End</button>
+    </div>
+
+    <!-- Map -->
+    <div class="map-area">
+      <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&h=400&fit=crop" alt="arena">
+      <div class="map-path">
+        <svg viewBox="0 0 400 260">
+          <path d="M80,180 Q120,60 200,80 Q280,100 320,60 Q340,40 300,130 Q260,200 180,180 Q120,160 100,200" fill="none" stroke="#4A7C23" stroke-width="3" stroke-dasharray="8,4" opacity="0.8"/>
+        </svg>
+      </div>
+      <div class="horse-pin"><i class="fas fa-horse-head"></i></div>
+    </div>
+
+    <!-- Timer -->
+    <div class="timer-section">
+      <div class="timer">24:37</div>
+      <div class="timer-label">Session Duration</div>
+    </div>
+
+    <!-- Live Stats -->
+    <div class="live-grid">
+      <div class="live-stat-card">
+        <div class="icon">🏃</div>
+        <div class="value">3.2</div>
+        <div class="label">km</div>
+      </div>
+      <div class="live-stat-card">
+        <div class="icon">⚡</div>
+        <div class="value">18.4</div>
+        <div class="label">km/h</div>
+      </div>
+      <div class="live-stat-card">
+        <div class="icon">🔥</div>
+        <div class="value">847</div>
+        <div class="label">cal</div>
+      </div>
+    </div>
+
+    <!-- Current Gait -->
+    <div class="gait-indicator">
+      <div class="gait-circle"><i class="fas fa-horse"></i></div>
+      <div class="gait-info">
+        <h4>Trot</h4>
+        <p>Consistent rhythm detected</p>
+      </div>
+      <div class="gait-bpm">
+        <div class="val">142</div>
+        <div class="lbl">BPM</div>
+      </div>
+    </div>
+
+    <!-- Sensors -->
+    <div class="sensors">
+      <h4>Sensor Status</h4>
+      <div class="sensor-row">
+        <div class="sensor-item">
+          <div class="sensor-dot dot-green"></div>
+          <span class="sensor-name">Front Left</span>
+        </div>
+        <div class="sensor-item">
+          <div class="sensor-dot dot-green"></div>
+          <span class="sensor-name">Front Right</span>
+        </div>
+        <div class="sensor-item">
+          <div class="sensor-dot dot-yellow"></div>
+          <span class="sensor-name">Hind Left</span>
+        </div>
+        <div class="sensor-item">
+          <div class="sensor-dot dot-green"></div>
+          <span class="sensor-name">Hind Right</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert -->
+    <div class="alert-card">
+      <i class="fas fa-triangle-exclamation"></i>
+      <div class="text">
+        <h4>Slight Asymmetry Detected</h4>
+        <p>Hind left stride 4% shorter than normal</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-chart-bar"></i>
+      <span>Analytics</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-plus-circle" style="font-size: 28px;"></i>
+      <span>Track</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-horse-head"></i>
+      <span>Horses</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>

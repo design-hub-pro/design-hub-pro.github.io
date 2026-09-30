@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shadow Fencing AI - Home</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif; background: #0a0a1a; color: white; overflow-x: hidden; }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; z-index: 100; background: rgba(10,10,26,0.9); backdrop-filter: blur(20px);
+  }
+  .status-time { font-size: 16px; font-weight: 600; }
+  .dynamic-island { width: 120px; height: 36px; background: #000; border-radius: 20px; position: absolute; left: 50%; transform: translateX(-50%); top: 10px; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 14px; }
+
+  .content { padding: 0 28px 120px; }
+
+  .header { padding: 8px 0 24px; }
+  .greeting { font-size: 14px; color: rgba(255,255,255,0.5); font-weight: 500; }
+  .header-title { font-size: 28px; font-weight: 800; margin-top: 4px; letter-spacing: -0.5px; }
+
+  /* Today's Challenge */
+  .hero-card {
+    width: 100%; border-radius: 24px; overflow: hidden; position: relative;
+    height: 200px; margin-bottom: 28px;
+  }
+  .hero-card img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 70%, rgba(10,10,26,0.95) 100%);
+    display: flex; flex-direction: column; justify-content: flex-end; padding: 24px;
+  }
+  .hero-badge {
+    position: absolute; top: 16px; left: 16px;
+    background: linear-gradient(135deg, #00d4ff, #8b5cf6); padding: 6px 14px;
+    border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .hero-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+  .hero-subtitle { font-size: 13px; color: rgba(255,255,255,0.7); }
+  .hero-btn {
+    position: absolute; bottom: 20px; right: 20px;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: linear-gradient(135deg, #00d4ff, #8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(0,212,255,0.4);
+  }
+  .hero-btn i { font-size: 18px; color: white; margin-left: 2px; }
+
+  /* Quick Stats */
+  .stats-row {
+    display: flex; gap: 12px; margin-bottom: 28px;
+  }
+  .stat-card {
+    flex: 1; background: rgba(255,255,255,0.05); border-radius: 20px; padding: 18px 16px;
+    border: 1px solid rgba(255,255,255,0.06); text-align: center;
+  }
+  .stat-value {
+    font-size: 30px; font-weight: 800; line-height: 1;
+    background: linear-gradient(135deg, #00d4ff, #8b5cf6);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .stat-label { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+
+  /* Game Modes */
+  .section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+
+  .mode-card {
+    width: 100%; border-radius: 20px; overflow: hidden; margin-bottom: 14px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; padding: 18px 20px; gap: 16px;
+    position: relative;
+  }
+  .mode-icon {
+    width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 24px;
+  }
+  .mode-icon.reaction { background: linear-gradient(135deg, rgba(255,59,48,0.2), rgba(255,149,0,0.2)); color: #ff6b4a; }
+  .mode-icon.mimic { background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(88,166,255,0.2)); color: #00d4ff; }
+  .mode-icon.distance { background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(168,85,247,0.2)); color: #a78bfa; }
+
+  .mode-info { flex: 1; }
+  .mode-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .mode-desc { font-size: 12px; color: rgba(255,255,255,0.4); line-height: 1.4; }
+  .mode-arrow { color: rgba(255,255,255,0.2); font-size: 14px; }
+
+  .mode-progress {
+    position: absolute; bottom: 0; left: 20px; right: 20px; height: 3px;
+    background: rgba(255,255,255,0.06); border-radius: 2px;
+  }
+  .mode-progress-fill {
+    height: 100%; border-radius: 2px;
+  }
+  .mode-progress-fill.reaction { background: linear-gradient(90deg, #ff3b30, #ff9500); width: 65%; }
+  .mode-progress-fill.mimic { background: linear-gradient(90deg, #00d4ff, #58a6ff); width: 40%; }
+  .mode-progress-fill.distance { background: linear-gradient(90deg, #8b5cf6, #a855f7); width: 25%; }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(10,10,26,0.95); backdrop-filter: blur(30px);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; justify-content: space-around; align-items: flex-start; padding-top: 12px;
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; opacity: 0.4; }
+  .tab-item.active { opacity: 1; }
+  .tab-item i { font-size: 22px; }
+  .tab-item.active i { background: linear-gradient(135deg, #00d4ff, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .tab-label { font-size: 10px; font-weight: 600; }
+  .tab-item.active .tab-label { background: linear-gradient(135deg, #00d4ff, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+</style>
+</head>
+<body>
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <div class="greeting">Good morning, Alex</div>
+      <div class="header-title">Shadow Fencing</div>
+    </div>
+
+    <!-- Hero Card -->
+    <div class="hero-card">
+      <img src="https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=400&fit=crop" alt="Fencing">
+      <div class="hero-overlay">
+        <div class="hero-badge"><i class="fas fa-fire" style="margin-right:4px;"></i> Daily Challenge</div>
+        <div class="hero-title">Speed Strike</div>
+        <div class="hero-subtitle">Hit 20 targets in 30 seconds</div>
+      </div>
+      <div class="hero-btn"><i class="fas fa-play"></i></div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value">12</div>
+        <div class="stat-label">Sessions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">87<span style="font-size:16px;">%</span></div>
+        <div class="stat-label">Accuracy</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">5</div>
+        <div class="stat-label">Day Streak</div>
+      </div>
+    </div>
+
+    <!-- Game Modes -->
+    <div class="section-title">Training Modes</div>
+
+    <div class="mode-card">
+      <div class="mode-icon reaction"><i class="fas fa-crosshairs"></i></div>
+      <div class="mode-info">
+        <div class="mode-name">Reaction Strike</div>
+        <div class="mode-desc">Hit target points within time limit</div>
+      </div>
+      <i class="fas fa-chevron-right mode-arrow"></i>
+      <div class="mode-progress"><div class="mode-progress-fill reaction"></div></div>
+    </div>
+
+    <div class="mode-card">
+      <div class="mode-icon mimic"><i class="fas fa-person-walking"></i></div>
+      <div class="mode-info">
+        <div class="mode-name">Motion Mimic</div>
+        <div class="mode-desc">Follow & replicate standard parries</div>
+      </div>
+      <i class="fas fa-chevron-right mode-arrow"></i>
+      <div class="mode-progress"><div class="mode-progress-fill mimic"></div></div>
+    </div>
+
+    <div class="mode-card">
+      <div class="mode-icon distance"><i class="fas fa-arrows-left-right"></i></div>
+      <div class="mode-info">
+        <div class="mode-name">Distance Control</div>
+        <div class="mode-desc">Master fencing distance & footwork</div>
+      </div>
+      <i class="fas fa-chevron-right mode-arrow"></i>
+      <div class="mode-progress"><div class="mode-progress-fill distance"></div></div>
+    </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item active">
+      <i class="fas fa-house"></i>
+      <span class="tab-label">Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-crosshairs"></i>
+      <span class="tab-label">Train</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-chart-line"></i>
+      <span class="tab-label">Stats</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span class="tab-label">Profile</span>
+    </div>
+  </div>
+</body>
+</html>

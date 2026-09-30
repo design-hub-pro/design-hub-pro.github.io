@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CaffeineIQ - Activity</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    scrollbar-width: none;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #F8F6F3;
+    width: 100%; height: 100%;
+    overflow-x: hidden; overflow-y: auto;
+  }
+
+  .status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 28px 0 28px; height: 59px; background: #F8F6F3;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; left: 50%; transform: translateX(-50%); top: 10px;
+  }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+  .battery {
+    width: 27px; height: 12px; border: 1.5px solid #000; border-radius: 3px;
+    position: relative; display: flex; align-items: center; padding: 1.5px;
+  }
+  .battery::after {
+    content: ''; position: absolute; right: -4px; width: 2px; height: 6px;
+    background: #000; border-radius: 0 1px 1px 0;
+  }
+  .battery-fill { width: 75%; height: 100%; background: #000; border-radius: 1.5px; }
+
+  .content { padding: 0 28px 120px 28px; }
+
+  .page-title {
+    font-size: 28px; font-weight: 700; color: #1A1A1A;
+    letter-spacing: -0.5px; margin: 16px 0 6px 0;
+  }
+  .page-sub {
+    font-size: 13px; color: #8A8A8A; margin-bottom: 20px;
+  }
+
+  /* Date Selector */
+  .date-selector {
+    display: flex; gap: 6px; margin-bottom: 24px;
+  }
+  .date-item {
+    flex: 1; text-align: center; padding: 10px 0;
+    border-radius: 14px; cursor: pointer;
+  }
+  .date-item.active {
+    background: #2D2016; color: #fff;
+  }
+  .date-day {
+    font-size: 10px; font-weight: 500; color: #999;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .date-num {
+    font-size: 18px; font-weight: 700; color: #1A1A1A;
+    margin-top: 4px;
+  }
+  .date-item.active .date-day { color: rgba(255,255,255,0.6); }
+  .date-item.active .date-num { color: #fff; }
+
+  /* Stats Row */
+  .stats-row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: #fff; border-radius: 18px; padding: 18px 14px;
+    text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .stat-icon {
+    width: 36px; height: 36px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 10px; font-size: 16px;
+  }
+  .stat-icon.sleep { background: #EDE3F8; color: #7B5DB8; }
+  .stat-icon.focus { background: #E3EEFC; color: #3B7DD8; }
+  .stat-icon.caffeine { background: #F0E6D9; color: #8B6914; }
+  .stat-value {
+    font-size: 22px; font-weight: 700; color: #1A1A1A;
+    line-height: 1;
+  }
+  .stat-value span { font-size: 12px; font-weight: 500; color: #999; }
+  .stat-label {
+    font-size: 11px; color: #999; margin-top: 4px;
+    font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px;
+  }
+
+  .section-title {
+    font-size: 18px; font-weight: 700; color: #1A1A1A;
+    margin-bottom: 14px; letter-spacing: -0.3px;
+  }
+
+  /* Sleep Card */
+  .sleep-card {
+    background: linear-gradient(145deg, #1A1040, #2D1B69);
+    border-radius: 22px; padding: 22px; margin-bottom: 24px;
+    position: relative; overflow: hidden;
+  }
+  .sleep-card::before {
+    content: ''; position: absolute; top: -30%; right: -20%;
+    width: 180px; height: 180px;
+    background: radial-gradient(circle, rgba(123,93,184,0.3) 0%, transparent 70%);
+  }
+  .sleep-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 18px;
+  }
+  .sleep-title {
+    font-size: 15px; font-weight: 600; color: #fff;
+  }
+  .sleep-score {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 12px;
+    background: rgba(255,255,255,0.12);
+  }
+  .sleep-score-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #A78BFA;
+  }
+  .sleep-score-val {
+    font-size: 14px; font-weight: 600; color: #fff;
+  }
+  .sleep-bars {
+    display: flex; align-items: flex-end; gap: 4px; height: 80px;
+    margin-bottom: 12px;
+  }
+  .sleep-bar {
+    flex: 1; border-radius: 4px 4px 0 0; min-height: 8px;
+    transition: height 0.5s ease;
+  }
+  .sleep-bar.deep { background: #6D28D9; }
+  .sleep-bar.light { background: #A78BFA; }
+  .sleep-bar.rem { background: #C4B5FD; }
+  .sleep-bar.awake { background: rgba(255,255,255,0.2); }
+  .sleep-legend {
+    display: flex; gap: 16px;
+  }
+  .sleep-legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; color: rgba(255,255,255,0.6);
+  }
+  .legend-dot {
+    width: 8px; height: 8px; border-radius: 2px;
+  }
+
+  /* Focus Sessions */
+  .focus-card {
+    background: #fff; border-radius: 22px; padding: 22px;
+    margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .focus-session {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 0; border-bottom: 1px solid #F2F0ED;
+  }
+  .focus-session:last-child { border-bottom: none; }
+  .focus-dot {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .focus-dot.high { background: #E8F5EC; color: #2D8F4E; }
+  .focus-dot.mid { background: #FFF3E6; color: #C47A20; }
+  .focus-dot.low { background: #FCE8E8; color: #D44; }
+  .focus-info { flex: 1; }
+  .focus-name {
+    font-size: 14px; font-weight: 600; color: #1A1A1A;
+  }
+  .focus-time { font-size: 12px; color: #999; }
+  .focus-score {
+    font-size: 20px; font-weight: 700;
+  }
+  .focus-score.good { color: #2D8F4E; }
+  .focus-score.ok { color: #C47A20; }
+  .focus-score.bad { color: #D44; }
+
+  /* Activity Timeline */
+  .activity-card {
+    background: #fff; border-radius: 22px; padding: 22px;
+    margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .activity-hour {
+    display: flex; gap: 14px; margin-bottom: 2px;
+  }
+  .hour-label {
+    font-size: 11px; color: #999; font-weight: 500;
+    width: 48px; text-align: right; padding-top: 6px; flex-shrink: 0;
+  }
+  .hour-bar-container {
+    flex: 1; position: relative;
+  }
+  .hour-bar {
+    height: 28px; border-radius: 8px; margin-bottom: 4px;
+    display: flex; align-items: center; padding-left: 10px;
+    font-size: 11px; font-weight: 500; color: #fff;
+  }
+  .hour-bar.coffee { background: linear-gradient(90deg, #C47A20, #E8A94A); }
+  .hour-bar.study { background: linear-gradient(90deg, #3B7DD8, #60A5FA); }
+  .hour-bar.exercise { background: linear-gradient(90deg, #2D8F4E, #5DBF72); }
+  .hour-bar.rest { background: linear-gradient(90deg, #999, #BBB); width: 60%; }
+  .hour-bar.sleep-bar2 { background: linear-gradient(90deg, #6D28D9, #A78BFA); }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 90px;
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: flex-start;
+    padding-top: 12px; border-top: 0.5px solid rgba(0,0,0,0.06);
+  }
+  .tab-item {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 4px; font-size: 10px; font-weight: 500; color: #999;
+  }
+  .tab-item.active { color: #C47A20; }
+  .tab-item i { font-size: 22px; }
+  .tab-item .tab-dot { width: 4px; height: 4px; border-radius: 50%; background: #C47A20; }
+  .home-indicator {
+    width: 134px; height: 5px; background: #1A1A1A; border-radius: 3px;
+    position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-title">Activity</div>
+    <div class="page-sub">Track your sleep, focus & caffeine</div>
+
+    <!-- Date Selector -->
+    <div class="date-selector">
+      <div class="date-item">
+        <div class="date-day">Mon</div>
+        <div class="date-num">31</div>
+      </div>
+      <div class="date-item">
+        <div class="date-day">Tue</div>
+        <div class="date-num">1</div>
+      </div>
+      <div class="date-item">
+        <div class="date-day">Wed</div>
+        <div class="date-num">2</div>
+      </div>
+      <div class="date-item">
+        <div class="date-day">Thu</div>
+        <div class="date-num">3</div>
+      </div>
+      <div class="date-item active">
+        <div class="date-day">Fri</div>
+        <div class="date-num">4</div>
+      </div>
+      <div class="date-item">
+        <div class="date-day">Sat</div>
+        <div class="date-num">5</div>
+      </div>
+      <div class="date-item">
+        <div class="date-day">Sun</div>
+        <div class="date-num">6</div>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon sleep"><i class="fas fa-moon"></i></div>
+        <div class="stat-value">7.2 <span>h</span></div>
+        <div class="stat-label">Sleep</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon focus"><i class="fas fa-brain"></i></div>
+        <div class="stat-value">4.5 <span>h</span></div>
+        <div class="stat-label">Focus</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon caffeine"><i class="fas fa-mug-hot"></i></div>
+        <div class="stat-value">240 <span>mg</span></div>
+        <div class="stat-label">Caffeine</div>
+      </div>
+    </div>
+
+    <!-- Sleep Analysis -->
+    <div class="section-title">Sleep Analysis</div>
+    <div class="sleep-card">
+      <div class="sleep-header">
+        <div class="sleep-title">Last Night</div>
+        <div class="sleep-score">
+          <div class="sleep-score-dot"></div>
+          <span class="sleep-score-val">82/100</span>
+        </div>
+      </div>
+      <div class="sleep-bars">
+        <div class="sleep-bar awake" style="height:15%"></div>
+        <div class="sleep-bar light" style="height:35%"></div>
+        <div class="sleep-bar deep" style="height:65%"></div>
+        <div class="sleep-bar deep" style="height:80%"></div>
+        <div class="sleep-bar light" style="height:45%"></div>
+        <div class="sleep-bar rem" style="height:55%"></div>
+        <div class="sleep-bar deep" style="height:70%"></div>
+        <div class="sleep-bar light" style="height:40%"></div>
+        <div class="sleep-bar rem" style="height:60%"></div>
+        <div class="sleep-bar deep" style="height:75%"></div>
+        <div class="sleep-bar light" style="height:30%"></div>
+        <div class="sleep-bar rem" style="height:50%"></div>
+        <div class="sleep-bar light" style="height:25%"></div>
+        <div class="sleep-bar awake" style="height:12%"></div>
+        <div class="sleep-bar light" style="height:20%"></div>
+        <div class="sleep-bar awake" style="height:10%"></div>
+      </div>
+      <div class="sleep-legend">
+        <div class="sleep-legend-item">
+          <div class="legend-dot" style="background:#6D28D9;"></div> Deep
+        </div>
+        <div class="sleep-legend-item">
+          <div class="legend-dot" style="background:#A78BFA;"></div> Light
+        </div>
+        <div class="sleep-legend-item">
+          <div class="legend-dot" style="background:#C4B5FD;"></div> REM
+        </div>
+        <div class="sleep-legend-item">
+          <div class="legend-dot" style="background:rgba(255,255,255,0.2);"></div> Awake
+        </div>
+      </div>
+    </div>
+
+    <!-- Focus Sessions -->
+    <div class="section-title">Focus Sessions</div>
+    <div class="focus-card">
+      <div class="focus-session">
+        <div class="focus-dot high"><i class="fas fa-bolt"></i></div>
+        <div class="focus-info">
+          <div class="focus-name">Data Structures Study</div>
+          <div class="focus-time">10:00 AM - 12:15 PM · 2h 15m</div>
+        </div>
+        <div class="focus-score good">92</div>
+      </div>
+      <div class="focus-session">
+        <div class="focus-dot mid"><i class="fas fa-bolt"></i></div>
+        <div class="focus-info">
+          <div class="focus-name">Algorithm Practice</div>
+          <div class="focus-time">1:30 PM - 3:00 PM · 1h 30m</div>
+        </div>
+        <div class="focus-score ok">71</div>
+      </div>
+      <div class="focus-session">
+        <div class="focus-dot low"><i class="fas fa-bolt"></i></div>
+        <div class="focus-info">
+          <div class="focus-name">Essay Writing</div>
+          <div class="focus-time">4:00 PM - 4:45 PM · 45m</div>
+        </div>
+        <div class="focus-score bad">48</div>
+      </div>
+    </div>
+
+    <!-- Daily Activity Timeline -->
+    <div class="section-title">Daily Timeline</div>
+    <div class="activity-card">
+      <div class="activity-hour">
+        <div class="hour-label">8 AM</div>
+        <div class="hour-bar-container">
+          <div class="hour-bar coffee" style="width:35%;">☕ Latte</div>
+        </div>
+      </div>
+      <div class="activity-hour">
+        <div class="hour-label">10 AM</div>
+        <div class="hour-bar-container">
+          <div class="hour-bar study" style="width:85%;">📖 Study</div>
+        </div>
+      </div>
+      <div class="activity-hour">
+        <div class="hour-label">12 PM</div>
+        <div class="hour-bar-container">
+          <div class="hour-bar coffee" style="width:25%;">☕ Espresso</div>
+        </div>
+      </div>
+      <div class="activity-hour">
+        <div class="hour-label">1 PM</div>
+        <div class="hour-bar-container">
+          <div class="hour-bar study" style="width:65%;">📖 Algorithms</div>
+        </div>
+      </div>
+      <div class="activity-hour">
+        <div class="hour-label">4 PM</div>
+        <div class="hour-bar-container">
+          <div class="hour-bar rest" style="width:45%;">Break</div>
+        </div>
+      </div>
+      <div class="activity-hour">
+        <div class="hour-label">5 PM</div>
+        <div class="hour-bar-container">
+          <div class="hour-bar exercise" style="width:55%;">💪 Gym</div>
+        </div>
+      </div>
+      <div class="activity-hour">
+        <div class="hour-label">11 PM</div>
+        <div class="hour-bar-container">
+          <div class="hour-bar sleep-bar2" style="width:100%;">😴 Sleep</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house"></i><span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-search"></i><span>Search</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-chart-line"></i><span>Activity</span>
+      <div class="tab-dot"></div>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-lightbulb"></i><span>Insights</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i><span>Profile</span>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

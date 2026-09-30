@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>SwingPath AI - Ball Trace (Beta)</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+  background: #0A130E; color: #FFFFFF;
+  width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; scrollbar-width: none;
+}
+@keyframes traceDraw { from { stroke-dashoffset: 620; } to { stroke-dashoffset: 0; } }
+@keyframes ballFly {
+  0% { offset-distance: 0%; opacity: 0; }
+  8% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 1; }
+}
+@keyframes betaPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(139,92,246,0.5); } 50% { box-shadow: 0 0 0 6px rgba(139,92,246,0); } }
+@keyframes liveDot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+@keyframes scanBeam { 0% { transform: translateY(-40px); opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translateY(380px); opacity: 0; } }
+.flying-ball {
+  offset-path: path('M 62,360 C 150,140 300,60 430,118');
+  animation: ballFly 3.4s cubic-bezier(0.3,0.05,0.5,1) infinite;
+}
+</style>
+</head>
+<body>
+
+<!-- Status Bar -->
+<div style="height: 59px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 30;">
+  <span style="font-size: 15px; font-weight: 600; letter-spacing: 0.5px;">9:41</span>
+  <div style="width: 126px; height: 37px; background: #000; border-radius: 20px; position: absolute; left: 50%; transform: translateX(-50%); top: 10px;"></div>
+  <div style="display: flex; gap: 6px; align-items: center;">
+    <i class="fas fa-signal" style="font-size: 13px;"></i><i class="fas fa-wifi" style="font-size: 14px;"></i><i class="fas fa-battery-full" style="font-size: 15px;"></i>
+  </div>
+</div>
+
+<!-- Header -->
+<div style="padding: 0 24px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+  <a href="swing.html" style="width: 40px; height: 40px; background: #14231A; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; color: #fff; border: 1px solid rgba(255,255,255,0.06);"><i class="fas fa-arrow-left" style="font-size: 15px;"></i></a>
+  <div style="text-align: center; display: flex; align-items: center; gap: 8px;">
+    <div style="font-size: 16px; font-weight: 700;">Ball Trace</div>
+    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: linear-gradient(135deg, #8B5CF6, #6D3FE0); border-radius: 8px; font-size: 9px; font-weight: 800; letter-spacing: 1px; animation: betaPulse 2.4s infinite;">
+      <i class="fas fa-flask" style="font-size: 8px;"></i>BETA
+    </span>
+  </div>
+  <div style="width: 40px; height: 40px; background: #14231A; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.06);"><i class="fas fa-sliders" style="font-size: 14px; color: #8B5CF6;"></i></div>
+</div>
+
+<div style="padding: 0 24px 40px 24px;">
+
+  <!-- Experimental notice banner -->
+  <div style="background: linear-gradient(135deg, rgba(139,92,246,0.16), rgba(139,92,246,0.05)); border-radius: 16px; padding: 13px 15px; margin-bottom: 16px; border: 1px solid rgba(139,92,246,0.3); display: flex; align-items: flex-start; gap: 12px;">
+    <div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(139,92,246,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fas fa-flask-vial" style="font-size: 14px; color: #B79CFF;"></i></div>
+    <div style="flex: 1;">
+      <div style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 2px;">Experimental — SwingPath Labs</div>
+      <div style="font-size: 11px; color: #b7a7dd; line-height: 1.45;">Ball tracking from a phone camera is hard. Results are estimates and may be off in poor light or busy backgrounds. Your feedback trains the model.</div>
+    </div>
+  </div>
+
+  <!-- Ball Flight Trace Hero -->
+  <div style="position: relative; border-radius: 22px; overflow: hidden; height: 380px; margin-bottom: 16px;">
+    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1780766999857-image-1.png" style="width: 100%; height: 100%; object-fit: cover; object-position: top;">
+    <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,19,14,0.35), rgba(10,19,14,0.15) 40%, rgba(10,19,14,0.9));"></div>
+
+    <!-- scanning beam -->
+    <div style="position: absolute; left: 0; right: 0; height: 46px; background: linear-gradient(180deg, transparent, rgba(139,92,246,0.22), transparent); animation: scanBeam 3.4s ease-in-out infinite;"></div>
+
+    <!-- Ball flight SVG trace -->
+    <svg viewBox="0 0 460 380" style="position: absolute; inset: 0; width: 100%; height: 100%;" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <linearGradient id="flightGrad" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%" stop-color="#8B5CF6"/><stop offset="55%" stop-color="#B79CFF"/><stop offset="100%" stop-color="#00E08A"/>
+        </linearGradient>
+      </defs>
+      <!-- dispersion cone (uncertainty — beta) -->
+      <path d="M 62,360 C 150,140 300,60 430,118 C 300,92 150,175 62,360 Z" fill="rgba(139,92,246,0.10)" stroke="none"/>
+      <!-- flight arc -->
+      <path d="M 62,360 C 150,140 300,60 430,118" fill="none" stroke="url(#flightGrad)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="620" stroke-dashoffset="0" style="animation: traceDraw 3.4s ease-out infinite; filter: drop-shadow(0 0 6px rgba(139,92,246,0.6));"/>
+      <!-- apex marker -->
+      <circle cx="256" cy="86" r="4" fill="#B79CFF"/>
+      <line x1="256" y1="86" x2="256" y2="60" stroke="rgba(183,156,255,0.5)" stroke-width="1" stroke-dasharray="3 3"/>
+      <!-- launch point -->
+      <circle cx="62" cy="360" r="7" fill="#00E08A" stroke="#fff" stroke-width="2"/>
+      <!-- landing marker -->
+      <circle cx="430" cy="118" r="6" fill="#fff"/>
+      <circle cx="430" cy="118" r="12" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+      <!-- flying ball -->
+      <circle class="flying-ball" r="5" fill="#fff" style="filter: drop-shadow(0 0 5px rgba(255,255,255,0.9));"/>
+    </svg>
+
+    <!-- apex label -->
+    <div style="position: absolute; top: 42px; left: 50%; transform: translateX(-30%); background: rgba(0,0,0,0.62); backdrop-filter: blur(12px); padding: 5px 10px; border-radius: 12px; border: 1px solid rgba(183,156,255,0.4); font-size: 10px; font-weight: 700; color: #B79CFF;">APEX 31yd</div>
+
+    <!-- tracking status pill -->
+    <div style="position: absolute; top: 14px; left: 14px; padding: 6px 12px; background: rgba(0,0,0,0.6); backdrop-filter: blur(14px); border-radius: 18px; display: flex; align-items: center; gap: 7px; border: 1px solid rgba(139,92,246,0.45);">
+      <div style="width: 6px; height: 6px; background: #8B5CF6; border-radius: 50%; box-shadow: 0 0 8px #8B5CF6; animation: liveDot 1.2s infinite;"></div>
+      <span style="font-size: 10px; font-weight: 700; letter-spacing: 1px; color: #B79CFF;">BALL LOCKED</span>
+    </div>
+
+    <!-- confidence pill -->
+    <div style="position: absolute; top: 14px; right: 14px; padding: 6px 11px; background: rgba(0,0,0,0.6); backdrop-filter: blur(14px); border-radius: 18px; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,0.1);">
+      <i class="fas fa-gauge-high" style="font-size: 10px; color: #FFC24B;"></i>
+      <span style="font-size: 10px; font-weight: 700; color: #fff;">82% confidence</span>
+    </div>
+
+    <!-- carry callout -->
+    <div style="position: absolute; bottom: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: flex-end;">
+      <div>
+        <div style="font-size: 10px; color: rgba(255,255,255,0.6); font-weight: 700; letter-spacing: 1px; margin-bottom: 2px;">EST. CARRY</div>
+        <div style="font-size: 34px; font-weight: 800; letter-spacing: -1.5px; line-height: 1;">254<span style="font-size: 15px; color: #8AA398; margin-left: 2px;">yd</span></div>
+      </div>
+      <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(0,224,138,0.18); border: 1px solid rgba(0,224,138,0.4); border-radius: 14px;">
+        <i class="fas fa-arrow-trend-up" style="font-size: 11px; color: #00E08A;"></i>
+        <span style="font-size: 12px; font-weight: 700; color: #00E08A;">3yd draw</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ball flight metrics -->
+  <div style="background: #14231A; border-radius: 20px; padding: 18px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.06);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+      <div style="font-size: 11px; color: #8AA398; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;"><i class="fas fa-baseball" style="font-size: 10px; color: #8B5CF6; margin-right: 6px;"></i>Ball Flight</div>
+      <span style="font-size: 10px; color: #6b7888; font-weight: 500;">camera-estimated</span>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+      <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; text-align: center;"><div style="font-size: 10px; color: #8AA398; margin-bottom: 5px;">BALL SPEED</div><div style="font-size: 18px; font-weight: 800; color: #00E08A;">142<span style="font-size: 9px; color: #6b7888;">mph</span></div></div>
+      <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; text-align: center;"><div style="font-size: 10px; color: #8AA398; margin-bottom: 5px;">LAUNCH</div><div style="font-size: 18px; font-weight: 800;">13.4°</div></div>
+      <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; text-align: center;"><div style="font-size: 10px; color: #8AA398; margin-bottom: 5px;">SPIN<span style="font-size: 8px; color: #8B5CF6; vertical-align: super; margin-left: 2px;">~</span></div><div style="font-size: 18px; font-weight: 800;">2640<span style="font-size: 8px;">rpm</span></div></div>
+      <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; text-align: center;"><div style="font-size: 10px; color: #8AA398; margin-bottom: 5px;">APEX</div><div style="font-size: 18px; font-weight: 800;">31<span style="font-size: 9px;">yd</span></div></div>
+      <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; text-align: center;"><div style="font-size: 10px; color: #8AA398; margin-bottom: 5px;">SIDE</div><div style="font-size: 18px; font-weight: 800; color: #00E08A;">3<span style="font-size: 9px;">yd L</span></div></div>
+      <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; text-align: center;"><div style="font-size: 10px; color: #8AA398; margin-bottom: 5px;">SMASH</div><div style="font-size: 18px; font-weight: 800; color: #4F9FFF;">1.48</div></div>
+    </div>
+    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 7px;">
+      <i class="fas fa-circle-info" style="font-size: 10px; color: #8B5CF6;"></i>
+      <span style="font-size: 10px; color: #7E948A;"><span style="color: #8B5CF6;">~</span> marked values are lower-confidence in beta</span>
+    </div>
+  </div>
+
+  <!-- ===== THE KEY FEATURE: Pose ↔ Ball correlation ===== -->
+  <div style="background: linear-gradient(135deg, rgba(139,92,246,0.14), rgba(0,224,138,0.06)); border-radius: 22px; padding: 18px; margin-bottom: 16px; border: 1px solid rgba(139,92,246,0.3);">
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+      <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #8B5CF6, #00E08A); display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(139,92,246,0.4);"><i class="fas fa-link" style="font-size: 14px; color: #fff;"></i></div>
+      <div>
+        <div style="font-size: 14px; font-weight: 700; color: #fff; line-height: 1.2;">Pose &rarr; Ball Correlation</div>
+        <div style="font-size: 11px; color: #b7a7dd;">What in your body moved the ball</div>
+      </div>
+    </div>
+    <p style="font-size: 12px; line-height: 1.55; color: rgba(255,255,255,0.82); margin: 10px 0 16px;">
+      SwingPath links this shot's <strong style="color:#00E08A;">33-point pose</strong> to the traced ball flight, so you see which body movement caused the outcome — not just that it happened.
+    </p>
+
+    <!-- Scatter: spine angle at impact vs start direction -->
+    <div style="background: rgba(0,0,0,0.28); border-radius: 16px; padding: 14px; margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <span style="font-size: 11px; font-weight: 700; color: #fff;">Spine hold at impact <span style="color:#6b7888;">vs</span> start line</span>
+        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; background: rgba(139,92,246,0.2); border-radius: 8px; font-size: 10px; font-weight: 700; color: #B79CFF;"><i class="fas fa-chart-line" style="font-size: 8px;"></i>r = 0.78</span>
+      </div>
+      <svg viewBox="0 0 300 130" style="width: 100%; height: auto;">
+        <!-- axes -->
+        <line x1="30" y1="10" x2="30" y2="108" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+        <line x1="30" y1="108" x2="290" y2="108" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+        <!-- trend line -->
+        <line x1="40" y1="96" x2="278" y2="26" stroke="#8B5CF6" stroke-width="2" stroke-dasharray="5 4" opacity="0.85"/>
+        <!-- data points -->
+        <circle cx="58" cy="90" r="4" fill="#FFC24B" opacity="0.9"/>
+        <circle cx="86" cy="82" r="4" fill="#FFC24B" opacity="0.9"/>
+        <circle cx="110" cy="78" r="4" fill="#00E08A" opacity="0.9"/>
+        <circle cx="140" cy="66" r="4" fill="#00E08A" opacity="0.9"/>
+        <circle cx="168" cy="60" r="4" fill="#00E08A" opacity="0.9"/>
+        <circle cx="196" cy="48" r="4" fill="#00E08A" opacity="0.9"/>
+        <circle cx="228" cy="40" r="4" fill="#00E08A" opacity="0.9"/>
+        <!-- this shot highlighted -->
+        <circle cx="150" cy="63" r="7" fill="none" stroke="#fff" stroke-width="2"/>
+        <circle cx="150" cy="63" r="4" fill="#fff"/>
+        <text x="152" y="55" fill="#fff" font-size="9" font-weight="700" font-family="system-ui">this shot</text>
+        <!-- axis labels -->
+        <text x="30" y="122" fill="#6b7888" font-size="8" font-family="system-ui">stand-up</text>
+        <text x="245" y="122" fill="#6b7888" font-size="8" font-family="system-ui">held</text>
+        <text x="8" y="18" fill="#6b7888" font-size="8" font-family="system-ui" transform="rotate(-90 8 18)"></text>
+      </svg>
+      <div style="font-size: 11px; color: #b7a7dd; line-height: 1.5; margin-top: 6px;">Across your last 24 shots, holding spine angle pulls your start line straighter. When you stand up, the face opens and the ball starts right.</div>
+    </div>
+
+    <!-- correlation strength rows -->
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+          <span style="font-size: 12px; color: #fff; font-weight: 600;"><i class="fas fa-arrow-up-from-bracket" style="font-size: 10px; color: #FFC24B; margin-right: 7px;"></i>Early extension &rarr; push right</span>
+          <span style="font-size: 11px; font-weight: 700; color: #FFC24B;">Strong</span>
+        </div>
+        <div style="height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;"><div style="height: 100%; width: 78%; background: linear-gradient(90deg,#FFC24B,#FFB000); border-radius: 3px;"></div></div>
+      </div>
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+          <span style="font-size: 12px; color: #fff; font-weight: 600;"><i class="fas fa-stopwatch" style="font-size: 10px; color: #00E08A; margin-right: 7px;"></i>Tempo 3:1 &rarr; ball speed</span>
+          <span style="font-size: 11px; font-weight: 700; color: #00E08A;">Positive</span>
+        </div>
+        <div style="height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;"><div style="height: 100%; width: 71%; background: linear-gradient(90deg,#00E08A,#7BFFC8); border-radius: 3px;"></div></div>
+      </div>
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+          <span style="font-size: 12px; color: #fff; font-weight: 600;"><i class="fas fa-person-walking" style="font-size: 10px; color: #4F9FFF; margin-right: 7px;"></i>Hip sway &rarr; low apex</span>
+          <span style="font-size: 11px; font-weight: 700; color: #6b7888;">Weak</span>
+        </div>
+        <div style="height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;"><div style="height: 100%; width: 34%; background: linear-gradient(90deg,#4F9FFF,#3a7fd6); border-radius: 3px;"></div></div>
+      </div>
+    </div>
+
+    <!-- payoff insight -->
+    <div style="background: rgba(0,0,0,0.28); border-radius: 12px; padding: 12px 13px; border-left: 2.5px solid #00E08A; margin-top: 14px;">
+      <div style="font-size: 10px; color: #00E08A; font-weight: 700; letter-spacing: 0.8px; margin-bottom: 4px;">THE PAYOFF</div>
+      <div style="font-size: 12px; color: rgba(255,255,255,0.92); line-height: 1.5;">On shots where you held your spine angle, you carried <strong style="color:#00E08A;">+12 yd</strong> and cut side-dispersion in half. Fix the pose, fix the ball.</div>
+    </div>
+  </div>
+
+  <!-- Beta accuracy / calibration -->
+  <div style="background: #14231A; border-radius: 20px; padding: 18px; margin-bottom: 16px; border: 1px solid rgba(139,92,246,0.2);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+      <div style="font-size: 11px; color: #8AA398; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;"><i class="fas fa-crosshairs" style="font-size: 10px; color: #8B5CF6; margin-right: 6px;"></i>Trace Confidence</div>
+      <span style="font-size: 12px; font-weight: 800; color: #B79CFF;">82%</span>
+    </div>
+    <div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; margin-bottom: 14px;"><div style="height: 100%; width: 82%; background: linear-gradient(90deg,#8B5CF6,#B79CFF); border-radius: 3px;"></div></div>
+    <div style="display: flex; flex-direction: column; gap: 9px;">
+      <div style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-circle-check" style="font-size: 12px; color: #00E08A;"></i><span style="flex: 1; font-size: 12px; color: rgba(255,255,255,0.85);">Good lighting detected</span></div>
+      <div style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-circle-check" style="font-size: 12px; color: #00E08A;"></i><span style="flex: 1; font-size: 12px; color: rgba(255,255,255,0.85);">Ball contrast vs background</span></div>
+      <div style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-triangle-exclamation" style="font-size: 12px; color: #FFC24B;"></i><span style="flex: 1; font-size: 12px; color: rgba(255,255,255,0.85);">Ball left frame early — flight end estimated</span></div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 11px 13px; background: rgba(139,92,246,0.1); border-radius: 12px; border: 1px dashed rgba(139,92,246,0.35);">
+      <i class="fas fa-lightbulb" style="font-size: 13px; color: #B79CFF;"></i>
+      <span style="font-size: 11px; color: #b7a7dd; line-height: 1.45;">Tip: place the phone 8–10 ft behind, down-the-line, for the sharpest trace.</span>
+    </div>
+  </div>
+
+  <!-- Beta feedback loop -->
+  <div style="background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(139,92,246,0.03)); border-radius: 20px; padding: 18px; margin-bottom: 16px; border: 1px solid rgba(139,92,246,0.25);">
+    <div style="font-size: 13px; font-weight: 700; margin-bottom: 3px;">Was this trace accurate?</div>
+    <div style="font-size: 11px; color: #b7a7dd; margin-bottom: 14px;">Beta testers rate every trace — it directly trains the ball-tracking model.</div>
+    <div style="display: flex; gap: 10px;">
+      <div style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(0,224,138,0.12); border: 1px solid rgba(0,224,138,0.3); border-radius: 14px; padding: 13px; cursor: pointer;">
+        <i class="fas fa-thumbs-up" style="font-size: 14px; color: #00E08A;"></i><span style="font-size: 13px; font-weight: 600; color: #00E08A;">Spot on</span>
+      </div>
+      <div style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(255,71,87,0.1); border: 1px solid rgba(255,71,87,0.28); border-radius: 14px; padding: 13px; cursor: pointer;">
+        <i class="fas fa-thumbs-down" style="font-size: 14px; color: #FF6B7A;"></i><span style="font-size: 13px; font-weight: 600; color: #FF6B7A;">Off</span>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 12px;">
+      <div style="display: flex;">
+        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60&h=60&fit=crop&crop=face" style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid #14231A;">
+        <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=60&h=60&fit=crop&crop=face" style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid #14231A; margin-left: -8px;">
+        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=60&h=60&fit=crop&crop=face" style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid #14231A; margin-left: -8px;">
+      </div>
+      <span style="font-size: 11px; color: #7E948A;">2,481 golfers testing Ball Trace</span>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div style="display: flex; gap: 10px;">
+    <a href="analysis.html" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; background: #14231A; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px; text-decoration: none; color: #fff;">
+      <i class="fas fa-magnifying-glass-chart" style="font-size: 14px; color: #00E08A;"></i><span style="font-size: 14px; font-weight: 600;">Swing Data</span>
+    </a>
+    <a href="swing.html" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #8B5CF6, #6D3FE0); border-radius: 16px; padding: 16px; text-decoration: none; color: #fff; box-shadow: 0 8px 20px rgba(139,92,246,0.35);">
+      <i class="fas fa-rotate-right" style="font-size: 14px;"></i><span style="font-size: 14px; font-weight: 700;">Trace Again</span>
+    </a>
+  </div>
+
+</div>
+
+</body>
+</html>

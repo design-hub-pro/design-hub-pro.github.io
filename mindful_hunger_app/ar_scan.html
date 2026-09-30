@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MindfulHunger - AR Food Scan</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', -apple-system, sans-serif; scrollbar-width: none; background: #000; color: #fff; }
+
+  .status-bar {
+    height: 59px; display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 28px 8px 28px; background: transparent; position: absolute; top: 0; left: 0; right: 0; z-index: 100;
+  }
+  .status-bar .time { font-size: 17px; font-weight: 600; color: #fff; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .status-bar .icons i { font-size: 14px; color: #fff; }
+  .dynamic-island { width: 120px; height: 36px; background: #000; border-radius: 20px; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 101; }
+
+  .ar-container {
+    width: 100%; height: 100%; position: relative; overflow: hidden;
+  }
+
+  .ar-bg {
+    position: absolute; inset: 0;
+  }
+
+  .ar-bg img {
+    width: 100%; height: 100%; object-fit: cover;
+    filter: brightness(0.85);
+  }
+
+  /* AR Scanning Grid Overlay */
+  .ar-grid {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 2;
+  }
+
+  /* Scanning Line Animation */
+  .scan-line {
+    position: absolute; left: 0; right: 0; height: 2px; z-index: 3;
+    background: linear-gradient(90deg, transparent, rgba(0,229,255,0.6), transparent);
+    animation: scanMove 3s ease-in-out infinite;
+  }
+
+  @keyframes scanMove {
+    0% { top: 20%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 75%; opacity: 0; }
+  }
+
+  /* AR Top Bar */
+  .ar-top-bar {
+    position: absolute; top: 62px; left: 0; right: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 20px;
+  }
+
+  .ar-close {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(0,0,0,0.4); backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ar-close i { font-size: 16px; color: #fff; }
+
+  .ar-glass-status {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(0,0,0,0.4); backdrop-filter: blur(10px);
+    padding: 8px 16px; border-radius: 20px;
+  }
+
+  .ar-glass-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #4CAF50;
+    animation: blink 2s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .ar-glass-label { font-size: 12px; font-weight: 600; color: #fff; }
+  .ar-glass-icon { font-size: 14px; color: #00E5FF; }
+
+  .ar-mode-toggle {
+    display: flex; align-items: center; gap: 4px;
+    background: rgba(0,0,0,0.4); backdrop-filter: blur(10px);
+    padding: 6px 14px; border-radius: 14px;
+  }
+  .ar-mode-toggle i { font-size: 14px; color: #00E5FF; }
+  .ar-mode-toggle span { font-size: 11px; font-weight: 600; color: #fff; }
+
+  /* Food Detection Bounding Box - Salad */
+  .detect-box {
+    position: absolute; z-index: 5;
+    border: 2px solid rgba(0,229,255,0.7);
+    border-radius: 12px;
+    animation: detectPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes detectPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,229,255,0.3); }
+    50% { box-shadow: 0 0 20px 4px rgba(0,229,255,0.2); }
+  }
+
+  .detect-box-1 {
+    top: 22%; left: 12%; width: 55%; height: 38%;
+  }
+
+  .detect-box-2 {
+    top: 32%; right: 10%; width: 28%; height: 20%;
+  }
+
+  .detect-label {
+    position: absolute; top: -14px; left: 10px;
+    background: rgba(0,229,255,0.9); color: #0A0A0A;
+    padding: 3px 10px; border-radius: 6px;
+    font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; gap: 4px;
+    white-space: nowrap;
+  }
+
+  .detect-label i { font-size: 8px; }
+
+  .detect-corner {
+    position: absolute; width: 16px; height: 16px;
+    border-color: #00E5FF; border-style: solid;
+  }
+  .detect-corner.tl { top: -1px; left: -1px; border-width: 3px 0 0 3px; border-radius: 8px 0 0 0; }
+  .detect-corner.tr { top: -1px; right: -1px; border-width: 3px 3px 0 0; border-radius: 0 8px 0 0; }
+  .detect-corner.bl { bottom: -1px; left: -1px; border-width: 0 0 3px 3px; border-radius: 0 0 0 8px; }
+  .detect-corner.br { bottom: -1px; right: -1px; border-width: 0 3px 3px 0; border-radius: 0 0 8px 0; }
+
+  /* Calorie Info Pop-up on detected food */
+  .calorie-popup {
+    position: absolute; bottom: -8px; right: -8px; z-index: 6;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(12px);
+    border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 14px; padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+    min-width: 140px;
+  }
+
+  .calorie-popup-value { font-size: 20px; font-weight: 800; color: #00E5FF; }
+  .calorie-popup-unit { font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 600; }
+  .calorie-popup-name { font-size: 11px; font-weight: 600; color: #fff; }
+
+  /* Bottom Panel */
+  .ar-bottom-panel {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;
+    background: rgba(10,10,10,0.92); backdrop-filter: blur(24px);
+    border-radius: 28px 28px 0 0;
+    padding: 20px 24px 44px 24px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .panel-handle {
+    width: 36px; height: 4px; background: rgba(255,255,255,0.15);
+    border-radius: 2px; margin: 0 auto 16px auto;
+  }
+
+  .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .panel-title { font-size: 18px; font-weight: 800; }
+  .panel-confidence {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(76,175,80,0.12); padding: 5px 12px; border-radius: 10px;
+    font-size: 11px; font-weight: 700; color: #4CAF50;
+  }
+
+  /* Detected Food List */
+  .detected-foods {
+    display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px;
+  }
+
+  .food-item {
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(255,255,255,0.04); border-radius: 16px; padding: 14px;
+  }
+
+  .food-item-icon {
+    width: 44px; height: 44px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+
+  .food-item-info { flex: 1; }
+  .food-item-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .food-item-detail { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+  .food-item-cal { text-align: right; }
+  .food-item-cal-value { font-size: 18px; font-weight: 800; color: #00E5FF; }
+  .food-item-cal-unit { font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 600; }
+
+  /* Macro Bar */
+  .macro-row {
+    display: flex; gap: 8px; margin-bottom: 18px;
+  }
+
+  .macro-pill {
+    flex: 1; text-align: center;
+    background: rgba(255,255,255,0.04); border-radius: 14px; padding: 12px 8px;
+  }
+
+  .macro-value { font-size: 16px; font-weight: 800; margin-bottom: 2px; }
+  .macro-label { font-size: 9px; color: rgba(255,255,255,0.4); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Total Calories */
+  .total-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(0,229,255,0.06); border: 1px solid rgba(0,229,255,0.12);
+    border-radius: 16px; padding: 14px 18px; margin-bottom: 16px;
+  }
+
+  .total-label { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.6); }
+  .total-value { font-size: 24px; font-weight: 900; color: #00E5FF; }
+  .total-unit { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.4); margin-left: 4px; }
+
+  /* Log Button */
+  .log-btn {
+    width: 100%; padding: 16px; border-radius: 16px; border: none;
+    background: linear-gradient(135deg, #00E5FF, #2979FF);
+    font-size: 16px; font-weight: 700; color: #0A0A0A;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    box-shadow: 0 8px 32px rgba(0,229,255,0.25);
+  }
+
+  .log-btn i { font-size: 16px; }
+
+  /* Adjust Button */
+  .adjust-link {
+    text-align: center; margin-top: 10px;
+    font-size: 13px; color: rgba(255,255,255,0.4); font-weight: 600;
+  }
+  .adjust-link span { color: #00E5FF; }
+</style>
+</head>
+<body>
+  <div class="ar-container">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="icons">
+        <i class="fas fa-signal"></i>
+        <i class="fas fa-wifi"></i>
+        <i class="fas fa-battery-full"></i>
+      </div>
+    </div>
+
+    <!-- AR Camera Background -->
+    <div class="ar-bg">
+      <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80" alt="Food on plate">
+    </div>
+    <div class="ar-grid"></div>
+    <div class="scan-line"></div>
+
+    <!-- AR Top Bar -->
+    <div class="ar-top-bar">
+      <div class="ar-close"><i class="fas fa-times"></i></div>
+      <div class="ar-glass-status">
+        <div class="ar-glass-dot"></div>
+        <i class="fas fa-glasses ar-glass-icon"></i>
+        <span class="ar-glass-label">AR Glass Connected</span>
+      </div>
+      <div class="ar-mode-toggle">
+        <i class="fas fa-camera"></i>
+        <span>Live</span>
+      </div>
+    </div>
+
+    <!-- Detection Bounding Box 1 - Main dish -->
+    <div class="detect-box detect-box-1">
+      <div class="detect-label"><i class="fas fa-check-circle"></i> Mixed Salad Bowl</div>
+      <div class="detect-corner tl"></div>
+      <div class="detect-corner tr"></div>
+      <div class="detect-corner bl"></div>
+      <div class="detect-corner br"></div>
+      <div class="calorie-popup">
+        <div>
+          <div class="calorie-popup-value">320</div>
+          <div class="calorie-popup-unit">kcal</div>
+        </div>
+        <div>
+          <div class="calorie-popup-name">Quinoa Salad</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.3)">~280g serving</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detection Bounding Box 2 - Side item -->
+    <div class="detect-box detect-box-2">
+      <div class="detect-label"><i class="fas fa-check-circle"></i> Toast</div>
+      <div class="detect-corner tl"></div>
+      <div class="detect-corner tr"></div>
+      <div class="detect-corner bl"></div>
+      <div class="detect-corner br"></div>
+    </div>
+
+    <!-- Bottom Panel -->
+    <div class="ar-bottom-panel">
+      <div class="panel-handle"></div>
+
+      <div class="panel-header">
+        <span class="panel-title">Detected Food</span>
+        <div class="panel-confidence"><i class="fas fa-check-circle" style="font-size:10px"></i> 94% Accuracy</div>
+      </div>
+
+      <div class="detected-foods">
+        <div class="food-item">
+          <div class="food-item-icon" style="background:rgba(76,175,80,0.12)">🥗</div>
+          <div class="food-item-info">
+            <div class="food-item-name">Quinoa Salad Bowl</div>
+            <div class="food-item-detail">Quinoa, avocado, cherry tomato, kale</div>
+          </div>
+          <div class="food-item-cal">
+            <div class="food-item-cal-value">320</div>
+            <div class="food-item-cal-unit">kcal</div>
+          </div>
+        </div>
+        <div class="food-item">
+          <div class="food-item-icon" style="background:rgba(255,183,77,0.12)">🍞</div>
+          <div class="food-item-info">
+            <div class="food-item-name">Whole Wheat Toast</div>
+            <div class="food-item-detail">1 slice, lightly buttered</div>
+          </div>
+          <div class="food-item-cal">
+            <div class="food-item-cal-value">120</div>
+            <div class="food-item-cal-unit">kcal</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="macro-row">
+        <div class="macro-pill">
+          <div class="macro-value" style="color:#FF6B6B">18g</div>
+          <div class="macro-label">Protein</div>
+        </div>
+        <div class="macro-pill">
+          <div class="macro-value" style="color:#FFB74D">52g</div>
+          <div class="macro-label">Carbs</div>
+        </div>
+        <div class="macro-pill">
+          <div class="macro-value" style="color:#64B5F6">14g</div>
+          <div class="macro-label">Fat</div>
+        </div>
+        <div class="macro-pill">
+          <div class="macro-value" style="color:#81C784">6g</div>
+          <div class="macro-label">Fiber</div>
+        </div>
+      </div>
+
+      <div class="total-row">
+        <span class="total-label">Total Calories</span>
+        <div><span class="total-value">440</span><span class="total-unit">kcal</span></div>
+      </div>
+
+      <button class="log-btn">
+        <i class="fas fa-plus-circle"></i> Log This Meal
+      </button>
+      <div class="adjust-link">Tap items to <span>adjust portions</span></div>
+    </div>
+  </div>
+</body>
+</html>

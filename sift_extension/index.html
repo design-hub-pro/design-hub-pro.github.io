@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sift — browser extension prototype</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config={theme:{extend:{colors:{ink:'#17201C',paper:'#FBFAF8',moss:{50:'#F1F6F3',100:'#DDE9E3',200:'#BBD3C8',600:'#1F6F5C',700:'#175748',800:'#114235'},clay:{50:'#FCF1EC',100:'#F7DFD4',400:'#D8794F',500:'#C4562F',600:'#A9451F'},amberx:{50:'#FEF6E7',100:'#FAE7C0',600:'#B47A12'}},fontFamily:{serif:['Newsreader','Georgia','serif'],sans:['Inter','system-ui','sans-serif']}}}}
+</script>
+<style>
+body{font-family:'Inter',system-ui,sans-serif;background:#F4F2EE;color:#17201C;}
+h1,h2,h3,.serif{font-family:'Newsreader',Georgia,serif;letter-spacing:-0.01em;}
+.shot{width:1440px;transform:scale(.8194);transform-origin:top left;border:0;display:block;}
+.shot-wrap{width:1180px;overflow:hidden;background:#fff;}
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<header class="bg-paper border-b border-[#E0DDD6]">
+  <div class="max-w-[1180px] mx-auto px-6 pt-14 pb-12">
+    <div class="flex items-center gap-3 mb-8">
+      <div class="w-11 h-11 rounded-xl bg-moss-600 flex items-center justify-center"><i class="fas fa-sliders text-white"></i></div>
+      <div>
+        <p class="serif text-[26px] font-semibold leading-none">Sift</p>
+        <p class="text-[12px] text-gray-500 mt-1">Browser extension · Chrome and Edge · prototype</p>
+      </div>
+      <div class="ml-auto flex gap-2">
+        <a href="landing.html" target="_blank" class="text-[13px] border border-gray-300 rounded-lg px-4 py-2 bg-white hover:border-gray-500">Open the landing page</a>
+        <a href="feed.html" target="_blank" class="text-[13px] bg-moss-600 hover:bg-moss-700 text-white rounded-lg px-4 py-2 font-medium">See it filtering a thread</a>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-12 items-start">
+      <div class="col-span-7">
+        <h1 class="text-[46px] leading-[1.06] font-semibold mb-5">A volume knob for your feed, not a filter on the internet.</h1>
+        <p class="text-[17px] text-gray-700 leading-relaxed mb-4">
+          Sift is a browser extension that scores comments on the page before you read them and turns down the ones
+          built to hurt. Nothing is deleted, nothing is reported, and one click shows you anything it hid. It runs on
+          your own machine, so the text you read never reaches a server.
+        </p>
+        <p class="text-[15px] text-gray-600 leading-relaxed">
+          Eight screens below, from the install page through to the panel that shows where the model is getting things
+          wrong. That last one is the point of the project.
+        </p>
+      </div>
+      <div class="col-span-5 grid gap-3 pt-2">
+        <div class="bg-white border border-[#E0DDD6] rounded-xl p-4">
+          <p class="text-[13.5px] font-semibold mb-1">You hold the dial</p>
+          <p class="text-[13px] text-gray-600 leading-relaxed">Per category thresholds, per site rules, and a reveal button on every hidden comment. No platform policy has to change.</p>
+        </div>
+        <div class="bg-white border border-[#E0DDD6] rounded-xl p-4">
+          <p class="text-[13.5px] font-semibold mb-1">Scoring happens in the tab</p>
+          <p class="text-[13px] text-gray-600 leading-relaxed">TensorFlow.js by default, about 41 ms a comment. Google's Perspective API is available and clearly marked as a privacy trade.</p>
+        </div>
+        <div class="bg-white border border-[#E0DDD6] rounded-xl p-4">
+          <p class="text-[13.5px] font-semibold mb-1">The bias is on screen, not buried</p>
+          <p class="text-[13px] text-gray-600 leading-relaxed">A fairness panel shows your own disagreement rate and a local probe set, with citations to the research on dialect bias.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- What we changed about the brief -->
+<section class="bg-white border-b border-[#E0DDD6]">
+  <div class="max-w-[1180px] mx-auto px-6 py-12">
+    <h2 class="text-[30px] font-semibold mb-2">Four things we changed from the brief</h2>
+    <p class="text-[14px] text-gray-600 mb-8 max-w-[720px]">The plan as written would build, but four parts of it would cause trouble in week three. Here is what we did instead and why.</p>
+
+    <div class="grid grid-cols-2 gap-x-10 gap-y-8">
+      <div>
+        <p class="text-[11px] uppercase tracking-[0.12em] text-clay-600 font-semibold mb-2">One threshold becomes four</p>
+        <p class="text-[14.5px] text-gray-700 leading-relaxed">
+          The brief hides anything scoring above 0.8. That number is wrong for both ends of the range. A threat missed
+          at 0.7 is a real cost to the user. An insult hidden at 0.8 is where nearly all the false positives live.
+          Sift ships one threshold per category, with threats at 0.60 and insults at 0.80.
+        </p>
+      </div>
+      <div>
+        <p class="text-[11px] uppercase tracking-[0.12em] text-clay-600 font-semibold mb-2">"Retrain the model" is oversold</p>
+        <p class="text-[14.5px] text-gray-700 leading-relaxed">
+          A few hundred taps on "this isn't toxic" cannot retrain a neural classifier, in a browser or anywhere else.
+          What fits is a thin logistic layer over the base model's embeddings that shifts the decision boundary for
+          text resembling what you corrected. The fairness panel says exactly that, in those words. Promising more
+          would be the kind of claim a judge takes apart in thirty seconds.
+        </p>
+      </div>
+      <div>
+        <p class="text-[11px] uppercase tracking-[0.12em] text-clay-600 font-semibold mb-2">Friendship has to be scoped down</p>
+        <p class="text-[14.5px] text-gray-700 leading-relaxed">
+          An extension cannot see whether two strangers are friends. It has no access to their messages or their
+          follow graph. What it can see is your own behaviour on pages you visited, so Sift counts how many times you
+          have replied to an account and lifts that account's threshold by at most 0.15. Threats ignore the lift
+          entirely, because the person hurting you is often someone you talk to.
+        </p>
+      </div>
+      <div>
+        <p class="text-[11px] uppercase tracking-[0.12em] text-clay-600 font-semibold mb-2">Cool Down breaks the privacy promise</p>
+        <p class="text-[14.5px] text-gray-700 leading-relaxed">
+          Rewriting a heated reply needs a model far larger than anything that runs in a tab, which means your draft
+          goes to a server. That directly contradicts the claim Phase 1 is built on. So Cool Down is off by default,
+          asks before its first run, and is off entirely on sites where you turned it off. Do not bolt it onto the
+          same switch as the filter.
+        </p>
+      </div>
+    </div>
+
+    <div class="mt-8 rounded-xl bg-amberx-50 border border-amberx-100 p-4 max-w-[860px]">
+      <p class="text-[13.5px] text-amberx-600 leading-relaxed"><span class="font-semibold">One thing to check before week two.</span> Perspective API's default free quota is low, and a busy comment page can need dozens of scores in a few seconds. Confirm the current quota and the process for raising it before designing the demo around the hosted engine. The local engine has no such limit, which is a second reason it is the default here.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Screens -->
+<main class="max-w-[1180px] mx-auto px-6 py-14">
+  <h2 class="text-[30px] font-semibold mb-1">The eight screens</h2>
+  <p class="text-[14px] text-gray-600 mb-10">Designed at 1440 by 900. Every screen opens on its own.</p>
+
+  <!-- 1 -->
+  <section class="mb-14">
+    <div class="flex items-start gap-3 mb-4">
+      <div class="w-9 h-9 rounded-lg bg-white border border-[#E0DDD6] flex items-center justify-center flex-shrink-0"><i class="fas fa-house text-moss-600 text-xs"></i></div>
+      <div>
+        <h3 class="text-[21px] font-semibold leading-tight">Landing page</h3>
+        <p class="text-[13.5px] text-gray-600">What it is, how it works, and a section headed "where it gets things wrong" sitting above the fold of the second screen.</p>
+      </div>
+      <a href="landing.html" target="_blank" class="ml-auto text-[13px] border border-gray-300 bg-white rounded-lg px-3.5 py-2 hover:border-gray-500 flex-shrink-0">Open in new tab <i class="fas fa-arrow-up-right-from-square text-[10px] ml-1"></i></a>
+    </div>
+    <div class="rounded-xl overflow-hidden border border-[#D9D5CD] shadow-[0_2px_16px_rgba(23,32,28,0.08)]">
+      <div class="bg-[#E9E6E0] px-4 py-2.5 flex items-center gap-2 border-b border-[#D9D5CD]">
+        <span class="w-3 h-3 rounded-full bg-[#F0685E]"></span><span class="w-3 h-3 rounded-full bg-[#F4BF4F]"></span><span class="w-3 h-3 rounded-full bg-[#61C554]"></span>
+        <div class="ml-3 flex-1 max-w-[440px] bg-white border border-[#D9D5CD] rounded-md px-3 py-1 text-[11px] text-gray-500"><i class="fas fa-lock text-[8px] mr-1.5"></i>getsift.app</div>
+      </div>
+      <div class="shot-wrap" style="height:2737px"><iframe src="landing.html" class="shot" style="height:3340px" scrolling="no"></iframe></div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="mb-14">
+    <div class="flex items-start gap-3 mb-4">
+      <div class="w-9 h-9 rounded-lg bg-white border border-[#E0DDD6] flex items-center justify-center flex-shrink-0"><i class="fas fa-window-restore text-moss-600 text-xs"></i></div>
+      <div>
+        <h3 class="text-[21px] font-semibold leading-tight">Toolbar popup</h3>
+        <p class="text-[13.5px] text-gray-600">The control most people will ever touch. Master switch, this site's threshold, today's counts, and which engine is running.</p>
+      </div>
+      <a href="popup.html" target="_blank" class="ml-auto text-[13px] border border-gray-300 bg-white rounded-lg px-3.5 py-2 hover:border-gray-500 flex-shrink-0">Open in new tab <i class="fas fa-arrow-up-right-from-square text-[10px] ml-1"></i></a>
+    </div>
+    <div class="rounded-xl overflow-hidden border border-[#D9D5CD] shadow-[0_2px_16px_rgba(23,32,28,0.08)]">
+      <div class="bg-[#E9E6E0] px-4 py-2.5 flex items-center gap-2 border-b border-[#D9D5CD]">
+        <span class="w-3 h-3 rounded-full bg-[#F0685E]"></span><span class="w-3 h-3 rounded-full bg-[#F4BF4F]"></span><span class="w-3 h-3 rounded-full bg-[#61C554]"></span>
+        <div class="ml-3 flex-1 max-w-[440px] bg-white border border-[#D9D5CD] rounded-md px-3 py-1 text-[11px] text-gray-500"><i class="fas fa-lock text-[8px] mr-1.5"></i>reddit.com/r/learnprogramming</div>
+      </div>
+      <div class="shot-wrap" style="height:738px"><iframe src="popup.html" class="shot" style="height:900px" scrolling="no"></iframe></div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="mb-14">
+    <div class="flex items-start gap-3 mb-4">
+      <div class="w-9 h-9 rounded-lg bg-white border border-[#E0DDD6] flex items-center justify-center flex-shrink-0"><i class="fas fa-eye-slash text-moss-600 text-xs"></i></div>
+      <div>
+        <h3 class="text-[21px] font-semibold leading-tight">A live thread, filtered</h3>
+        <p class="text-[13.5px] text-gray-600">Two comments turned down with the category and score shown, one kept because the user replies to that account often, and one borderline comment left visible with its number.</p>
+      </div>
+      <a href="feed.html" target="_blank" class="ml-auto text-[13px] border border-gray-300 bg-white rounded-lg px-3.5 py-2 hover:border-gray-500 flex-shrink-0">Open in new tab <i class="fas fa-arrow-up-right-from-square text-[10px] ml-1"></i></a>
+    </div>
+    <div class="rounded-xl overflow-hidden border border-[#D9D5CD] shadow-[0_2px_16px_rgba(23,32,28,0.08)]">
+      <div class="bg-[#E9E6E0] px-4 py-2.5 flex items-center gap-2 border-b border-[#D9D5CD]">
+        <span class="w-3 h-3 rounded-full bg-[#F0685E]"></span><span class="w-3 h-3 rounded-full bg-[#F4BF4F]"></span><span class="w-3 h-3 rounded-full bg-[#61C554]"></span>
+        <div class="ml-3 flex-1 max-w-[440px] bg-white border border-[#D9D5CD] rounded-md px-3 py-1 text-[11px] text-gray-500"><i class="fas fa-lock text-[8px] mr-1.5"></i>reddit.com/r/learnprogramming/comments/1c9k2p</div>
+      </div>
+      <div class="shot-wrap" style="height:738px"><iframe src="feed.html" class="shot" style="height:900px" scrolling="no"></iframe></div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="mb-14">
+    <div class="flex items-start gap-3 mb-4">
+      <div class="w-9 h-9 rounded-lg bg-white border border-[#E0DDD6] flex items-center justify-center flex-shrink-0"><i class="fas fa-wind text-moss-600 text-xs"></i></div>
+      <div>
+        <h3 class="text-[21px] font-semibold leading-tight">Cool Down</h3>
+        <p class="text-[13.5px] text-gray-600">Rewrites the user's own reply, never the other person's. Shows which words it cut, keeps the disagreement intact, and leaves the send button to the human.</p>
+      </div>
+      <a href="mediate.html" target="_blank" class="ml-auto text-[13px] border border-gray-300 bg-white rounded-lg px-3.5 py-2 hover:border-gray-500 flex-shrink-0">Open in new tab <i class="fas fa-arrow-up-right-from-square text-[10px] ml-1"></i></a>
+    </div>
+    <div class="rounded-xl overflow-hidden border border-[#D9D5CD] shadow-[0_2px_16px_rgba(23,32,28,0.08)]">
+      <div class="bg-[#E9E6E0] px-4 py-2.5 flex items-center gap-2 border-b border-[#D9D5CD]">
+        <span class="w-3 h-3 rounded-full bg-[#F0685E]"></span><span class="w-3 h-3 rounded-full bg-[#F4BF4F]"></span><span class="w-3 h-3 rounded-full bg-[#61C554]"></span>
+        <div class="ml-3 flex-1 max-w-[440px] bg-white border border-[#D9D5CD] rounded-md px-3 py-1 text-[11px] text-gray-500"><i class="fas fa-lock text-[8px] mr-1.5"></i>reddit.com/r/science/comments/1d02xk</div>
+      </div>
+      <div class="shot-wrap" style="height:738px"><iframe src="mediate.html" class="shot" style="height:900px" scrolling="no"></iframe></div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="mb-14">
+    <div class="flex items-start gap-3 mb-4">
+      <div class="w-9 h-9 rounded-lg bg-white border border-[#E0DDD6] flex items-center justify-center flex-shrink-0"><i class="fas fa-chart-simple text-moss-600 text-xs"></i></div>
+      <div>
+        <h3 class="text-[21px] font-semibold leading-tight">Your week</h3>
+        <p class="text-[13.5px] text-gray-600">214 comments turned down out of 9,480 scored, broken down by day, category and site. The disagreement count sits on the same row, on purpose.</p>
+      </div>
+      <a href="dashboard.html" target="_blank" class="ml-auto text-[13px] border border-gray-300 bg-white rounded-lg px-3.5 py-2 hover:border-gray-500 flex-shrink-0">Open in new tab <i class="fas fa-arrow-up-right-from-square text-[10px] ml-1"></i></a>
+    </div>
+    <div class="rounded-xl overflow-hidden border border-[#D9D5CD] shadow-[0_2px_16px_rgba(23,32,28,0.08)]">
+      <div class="bg-[#E9E6E0] px-4 py-2.5 flex items-center gap-2 border-b border-[#D9D5CD]">
+        <span class="w-3 h-3 rounded-full bg-[#F0685E]"></span><span class="w-3 h-3 rounded-full bg-[#F4BF4F]"></span><span class="w-3 h-3 rounded-full bg-[#61C554]"></span>
+        <div class="ml-3 flex-1 max-w-[440px] bg-white border border-[#D9D5CD] rounded-md px-3 py-1 text-[11px] text-gray-500">chrome-extension://sift/dashboard</div>
+      </div>
+      <div class="shot-wrap" style="height:738px"><iframe src="dashboard.html" class="shot" style="height:900px" scrolling="no"></iframe></div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="mb-14">
+    <div class="flex items-start gap-3 mb-4">
+      <div class="w-9 h-9 rounded-lg bg-white border border-[#E0DDD6] flex items-center justify-center flex-shrink-0"><i class="fas fa-sliders text-moss-600 text-xs"></i></div>
+      <div>
+        <h3 class="text-[21px] font-semibold leading-tight">Tuning</h3>
+        <p class="text-[13.5px] text-gray-600">Per category thresholds with the consequence of each one written underneath, per site rules, and the friend list with a plain warning about how it can fail.</p>
+      </div>
+      <a href="tuning.html" target="_blank" class="ml-auto text-[13px] border border-gray-300 bg-white rounded-lg px-3.5 py-2 hover:border-gray-500 flex-shrink-0">Open in new tab <i class="fas fa-arrow-up-right-from-square text-[10px] ml-1"></i></a>
+    </div>
+    <div class="rounded-xl overflow-hidden border border-[#D9D5CD] shadow-[0_2px_16px_rgba(23,32,28,0.08)]">
+      <div class="bg-[#E9E6E0] px-4 py-2.5 flex items-center gap-2 border-b border-[#D9D5CD]">
+        <span class="w-3 h-3 rounded-full bg-[#F0685E]"></span><span class="w-3 h-3 rounded-full bg-[#F4BF4F]"></span><span class="w-3 h-3 rounded-full bg-[#61C554]"></span>
+        <div class="ml-3 flex-1 max-w-[440px] bg-white border border-[#D9D5CD] rounded-md px-3 py-1 text-[11px] text-gray-500">chrome-extension://sift/tuning</div>
+      </div>
+      <div class="shot-wrap" style="height:738px"><iframe src="tuning.html" class="shot" style="height:900px" scrolling="no"></iframe></div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="mb-14">
+    <div class="flex items-start gap-3 mb-4">
+      <div class="w-9 h-9 rounded-lg bg-white border border-[#E0DDD6] flex items-center justify-center flex-shrink-0"><i class="fas fa-scale-balanced text-moss-600 text-xs"></i></div>
+      <div>
+        <h3 class="text-[21px] font-semibold leading-tight">Fairness</h3>
+        <p class="text-[13.5px] text-gray-600">The screen that makes this a computer science project rather than a filter. Cited research on dialect bias, the user's own disagreement rate, a local probe set, and a plain account of what a correction can and cannot do.</p>
+      </div>
+      <a href="fairness.html" target="_blank" class="ml-auto text-[13px] border border-gray-300 bg-white rounded-lg px-3.5 py-2 hover:border-gray-500 flex-shrink-0">Open in new tab <i class="fas fa-arrow-up-right-from-square text-[10px] ml-1"></i></a>
+    </div>
+    <div class="rounded-xl overflow-hidden border border-[#D9D5CD] shadow-[0_2px_16px_rgba(23,32,28,0.08)]">
+      <div class="bg-[#E9E6E0] px-4 py-2.5 flex items-center gap-2 border-b border-[#D9D5CD]">
+        <span class="w-3 h-3 rounded-full bg-[#F0685E]"></span><span class="w-3 h-3 rounded-full bg-[#F4BF4F]"></span><span class="w-3 h-3 rounded-full bg-[#61C554]"></span>
+        <div class="ml-3 flex-1 max-w-[440px] bg-white border border-[#D9D5CD] rounded-md px-3 py-1 text-[11px] text-gray-500">chrome-extension://sift/fairness</div>
+      </div>
+      <div class="shot-wrap" style="height:738px"><iframe src="fairness.html" class="shot" style="height:900px" scrolling="no"></iframe></div>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="mb-4">
+    <div class="flex items-start gap-3 mb-4">
+      <div class="w-9 h-9 rounded-lg bg-white border border-[#E0DDD6] flex items-center justify-center flex-shrink-0"><i class="fas fa-gear text-moss-600 text-xs"></i></div>
+      <div>
+        <h3 class="text-[21px] font-semibold leading-tight">Settings</h3>
+        <p class="text-[13.5px] text-gray-600">The engine choice with its privacy cost stated in full, every byte stored on the machine, the exact permissions requested, and the ones deliberately not requested.</p>
+      </div>
+      <a href="settings.html" target="_blank" class="ml-auto text-[13px] border border-gray-300 bg-white rounded-lg px-3.5 py-2 hover:border-gray-500 flex-shrink-0">Open in new tab <i class="fas fa-arrow-up-right-from-square text-[10px] ml-1"></i></a>
+    </div>
+    <div class="rounded-xl overflow-hidden border border-[#D9D5CD] shadow-[0_2px_16px_rgba(23,32,28,0.08)]">
+      <div class="bg-[#E9E6E0] px-4 py-2.5 flex items-center gap-2 border-b border-[#D9D5CD]">
+        <span class="w-3 h-3 rounded-full bg-[#F0685E]"></span><span class="w-3 h-3 rounded-full bg-[#F4BF4F]"></span><span class="w-3 h-3 rounded-full bg-[#61C554]"></span>
+        <div class="ml-3 flex-1 max-w-[440px] bg-white border border-[#D9D5CD] rounded-md px-3 py-1 text-[11px] text-gray-500">chrome-extension://sift/settings</div>
+      </div>
+      <div class="shot-wrap" style="height:738px"><iframe src="settings.html" class="shot" style="height:900px" scrolling="no"></iframe></div>
+    </div>
+  </section>
+</main>
+
+<!-- Build plan -->
+<section class="bg-white border-t border-[#E0DDD6]">
+  <div class="max-w-[1180px] mx-auto px-6 py-14">
+    <h2 class="text-[30px] font-semibold mb-2">Four weeks, and what "done" means each week</h2>
+    <p class="text-[14px] text-gray-600 mb-9 max-w-[720px]">This follows the brief's roadmap with one change: the fairness work moves into week three rather than being left for later. It is the part that makes the project interesting, and it is also the part that gets cut when a schedule slips.</p>
+
+    <div class="grid grid-cols-4 gap-6">
+      <div class="border-t-2 border-moss-600 pt-4">
+        <p class="text-[11px] uppercase tracking-[0.12em] text-gray-400 font-semibold mb-2">Week 1</p>
+        <h3 class="text-[18px] font-semibold mb-2">Read the page</h3>
+        <p class="text-[13.5px] text-gray-600 leading-relaxed mb-3">Manifest V3 skeleton, one content script, one site adapter for Reddit. A MutationObserver that keeps up with infinite scroll.</p>
+        <p class="text-[12.5px] text-gray-500 leading-relaxed"><span class="font-medium text-gray-700">Done when:</span> the console prints every comment on a thread, including ones loaded after scrolling, with no duplicates.</p>
+      </div>
+      <div class="border-t-2 border-moss-600 pt-4">
+        <p class="text-[11px] uppercase tracking-[0.12em] text-gray-400 font-semibold mb-2">Week 2</p>
+        <h3 class="text-[18px] font-semibold mb-2">Score and hide</h3>
+        <p class="text-[13.5px] text-gray-600 leading-relaxed mb-3">TensorFlow.js toxicity model wired in, batched per animation frame. Blur, category label, score, and a reveal button on every hidden node.</p>
+        <p class="text-[12.5px] text-gray-500 leading-relaxed"><span class="font-medium text-gray-700">Done when:</span> a 200 comment thread scores in under three seconds without dropping frames, and nothing is hidden without a visible way back.</p>
+      </div>
+      <div class="border-t-2 border-clay-500 pt-4">
+        <p class="text-[11px] uppercase tracking-[0.12em] text-gray-400 font-semibold mb-2">Week 3</p>
+        <h3 class="text-[18px] font-semibold mb-2">Be wrong in public</h3>
+        <p class="text-[13.5px] text-gray-600 leading-relaxed mb-3">The correction button, the local logistic layer, the probe set, and the fairness panel. Write the 600 probe sentences by hand and get someone outside the project to check them.</p>
+        <p class="text-[12.5px] text-gray-500 leading-relaxed"><span class="font-medium text-gray-700">Done when:</span> you can state a measured false positive gap between two text styles, and show that corrections move it.</p>
+      </div>
+      <div class="border-t-2 border-gray-300 pt-4">
+        <p class="text-[11px] uppercase tracking-[0.12em] text-gray-400 font-semibold mb-2">Week 4</p>
+        <h3 class="text-[18px] font-semibold mb-2">Cool Down</h3>
+        <p class="text-[13.5px] text-gray-600 leading-relaxed mb-3">Reply rewriting through a hosted model, behind its own consent screen and its own switch. Three tones, a visible diff, and no posting permission.</p>
+        <p class="text-[12.5px] text-gray-500 leading-relaxed"><span class="font-medium text-gray-700">Done when:</span> a rewrite keeps the original argument in a blind read by three people who were not told which version was which.</p>
+      </div>
+    </div>
+
+    <div class="mt-10 pt-8 border-t border-[#E7E4DE] grid grid-cols-2 gap-10">
+      <div>
+        <h3 class="text-[19px] font-semibold mb-2.5">What to cut if time runs short</h3>
+        <p class="text-[14px] text-gray-700 leading-relaxed">Week 4. Cool Down is the most impressive demo and the least defensible piece of the project: it needs a hosted model, it breaks the privacy claim, and its output is hard to evaluate honestly. A finished week 3 with a measured bias number beats a half-built rewriter. If week 4 survives, ship it as a separate, clearly labelled feature.</p>
+      </div>
+      <div>
+        <h3 class="text-[19px] font-semibold mb-2.5">Assumptions in this design</h3>
+        <p class="text-[14px] text-gray-700 leading-relaxed">All numbers on the dashboard and fairness screens are sample data from a one week pilot pattern, not measurements. The 41 ms figure assumes a recent laptop with WebGL available. Site adapters assume current markup on four sites, which will break. Nothing here has been tested with a user who is actually being harassed, and that is the first thing worth fixing.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="bg-paper border-t border-[#E0DDD6]">
+  <div class="max-w-[1180px] mx-auto px-6 py-8 flex items-center justify-between">
+    <div class="flex items-center gap-2.5">
+      <div class="w-7 h-7 rounded-lg bg-moss-600 flex items-center justify-center"><i class="fas fa-sliders text-white text-[10px]"></i></div>
+      <span class="serif text-lg font-semibold">Sift</span>
+    </div>
+    <p class="text-[12px] text-gray-500">Prototype. Not affiliated with Google, Reddit, X, Meta or YouTube. Research citations on the fairness screen.</p>
+  </div>
+</footer>
+
+</body>
+</html>

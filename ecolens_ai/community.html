@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoLens AI - Community</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; scrollbar-width: none; font-family: 'Inter', sans-serif; }
+  body { background: #f8faf8; color: #1a2e1a; position: relative; }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center;
+    position: relative; z-index: 100; background: #f8faf8;
+  }
+  .status-time { font-size: 15px; font-weight: 700; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  }
+
+  .content { height: calc(100% - 59px); overflow-y: auto; scrollbar-width: none; padding-bottom: 100px; }
+  .content::-webkit-scrollbar { display: none; }
+
+  .header { padding: 8px 28px 0; }
+  .header h1 { font-size: 24px; font-weight: 800; }
+  .header p { font-size: 13px; color: #7a9a7a; margin-top: 2px; }
+
+  /* Leaderboard Card */
+  .leaderboard {
+    margin: 16px 28px; padding: 20px; border-radius: 22px;
+    background: linear-gradient(135deg, #1a3d2a, #2d5a3e);
+    position: relative; overflow: hidden;
+  }
+  .leaderboard::after {
+    content: ''; position: absolute; top: -20px; right: -20px;
+    width: 120px; height: 120px; border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  .lb-title { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.5); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .lb-list { display: flex; flex-direction: column; gap: 10px; }
+  .lb-item { display: flex; align-items: center; gap: 12px; }
+  .lb-rank {
+    width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: #fff;
+  }
+  .lb-rank.gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+  .lb-rank.silver { background: linear-gradient(135deg, #94a3b8, #64748b); }
+  .lb-rank.bronze { background: linear-gradient(135deg, #d97706, #b45309); }
+  .lb-avatar {
+    width: 36px; height: 36px; border-radius: 50%; overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.2);
+  }
+  .lb-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .lb-name { font-size: 13px; font-weight: 700; color: #fff; flex: 1; }
+  .lb-score { font-size: 14px; font-weight: 800; color: #7dffb3; }
+  .lb-unit { font-size: 10px; color: rgba(255,255,255,0.4); }
+
+  /* Challenge Section */
+  .section-title { padding: 20px 28px 12px; font-size: 16px; font-weight: 700; }
+  .challenges { padding: 0 28px; }
+  .challenge-card {
+    padding: 16px; border-radius: 20px; background: #fff; border: 1px solid #e0ebe0;
+    margin-bottom: 12px; display: flex; gap: 14px; align-items: center;
+  }
+  .challenge-icon {
+    width: 52px; height: 52px; border-radius: 16px; display: flex;
+    align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;
+  }
+  .challenge-icon.green { background: linear-gradient(135deg, #e8f5e8, #d0ecd0); }
+  .challenge-icon.blue { background: linear-gradient(135deg, #e8f0f5, #d0e4f0); }
+  .challenge-icon.purple { background: linear-gradient(135deg, #f0e8f5, #e0d0f0); }
+  .challenge-info { flex: 1; }
+  .challenge-name { font-size: 14px; font-weight: 700; }
+  .challenge-desc { font-size: 11px; color: #7a9a7a; margin-top: 2px; }
+  .challenge-progress { margin-top: 8px; }
+  .progress-bar { height: 6px; border-radius: 3px; background: #f0f5f0; }
+  .progress-fill { height: 100%; border-radius: 3px; }
+  .progress-fill.g { background: linear-gradient(90deg, #2d8a4e, #4ade80); }
+  .progress-fill.b { background: linear-gradient(90deg, #2d6a8a, #60a5fa); }
+  .progress-fill.p { background: linear-gradient(90deg, #6a2d8a, #a78bfa); }
+  .progress-label { display: flex; justify-content: space-between; margin-top: 4px; }
+  .progress-label span { font-size: 10px; color: #7a9a7a; font-weight: 600; }
+
+  /* Community Posts */
+  .posts { padding: 0 28px; }
+  .post-card {
+    padding: 16px; border-radius: 18px; background: #fff; border: 1px solid #e0ebe0;
+    margin-bottom: 12px;
+  }
+  .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .post-avatar { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; }
+  .post-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .post-user { font-size: 13px; font-weight: 700; }
+  .post-time { font-size: 10px; color: #b0c0b0; }
+  .post-badge {
+    margin-left: auto; padding: 4px 10px; border-radius: 8px;
+    background: #e8f5e8; font-size: 10px; font-weight: 700; color: #2d8a4e;
+  }
+  .post-body { font-size: 13px; color: #3a5a3a; line-height: 1.5; margin-bottom: 12px; }
+  .post-image {
+    width: 100%; height: 140px; border-radius: 14px; overflow: hidden; margin-bottom: 12px;
+  }
+  .post-image img { width: 100%; height: 100%; object-fit: cover; }
+  .post-actions { display: flex; gap: 20px; }
+  .post-action {
+    display: flex; align-items: center; gap: 5px; font-size: 12px; color: #7a9a7a; font-weight: 600;
+  }
+  .post-action i { font-size: 14px; }
+  .post-action.liked { color: #d04040; }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(248,250,248,0.95); backdrop-filter: blur(30px);
+    border-top: 1px solid #e0ebe0;
+    display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px;
+    z-index: 200;
+  }
+  .tab-item { text-align: center; width: 60px; }
+  .tab-icon { font-size: 22px; color: #b0c0b0; margin-bottom: 4px; }
+  .tab-label { font-size: 10px; color: #b0c0b0; font-weight: 600; }
+  .tab-item.active .tab-icon { color: #2d8a4e; }
+  .tab-item.active .tab-label { color: #2d8a4e; }
+  .home-indicator {
+    width: 134px; height: 5px; background: #1a2e1a; border-radius: 3px;
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); opacity: 0.2;
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <h1>Community</h1>
+      <p>Connect with eco-conscious users</p>
+    </div>
+
+    <div class="leaderboard">
+      <div class="lb-title">This Month's Top Scanners</div>
+      <div class="lb-list">
+        <div class="lb-item">
+          <div class="lb-rank gold">1</div>
+          <div class="lb-avatar"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face" alt=""></div>
+          <div class="lb-name">Sarah Chen</div>
+          <div class="lb-score">1,240 <span class="lb-unit">pts</span></div>
+        </div>
+        <div class="lb-item">
+          <div class="lb-rank silver">2</div>
+          <div class="lb-avatar"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face" alt=""></div>
+          <div class="lb-name">James Wilson</div>
+          <div class="lb-score">1,085 <span class="lb-unit">pts</span></div>
+        </div>
+        <div class="lb-item">
+          <div class="lb-rank bronze">3</div>
+          <div class="lb-avatar"><img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face" alt=""></div>
+          <div class="lb-name">Emily Park</div>
+          <div class="lb-score">968 <span class="lb-unit">pts</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Active Challenges</div>
+    <div class="challenges">
+      <div class="challenge-card">
+        <div class="challenge-icon green">🌱</div>
+        <div class="challenge-info">
+          <div class="challenge-name">Zero Plastic Week</div>
+          <div class="challenge-desc">Avoid single-use plastics for 7 days</div>
+          <div class="challenge-progress">
+            <div class="progress-bar"><div class="progress-fill g" style="width:72%"></div></div>
+            <div class="progress-label"><span>5/7 days</span><span>72%</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="challenge-card">
+        <div class="challenge-icon blue">🔍</div>
+        <div class="challenge-info">
+          <div class="challenge-name">Scan Master</div>
+          <div class="challenge-desc">Scan 50 products this month</div>
+          <div class="challenge-progress">
+            <div class="progress-bar"><div class="progress-fill b" style="width:48%"></div></div>
+            <div class="progress-label"><span>24/50 scans</span><span>48%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Recent Posts</div>
+    <div class="posts">
+      <div class="post-card">
+        <div class="post-header">
+          <div class="post-avatar"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face" alt=""></div>
+          <div>
+            <div class="post-user">Maya Johnson</div>
+            <div class="post-time">2h ago</div>
+          </div>
+          <div class="post-badge"><i class="fas fa-leaf"></i> Swap</div>
+        </div>
+        <div class="post-body">Replaced all my plastic containers with glass! EcoLens showed me the ROI saves $200/year</div>
+        <div class="post-image">
+          <img src="https://images.unsplash.com/photo-1574263867128-a3d5c1b1deaf?w=400&h=200&fit=crop" alt="">
+        </div>
+        <div class="post-actions">
+          <div class="post-action liked"><i class="fas fa-heart"></i> 48</div>
+          <div class="post-action"><i class="fas fa-comment"></i> 12</div>
+          <div class="post-action"><i class="fas fa-share"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-home"></i></div>
+      <div class="tab-label">Home</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-camera"></i></div>
+      <div class="tab-label">Scan</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-scale-balanced"></i></div>
+      <div class="tab-label">Trade-off</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-arrows-rotate"></i></div>
+      <div class="tab-label">Swap</div>
+    </div>
+    <div class="tab-item active">
+      <div class="tab-icon"><i class="fas fa-chart-line"></i></div>
+      <div class="tab-label">Impact</div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

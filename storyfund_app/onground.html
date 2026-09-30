@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>StoryFund — Lend a Hand</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#FAF6F1; color:#221B2E; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:120px; background:#FAF6F1; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+
+  /* cover with map */
+  .cover { position:relative; height:300px; }
+  .cover img { width:100%; height:100%; object-fit:cover; }
+  .cover-grad { position:absolute; inset:0; background:linear-gradient(180deg,rgba(34,27,46,0.35) 0%,rgba(34,27,46,0) 30%,rgba(34,27,46,0) 50%,rgba(34,27,46,0.85) 100%); }
+  .nav { position:absolute; top:59px; left:0; right:0; padding:0 22px; display:flex; justify-content:space-between; align-items:center; z-index:20; }
+  .nav-btn { width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.92); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; } .nav-btn i { font-size:15px; color:#221B2E; }
+  .pin { position:absolute; top:120px; left:50%; transform:translateX(-50%); z-index:15; display:flex; flex-direction:column; align-items:center; }
+  .pin-dot { width:46px; height:46px; border-radius:50%; background:linear-gradient(135deg,#6366F1,#4F46E5); display:flex; align-items:center; justify-content:center; box-shadow:0 10px 24px rgba(79,70,229,0.5); border:3px solid #fff; } .pin-dot i { color:#fff; font-size:17px; }
+  .cover-body { position:absolute; bottom:0; left:0; right:0; padding:20px 28px 22px; }
+  .chip { display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border-radius:11px; font-size:10.5px; font-weight:800; background:rgba(99,102,241,0.95); color:#fff; }
+  .cover-title { color:#fff; font-size:25px; font-weight:900; letter-spacing:-0.6px; line-height:1.16; margin-top:11px; }
+  .cover-org { color:rgba(255,255,255,0.85); font-size:12.5px; font-weight:600; margin-top:8px; display:flex; align-items:center; gap:6px; }
+
+  .pad { padding:0 28px; }
+
+  /* details strip */
+  .det { background:#fff; border:1px solid rgba(34,27,46,0.06); border-radius:22px; padding:6px 8px; margin:-18px 28px 0; position:relative; z-index:5; box-shadow:0 14px 34px -18px rgba(34,27,46,0.3); display:flex; }
+  .dcol { flex:1; text-align:center; padding:14px 4px; } .dcol + .dcol { border-left:1px solid rgba(34,27,46,0.07); }
+  .dcol i { font-size:15px; color:#4F46E5; } .dcol b { font-size:13px; font-weight:900; display:block; margin-top:7px; } .dcol span { font-size:9.5px; color:#8C8798; font-weight:600; }
+
+  .section-title { font-size:16px; font-weight:850; letter-spacing:-0.3px; margin:24px 0 12px; }
+
+  /* volunteers progress */
+  .vol { background:#fff; border:1px solid rgba(34,27,46,0.06); border-radius:18px; padding:16px; }
+  .vol-top { display:flex; justify-content:space-between; align-items:center; }
+  .vol-top b { font-size:14px; font-weight:850; } .vol-top span { font-size:12px; font-weight:800; color:#4F46E5; }
+  .vbar { height:9px; border-radius:8px; background:#F1ECF3; margin-top:12px; overflow:hidden; } .vbar > div { height:100%; border-radius:8px; background:linear-gradient(90deg,#6366F1,#4F46E5); }
+  .vol-av { display:flex; align-items:center; margin-top:14px; }
+  .vol-av img { width:32px; height:32px; border-radius:50%; object-fit:cover; border:2px solid #fff; margin-left:-8px; } .vol-av img:first-child { margin-left:0; }
+  .vol-av .more { width:32px; height:32px; border-radius:50%; background:#F5F1F7; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#6A6577; border:2px solid #fff; margin-left:-8px; }
+
+  /* roles */
+  .role { display:flex; align-items:center; gap:12px; background:#fff; border:1px solid rgba(34,27,46,0.06); border-radius:16px; padding:13px 15px; margin-bottom:10px; }
+  .role-ico { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; } .role-ico i { color:#fff; font-size:15px; }
+  .role-info { flex:1; } .role-info b { font-size:13.5px; font-weight:800; } .role-info p { font-size:11px; color:#8C8798; margin-top:2px; }
+  .role-pick { font-size:11.5px; font-weight:800; padding:8px 15px; border-radius:11px; }
+  .role-pick.open { background:#221B2E; color:#fff; } .role-pick.full { background:#F5F1F7; color:#B3AEBD; }
+
+  /* bring + organizer */
+  .bring { display:flex; flex-wrap:wrap; gap:8px; }
+  .bring span { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; color:#6A6577; background:#fff; border:1px solid rgba(34,27,46,0.07); padding:8px 12px; border-radius:11px; }
+  .bring span i { color:#4F46E5; font-size:11px; }
+
+  .org { display:flex; align-items:center; gap:12px; background:linear-gradient(135deg,#EEF0FF,#E5E7FF); border:1px solid rgba(99,102,241,0.2); border-radius:16px; padding:14px; }
+  .org img { width:44px; height:44px; border-radius:13px; object-fit:cover; }
+  .org-info { flex:1; } .org-info b { font-size:13px; font-weight:800; } .org-info p { font-size:11px; color:#6366F1; margin-top:2px; font-weight:600; }
+  .org-badge { font-size:10px; font-weight:800; color:#16A37A; background:rgba(22,163,122,0.12); padding:6px 11px; border-radius:10px; }
+
+  .hours { display:flex; align-items:center; gap:9px; background:#221B2E; border-radius:14px; padding:13px 15px; margin-top:14px; }
+  .hours i { color:#C8FF3D; font-size:15px; } .hours b { color:#fff; font-size:12.5px; font-weight:800; } .hours span { color:rgba(255,255,255,0.6); font-size:11px; }
+
+  .foot { position:absolute; bottom:0; left:0; right:0; padding:16px 28px 30px; background:linear-gradient(180deg,rgba(250,246,241,0),#FAF6F1 30%); display:flex; gap:12px; align-items:center; }
+  .act-msg { width:56px; height:56px; border-radius:18px; background:#fff; border:1px solid rgba(34,27,46,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0; } .act-msg i { font-size:17px; color:#4F46E5; }
+  .signup-btn { flex:1; height:56px; border-radius:18px; background:linear-gradient(135deg,#6366F1,#4F46E5); display:flex; align-items:center; justify-content:center; gap:9px; box-shadow:0 12px 28px rgba(79,70,229,0.42); }
+  .signup-btn b { color:#fff; font-size:16px; font-weight:850; } .signup-btn i { color:#fff; font-size:15px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+
+  <div class="cover">
+    <img src="https://images.unsplash.com/photo-1524813686514-a57563d77965?w=900&q=80" alt="">
+    <div class="cover-grad"></div>
+    <div class="nav">
+      <div class="nav-btn"><i class="fas fa-arrow-left"></i></div>
+      <div class="nav-btn"><i class="far fa-bookmark"></i></div>
+    </div>
+    <div class="pin"><div class="pin-dot"><i class="fas fa-people-carry-box"></i></div></div>
+    <div class="cover-body">
+      <span class="chip"><i class="fas fa-hammer"></i> Hands-on help</span>
+      <div class="cover-title">Build a wheelchair<br>ramp for Rosa</div>
+      <div class="cover-org"><i class="fas fa-location-dot"></i> Sunrise Senior Home · Fresno, CA</div>
+    </div>
+  </div>
+
+  <div class="det">
+    <div class="dcol"><i class="fas fa-calendar-day"></i><b>Sat, Jun 21</b><span>This weekend</span></div>
+    <div class="dcol"><i class="fas fa-clock"></i><b>9am–1pm</b><span>4 hours</span></div>
+    <div class="dcol"><i class="fas fa-graduation-cap"></i><b>4h service</b><span>Logged</span></div>
+  </div>
+
+  <div class="pad">
+    <div class="section-title">Some needs money can't fix</div>
+    <div class="vol">
+      <div class="vol-top"><b>Volunteers</b><span>4 of 6 spots filled</span></div>
+      <div class="vbar"><div style="width:66%"></div></div>
+      <div class="vol-av">
+        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60&q=80" alt="">
+        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=60&q=80" alt="">
+        <img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=60&q=80" alt="">
+        <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=60&q=80" alt="">
+        <div class="more">+2 needed</div>
+      </div>
+    </div>
+
+    <div class="section-title">Pick a role</div>
+    <div class="role">
+      <div class="role-ico" style="background:linear-gradient(135deg,#6366F1,#4F46E5)"><i class="fas fa-ruler-combined"></i></div>
+      <div class="role-info"><b>Carpentry & framing</b><p>Cut and assemble the ramp · tools provided</p></div>
+      <div class="role-pick open">Pick</div>
+    </div>
+    <div class="role">
+      <div class="role-ico" style="background:linear-gradient(135deg,#06B6D4,#0891B2)"><i class="fas fa-paint-roller"></i></div>
+      <div class="role-info"><b>Sand & paint</b><p>Finish and weatherproof · no experience needed</p></div>
+      <div class="role-pick open">Pick</div>
+    </div>
+    <div class="role">
+      <div class="role-ico" style="background:linear-gradient(135deg,#16A37A,#34D399)"><i class="fas fa-mug-hot"></i></div>
+      <div class="role-info"><b>Hospitality</b><p>Snacks & water for the crew · keep spirits up</p></div>
+      <div class="role-pick full">Full</div>
+    </div>
+
+    <div class="section-title">What to bring</div>
+    <div class="bring">
+      <span><i class="fas fa-shirt"></i> Closed-toe shoes</span>
+      <span><i class="fas fa-bottle-water"></i> Water bottle</span>
+      <span><i class="fas fa-hand-sparkles"></i> Work gloves</span>
+      <span><i class="fas fa-sun"></i> Sunscreen</span>
+    </div>
+
+    <div class="section-title">Organized by</div>
+    <div class="org">
+      <img src="https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=120&q=80" alt="">
+      <div class="org-info"><b>Sunrise Senior Home</b><p>Verified host · 23 projects run</p></div>
+      <div class="org-badge"><i class="fas fa-circle-check"></i> Verified</div>
+    </div>
+
+    <div class="hours">
+      <i class="fas fa-stopwatch"></i>
+      <div><b>Counts toward your service hours</b><span> · auto-logged & certificate-ready</span></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="act-msg"><i class="fas fa-comment-dots"></i></div>
+    <div class="signup-btn"><i class="fas fa-hand-sparkles"></i><b>Sign up for this shift</b></div>
+  </div>
+</div>
+</body>
+</html>

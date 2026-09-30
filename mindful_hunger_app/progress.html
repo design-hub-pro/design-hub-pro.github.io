@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MindfulHunger - Progress</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; font-family: 'Inter', -apple-system, sans-serif; scrollbar-width: none; background: #0A0A0A; color: #fff; }
+
+  .status-bar {
+    height: 59px; display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 28px 8px 28px; background: #0A0A0A; position: sticky; top: 0; z-index: 100;
+  }
+  .status-bar .time { font-size: 17px; font-weight: 600; color: #fff; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .status-bar .icons i { font-size: 14px; color: #fff; }
+  .dynamic-island { width: 120px; height: 36px; background: #000; border-radius: 20px; position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 101; }
+
+  .content { padding: 0 28px 120px 28px; }
+
+  .page-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px; padding-top: 4px;
+  }
+  .page-title { font-size: 30px; font-weight: 800; }
+
+  /* Focus Score Card */
+  .focus-score-card {
+    background: linear-gradient(135deg, #0D47A1, #1A237E, #01579B);
+    border-radius: 24px; padding: 28px; margin-bottom: 20px;
+    position: relative; overflow: hidden;
+  }
+
+  .focus-score-card::before {
+    content: ''; position: absolute; top: -30px; right: -30px;
+    width: 140px; height: 140px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,229,255,0.15), transparent);
+  }
+
+  .focus-score-label { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .focus-score-value { font-size: 56px; font-weight: 900; line-height: 1; margin-bottom: 4px; color: #00E5FF; }
+  .focus-score-unit { font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.7); margin-bottom: 16px; }
+  .focus-score-trend { font-size: 12px; font-weight: 600; color: #81C784; display: flex; align-items: center; gap: 4px; }
+
+  .focus-score-ring {
+    position: absolute; right: 28px; top: 50%; transform: translateY(-50%);
+    width: 90px; height: 90px;
+  }
+
+  .ring-bg {
+    width: 90px; height: 90px; border-radius: 50%;
+    border: 6px solid rgba(255,255,255,0.08);
+    position: relative;
+  }
+
+  .ring-fill {
+    position: absolute; inset: -6px;
+    border-radius: 50%;
+    border: 6px solid transparent;
+    border-top-color: #00E5FF;
+    border-right-color: #00E5FF;
+    border-bottom-color: #00E5FF;
+    transform: rotate(-30deg);
+  }
+
+  .ring-center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+
+  .ring-percent { font-size: 20px; font-weight: 800; color: #00E5FF; }
+  .ring-label { font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 600; }
+
+  /* Streak Card */
+  .streak-card {
+    background: linear-gradient(135deg, #FF6B6B, #FF3B30, #E91E63);
+    border-radius: 24px; padding: 24px; margin-bottom: 20px;
+    position: relative; overflow: hidden;
+  }
+
+  .streak-card::after {
+    content: '🔥'; position: absolute; right: 20px; top: 16px; font-size: 52px; opacity: 0.2;
+  }
+
+  .streak-label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .streak-value { font-size: 42px; font-weight: 900; line-height: 1; margin-bottom: 4px; }
+  .streak-unit { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.8); margin-bottom: 14px; }
+
+  .streak-week {
+    display: flex; gap: 8px;
+  }
+
+  .streak-day {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+
+  .streak-day-dot {
+    width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.15);
+  }
+
+  .streak-day-dot.done { background: rgba(255,255,255,0.95); }
+  .streak-day-dot.done i { color: #FF3B30; font-size: 12px; }
+  .streak-day-dot.today { border: 2px solid #fff; background: rgba(255,255,255,0.3); }
+
+  .streak-day-label { font-size: 10px; color: rgba(255,255,255,0.6); font-weight: 600; }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: rgba(255,255,255,0.06); border-radius: 20px; padding: 20px;
+    position: relative; overflow: hidden;
+  }
+
+  .stat-icon {
+    width: 36px; height: 36px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
+  }
+
+  .stat-icon i { font-size: 16px; }
+
+  .stat-value { font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+  .stat-label { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 500; }
+  .stat-trend { font-size: 10px; font-weight: 600; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+
+  /* Focus Game Performance */
+  .game-performance {
+    background: rgba(255,255,255,0.06); border-radius: 24px; padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .perf-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+  }
+
+  .perf-title { font-size: 18px; font-weight: 700; }
+
+  .perf-tabs {
+    display: flex; gap: 4px; background: rgba(255,255,255,0.06); border-radius: 10px; padding: 3px;
+  }
+
+  .perf-tab {
+    padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    color: rgba(255,255,255,0.4);
+  }
+
+  .perf-tab.active { background: rgba(0,229,255,0.15); color: #00E5FF; }
+
+  .perf-games {
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  .perf-game-item {
+    display: flex; align-items: center; gap: 14px;
+  }
+
+  .perf-game-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .perf-game-info { flex: 1; }
+  .perf-game-name { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+
+  .perf-game-bar {
+    width: 100%; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .perf-game-fill { height: 100%; border-radius: 3px; }
+
+  .perf-game-score { font-size: 14px; font-weight: 800; color: #00E5FF; flex-shrink: 0; }
+
+  /* Weekly Chart */
+  .chart-card {
+    background: rgba(255,255,255,0.06); border-radius: 24px; padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .chart-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+  }
+
+  .chart-title { font-size: 18px; font-weight: 700; }
+
+  .bar-chart {
+    display: flex; align-items: flex-end; justify-content: space-between; height: 120px; gap: 8px;
+    padding-bottom: 30px; position: relative;
+  }
+
+  .bar-chart::before {
+    content: ''; position: absolute; bottom: 28px; left: 0; right: 0;
+    height: 1px; background: rgba(255,255,255,0.06);
+  }
+
+  .bar-group {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+
+  .bar {
+    width: 100%; max-width: 28px; border-radius: 8px 8px 4px 4px;
+    background: linear-gradient(180deg, #00E5FF, #2979FF);
+    min-height: 8px;
+  }
+
+  .bar-label { font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 600; }
+
+  /* Achievements */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+  }
+  .section-title { font-size: 20px; font-weight: 700; }
+  .section-more { font-size: 13px; color: #00E5FF; font-weight: 600; }
+
+  .achievements-scroll {
+    display: flex; gap: 14px; overflow-x: auto; margin-bottom: 28px; padding-bottom: 4px;
+  }
+
+  .achievement-card {
+    flex-shrink: 0; width: 120px; background: rgba(255,255,255,0.06);
+    border-radius: 20px; padding: 20px 14px; text-align: center;
+  }
+
+  .achievement-icon { font-size: 36px; margin-bottom: 10px; }
+  .achievement-name { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .achievement-desc { font-size: 10px; color: rgba(255,255,255,0.4); }
+
+  .achievement-card.locked { opacity: 0.4; }
+  .achievement-card.earned { border: 1.5px solid rgba(0,229,255,0.3); }
+
+  .tab-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(10,10,10,0.95); backdrop-filter: blur(20px);
+    display: flex; align-items: flex-start; justify-content: space-around; padding-top: 10px;
+    border-top: 0.5px solid rgba(255,255,255,0.1);
+  }
+
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; min-width: 60px; }
+  .tab-item i { font-size: 22px; color: rgba(255,255,255,0.4); }
+  .tab-item span { font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 500; }
+  .tab-item.active i { color: #fff; }
+  .tab-item.active span { color: #fff; }
+
+  .sos-btn {
+    width: 52px; height: 52px; border-radius: 16px; border: none;
+    background: linear-gradient(135deg, #FF6B6B, #FF3B30);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(255,59,48,0.4); margin-top: -10px;
+  }
+  .sos-btn i { font-size: 22px; color: #fff; }
+</style>
+</head>
+<body>
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-header">
+      <span class="page-title">Progress</span>
+      <i class="fas fa-calendar-alt" style="font-size:22px; color:rgba(255,255,255,0.6)"></i>
+    </div>
+
+    <!-- Focus Score Card -->
+    <div class="focus-score-card">
+      <div class="focus-score-label">Focus Score</div>
+      <div class="focus-score-value">847</div>
+      <div class="focus-score-unit">Points This Week</div>
+      <div class="focus-score-trend"><i class="fas fa-arrow-up"></i> +18% from last week</div>
+      <div class="focus-score-ring">
+        <div class="ring-bg">
+          <div class="ring-fill"></div>
+          <div class="ring-center">
+            <div class="ring-percent">85%</div>
+            <div class="ring-label">FOCUS</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Streak -->
+    <div class="streak-card">
+      <div class="streak-label">Game Streak</div>
+      <div class="streak-value">18</div>
+      <div class="streak-unit">Days Strong</div>
+      <div class="streak-week">
+        <div class="streak-day">
+          <div class="streak-day-dot done"><i class="fas fa-check"></i></div>
+          <span class="streak-day-label">M</span>
+        </div>
+        <div class="streak-day">
+          <div class="streak-day-dot done"><i class="fas fa-check"></i></div>
+          <span class="streak-day-label">T</span>
+        </div>
+        <div class="streak-day">
+          <div class="streak-day-dot done"><i class="fas fa-check"></i></div>
+          <span class="streak-day-label">W</span>
+        </div>
+        <div class="streak-day">
+          <div class="streak-day-dot done"><i class="fas fa-check"></i></div>
+          <span class="streak-day-label">T</span>
+        </div>
+        <div class="streak-day">
+          <div class="streak-day-dot today"></div>
+          <span class="streak-day-label">F</span>
+        </div>
+        <div class="streak-day">
+          <div class="streak-day-dot"></div>
+          <span class="streak-day-label">S</span>
+        </div>
+        <div class="streak-day">
+          <div class="streak-day-dot"></div>
+          <span class="streak-day-label">S</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(0,229,255,0.12)">
+          <i class="fas fa-gamepad" style="color:#00E5FF"></i>
+        </div>
+        <div class="stat-value">47</div>
+        <div class="stat-label">Games Completed</div>
+        <div class="stat-trend" style="color:#4CAF50"><i class="fas fa-arrow-up"></i> 12% this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(100,181,246,0.15)">
+          <i class="fas fa-bullseye" style="color:#64B5F6"></i>
+        </div>
+        <div class="stat-value">92%</div>
+        <div class="stat-label">Focus Accuracy</div>
+        <div class="stat-trend" style="color:#4CAF50"><i class="fas fa-arrow-up"></i> 5% better</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(255,183,77,0.15)">
+          <i class="fas fa-bolt" style="color:#FFB74D"></i>
+        </div>
+        <div class="stat-value">1.8s</div>
+        <div class="stat-label">Avg Reaction Time</div>
+        <div class="stat-trend" style="color:#4CAF50"><i class="fas fa-arrow-down"></i> 12% faster</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(255,107,107,0.15)">
+          <i class="fas fa-hand-fist" style="color:#FF6B6B"></i>
+        </div>
+        <div class="stat-value">38</div>
+        <div class="stat-label">Cravings Beaten</div>
+        <div class="stat-trend" style="color:#4CAF50"><i class="fas fa-arrow-up"></i> 24% more</div>
+      </div>
+    </div>
+
+    <!-- Game Performance -->
+    <div class="game-performance">
+      <div class="perf-header">
+        <span class="perf-title">Game Performance</span>
+        <div class="perf-tabs">
+          <div class="perf-tab active">Week</div>
+          <div class="perf-tab">Month</div>
+        </div>
+      </div>
+      <div class="perf-games">
+        <div class="perf-game-item">
+          <div class="perf-game-icon" style="background: rgba(0,229,255,0.1)">🎯</div>
+          <div class="perf-game-info">
+            <div class="perf-game-name">Stroop Challenge</div>
+            <div class="perf-game-bar">
+              <div class="perf-game-fill" style="width:92%; background: linear-gradient(90deg, #00E5FF, #2979FF)"></div>
+            </div>
+          </div>
+          <div class="perf-game-score">4,280</div>
+        </div>
+        <div class="perf-game-item">
+          <div class="perf-game-icon" style="background: rgba(206,147,216,0.1)">🧠</div>
+          <div class="perf-game-info">
+            <div class="perf-game-name">Memory Matrix</div>
+            <div class="perf-game-bar">
+              <div class="perf-game-fill" style="width:78%; background: linear-gradient(90deg, #CE93D8, #7B1FA2)"></div>
+            </div>
+          </div>
+          <div class="perf-game-score">3,150</div>
+        </div>
+        <div class="perf-game-item">
+          <div class="perf-game-icon" style="background: rgba(76,175,80,0.1)">🌊</div>
+          <div class="perf-game-info">
+            <div class="perf-game-name">Focus Flow</div>
+            <div class="perf-game-bar">
+              <div class="perf-game-fill" style="width:65%; background: linear-gradient(90deg, #4CAF50, #2E7D32)"></div>
+            </div>
+          </div>
+          <div class="perf-game-score">2,410</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nutrition Tracking -->
+    <div class="game-performance" style="border:1px solid rgba(0,229,255,0.08)">
+      <div class="perf-header">
+        <span class="perf-title"><i class="fas fa-glasses" style="color:#00E5FF;font-size:16px;margin-right:8px"></i>AR Food Log</span>
+        <div class="perf-tabs">
+          <div class="perf-tab active">Today</div>
+          <div class="perf-tab">Week</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+        <div style="text-align:center">
+          <div style="font-size:36px;font-weight:900;color:#00E5FF">1,340</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.4);font-weight:600">of 2,050 kcal</div>
+        </div>
+        <div style="flex:1;display:flex;gap:6px">
+          <div style="flex:1;text-align:center;background:rgba(255,255,255,0.04);border-radius:12px;padding:10px 6px">
+            <div style="font-size:14px;font-weight:800;color:#FF6B6B">78g</div>
+            <div style="font-size:8px;color:rgba(255,255,255,0.3);font-weight:600">PROTEIN</div>
+          </div>
+          <div style="flex:1;text-align:center;background:rgba(255,255,255,0.04);border-radius:12px;padding:10px 6px">
+            <div style="font-size:14px;font-weight:800;color:#FFB74D">170g</div>
+            <div style="font-size:8px;color:rgba(255,255,255,0.3);font-weight:600">CARBS</div>
+          </div>
+          <div style="flex:1;text-align:center;background:rgba(255,255,255,0.04);border-radius:12px;padding:10px 6px">
+            <div style="font-size:14px;font-weight:800;color:#64B5F6">38g</div>
+            <div style="font-size:8px;color:rgba(255,255,255,0.3);font-weight:600">FAT</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;background:rgba(0,229,255,0.06);border-radius:12px;padding:12px 14px">
+        <i class="fas fa-glasses" style="font-size:14px;color:#00E5FF"></i>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7)">6 meals scanned today via AR Glass</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px">94% average detection accuracy</div>
+        </div>
+        <i class="fas fa-chevron-right" style="font-size:12px;color:rgba(255,255,255,0.2)"></i>
+      </div>
+    </div>
+
+    <!-- Focus Activity Chart -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title">Focus Activity</span>
+      </div>
+      <div class="bar-chart">
+        <div class="bar-group">
+          <div class="bar" style="height:50%"></div>
+          <span class="bar-label">Mon</span>
+        </div>
+        <div class="bar-group">
+          <div class="bar" style="height:75%"></div>
+          <span class="bar-label">Tue</span>
+        </div>
+        <div class="bar-group">
+          <div class="bar" style="height:40%"></div>
+          <span class="bar-label">Wed</span>
+        </div>
+        <div class="bar-group">
+          <div class="bar" style="height:90%"></div>
+          <span class="bar-label">Thu</span>
+        </div>
+        <div class="bar-group">
+          <div class="bar" style="height:65%; background: linear-gradient(180deg, #00E5FF, #2979FF); box-shadow: 0 0 12px rgba(0,229,255,0.3);"></div>
+          <span class="bar-label" style="color:#00E5FF">Fri</span>
+        </div>
+        <div class="bar-group">
+          <div class="bar" style="height:30%; opacity:0.3"></div>
+          <span class="bar-label">Sat</span>
+        </div>
+        <div class="bar-group">
+          <div class="bar" style="height:20%; opacity:0.3"></div>
+          <span class="bar-label">Sun</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Achievements -->
+    <div class="section-header">
+      <span class="section-title">Achievements</span>
+      <span class="section-more">See All</span>
+    </div>
+
+    <div class="achievements-scroll">
+      <div class="achievement-card earned">
+        <div class="achievement-icon">🎯</div>
+        <div class="achievement-name">Stroop Star</div>
+        <div class="achievement-desc">Score 4000+</div>
+      </div>
+      <div class="achievement-card earned">
+        <div class="achievement-icon">🧠</div>
+        <div class="achievement-name">Mind Master</div>
+        <div class="achievement-desc">10 games won</div>
+      </div>
+      <div class="achievement-card earned">
+        <div class="achievement-icon">⚡</div>
+        <div class="achievement-name">Speed Focus</div>
+        <div class="achievement-desc">Under 1.5s avg</div>
+      </div>
+      <div class="achievement-card locked">
+        <div class="achievement-icon">👑</div>
+        <div class="achievement-name">Focus King</div>
+        <div class="achievement-desc">Score 1000</div>
+      </div>
+      <div class="achievement-card locked">
+        <div class="achievement-icon">🌟</div>
+        <div class="achievement-name">Century</div>
+        <div class="achievement-desc">100 games</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-compass"></i>
+      <span>Discover</span>
+    </div>
+    <div class="tab-item">
+      <button class="sos-btn"><i class="fas fa-bolt"></i></button>
+      <span style="color:rgba(255,255,255,0.4);font-size:10px;margin-top:4px">SOS</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-chart-line"></i>
+      <span>Progress</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-gamepad"></i>
+      <span>Games</span>
+    </div>
+  </div>
+</body>
+</html>

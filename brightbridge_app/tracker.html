@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrightBridge - Tracker</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #F2F2F7; width: 100%; height: 100%; overflow-x: hidden; scrollbar-width: none; }
+
+  .status-bar { width: 100%; height: 59px; padding: 0 28px; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 10px; background: #F2F2F7; position: sticky; top: 0; z-index: 100; }
+  .status-time { font-size: 16px; font-weight: 600; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 22px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .page-title { font-size: 28px; font-weight: 700; color: #1C1C1E; }
+  .add-btn { padding: 8px 14px; border-radius: 12px; background: linear-gradient(135deg, #5856D6, #AF52DE); color: #fff; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+
+  .seg-control { display: flex; background: rgba(118,118,128,0.12); border-radius: 12px; padding: 3px; margin-top: 16px; }
+  .seg { flex: 1; text-align: center; padding: 8px; border-radius: 9px; font-size: 13px; font-weight: 600; color: #8E8E93; }
+  .seg.active { background: #fff; color: #1C1C1E; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; margin-bottom: 14px; }
+  .section-title { font-size: 18px; font-weight: 700; color: #1C1C1E; }
+  .section-link { font-size: 13px; color: #5856D6; font-weight: 600; }
+
+  /* Zones of regulation grid */
+  .zones-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .zone-tile { border-radius: 18px; padding: 16px; color: #fff; position: relative; overflow: hidden; }
+  .zone-emoji { font-size: 22px; }
+  .zone-name { font-size: 13px; font-weight: 700; margin-top: 8px; }
+  .zone-desc { font-size: 10px; opacity: 0.85; margin-top: 2px; }
+  .zone-pct { font-size: 30px; font-weight: 800; margin-top: 10px; }
+  .zone-meta { font-size: 10px; opacity: 0.85; }
+
+  /* Weekly trend stacked bars */
+  .trend-card { background: #fff; border-radius: 20px; padding: 18px; }
+  .trend-grid { display: flex; align-items: flex-end; justify-content: space-between; height: 130px; gap: 10px; margin-top: 6px; }
+  .trend-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .trend-stack { width: 22px; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column-reverse; height: 110px; }
+  .trend-seg { width: 100%; }
+  .trend-day { font-size: 10px; color: #8E8E93; font-weight: 600; }
+
+  /* Emotion frequency */
+  .emo-card { background: #fff; border-radius: 18px; padding: 16px; }
+  .emo-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; }
+  .emo-face { font-size: 20px; width: 28px; text-align: center; }
+  .emo-name { font-size: 13px; font-weight: 600; color: #1C1C1E; width: 88px; }
+  .emo-track { flex: 1; height: 8px; background: #F2F2F7; border-radius: 4px; overflow: hidden; }
+  .emo-fill { height: 100%; border-radius: 4px; }
+  .emo-count { font-size: 12px; font-weight: 700; color: #8E8E93; width: 28px; text-align: right; }
+
+  /* Trigger insights */
+  .insight-card { background: linear-gradient(135deg, #1C1C2E, #3A2D5C); border-radius: 20px; padding: 18px; color: #fff; position: relative; overflow: hidden; }
+  .insight-glow { position: absolute; top: -30px; right: -20px; width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, rgba(175,82,222,0.5), transparent 70%); }
+  .insight-head { display: flex; align-items: center; gap: 8px; position: relative; }
+  .insight-badge { width: 28px; height: 28px; border-radius: 9px; background: linear-gradient(135deg, #AF52DE, #5856D6); display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .insight-title { font-size: 13px; font-weight: 700; }
+  .insight-item { display: flex; gap: 12px; margin-top: 14px; position: relative; align-items: center; }
+  .insight-ico { width: 36px; height: 36px; border-radius: 11px; background: rgba(255,255,255,0.14); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .insight-text { font-size: 13px; font-weight: 600; opacity: 0.95; }
+  .insight-text b { color: #C8A6FF; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(255,255,255,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 0.5px solid rgba(0,0,0,0.08); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; z-index: 100; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; color: #8E8E93; }
+  .tab-item.active { color: #5856D6; }
+  .tab-item i { font-size: 22px; }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="content">
+  <div class="page-header">
+    <div class="page-title">Tracker</div>
+    <div class="add-btn"><i class="fas fa-plus"></i> Log</div>
+  </div>
+
+  <div class="seg-control">
+    <div class="seg">Today</div>
+    <div class="seg active">This Week</div>
+    <div class="seg">Month</div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Zones of Regulation</div>
+    <span class="section-link">142 check-ins</span>
+  </div>
+
+  <div class="zones-grid">
+    <div class="zone-tile" style="background: linear-gradient(135deg, #007AFF, #5AC8FA);">
+      <div class="zone-emoji">😔</div>
+      <div class="zone-name">Blue Zone</div>
+      <div class="zone-desc">Sad · tired · low energy</div>
+      <div class="zone-pct">16%</div>
+      <div class="zone-meta">23 check-ins</div>
+    </div>
+    <div class="zone-tile" style="background: linear-gradient(135deg, #34C759, #30D5C8);">
+      <div class="zone-emoji">😊</div>
+      <div class="zone-name">Green Zone</div>
+      <div class="zone-desc">Calm · focused · ready</div>
+      <div class="zone-pct">54%</div>
+      <div class="zone-meta">77 check-ins</div>
+    </div>
+    <div class="zone-tile" style="background: linear-gradient(135deg, #FFCC00, #FF9500);">
+      <div class="zone-emoji">😬</div>
+      <div class="zone-name">Yellow Zone</div>
+      <div class="zone-desc">Anxious · excited · wiggly</div>
+      <div class="zone-pct">22%</div>
+      <div class="zone-meta">31 check-ins</div>
+    </div>
+    <div class="zone-tile" style="background: linear-gradient(135deg, #FF3B30, #FF6B6B);">
+      <div class="zone-emoji">😠</div>
+      <div class="zone-name">Red Zone</div>
+      <div class="zone-desc">Overwhelmed · upset</div>
+      <div class="zone-pct">8%</div>
+      <div class="zone-meta">11 check-ins</div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Weekly Trend</div>
+    <span class="section-link">All students</span>
+  </div>
+
+  <div class="trend-card">
+    <div class="trend-grid">
+      <div class="trend-col"><div class="trend-stack"><div class="trend-seg" style="height:50%; background:#34C759;"></div><div class="trend-seg" style="height:25%; background:#FFCC00;"></div><div class="trend-seg" style="height:15%; background:#007AFF;"></div><div class="trend-seg" style="height:10%; background:#FF3B30;"></div></div><div class="trend-day">Mon</div></div>
+      <div class="trend-col"><div class="trend-stack"><div class="trend-seg" style="height:58%; background:#34C759;"></div><div class="trend-seg" style="height:20%; background:#FFCC00;"></div><div class="trend-seg" style="height:15%; background:#007AFF;"></div><div class="trend-seg" style="height:7%; background:#FF3B30;"></div></div><div class="trend-day">Tue</div></div>
+      <div class="trend-col"><div class="trend-stack"><div class="trend-seg" style="height:45%; background:#34C759;"></div><div class="trend-seg" style="height:30%; background:#FFCC00;"></div><div class="trend-seg" style="height:12%; background:#007AFF;"></div><div class="trend-seg" style="height:13%; background:#FF3B30;"></div></div><div class="trend-day">Wed</div></div>
+      <div class="trend-col"><div class="trend-stack"><div class="trend-seg" style="height:60%; background:#34C759;"></div><div class="trend-seg" style="height:22%; background:#FFCC00;"></div><div class="trend-seg" style="height:12%; background:#007AFF;"></div><div class="trend-seg" style="height:6%; background:#FF3B30;"></div></div><div class="trend-day">Thu</div></div>
+      <div class="trend-col"><div class="trend-stack"><div class="trend-seg" style="height:64%; background:#34C759;"></div><div class="trend-seg" style="height:18%; background:#FFCC00;"></div><div class="trend-seg" style="height:13%; background:#007AFF;"></div><div class="trend-seg" style="height:5%; background:#FF3B30;"></div></div><div class="trend-day">Fri</div></div>
+      <div class="trend-col"><div class="trend-stack"><div class="trend-seg" style="height:55%; background:#34C759;"></div><div class="trend-seg" style="height:25%; background:#FFCC00;"></div><div class="trend-seg" style="height:14%; background:#007AFF;"></div><div class="trend-seg" style="height:6%; background:#FF3B30;"></div></div><div class="trend-day">Sat</div></div>
+      <div class="trend-col"><div class="trend-stack"><div class="trend-seg" style="height:52%; background:#34C759;"></div><div class="trend-seg" style="height:23%; background:#FFCC00;"></div><div class="trend-seg" style="height:18%; background:#007AFF;"></div><div class="trend-seg" style="height:7%; background:#FF3B30;"></div></div><div class="trend-day">Sun</div></div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Most Logged Emotions</div>
+  </div>
+
+  <div class="emo-card">
+    <div class="emo-row">
+      <div class="emo-face">🙂</div><div class="emo-name">Calm</div>
+      <div class="emo-track"><div class="emo-fill" style="width:88%; background:#34C759;"></div></div><div class="emo-count">62</div>
+    </div>
+    <div class="emo-row">
+      <div class="emo-face">😬</div><div class="emo-name">Anxious</div>
+      <div class="emo-track"><div class="emo-fill" style="width:54%; background:#FFCC00;"></div></div><div class="emo-count">38</div>
+    </div>
+    <div class="emo-row">
+      <div class="emo-face">😄</div><div class="emo-name">Excited</div>
+      <div class="emo-track"><div class="emo-fill" style="width:46%; background:#FF9500;"></div></div><div class="emo-count">31</div>
+    </div>
+    <div class="emo-row">
+      <div class="emo-face">😔</div><div class="emo-name">Tired</div>
+      <div class="emo-track"><div class="emo-fill" style="width:34%; background:#007AFF;"></div></div><div class="emo-count">24</div>
+    </div>
+    <div class="emo-row">
+      <div class="emo-face">😠</div><div class="emo-name">Frustrated</div>
+      <div class="emo-track"><div class="emo-fill" style="width:22%; background:#FF3B30;"></div></div><div class="emo-count">15</div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Pattern Insights</div>
+  </div>
+
+  <div class="insight-card">
+    <div class="insight-glow"></div>
+    <div class="insight-head">
+      <div class="insight-badge"><i class="fas fa-wand-magic-sparkles"></i></div>
+      <div class="insight-title">3 patterns this week</div>
+    </div>
+    <div class="insight-item">
+      <div class="insight-ico">🔀</div>
+      <div class="insight-text"><b>Transitions</b> trigger most stress</div>
+    </div>
+    <div class="insight-item">
+      <div class="insight-ico">📅</div>
+      <div class="insight-text">Hardest day: <b>Wednesday PM</b></div>
+    </div>
+    <div class="insight-item">
+      <div class="insight-ico">🎨</div>
+      <div class="insight-text"><b>Drawing</b> calms fastest</div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item">
+    <i class="fas fa-house"></i>
+    <span>Home</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-children"></i>
+    <span>Students</span>
+  </div>
+  <div class="tab-item active">
+    <i class="fas fa-heart-pulse"></i>
+    <span>Tracker</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-wand-magic-sparkles"></i>
+    <span>AI Coach</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-clipboard-list"></i>
+    <span>Notes</span>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SceneSpot AI - Map</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            -webkit-scrollbar: none;
+            scrollbar-width: none;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+        }
+        *::-webkit-scrollbar { display: none; }
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: #000;
+            overflow: hidden;
+        }
+        .dynamic-island {
+            width: 126px;
+            height: 37px;
+            background: #000;
+            border-radius: 20px;
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+        .status-bar {
+            height: 59px;
+            padding: 0 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-bottom: 8px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+        }
+        .map-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        .map-pin {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            transform: translate(-50%, -50%);
+        }
+        .pin-inner {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(196, 79, 255, 0.4);
+        }
+        .pin-inner img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+        }
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 88px;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-top: 12px;
+            border-top: 0.5px solid rgba(255,255,255,0.1);
+            z-index: 60;
+        }
+        .search-overlay {
+            position: absolute;
+            top: 70px;
+            left: 28px;
+            right: 28px;
+            z-index: 40;
+        }
+        .filter-bar {
+            position: absolute;
+            top: 130px;
+            left: 0;
+            right: 0;
+            padding: 0 28px;
+            z-index: 40;
+        }
+        .bottom-card {
+            position: absolute;
+            bottom: 100px;
+            left: 16px;
+            right: 16px;
+            background: rgba(30,30,35,0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 16px;
+            z-index: 40;
+        }
+        .cluster-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 20px;
+            height: 20px;
+            background: #FF6B9D;
+            border-radius: 50%;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-black text-white">
+    <!-- Map Background -->
+    <div class="map-container">
+        <img src="https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?w=1200&q=80"
+             class="w-full h-full object-cover" alt="Map" style="filter: brightness(0.6) saturate(0.8);">
+
+        <!-- Map Pins -->
+        <div class="map-pin" style="top: 35%; left: 45%;">
+            <div class="pin-inner bg-gradient-to-br from-purple-500 to-pink-500 relative">
+                <img src="https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=100&q=80" alt="Location">
+                <div class="cluster-badge">3</div>
+            </div>
+        </div>
+
+        <div class="map-pin" style="top: 50%; left: 60%;">
+            <div class="pin-inner bg-gradient-to-br from-blue-500 to-cyan-500">
+                <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=100&q=80" alt="Location">
+            </div>
+        </div>
+
+        <div class="map-pin" style="top: 65%; left: 35%;">
+            <div class="pin-inner bg-gradient-to-br from-orange-500 to-red-500 relative">
+                <img src="https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=100&q=80" alt="Location">
+                <div class="cluster-badge">5</div>
+            </div>
+        </div>
+
+        <div class="map-pin" style="top: 25%; left: 70%;">
+            <div class="pin-inner bg-gradient-to-br from-green-500 to-teal-500">
+                <img src="https://images.unsplash.com/photo-1551641506-ee5bf4cb45f1?w=100&q=80" alt="Location">
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span class="text-sm font-medium">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="flex items-center gap-1.5">
+            <i class="fas fa-signal text-xs"></i>
+            <i class="fas fa-wifi text-xs"></i>
+            <i class="fas fa-battery-full text-xs"></i>
+        </div>
+    </div>
+
+    <!-- Search Overlay -->
+    <div class="search-overlay">
+        <div class="bg-black/60 backdrop-blur-xl rounded-2xl px-4 py-3 flex items-center gap-3">
+            <i class="fas fa-search text-gray-400"></i>
+            <span class="text-gray-400 text-sm">Search locations...</span>
+            <div class="flex-1"></div>
+            <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                <i class="fas fa-list text-sm"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="flex gap-2 overflow-x-auto pb-2">
+            <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-full px-4 py-2 flex items-center gap-2 whitespace-nowrap">
+                <span class="text-sm font-medium">Your Name</span>
+                <i class="fas fa-times text-xs"></i>
+            </div>
+            <div class="bg-black/60 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2 whitespace-nowrap">
+                <i class="fas fa-filter text-xs text-gray-400"></i>
+                <span class="text-sm text-gray-300">Filters</span>
+            </div>
+            <div class="bg-black/60 backdrop-blur-sm rounded-full px-4 py-2 whitespace-nowrap">
+                <span class="text-sm text-gray-300">Nearby</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Controls -->
+    <div class="absolute right-4 top-1/2 transform -translate-y-1/2 flex flex-col gap-2 z-40">
+        <div class="w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
+            <i class="fas fa-plus text-sm"></i>
+        </div>
+        <div class="w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
+            <i class="fas fa-minus text-sm"></i>
+        </div>
+        <div class="w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center mt-4">
+            <i class="fas fa-location-arrow text-sm text-purple-400"></i>
+        </div>
+    </div>
+
+    <!-- Bottom Card -->
+    <div class="bottom-card">
+        <div class="flex gap-3">
+            <img src="https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=200&q=80"
+                 class="w-20 h-20 rounded-xl object-cover" alt="Location">
+            <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                    <p class="font-semibold">Suga Shrine Steps</p>
+                    <span class="w-2 h-2 rounded-full bg-green-400"></span>
+                </div>
+                <p class="text-gray-400 text-xs mb-2">Featured in: Your Name</p>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1 text-xs">
+                        <i class="fas fa-walking text-purple-400"></i>
+                        <span class="text-gray-300">12 min</span>
+                    </div>
+                    <div class="flex items-center gap-1 text-xs">
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <span class="text-gray-300">4.8</span>
+                    </div>
+                    <div class="flex items-center gap-1 text-xs">
+                        <i class="fas fa-camera text-pink-400"></i>
+                        <span class="text-gray-300">2.4k</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-col gap-2">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                    <i class="fas fa-directions text-sm"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-home text-lg text-gray-500"></i>
+            <span class="text-xs text-gray-500">Home</span>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-search text-lg text-gray-500"></i>
+            <span class="text-xs text-gray-500">Search</span>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-map-marker-alt text-lg text-purple-400"></i>
+            <span class="text-xs text-purple-400">Map</span>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-heart text-lg text-gray-500"></i>
+            <span class="text-xs text-gray-500">Saved</span>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-suitcase text-lg text-gray-500"></i>
+            <span class="text-xs text-gray-500">Trips</span>
+        </div>
+    </div>
+</body>
+</html>

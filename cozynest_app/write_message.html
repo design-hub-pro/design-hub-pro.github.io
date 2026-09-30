@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CozyNest - Write a Note</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; scrollbar-width: none; font-family: 'Nunito', sans-serif; }
+  body { background: linear-gradient(180deg, #1a1520 0%, #2a1f3d 100%); color: #fff; }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center;
+    position: relative; z-index: 100;
+  }
+  .status-time { font-size: 15px; font-weight: 700; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  }
+
+  .screen { height: 100%; display: flex; flex-direction: column; }
+
+  /* Header */
+  .write-header { padding: 4px 28px 16px; display: flex; justify-content: space-between; align-items: center; }
+  .cancel-btn { font-size: 15px; color: rgba(255,255,255,0.5); font-weight: 600; }
+  .header-title { font-size: 17px; font-weight: 700; }
+  .send-btn {
+    padding: 8px 20px; border-radius: 20px; border: none;
+    background: linear-gradient(135deg, #ff6b8a, #ff9aaa);
+    color: #fff; font-size: 14px; font-weight: 700; font-family: 'Nunito', sans-serif;
+  }
+
+  /* Mood Selector */
+  .mood-selector { padding: 0 28px 16px; }
+  .ms-label { font-size: 12px; color: rgba(255,255,255,0.4); font-weight: 600; margin-bottom: 10px; }
+  .ms-options { display: flex; gap: 10px; }
+  .ms-chip {
+    padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.5); display: flex; align-items: center; gap: 6px;
+  }
+  .ms-chip.active {
+    background: rgba(255,107,138,0.15); border-color: rgba(255,107,138,0.3); color: #ff9aaa;
+  }
+
+  /* Text Area */
+  .write-area {
+    flex: 1; padding: 0 28px;
+  }
+  .note-card {
+    width: 100%; height: 100%; border-radius: 24px; padding: 24px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    position: relative; overflow: hidden;
+  }
+  .note-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #ff6b8a, #ffcc70, #9ac0ff, #c0a0ff);
+  }
+  .note-textarea {
+    width: 100%; height: 180px; background: none; border: none; color: #fff;
+    font-size: 18px; font-family: 'Nunito', sans-serif; font-weight: 600;
+    line-height: 1.7; resize: none; outline: none;
+  }
+  .note-textarea::placeholder { color: rgba(255,255,255,0.2); }
+  .char-count { font-size: 12px; color: rgba(255,255,255,0.2); text-align: right; margin-top: 8px; }
+
+  /* Anonymous Toggle */
+  .anon-toggle {
+    display: flex; align-items: center; gap: 12px; margin-top: 16px;
+    padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,0.04);
+  }
+  .toggle-track {
+    width: 44px; height: 24px; border-radius: 12px;
+    background: linear-gradient(135deg, #6a4a8a, #9a70c0);
+    position: relative;
+  }
+  .toggle-thumb {
+    width: 20px; height: 20px; background: #fff; border-radius: 50%;
+    position: absolute; top: 2px; right: 2px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  .toggle-text { flex: 1; }
+  .toggle-title { font-size: 14px; font-weight: 700; }
+  .toggle-sub { font-size: 11px; color: rgba(255,255,255,0.3); }
+
+  /* Prompts */
+  .prompts { padding: 16px 28px; }
+  .prompts-label { font-size: 12px; color: rgba(255,255,255,0.3); font-weight: 600; margin-bottom: 10px; }
+  .prompt-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .prompt-chip {
+    padding: 8px 14px; border-radius: 16px; font-size: 12px; font-weight: 600;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.5);
+  }
+
+  .bottom-spacer { height: 30px; flex-shrink: 0; }
+  .home-indicator {
+    width: 134px; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px;
+    margin: 0 auto; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="write-header">
+    <div class="cancel-btn">Cancel</div>
+    <div class="header-title">Write a Note</div>
+    <button class="send-btn"><i class="fas fa-paper-plane"></i> Send</button>
+  </div>
+
+  <!-- Mood -->
+  <div class="mood-selector">
+    <div class="ms-label">WHAT KIND OF NOTE?</div>
+    <div class="ms-options">
+      <div class="ms-chip active">💗 Love</div>
+      <div class="ms-chip">✨ Encourage</div>
+      <div class="ms-chip">🤗 Hug</div>
+      <div class="ms-chip">🕊️ Peace</div>
+    </div>
+  </div>
+
+  <!-- Text Area -->
+  <div class="write-area">
+    <div class="note-card">
+      <textarea class="note-textarea" placeholder="Write something warm and kind..." readonly>Hey stranger, I don't know what you're going through but I want you to know — you matter. The world is better with you in it. 💛</textarea>
+      <div class="char-count">124 / 280</div>
+
+      <div class="anon-toggle">
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        <div class="toggle-text">
+          <div class="toggle-title">Send Anonymously</div>
+          <div class="toggle-sub">Your name won't be shown</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Writing Prompts -->
+  <div class="prompts">
+    <div class="prompts-label">NEED INSPIRATION?</div>
+    <div class="prompt-chips">
+      <div class="prompt-chip">🌟 You are enough</div>
+      <div class="prompt-chip">🫂 Virtual hug</div>
+      <div class="prompt-chip">💪 Stay strong</div>
+      <div class="prompt-chip">🌈 Better days ahead</div>
+    </div>
+  </div>
+
+  <div class="bottom-spacer"></div>
+  <div class="home-indicator"></div>
+</div>
+</body>
+</html>

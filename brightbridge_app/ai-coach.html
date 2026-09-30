@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrightBridge - AI Coach</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #F2F2F7; width: 100%; height: 100%; overflow-x: hidden; scrollbar-width: none; }
+
+  .status-bar { width: 100%; height: 59px; padding: 0 28px; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 10px; background: #F2F2F7; position: sticky; top: 0; z-index: 100; }
+  .status-time { font-size: 16px; font-weight: 600; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 22px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+
+  .ai-hero { margin-top: 8px; border-radius: 24px; padding: 22px; background: linear-gradient(135deg, #1C1C2E, #3A2D5C); color: #fff; position: relative; overflow: hidden; text-align: center; }
+  .ai-hero-glow { position: absolute; top: -40px; right: -30px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(175,82,222,0.6), transparent 70%); }
+  .ai-hero-glow2 { position: absolute; bottom: -50px; left: -20px; width: 130px; height: 130px; border-radius: 50%; background: radial-gradient(circle, rgba(88,86,214,0.5), transparent 70%); }
+  .ai-hero-badge { width: 56px; height: 56px; border-radius: 18px; background: linear-gradient(135deg, #AF52DE, #5856D6); display: inline-flex; align-items: center; justify-content: center; font-size: 26px; box-shadow: 0 6px 16px rgba(175,82,222,0.5); position: relative; }
+  .ai-hero-name { font-size: 18px; font-weight: 700; margin-top: 12px; position: relative; }
+  .ai-hero-sub { font-size: 13px; opacity: 0.75; margin-top: 4px; position: relative; }
+
+  .ask-box { margin-top: 16px; background: #fff; border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+  .ask-box i { color: #AF52DE; }
+  .ask-box span { color: #C7C7CC; font-size: 14px; flex: 1; }
+  .ask-send { width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, #5856D6, #AF52DE); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; }
+
+  .prompt-row { display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; padding-bottom: 4px; }
+  .prompt-chip { white-space: nowrap; padding: 9px 14px; border-radius: 18px; background: #fff; font-size: 12px; font-weight: 600; color: #5856D6; display: flex; align-items: center; gap: 6px; }
+
+  .section-head { display: flex; justify-content: space-between; align-items: center; margin-top: 26px; margin-bottom: 14px; }
+  .section-title { font-size: 18px; font-weight: 700; color: #1C1C1E; }
+  .section-link { font-size: 13px; color: #5856D6; font-weight: 600; }
+
+  /* compact visual suggestion cards */
+  .topic-card { background: #fff; border-radius: 20px; padding: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; }
+  .topic-icon { width: 56px; height: 56px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; flex-shrink: 0; }
+  .topic-body { flex: 1; min-width: 0; }
+  .topic-for { font-size: 11px; color: #8E8E93; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+  .topic-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .topic-title { font-size: 15px; font-weight: 700; color: #1C1C1E; margin-top: 3px; }
+  .topic-tags { display: flex; gap: 6px; margin-top: 8px; }
+  .topic-tag { padding: 3px 9px; border-radius: 7px; font-size: 10px; font-weight: 600; }
+  .topic-match { text-align: center; flex-shrink: 0; }
+  .topic-ring { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: #34C759; }
+  .topic-go { width: 50px; margin-top: 6px; padding: 7px 0; border-radius: 10px; background: linear-gradient(135deg, #5856D6, #AF52DE); color: #fff; font-size: 12px; text-align: center; }
+
+  .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(255,255,255,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 0.5px solid rgba(0,0,0,0.08); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px; z-index: 100; }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; color: #8E8E93; }
+  .tab-item.active { color: #5856D6; }
+  .tab-item i { font-size: 22px; }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="content">
+  <div class="ai-hero">
+    <div class="ai-hero-glow"></div>
+    <div class="ai-hero-glow2"></div>
+    <div class="ai-hero-badge"><i class="fas fa-wand-magic-sparkles"></i></div>
+    <div class="ai-hero-name">AI Coach</div>
+    <div class="ai-hero-sub">3 ideas tailored from this week's logs</div>
+  </div>
+
+  <div class="ask-box">
+    <i class="fas fa-comment-dots"></i>
+    <span>Ask anything...</span>
+    <div class="ask-send"><i class="fas fa-arrow-up"></i></div>
+  </div>
+
+  <div class="prompt-row">
+    <div class="prompt-chip"><i class="fas fa-lightbulb"></i> Lesson idea</div>
+    <div class="prompt-chip"><i class="fas fa-hand-holding-heart"></i> Calm a meltdown</div>
+    <div class="prompt-chip"><i class="fas fa-comments"></i> Social story</div>
+  </div>
+
+  <div class="section-head">
+    <div class="section-title">For Today</div>
+    <span class="section-link">Refresh</span>
+  </div>
+
+  <div class="topic-card">
+    <div class="topic-icon" style="background: linear-gradient(135deg, #007AFF, #5AC8FA);"><i class="fas fa-paintbrush"></i></div>
+    <div class="topic-body">
+      <div class="topic-for"><span class="topic-dot" style="background:#FFCC00;"></span> Mia · Yellow</div>
+      <div class="topic-title">Feelings Drawing</div>
+      <div class="topic-tags">
+        <span class="topic-tag" style="background:#EBF5FF; color:#007AFF;">Calm</span>
+        <span class="topic-tag" style="background:#E8F8EE; color:#34C759;">1:1</span>
+      </div>
+    </div>
+    <div class="topic-match">
+      <div class="topic-ring" style="background: conic-gradient(#34C759 0 94%, #E5E5EA 94% 100%);"><div style="width:38px;height:38px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;">94</div></div>
+      <div class="topic-go">Start</div>
+    </div>
+  </div>
+
+  <div class="topic-card">
+    <div class="topic-icon" style="background: linear-gradient(135deg, #34C759, #30D5C8);"><i class="fas fa-people-arrows"></i></div>
+    <div class="topic-body">
+      <div class="topic-for"><span class="topic-dot" style="background:#34C759;"></span> Alex · Green</div>
+      <div class="topic-title">Turn-Taking Math</div>
+      <div class="topic-tags">
+        <span class="topic-tag" style="background:#FFF3E0; color:#FF9500;">Numeracy</span>
+        <span class="topic-tag" style="background:#E8F8EE; color:#34C759;">Social</span>
+      </div>
+    </div>
+    <div class="topic-match">
+      <div class="topic-ring" style="background: conic-gradient(#34C759 0 89%, #E5E5EA 89% 100%);"><div style="width:38px;height:38px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;">89</div></div>
+      <div class="topic-go">Start</div>
+    </div>
+  </div>
+
+  <div class="topic-card">
+    <div class="topic-icon" style="background: linear-gradient(135deg, #FF3B30, #FF6B6B);"><i class="fas fa-book-open-reader"></i></div>
+    <div class="topic-body">
+      <div class="topic-for"><span class="topic-dot" style="background:#FF3B30;"></span> Lily · Red</div>
+      <div class="topic-title">Big Feelings Story</div>
+      <div class="topic-tags">
+        <span class="topic-tag" style="background:#FFEBEA; color:#FF3B30;">Calming</span>
+        <span class="topic-tag" style="background:#F2EEFF; color:#5856D6;">Story</span>
+      </div>
+    </div>
+    <div class="topic-match">
+      <div class="topic-ring" style="background: conic-gradient(#34C759 0 91%, #E5E5EA 91% 100%);"><div style="width:38px;height:38px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;">91</div></div>
+      <div class="topic-go">Open</div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item">
+    <i class="fas fa-house"></i>
+    <span>Home</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-children"></i>
+    <span>Students</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-heart-pulse"></i>
+    <span>Tracker</span>
+  </div>
+  <div class="tab-item active">
+    <i class="fas fa-wand-magic-sparkles"></i>
+    <span>AI Coach</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-clipboard-list"></i>
+    <span>Notes</span>
+  </div>
+</div>
+
+</body>
+</html>

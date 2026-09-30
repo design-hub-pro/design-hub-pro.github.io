@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electric Utility Cart - Hardware Architecture</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0e17;
+            color: #e2e8f0;
+            padding: 60px 40px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 60px;
+            border-bottom: 1px solid rgba(99, 179, 237, 0.15);
+            padding-bottom: 40px;
+        }
+        .page-header h1 {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #63b3ed, #b794f4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        .page-header .subtitle {
+            font-size: 16px;
+            color: #718096;
+            font-weight: 400;
+        }
+        .page-header .doc-info {
+            margin-top: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #4a5568;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .diagram-section {
+            margin-bottom: 80px;
+        }
+        .diagram-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #63b3ed;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+        }
+        .diagram-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin-bottom: 24px;
+        }
+
+        .diagram-container {
+            background: #0f1420;
+            border: 1px solid rgba(99, 179, 237, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            overflow-x: auto;
+        }
+
+        svg text {
+            font-family: 'Inter', sans-serif;
+        }
+        svg .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .legend {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #718096;
+        }
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>Electric Utility Cart</h1>
+        <p class="subtitle">Hardware Architecture & System Design Documentation</p>
+        <div class="doc-info">
+            <span>DOC-HW-2026-001</span>
+            <span>REV 1.0</span>
+            <span>CLASSIFICATION: ENGINEERING</span>
+            <span>DATE: 2026-02-26</span>
+        </div>
+    </div>
+
+    <!-- ==================== DIAGRAM 1: System Overview ==================== -->
+    <div class="diagram-section">
+        <p class="diagram-title">Figure 1</p>
+        <p class="diagram-name">System Architecture Overview</p>
+        <div class="diagram-container">
+            <svg viewBox="0 0 1100 680" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <marker id="arrow1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                        <polygon points="0 0, 8 3, 0 6" fill="#63b3ed"/>
+                    </marker>
+                    <marker id="arrow1g" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                        <polygon points="0 0, 8 3, 0 6" fill="#68d391"/>
+                    </marker>
+                    <marker id="arrow1o" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                        <polygon points="0 0, 8 3, 0 6" fill="#f6ad55"/>
+                    </marker>
+                    <marker id="arrow1p" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                        <polygon points="0 0, 8 3, 0 6" fill="#b794f4"/>
+                    </marker>
+                    <filter id="glow1">
+                        <feGaussianBlur stdDeviation="3" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                </defs>
+
+                <!-- Background Grid -->
+                <pattern id="grid1" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(99,179,237,0.03)" stroke-width="0.5"/>
+                </pattern>
+                <rect width="1100" height="680" fill="url(#grid1)"/>
+
+                <!-- ===== POWER SUBSYSTEM (Left) ===== -->
+                <rect x="30" y="20" width="300" height="640" rx="12" fill="none" stroke="rgba(246,173,85,0.15)" stroke-width="1" stroke-dasharray="6 3"/>
+                <text x="45" y="48" fill="#f6ad55" font-size="11" font-weight="600" letter-spacing="1.5" class="mono">POWER SUBSYSTEM</text>
+
+                <!-- Battery Pack -->
+                <rect x="60" y="80" width="240" height="90" rx="8" fill="rgba(246,173,85,0.06)" stroke="#f6ad55" stroke-width="1.5"/>
+                <text x="180" y="110" text-anchor="middle" fill="#f6ad55" font-size="14" font-weight="700">Battery Pack</text>
+                <text x="180" y="130" text-anchor="middle" fill="#a0aec0" font-size="11" class="mono">48V 20Ah Li-Ion</text>
+                <text x="180" y="148" text-anchor="middle" fill="#718096" font-size="10" class="mono">960Wh / 13S8P Config</text>
+
+                <!-- BMS -->
+                <rect x="60" y="200" width="240" height="70" rx="8" fill="rgba(246,173,85,0.06)" stroke="#f6ad55" stroke-width="1.5"/>
+                <text x="180" y="228" text-anchor="middle" fill="#f6ad55" font-size="13" font-weight="700">Battery Management System</text>
+                <text x="180" y="250" text-anchor="middle" fill="#a0aec0" font-size="11" class="mono">Cell Balancing / Thermal / OVP / UVP</text>
+
+                <!-- Charger Port -->
+                <rect x="60" y="300" width="240" height="60" rx="8" fill="rgba(246,173,85,0.06)" stroke="#f6ad55" stroke-width="1.5"/>
+                <text x="180" y="325" text-anchor="middle" fill="#f6ad55" font-size="13" font-weight="700">Charging System</text>
+                <text x="180" y="343" text-anchor="middle" fill="#a0aec0" font-size="11" class="mono">54.6V 3A Smart Charger / CC-CV</text>
+
+                <!-- DC-DC Converter -->
+                <rect x="60" y="390" width="240" height="60" rx="8" fill="rgba(246,173,85,0.06)" stroke="#f6ad55" stroke-width="1.5"/>
+                <text x="180" y="415" text-anchor="middle" fill="#f6ad55" font-size="13" font-weight="700">DC-DC Converter</text>
+                <text x="180" y="433" text-anchor="middle" fill="#a0aec0" font-size="11" class="mono">48V → 12V / 5V Aux Rails</text>
+
+                <!-- Main Fuse -->
+                <rect x="60" y="480" width="240" height="55" rx="8" fill="rgba(246,173,85,0.06)" stroke="#f6ad55" stroke-width="1.5"/>
+                <text x="180" y="505" text-anchor="middle" fill="#f6ad55" font-size="13" font-weight="700">Protection</text>
+                <text x="180" y="521" text-anchor="middle" fill="#a0aec0" font-size="11" class="mono">60A Main Fuse / Contactor / E-Stop</text>
+
+                <!-- Power flow arrows -->
+                <line x1="180" y1="170" x2="180" y2="200" stroke="#f6ad55" stroke-width="1.5" marker-end="url(#arrow1o)"/>
+                <line x1="180" y1="270" x2="180" y2="300" stroke="#f6ad55" stroke-width="1.5" marker-end="url(#arrow1o)" stroke-dasharray="4 3"/>
+                <line x1="180" y1="360" x2="180" y2="390" stroke="#f6ad55" stroke-width="1.5" marker-end="url(#arrow1o)"/>
+                <line x1="180" y1="450" x2="180" y2="480" stroke="#f6ad55" stroke-width="1.5" marker-end="url(#arrow1o)"/>
+
+                <!-- ===== CONTROL SUBSYSTEM (Center) ===== -->
+                <rect x="370" y="20" width="340" height="640" rx="12" fill="none" stroke="rgba(99,179,237,0.15)" stroke-width="1" stroke-dasharray="6 3"/>
+                <text x="385" y="48" fill="#63b3ed" font-size="11" font-weight="600" letter-spacing="1.5" class="mono">CONTROL SUBSYSTEM</text>
+
+                <!-- MCU -->
+                <rect x="400" y="80" width="280" height="100" rx="8" fill="rgba(99,179,237,0.08)" stroke="#63b3ed" stroke-width="1.5"/>
+                <rect x="400" y="80" width="280" height="100" rx="8" fill="none" stroke="#63b3ed" stroke-width="1.5" filter="url(#glow1)" opacity="0.3"/>
+                <text x="540" y="112" text-anchor="middle" fill="#63b3ed" font-size="15" font-weight="700">Main Controller (MCU)</text>
+                <text x="540" y="132" text-anchor="middle" fill="#a0aec0" font-size="11" class="mono">STM32F4 / ARM Cortex-M4</text>
+                <text x="540" y="152" text-anchor="middle" fill="#718096" font-size="10" class="mono">CAN Bus / PWM / ADC / UART / GPIO</text>
+
+                <!-- Motor Controller -->
+                <rect x="400" y="210" width="280" height="80" rx="8" fill="rgba(99,179,237,0.06)" stroke="#63b3ed" stroke-width="1.5"/>
+                <text x="540" y="240" text-anchor="middle" fill="#63b3ed" font-size="14" font-weight="700">Motor Controller (ESC)</text>
+                <text x="540" y="260" text-anchor="middle" fill="#a0aec0" font-size="11" class="mono">FOC / 48V 40A / Regen Braking</text>
+                <text x="540" y="276" text-anchor="middle" fill="#718096" font-size="10" class="mono">Sinusoidal Drive / Hall Sensor Input</text>
+
+                <!-- Sensor Hub -->
+                <rect x="400" y="320" width="280" height="80" rx="8" fill="rgba(99,179,237,0.06)" stroke="#63b3ed" stroke-width="1.5"/>
+                <text x="540" y="348" text-anchor="middle" fill="#63b3ed" font-size="14" font-weight="700">Sensor Fusion Hub</text>
+                <text x="540" y="368" text-anchor="middle" fill="#a0aec0" font-size="11" class="mono">Speed / Load Cell / Temp / Tilt</text>
+                <text x="540" y="384" text-anchor="middle" fill="#718096" font-size="10" class="mono">IMU (MPU6050) / Current Sense</text>
+
+                <!-- User Interface -->
+                <rect x="400" y="430" width="280" height="80" rx="8" fill="rgba(99,179,237,0.06)" stroke="#63b3ed" stroke-width="1.5"/>
+                <text x="540" y="458" text-anchor="middle" fill="#63b3ed" font-size="14" font-weight="700">User Interface</text>
+                <text x="540" y="478" text-anchor="middle" fill="#a0aec0" font-size="11" class="mono">Thumb Throttle / LCD Display</text>
+                <text x="540" y="494" text-anchor="middle" fill="#718096" font-size="10" class="mono">Fwd/Rev Switch / Speed Mode Select</text>
+
+                <!-- Safety Logic -->
+                <rect x="400" y="540" width="280" height="70" rx="8" fill="rgba(252,129,129,0.06)" stroke="#fc8181" stroke-width="1.5"/>
+                <text x="540" y="568" text-anchor="middle" fill="#fc8181" font-size="14" font-weight="700">Safety Logic Controller</text>
+                <text x="540" y="588" text-anchor="middle" fill="#a0aec0" font-size="11" class="mono">E-Stop / Overload / Thermal Cutoff</text>
+
+                <!-- Control flow arrows -->
+                <line x1="540" y1="180" x2="540" y2="210" stroke="#63b3ed" stroke-width="1.5" marker-end="url(#arrow1)"/>
+                <line x1="540" y1="290" x2="540" y2="320" stroke="#63b3ed" stroke-width="1.5" marker-end="url(#arrow1)"/>
+                <line x1="540" y1="400" x2="540" y2="430" stroke="#63b3ed" stroke-width="1.5" marker-end="url(#arrow1)"/>
+                <line x1="540" y1="510" x2="540" y2="540" stroke="#fc8181" stroke-width="1.5" marker-end="url(#arrow1)"/>
+
+                <!-- ===== DRIVE SUBSYSTEM (Right) ===== -->
+                <rect x="750" y="20" width="320" height="640" rx="12" fill="none" stroke="rgba(104,211,145,0.15)" stroke-width="1" stroke-dasharray="6 3"/>
+                <text x="765" y="48" fill="#68d391" font-size="11" font-weight="600" letter-spacing="1.5" class="mono">DRIVE &amp; MECHANICAL</text>
+
+                <!-- Motor -->
+                <rect x="780" y="80" width="260" height="90" rx="8" fill="rgba(104,211,145,0.06)" stroke="#68d391" stroke-width="1.5"/>
+                <text x="910" y="110" text-anchor="middle" fill="#68d391" font-size="14" font-weight="700">BLDC Hub Motor</text>
+                <text x="910" y="130" text-anchor="middle" fill="#a0aec0" font-size="11" class="mono">48V 500W Continuous / 800W Peak</text>
+                <text x="910" y="148" text-anchor="middle" fill="#718096" font-size="10" class="mono">Hall Effect Sensors / IP65</text>
+
+                <!-- Gearbox -->
+                <rect x="780" y="200" width="260" height="70" rx="8" fill="rgba(104,211,145,0.06)" stroke="#68d391" stroke-width="1.5"/>
+                <text x="910" y="228" text-anchor="middle" fill="#68d391" font-size="13" font-weight="700">Planetary Gearbox</text>
+                <text x="910" y="248" text-anchor="middle" fill="#a0aec0" font-size="11" class="mono">Ratio 5:1 / Torque 45Nm Output</text>
+
+                <!-- Drivetrain -->
+                <rect x="780" y="300" width="260" height="70" rx="8" fill="rgba(104,211,145,0.06)" stroke="#68d391" stroke-width="1.5"/>
+                <text x="910" y="325" text-anchor="middle" fill="#68d391" font-size="13" font-weight="700">Rear Axle Assembly</text>
+                <text x="910" y="345" text-anchor="middle" fill="#a0aec0" font-size="11" class="mono">Solid Axle / Chain Drive / Diff Lock</text>
+
+                <!-- Wheels -->
+                <rect x="780" y="400" width="260" height="70" rx="8" fill="rgba(104,211,145,0.06)" stroke="#68d391" stroke-width="1.5"/>
+                <text x="910" y="425" text-anchor="middle" fill="#68d391" font-size="13" font-weight="700">Wheels & Tires</text>
+                <text x="910" y="445" text-anchor="middle" fill="#a0aec0" font-size="11" class="mono">10" Pneumatic / All-Terrain Tread</text>
+
+                <!-- Brakes -->
+                <rect x="780" y="500" width="260" height="70" rx="8" fill="rgba(104,211,145,0.06)" stroke="#68d391" stroke-width="1.5"/>
+                <text x="910" y="525" text-anchor="middle" fill="#68d391" font-size="13" font-weight="700">Braking System</text>
+                <text x="910" y="545" text-anchor="middle" fill="#a0aec0" font-size="11" class="mono">Drum Brake + Regen (Rear Axle)</text>
+
+                <!-- Chassis -->
+                <rect x="780" y="600" width="260" height="50" rx="8" fill="rgba(104,211,145,0.06)" stroke="#68d391" stroke-width="1.5"/>
+                <text x="910" y="622" text-anchor="middle" fill="#68d391" font-size="13" font-weight="700">Steel Frame / Mesh Cargo Bed</text>
+                <text x="910" y="638" text-anchor="middle" fill="#a0aec0" font-size="10" class="mono">Powder Coated / 400kg Capacity</text>
+
+                <!-- Drive flow arrows -->
+                <line x1="910" y1="170" x2="910" y2="200" stroke="#68d391" stroke-width="1.5" marker-end="url(#arrow1g)"/>
+                <line x1="910" y1="270" x2="910" y2="300" stroke="#68d391" stroke-width="1.5" marker-end="url(#arrow1g)"/>
+                <line x1="910" y1="370" x2="910" y2="400" stroke="#68d391" stroke-width="1.5" marker-end="url(#arrow1g)"/>
+                <line x1="910" y1="470" x2="910" y2="500" stroke="#68d391" stroke-width="1.5" marker-end="url(#arrow1g)"/>
+                <line x1="910" y1="570" x2="910" y2="600" stroke="#68d391" stroke-width="1.5" marker-end="url(#arrow1g)"/>
+
+                <!-- ===== CROSS-SUBSYSTEM CONNECTIONS ===== -->
+                <!-- Power → Motor Controller (48V Bus) -->
+                <path d="M 300 125 Q 350 125 350 250 Q 350 250 400 250" fill="none" stroke="#f6ad55" stroke-width="2" marker-end="url(#arrow1o)" stroke-dasharray="6 3"/>
+                <text x="340" y="190" fill="#f6ad55" font-size="9" class="mono" transform="rotate(-90 340 190)">48V BUS</text>
+
+                <!-- Motor Controller → Motor (Phase Wires) -->
+                <path d="M 680 250 Q 730 250 730 125 Q 730 125 780 125" fill="none" stroke="#68d391" stroke-width="2" marker-end="url(#arrow1g)"/>
+                <text x="730" y="186" fill="#68d391" font-size="9" class="mono" transform="rotate(-90 730 186)">3-PHASE</text>
+
+                <!-- BMS → MCU (CAN Bus) -->
+                <path d="M 300 235 Q 350 235 350 130 Q 350 130 400 130" fill="none" stroke="#b794f4" stroke-width="1.5" marker-end="url(#arrow1p)" stroke-dasharray="4 2"/>
+                <text x="350" y="155" fill="#b794f4" font-size="9" class="mono">CAN</text>
+
+                <!-- DC-DC → UI -->
+                <path d="M 300 420 Q 350 420 350 470 Q 350 470 400 470" fill="none" stroke="#f6ad55" stroke-width="1.5" marker-end="url(#arrow1o)" stroke-dasharray="4 2"/>
+                <text x="345" y="450" fill="#f6ad55" font-size="9" class="mono">12V</text>
+
+                <!-- Sensor Hub → Motor (Hall) -->
+                <path d="M 680 360 Q 730 360 730 155 Q 730 155 780 155" fill="none" stroke="#b794f4" stroke-width="1.5" marker-end="url(#arrow1p)" stroke-dasharray="4 2"/>
+                <text x="735" y="260" fill="#b794f4" font-size="9" class="mono" transform="rotate(-90 735 260)">HALL</text>
+
+                <!-- Safety → Brakes -->
+                <path d="M 680 575 Q 730 575 730 535 Q 730 535 780 535" fill="none" stroke="#fc8181" stroke-width="1.5" marker-end="url(#arrow1)"/>
+                <text x="720" y="548" fill="#fc8181" font-size="9" class="mono">BRAKE</text>
+            </svg>
+        </div>
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#f6ad55;"></div>Power / High Voltage</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#63b3ed;"></div>Control / Signal</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#68d391;"></div>Mechanical / Drive</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#b794f4;"></div>Communication Bus</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#fc8181;"></div>Safety Critical</div>
+        </div>
+    </div>
+
+    <!-- ==================== DIAGRAM 2: Power Distribution ==================== -->
+    <div class="diagram-section">
+        <p class="diagram-title">Figure 2</p>
+        <p class="diagram-name">Power Distribution Architecture</p>
+        <div class="diagram-container">
+            <svg viewBox="0 0 1100 520" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <marker id="a2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                        <polygon points="0 0, 8 3, 0 6" fill="#f6ad55"/>
+                    </marker>
+                    <marker id="a2r" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                        <polygon points="0 0, 8 3, 0 6" fill="#fc8181"/>
+                    </marker>
+                    <marker id="a2g" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                        <polygon points="0 0, 8 3, 0 6" fill="#68d391"/>
+                    </marker>
+                </defs>
+                <pattern id="grid2" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(99,179,237,0.03)" stroke-width="0.5"/>
+                </pattern>
+                <rect width="1100" height="520" fill="url(#grid2)"/>
+
+                <!-- Charger Input -->
+                <rect x="30" y="190" width="140" height="80" rx="8" fill="rgba(104,211,145,0.06)" stroke="#68d391" stroke-width="1.5"/>
+                <text x="100" y="220" text-anchor="middle" fill="#68d391" font-size="12" font-weight="700">AC Charger</text>
+                <text x="100" y="240" text-anchor="middle" fill="#718096" font-size="10" class="mono">110V AC → 54.6V DC</text>
+                <text x="100" y="255" text-anchor="middle" fill="#718096" font-size="10" class="mono">3A / CC-CV Mode</text>
+                <line x1="170" y1="230" x2="210" y2="230" stroke="#68d391" stroke-width="2" marker-end="url(#a2g)"/>
+
+                <!-- Battery -->
+                <rect x="210" y="150" width="180" height="160" rx="10" fill="rgba(246,173,85,0.08)" stroke="#f6ad55" stroke-width="2"/>
+                <text x="300" y="185" text-anchor="middle" fill="#f6ad55" font-size="15" font-weight="700">Battery Pack</text>
+                <text x="300" y="205" text-anchor="middle" fill="#a0aec0" font-size="11" class="mono">48V Nominal</text>
+                <text x="300" y="222" text-anchor="middle" fill="#718096" font-size="10" class="mono">13S8P  |  20Ah</text>
+                <text x="300" y="238" text-anchor="middle" fill="#718096" font-size="10" class="mono">960Wh Total</text>
+                <!-- Battery visual -->
+                <rect x="245" y="258" width="110" height="30" rx="4" fill="none" stroke="#f6ad55" stroke-width="1"/>
+                <rect x="355" y="266" width="6" height="14" rx="2" fill="#f6ad55" opacity="0.5"/>
+                <rect x="248" y="261" width="82" height="24" rx="3" fill="#f6ad55" opacity="0.2"/>
+                <text x="300" y="278" text-anchor="middle" fill="#f6ad55" font-size="10" font-weight="600" class="mono">85%</text>
+
+                <!-- Main Contactor -->
+                <rect x="435" y="195" width="100" height="70" rx="8" fill="rgba(252,129,129,0.06)" stroke="#fc8181" stroke-width="1.5"/>
+                <text x="485" y="220" text-anchor="middle" fill="#fc8181" font-size="11" font-weight="700">MAIN</text>
+                <text x="485" y="238" text-anchor="middle" fill="#fc8181" font-size="11" font-weight="700">CONTACTOR</text>
+                <text x="485" y="254" text-anchor="middle" fill="#718096" font-size="9" class="mono">60A Rated</text>
+                <line x1="390" y1="230" x2="435" y2="230" stroke="#f6ad55" stroke-width="2.5" marker-end="url(#a2)"/>
+
+                <!-- Main Bus Bar -->
+                <line x1="535" y1="230" x2="600" y2="230" stroke="#f6ad55" stroke-width="3"/>
+                <rect x="600" y="218" width="160" height="24" rx="4" fill="rgba(246,173,85,0.1)" stroke="#f6ad55" stroke-width="1.5"/>
+                <text x="680" y="235" text-anchor="middle" fill="#f6ad55" font-size="11" font-weight="700" class="mono">48V MAIN BUS</text>
+
+                <!-- Branches from bus -->
+                <!-- Branch 1: Motor Controller (top) -->
+                <line x1="680" y1="218" x2="680" y2="70" stroke="#f6ad55" stroke-width="2"/>
+                <line x1="680" y1="70" x2="780" y2="70" stroke="#f6ad55" stroke-width="2" marker-end="url(#a2)"/>
+                <rect x="625" y="90" width="50" height="24" rx="4" fill="rgba(252,129,129,0.08)" stroke="#fc8181" stroke-width="1"/>
+                <text x="650" y="106" text-anchor="middle" fill="#fc8181" font-size="9" font-weight="600" class="mono">40A</text>
+                <rect x="790" y="40" width="250" height="65" rx="8" fill="rgba(99,179,237,0.06)" stroke="#63b3ed" stroke-width="1.5"/>
+                <text x="915" y="65" text-anchor="middle" fill="#63b3ed" font-size="13" font-weight="700">Motor Controller (ESC)</text>
+                <text x="915" y="85" text-anchor="middle" fill="#a0aec0" font-size="10" class="mono">48V → 3-Phase AC / FOC / Regen</text>
+
+                <!-- Branch 2: DC-DC 12V -->
+                <line x1="720" y1="242" x2="720" y2="340" stroke="#f6ad55" stroke-width="2"/>
+                <line x1="720" y1="340" x2="790" y2="340" stroke="#f6ad55" stroke-width="2" marker-end="url(#a2)"/>
+                <rect x="665" y="265" width="50" height="24" rx="4" fill="rgba(252,129,129,0.08)" stroke="#fc8181" stroke-width="1"/>
+                <text x="690" y="281" text-anchor="middle" fill="#fc8181" font-size="9" font-weight="600" class="mono">10A</text>
+                <rect x="790" y="310" width="250" height="60" rx="8" fill="rgba(183,148,244,0.06)" stroke="#b794f4" stroke-width="1.5"/>
+                <text x="915" y="335" text-anchor="middle" fill="#b794f4" font-size="13" font-weight="700">DC-DC Converter</text>
+                <text x="915" y="355" text-anchor="middle" fill="#a0aec0" font-size="10" class="mono">48V → 12V (5A) / 5V (3A)</text>
+
+                <!-- 12V Sub-branches -->
+                <line x1="1040" y1="335" x2="1070" y2="335" stroke="#b794f4" stroke-width="1.5"/>
+                <line x1="1070" y1="290" x2="1070" y2="490" stroke="#b794f4" stroke-width="1.5"/>
+
+                <!-- 12V loads -->
+                <line x1="1070" y1="290" x2="1070" y2="290" stroke="#b794f4" stroke-width="1.5"/>
+                <circle cx="1070" cy="290" r="3" fill="#b794f4"/>
+                <text x="1080" y="294" fill="#a0aec0" font-size="10">LED Headlight (12V)</text>
+
+                <circle cx="1070" cy="330" r="3" fill="#b794f4"/>
+                <text x="1080" y="334" fill="#a0aec0" font-size="10">Horn (12V)</text>
+
+                <circle cx="1070" cy="370" r="3" fill="#b794f4"/>
+                <text x="1080" y="374" fill="#a0aec0" font-size="10">LCD Display (5V)</text>
+
+                <circle cx="1070" cy="410" r="3" fill="#b794f4"/>
+                <text x="1080" y="414" fill="#a0aec0" font-size="10">MCU + Sensors (5V)</text>
+
+                <circle cx="1070" cy="450" r="3" fill="#b794f4"/>
+                <text x="1080" y="454" fill="#a0aec0" font-size="10">Tail Light (12V)</text>
+
+                <circle cx="1070" cy="490" r="3" fill="#b794f4"/>
+                <text x="1080" y="494" fill="#a0aec0" font-size="10">USB Port (5V 2.1A)</text>
+
+                <!-- Branch 3: Regen back to battery -->
+                <path d="M 790 90 Q 770 90 770 170 Q 770 170 630 170 Q 450 170 450 195" fill="none" stroke="#68d391" stroke-width="1.5" stroke-dasharray="6 3" marker-end="url(#a2g)"/>
+                <text x="620" y="163" fill="#68d391" font-size="10" font-weight="600" class="mono">REGEN</text>
+
+                <!-- E-Stop -->
+                <rect x="435" y="310" width="100" height="50" rx="8" fill="rgba(252,129,129,0.1)" stroke="#fc8181" stroke-width="2"/>
+                <text x="485" y="333" text-anchor="middle" fill="#fc8181" font-size="12" font-weight="700">E-STOP</text>
+                <text x="485" y="350" text-anchor="middle" fill="#718096" font-size="9" class="mono">Kill Switch</text>
+                <line x1="485" y1="265" x2="485" y2="310" stroke="#fc8181" stroke-width="1.5" stroke-dasharray="4 2" marker-end="url(#a2r)"/>
+
+                <!-- Ground Bus -->
+                <rect x="210" y="460" width="550" height="24" rx="4" fill="rgba(113,128,150,0.08)" stroke="#4a5568" stroke-width="1"/>
+                <text x="485" y="477" text-anchor="middle" fill="#4a5568" font-size="11" font-weight="600" class="mono">CHASSIS GROUND BUS (GND)</text>
+                <!-- Ground symbols -->
+                <line x1="300" y1="310" x2="300" y2="460" stroke="#4a5568" stroke-width="1" stroke-dasharray="3 3"/>
+                <line x1="485" y1="360" x2="485" y2="460" stroke="#4a5568" stroke-width="1" stroke-dasharray="3 3"/>
+                <line x1="680" y1="242" x2="680" y2="460" stroke="#4a5568" stroke-width="0.5" stroke-dasharray="3 3" opacity="0.3"/>
+            </svg>
+        </div>
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#f6ad55;"></div>48V High Power Bus</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#b794f4;"></div>12V / 5V Auxiliary</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#68d391;"></div>Regenerative Path</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#fc8181;"></div>Protection / Fusing</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#4a5568;"></div>Ground</div>
+        </div>
+    </div>
+
+    <!-- ==================== DIAGRAM 3: Control & Signal Flow ==================== -->
+    <div class="diagram-section">
+        <p class="diagram-title">Figure 3</p>
+        <p class="diagram-name">Control & Signal Flow Architecture</p>
+        <div class="diagram-container">
+            <svg viewBox="0 0 1100 550" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <marker id="a3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                        <polygon points="0 0, 8 3, 0 6" fill="#63b3ed"/>
+                    </marker>
+                    <marker id="a3p" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                        <polygon points="0 0, 8 3, 0 6" fill="#b794f4"/>
+                    </marker>
+                    <marker id="a3o" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                        <polygon points="0 0, 8 3, 0 6" fill="#f6ad55"/>
+                    </marker>
+                    <marker id="a3r" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                        <polygon points="0 0, 8 3, 0 6" fill="#fc8181"/>
+                    </marker>
+                </defs>
+                <pattern id="grid3" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(99,179,237,0.03)" stroke-width="0.5"/>
+                </pattern>
+                <rect width="1100" height="550" fill="url(#grid3)"/>
+
+                <!-- ===== MCU (Center Hub) ===== -->
+                <rect x="420" y="200" width="260" height="130" rx="12" fill="rgba(99,179,237,0.1)" stroke="#63b3ed" stroke-width="2"/>
+                <text x="550" y="240" text-anchor="middle" fill="#63b3ed" font-size="16" font-weight="800">MCU</text>
+                <text x="550" y="260" text-anchor="middle" fill="#a0aec0" font-size="11" class="mono">STM32F4 @ 168MHz</text>
+                <!-- Pin labels -->
+                <text x="430" y="245" fill="#718096" font-size="8" class="mono">ADC0</text>
+                <text x="430" y="275" fill="#718096" font-size="8" class="mono">ADC1</text>
+                <text x="430" y="305" fill="#718096" font-size="8" class="mono">GPIO</text>
+                <text x="650" y="245" fill="#718096" font-size="8" class="mono" text-anchor="end">PWM</text>
+                <text x="650" y="275" fill="#718096" font-size="8" class="mono" text-anchor="end">CAN</text>
+                <text x="650" y="305" fill="#718096" font-size="8" class="mono" text-anchor="end">UART</text>
+                <text x="510" y="318" fill="#718096" font-size="8" class="mono">I2C</text>
+                <text x="590" y="318" fill="#718096" font-size="8" class="mono">SPI</text>
+
+                <!-- ===== INPUT DEVICES (Left) ===== -->
+                <text x="50" y="50" fill="#63b3ed" font-size="11" font-weight="600" letter-spacing="1.5" class="mono">USER INPUTS</text>
+
+                <!-- Throttle -->
+                <rect x="40" y="80" width="180" height="55" rx="8" fill="rgba(99,179,237,0.06)" stroke="#63b3ed" stroke-width="1.2"/>
+                <text x="130" y="103" text-anchor="middle" fill="#63b3ed" font-size="12" font-weight="600">Thumb Throttle</text>
+                <text x="130" y="122" text-anchor="middle" fill="#718096" font-size="10" class="mono">0-5V Analog / Hall Effect</text>
+                <line x1="220" y1="108" x2="420" y2="240" stroke="#63b3ed" stroke-width="1.5" marker-end="url(#a3)"/>
+                <text x="300" y="165" fill="#63b3ed" font-size="9" class="mono">ADC CH0</text>
+
+                <!-- Brake Lever -->
+                <rect x="40" y="160" width="180" height="55" rx="8" fill="rgba(252,129,129,0.06)" stroke="#fc8181" stroke-width="1.2"/>
+                <text x="130" y="183" text-anchor="middle" fill="#fc8181" font-size="12" font-weight="600">Brake Lever</text>
+                <text x="130" y="202" text-anchor="middle" fill="#718096" font-size="10" class="mono">NC Switch / 0-5V Analog</text>
+                <line x1="220" y1="188" x2="420" y2="270" stroke="#fc8181" stroke-width="1.5" marker-end="url(#a3r)"/>
+                <text x="300" y="230" fill="#fc8181" font-size="9" class="mono">ADC CH1</text>
+
+                <!-- Fwd/Rev Switch -->
+                <rect x="40" y="240" width="180" height="55" rx="8" fill="rgba(99,179,237,0.06)" stroke="#63b3ed" stroke-width="1.2"/>
+                <text x="130" y="263" text-anchor="middle" fill="#63b3ed" font-size="12" font-weight="600">Fwd / Rev Switch</text>
+                <text x="130" y="282" text-anchor="middle" fill="#718096" font-size="10" class="mono">SPDT Toggle / 3.3V Logic</text>
+                <line x1="220" y1="268" x2="420" y2="300" stroke="#63b3ed" stroke-width="1.5" marker-end="url(#a3)"/>
+                <text x="300" y="290" fill="#63b3ed" font-size="9" class="mono">GPIO IN</text>
+
+                <!-- Speed Mode -->
+                <rect x="40" y="320" width="180" height="55" rx="8" fill="rgba(99,179,237,0.06)" stroke="#63b3ed" stroke-width="1.2"/>
+                <text x="130" y="343" text-anchor="middle" fill="#63b3ed" font-size="12" font-weight="600">Speed Mode (1/2/3)</text>
+                <text x="130" y="362" text-anchor="middle" fill="#718096" font-size="10" class="mono">Momentary Button / GPIO</text>
+                <line x1="220" y1="348" x2="370" y2="348" stroke="#63b3ed" stroke-width="1" stroke-dasharray="4 2"/>
+                <line x1="370" y1="348" x2="370" y2="300" stroke="#63b3ed" stroke-width="1" stroke-dasharray="4 2"/>
+                <line x1="370" y1="300" x2="420" y2="300" stroke="#63b3ed" stroke-width="1" stroke-dasharray="4 2"/>
+
+                <!-- E-Stop -->
+                <rect x="40" y="420" width="180" height="55" rx="8" fill="rgba(252,129,129,0.1)" stroke="#fc8181" stroke-width="2"/>
+                <text x="130" y="443" text-anchor="middle" fill="#fc8181" font-size="12" font-weight="700">EMERGENCY STOP</text>
+                <text x="130" y="462" text-anchor="middle" fill="#718096" font-size="10" class="mono">NC / Hardware Interrupt</text>
+                <line x1="220" y1="448" x2="420" y2="310" stroke="#fc8181" stroke-width="2" marker-end="url(#a3r)"/>
+                <text x="340" y="395" fill="#fc8181" font-size="9" class="mono">IRQ (NMI)</text>
+
+                <!-- ===== OUTPUT DEVICES (Right) ===== -->
+                <text x="780" y="50" fill="#68d391" font-size="11" font-weight="600" letter-spacing="1.5" class="mono">OUTPUTS &amp; ACTUATORS</text>
+
+                <!-- Motor Controller -->
+                <rect x="780" y="80" width="260" height="55" rx="8" fill="rgba(104,211,145,0.06)" stroke="#68d391" stroke-width="1.5"/>
+                <text x="910" y="103" text-anchor="middle" fill="#68d391" font-size="12" font-weight="600">Motor Controller (ESC)</text>
+                <text x="910" y="122" text-anchor="middle" fill="#718096" font-size="10" class="mono">PWM Duty → Torque Command</text>
+                <line x1="680" y1="240" x2="780" y2="108" stroke="#f6ad55" stroke-width="1.5" marker-end="url(#a3o)"/>
+                <text x="740" y="160" fill="#f6ad55" font-size="9" class="mono">PWM 20kHz</text>
+
+                <!-- LCD Display -->
+                <rect x="780" y="160" width="260" height="55" rx="8" fill="rgba(183,148,244,0.06)" stroke="#b794f4" stroke-width="1.2"/>
+                <text x="910" y="183" text-anchor="middle" fill="#b794f4" font-size="12" font-weight="600">LCD Display Module</text>
+                <text x="910" y="202" text-anchor="middle" fill="#718096" font-size="10" class="mono">Speed / Battery / Mode / ODO</text>
+                <line x1="680" y1="270" x2="780" y2="188" stroke="#b794f4" stroke-width="1.5" marker-end="url(#a3p)"/>
+                <text x="740" y="230" fill="#b794f4" font-size="9" class="mono">UART TX</text>
+
+                <!-- LED Headlight -->
+                <rect x="780" y="240" width="260" height="45" rx="8" fill="rgba(99,179,237,0.06)" stroke="#63b3ed" stroke-width="1.2"/>
+                <text x="910" y="267" text-anchor="middle" fill="#63b3ed" font-size="12" font-weight="600">LED Headlight / Tail</text>
+                <line x1="680" y1="300" x2="780" y2="262" stroke="#63b3ed" stroke-width="1.2" marker-end="url(#a3)"/>
+                <text x="740" y="290" fill="#63b3ed" font-size="9" class="mono">GPIO OUT</text>
+
+                <!-- Horn -->
+                <rect x="780" y="310" width="260" height="45" rx="8" fill="rgba(99,179,237,0.06)" stroke="#63b3ed" stroke-width="1.2"/>
+                <text x="910" y="337" text-anchor="middle" fill="#63b3ed" font-size="12" font-weight="600">Horn / Buzzer</text>
+                <line x1="680" y1="305" x2="780" y2="330" stroke="#63b3ed" stroke-width="1.2" marker-end="url(#a3)"/>
+
+                <!-- ===== SENSOR FEEDBACK (Bottom) ===== -->
+                <text x="420" y="410" fill="#f6ad55" font-size="11" font-weight="600" letter-spacing="1.5" class="mono">SENSOR FEEDBACK</text>
+
+                <rect x="420" y="425" width="120" height="45" rx="8" fill="rgba(246,173,85,0.06)" stroke="#f6ad55" stroke-width="1.2"/>
+                <text x="480" y="445" text-anchor="middle" fill="#f6ad55" font-size="10" font-weight="600">Current</text>
+                <text x="480" y="460" text-anchor="middle" fill="#718096" font-size="9" class="mono">ACS712 50A</text>
+                <line x1="480" y1="425" x2="480" y2="330" stroke="#f6ad55" stroke-width="1.2" marker-end="url(#a3o)"/>
+
+                <rect x="555" y="425" width="120" height="45" rx="8" fill="rgba(246,173,85,0.06)" stroke="#f6ad55" stroke-width="1.2"/>
+                <text x="615" y="445" text-anchor="middle" fill="#f6ad55" font-size="10" font-weight="600">Temperature</text>
+                <text x="615" y="460" text-anchor="middle" fill="#718096" font-size="9" class="mono">NTC 10K x3</text>
+                <line x1="615" y1="425" x2="615" y2="330" stroke="#f6ad55" stroke-width="1.2" marker-end="url(#a3o)"/>
+
+                <rect x="690" y="425" width="120" height="45" rx="8" fill="rgba(246,173,85,0.06)" stroke="#f6ad55" stroke-width="1.2"/>
+                <text x="750" y="445" text-anchor="middle" fill="#f6ad55" font-size="10" font-weight="600">IMU / Tilt</text>
+                <text x="750" y="460" text-anchor="middle" fill="#718096" font-size="9" class="mono">MPU6050 I2C</text>
+                <line x1="750" y1="425" x2="650" y2="330" stroke="#f6ad55" stroke-width="1.2" marker-end="url(#a3o)"/>
+
+                <rect x="825" y="425" width="120" height="45" rx="8" fill="rgba(246,173,85,0.06)" stroke="#f6ad55" stroke-width="1.2"/>
+                <text x="885" y="445" text-anchor="middle" fill="#f6ad55" font-size="10" font-weight="600">Speed</text>
+                <text x="885" y="460" text-anchor="middle" fill="#718096" font-size="9" class="mono">Hall Pulse Count</text>
+                <line x1="885" y1="425" x2="660" y2="330" stroke="#f6ad55" stroke-width="1.2" marker-end="url(#a3o)" stroke-dasharray="4 2"/>
+
+                <!-- CAN Bus to BMS -->
+                <rect x="780" y="390" width="260" height="45" rx="8" fill="rgba(183,148,244,0.06)" stroke="#b794f4" stroke-width="1.2"/>
+                <text x="910" y="410" text-anchor="middle" fill="#b794f4" font-size="12" font-weight="600">BMS (via CAN Bus)</text>
+                <text x="910" y="425" text-anchor="middle" fill="#718096" font-size="10" class="mono">SOC / Voltage / Temp / Alerts</text>
+                <line x1="680" y1="300" x2="780" y2="400" stroke="#b794f4" stroke-width="1.5" marker-end="url(#a3p)" stroke-dasharray="6 3"/>
+                <text x="720" y="365" fill="#b794f4" font-size="9" class="mono">CAN 500kbps</text>
+
+                <!-- Data flow direction labels -->
+                <rect x="40" y="490" width="1020" height="40" rx="8" fill="rgba(99,179,237,0.03)" stroke="rgba(99,179,237,0.08)" stroke-width="1"/>
+                <text x="550" y="515" text-anchor="middle" fill="#4a5568" font-size="11" class="mono">CONTROL LOOP: Throttle Input → MCU Processing → PWM Output → Motor Torque → Speed Feedback → Closed Loop</text>
+            </svg>
+        </div>
+    </div>
+
+    <!-- ==================== DIAGRAM 4: Mechanical Layout ==================== -->
+    <div class="diagram-section">
+        <p class="diagram-title">Figure 4</p>
+        <p class="diagram-name">Mechanical & Component Layout (Top View)</p>
+        <div class="diagram-container">
+            <svg viewBox="0 0 1100 600" xmlns="http://www.w3.org/2000/svg">
+                <pattern id="grid4" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(99,179,237,0.03)" stroke-width="0.5"/>
+                </pattern>
+                <rect width="1100" height="600" fill="url(#grid4)"/>
+
+                <!-- Cart outline (top view) -->
+                <rect x="200" y="80" width="700" height="440" rx="16" fill="none" stroke="#4a5568" stroke-width="2"/>
+
+                <!-- Mesh pattern for cargo bed -->
+                <pattern id="mesh" width="16" height="16" patternUnits="userSpaceOnUse">
+                    <path d="M 0 0 L 16 16 M 16 0 L 0 16" fill="none" stroke="rgba(74,85,104,0.12)" stroke-width="0.5"/>
+                </pattern>
+                <rect x="205" y="85" width="690" height="430" rx="14" fill="url(#mesh)"/>
+
+                <!-- Wheels -->
+                <!-- Front left -->
+                <rect x="155" y="120" width="55" height="100" rx="14" fill="rgba(74,85,104,0.2)" stroke="#4a5568" stroke-width="1.5"/>
+                <text x="182" y="175" text-anchor="middle" fill="#718096" font-size="9" font-weight="600" class="mono">10"</text>
+                <!-- Front right -->
+                <rect x="155" y="380" width="55" height="100" rx="14" fill="rgba(74,85,104,0.2)" stroke="#4a5568" stroke-width="1.5"/>
+                <text x="182" y="435" text-anchor="middle" fill="#718096" font-size="9" font-weight="600" class="mono">10"</text>
+                <!-- Rear left -->
+                <rect x="890" y="120" width="55" height="100" rx="14" fill="rgba(74,85,104,0.2)" stroke="#4a5568" stroke-width="1.5"/>
+                <text x="917" y="175" text-anchor="middle" fill="#718096" font-size="9" font-weight="600" class="mono">10"</text>
+                <!-- Rear right -->
+                <rect x="890" y="380" width="55" height="100" rx="14" fill="rgba(74,85,104,0.2)" stroke="#4a5568" stroke-width="1.5"/>
+                <text x="917" y="435" text-anchor="middle" fill="#718096" font-size="9" font-weight="600" class="mono">10"</text>
+
+                <!-- Front Axle -->
+                <line x1="210" y1="170" x2="210" y2="430" stroke="#4a5568" stroke-width="2"/>
+                <text x="215" y="305" fill="#4a5568" font-size="9" class="mono" transform="rotate(-90, 215, 305)">FRONT AXLE (Steering)</text>
+
+                <!-- Rear Axle (Drive) -->
+                <line x1="890" y1="170" x2="890" y2="430" stroke="#68d391" stroke-width="2.5"/>
+                <text x="880" y="305" fill="#68d391" font-size="9" class="mono" transform="rotate(-90, 880, 305)">REAR AXLE (Drive)</text>
+
+                <!-- Handle (front) -->
+                <path d="M 170 300 Q 100 300 100 260 Q 100 220 120 180" fill="none" stroke="#4a5568" stroke-width="3" stroke-linecap="round"/>
+                <circle cx="120" cy="175" r="10" fill="rgba(74,85,104,0.3)" stroke="#4a5568" stroke-width="1.5"/>
+                <text x="70" y="260" fill="#718096" font-size="10" font-weight="600">Handle</text>
+                <text x="55" y="275" fill="#718096" font-size="9" class="mono">Throttle + Brake</text>
+
+                <!-- Battery Pack -->
+                <rect x="500" y="150" width="260" height="140" rx="10" fill="rgba(246,173,85,0.08)" stroke="#f6ad55" stroke-width="2"/>
+                <text x="630" y="200" text-anchor="middle" fill="#f6ad55" font-size="14" font-weight="700">BATTERY PACK</text>
+                <text x="630" y="220" text-anchor="middle" fill="#a0aec0" font-size="11" class="mono">48V 20Ah Li-Ion</text>
+                <text x="630" y="240" text-anchor="middle" fill="#718096" font-size="10" class="mono">13S8P / 960Wh</text>
+                <text x="630" y="260" text-anchor="middle" fill="#718096" font-size="9" class="mono">Weight: 6.2 kg</text>
+                <!-- Battery cells pattern -->
+                <rect x="510" y="270" width="240" height="12" rx="2" fill="none" stroke="#f6ad55" stroke-width="0.5" opacity="0.5"/>
+                <g opacity="0.3">
+                    <rect x="512" y="272" width="16" height="8" rx="1" fill="#f6ad55"/>
+                    <rect x="530" y="272" width="16" height="8" rx="1" fill="#f6ad55"/>
+                    <rect x="548" y="272" width="16" height="8" rx="1" fill="#f6ad55"/>
+                    <rect x="566" y="272" width="16" height="8" rx="1" fill="#f6ad55"/>
+                    <rect x="584" y="272" width="16" height="8" rx="1" fill="#f6ad55"/>
+                    <rect x="602" y="272" width="16" height="8" rx="1" fill="#f6ad55"/>
+                    <rect x="620" y="272" width="16" height="8" rx="1" fill="#f6ad55"/>
+                    <rect x="638" y="272" width="16" height="8" rx="1" fill="#f6ad55"/>
+                    <rect x="656" y="272" width="16" height="8" rx="1" fill="#f6ad55"/>
+                    <rect x="674" y="272" width="16" height="8" rx="1" fill="#f6ad55"/>
+                    <rect x="692" y="272" width="16" height="8" rx="1" fill="#f6ad55"/>
+                    <rect x="710" y="272" width="16" height="8" rx="1" fill="#f6ad55"/>
+                    <rect x="728" y="272" width="16" height="8" rx="1" fill="#f6ad55"/>
+                </g>
+
+                <!-- Motor Controller -->
+                <rect x="500" y="320" width="180" height="80" rx="8" fill="rgba(99,179,237,0.06)" stroke="#63b3ed" stroke-width="1.5"/>
+                <text x="590" y="350" text-anchor="middle" fill="#63b3ed" font-size="12" font-weight="700">MOTOR CTRL</text>
+                <text x="590" y="370" text-anchor="middle" fill="#a0aec0" font-size="10" class="mono">ESC + MCU Board</text>
+                <text x="590" y="386" text-anchor="middle" fill="#718096" font-size="9" class="mono">Heatsink Mounted</text>
+
+                <!-- BMS -->
+                <rect x="700" y="320" width="120" height="80" rx="8" fill="rgba(252,129,129,0.06)" stroke="#fc8181" stroke-width="1.5"/>
+                <text x="760" y="350" text-anchor="middle" fill="#fc8181" font-size="12" font-weight="700">BMS</text>
+                <text x="760" y="370" text-anchor="middle" fill="#a0aec0" font-size="10" class="mono">13S 30A</text>
+                <text x="760" y="386" text-anchor="middle" fill="#718096" font-size="9" class="mono">CAN Enabled</text>
+
+                <!-- Motor (rear) -->
+                <circle cx="890" cy="300" r="45" fill="rgba(104,211,145,0.08)" stroke="#68d391" stroke-width="2"/>
+                <circle cx="890" cy="300" r="20" fill="rgba(104,211,145,0.15)" stroke="#68d391" stroke-width="1"/>
+                <text x="890" y="304" text-anchor="middle" fill="#68d391" font-size="11" font-weight="700">M</text>
+                <text x="890" y="365" text-anchor="middle" fill="#68d391" font-size="10" font-weight="600">BLDC 500W</text>
+                <text x="890" y="380" text-anchor="middle" fill="#718096" font-size="9" class="mono">+ Gearbox 5:1</text>
+
+                <!-- Chain/Belt drive -->
+                <line x1="840" y1="300" x2="760" y2="370" stroke="#68d391" stroke-width="1.5" stroke-dasharray="5 3"/>
+                <text x="790" y="345" fill="#68d391" font-size="9" class="mono">Chain</text>
+
+                <!-- DC-DC + Accessories -->
+                <rect x="280" y="320" width="170" height="80" rx="8" fill="rgba(183,148,244,0.06)" stroke="#b794f4" stroke-width="1.2"/>
+                <text x="365" y="350" text-anchor="middle" fill="#b794f4" font-size="11" font-weight="700">DC-DC / AUX</text>
+                <text x="365" y="370" text-anchor="middle" fill="#a0aec0" font-size="10" class="mono">12V + 5V Rails</text>
+                <text x="365" y="386" text-anchor="middle" fill="#718096" font-size="9" class="mono">USB / Lights</text>
+
+                <!-- Charger Port -->
+                <rect x="820" y="430" width="80" height="60" rx="8" fill="rgba(104,211,145,0.06)" stroke="#68d391" stroke-width="1.2"/>
+                <text x="860" y="458" text-anchor="middle" fill="#68d391" font-size="10" font-weight="600">Charge</text>
+                <text x="860" y="474" text-anchor="middle" fill="#718096" font-size="9" class="mono">Port</text>
+
+                <!-- LED Headlight (front) -->
+                <rect x="220" y="100" width="60" height="30" rx="6" fill="rgba(246,173,85,0.1)" stroke="#f6ad55" stroke-width="1"/>
+                <text x="250" y="120" text-anchor="middle" fill="#f6ad55" font-size="8" font-weight="600">LED</text>
+
+                <!-- Tail Light (rear) -->
+                <rect x="820" y="100" width="60" height="30" rx="6" fill="rgba(252,129,129,0.1)" stroke="#fc8181" stroke-width="1"/>
+                <text x="850" y="120" text-anchor="middle" fill="#fc8181" font-size="8" font-weight="600">TAIL</text>
+
+                <!-- Wiring paths -->
+                <path d="M 630 290 L 630 320" fill="none" stroke="#f6ad55" stroke-width="1.5" stroke-dasharray="4 2"/>
+                <path d="M 680 360 L 700 360" fill="none" stroke="#b794f4" stroke-width="1" stroke-dasharray="3 2"/>
+
+                <!-- Dimension lines -->
+                <line x1="200" y1="555" x2="900" y2="555" stroke="#4a5568" stroke-width="1"/>
+                <line x1="200" y1="545" x2="200" y2="565" stroke="#4a5568" stroke-width="1"/>
+                <line x1="900" y1="545" x2="900" y2="565" stroke="#4a5568" stroke-width="1"/>
+                <text x="550" y="570" text-anchor="middle" fill="#4a5568" font-size="11" class="mono">1200mm (Overall Length)</text>
+
+                <line x1="960" y1="120" x2="960" y2="480" stroke="#4a5568" stroke-width="1"/>
+                <line x1="950" y1="120" x2="970" y2="120" stroke="#4a5568" stroke-width="1"/>
+                <line x1="950" y1="480" x2="970" y2="480" stroke="#4a5568" stroke-width="1"/>
+                <text x="990" y="305" fill="#4a5568" font-size="11" class="mono" transform="rotate(90, 990, 305)">650mm (Width)</text>
+
+                <!-- FRONT / REAR Labels -->
+                <text x="180" y="310" text-anchor="middle" fill="#4a5568" font-size="13" font-weight="600" transform="rotate(-90, 155, 310)">FRONT</text>
+                <text x="945" y="310" text-anchor="middle" fill="#4a5568" font-size="13" font-weight="600" transform="rotate(90, 945, 310)">REAR</text>
+            </svg>
+        </div>
+    </div>
+
+    <!-- ==================== DIAGRAM 5: Battery Cell Configuration ==================== -->
+    <div class="diagram-section">
+        <p class="diagram-title">Figure 5</p>
+        <p class="diagram-name">Battery Pack Cell Configuration (13S8P)</p>
+        <div class="diagram-container">
+            <svg viewBox="0 0 1100 400" xmlns="http://www.w3.org/2000/svg">
+                <pattern id="grid5" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(99,179,237,0.03)" stroke-width="0.5"/>
+                </pattern>
+                <rect width="1100" height="400" fill="url(#grid5)"/>
+
+                <!-- Title area -->
+                <text x="550" y="30" text-anchor="middle" fill="#a0aec0" font-size="12" class="mono">13 Series x 8 Parallel = 104 Cells (18650 Li-Ion NMC)</text>
+
+                <!-- Draw 13 series groups -->
+                <g id="cells">
+                    <!-- Series group labels -->
+                    <text x="50" y="70" fill="#f6ad55" font-size="10" font-weight="600" class="mono">S1</text>
+                    <text x="130" y="70" fill="#f6ad55" font-size="10" font-weight="600" class="mono">S2</text>
+                    <text x="210" y="70" fill="#f6ad55" font-size="10" font-weight="600" class="mono">S3</text>
+                    <text x="290" y="70" fill="#f6ad55" font-size="10" font-weight="600" class="mono">S4</text>
+                    <text x="370" y="70" fill="#f6ad55" font-size="10" font-weight="600" class="mono">S5</text>
+                    <text x="450" y="70" fill="#f6ad55" font-size="10" font-weight="600" class="mono">S6</text>
+                    <text x="530" y="70" fill="#f6ad55" font-size="10" font-weight="600" class="mono">S7</text>
+                    <text x="610" y="70" fill="#f6ad55" font-size="10" font-weight="600" class="mono">S8</text>
+                    <text x="690" y="70" fill="#f6ad55" font-size="10" font-weight="600" class="mono">S9</text>
+                    <text x="766" y="70" fill="#f6ad55" font-size="10" font-weight="600" class="mono">S10</text>
+                    <text x="846" y="70" fill="#f6ad55" font-size="10" font-weight="600" class="mono">S11</text>
+                    <text x="926" y="70" fill="#f6ad55" font-size="10" font-weight="600" class="mono">S12</text>
+                    <text x="1006" y="70" fill="#f6ad55" font-size="10" font-weight="600" class="mono">S13</text>
+
+                    <!-- Parallel labels -->
+                    <text x="20" y="100" fill="#718096" font-size="9" class="mono">P1</text>
+                    <text x="20" y="126" fill="#718096" font-size="9" class="mono">P2</text>
+                    <text x="20" y="152" fill="#718096" font-size="9" class="mono">P3</text>
+                    <text x="20" y="178" fill="#718096" font-size="9" class="mono">P4</text>
+                    <text x="20" y="204" fill="#718096" font-size="9" class="mono">P5</text>
+                    <text x="20" y="230" fill="#718096" font-size="9" class="mono">P6</text>
+                    <text x="20" y="256" fill="#718096" font-size="9" class="mono">P7</text>
+                    <text x="20" y="282" fill="#718096" font-size="9" class="mono">P8</text>
+                </g>
+
+                <!-- Cell grid (13 columns x 8 rows) -->
+                <g>
+                    <!-- Generate cells for all 13 series groups -->
+                    <!-- S1-S13, P1-P8 -->
+                    <g fill="rgba(246,173,85,0.12)" stroke="#f6ad55" stroke-width="0.8">
+                        <!-- Row 1 (P1) -->
+                        <rect x="45" y="82" width="55" height="20" rx="4"/>
+                        <rect x="125" y="82" width="55" height="20" rx="4"/>
+                        <rect x="205" y="82" width="55" height="20" rx="4"/>
+                        <rect x="285" y="82" width="55" height="20" rx="4"/>
+                        <rect x="365" y="82" width="55" height="20" rx="4"/>
+                        <rect x="445" y="82" width="55" height="20" rx="4"/>
+                        <rect x="525" y="82" width="55" height="20" rx="4"/>
+                        <rect x="605" y="82" width="55" height="20" rx="4"/>
+                        <rect x="685" y="82" width="55" height="20" rx="4"/>
+                        <rect x="765" y="82" width="55" height="20" rx="4"/>
+                        <rect x="845" y="82" width="55" height="20" rx="4"/>
+                        <rect x="925" y="82" width="55" height="20" rx="4"/>
+                        <rect x="1005" y="82" width="55" height="20" rx="4"/>
+                        <!-- Row 2 (P2) -->
+                        <rect x="45" y="108" width="55" height="20" rx="4"/>
+                        <rect x="125" y="108" width="55" height="20" rx="4"/>
+                        <rect x="205" y="108" width="55" height="20" rx="4"/>
+                        <rect x="285" y="108" width="55" height="20" rx="4"/>
+                        <rect x="365" y="108" width="55" height="20" rx="4"/>
+                        <rect x="445" y="108" width="55" height="20" rx="4"/>
+                        <rect x="525" y="108" width="55" height="20" rx="4"/>
+                        <rect x="605" y="108" width="55" height="20" rx="4"/>
+                        <rect x="685" y="108" width="55" height="20" rx="4"/>
+                        <rect x="765" y="108" width="55" height="20" rx="4"/>
+                        <rect x="845" y="108" width="55" height="20" rx="4"/>
+                        <rect x="925" y="108" width="55" height="20" rx="4"/>
+                        <rect x="1005" y="108" width="55" height="20" rx="4"/>
+                        <!-- Row 3-8 -->
+                        <rect x="45" y="134" width="55" height="20" rx="4"/><rect x="125" y="134" width="55" height="20" rx="4"/><rect x="205" y="134" width="55" height="20" rx="4"/><rect x="285" y="134" width="55" height="20" rx="4"/><rect x="365" y="134" width="55" height="20" rx="4"/><rect x="445" y="134" width="55" height="20" rx="4"/><rect x="525" y="134" width="55" height="20" rx="4"/><rect x="605" y="134" width="55" height="20" rx="4"/><rect x="685" y="134" width="55" height="20" rx="4"/><rect x="765" y="134" width="55" height="20" rx="4"/><rect x="845" y="134" width="55" height="20" rx="4"/><rect x="925" y="134" width="55" height="20" rx="4"/><rect x="1005" y="134" width="55" height="20" rx="4"/>
+                        <rect x="45" y="160" width="55" height="20" rx="4"/><rect x="125" y="160" width="55" height="20" rx="4"/><rect x="205" y="160" width="55" height="20" rx="4"/><rect x="285" y="160" width="55" height="20" rx="4"/><rect x="365" y="160" width="55" height="20" rx="4"/><rect x="445" y="160" width="55" height="20" rx="4"/><rect x="525" y="160" width="55" height="20" rx="4"/><rect x="605" y="160" width="55" height="20" rx="4"/><rect x="685" y="160" width="55" height="20" rx="4"/><rect x="765" y="160" width="55" height="20" rx="4"/><rect x="845" y="160" width="55" height="20" rx="4"/><rect x="925" y="160" width="55" height="20" rx="4"/><rect x="1005" y="160" width="55" height="20" rx="4"/>
+                        <rect x="45" y="186" width="55" height="20" rx="4"/><rect x="125" y="186" width="55" height="20" rx="4"/><rect x="205" y="186" width="55" height="20" rx="4"/><rect x="285" y="186" width="55" height="20" rx="4"/><rect x="365" y="186" width="55" height="20" rx="4"/><rect x="445" y="186" width="55" height="20" rx="4"/><rect x="525" y="186" width="55" height="20" rx="4"/><rect x="605" y="186" width="55" height="20" rx="4"/><rect x="685" y="186" width="55" height="20" rx="4"/><rect x="765" y="186" width="55" height="20" rx="4"/><rect x="845" y="186" width="55" height="20" rx="4"/><rect x="925" y="186" width="55" height="20" rx="4"/><rect x="1005" y="186" width="55" height="20" rx="4"/>
+                        <rect x="45" y="212" width="55" height="20" rx="4"/><rect x="125" y="212" width="55" height="20" rx="4"/><rect x="205" y="212" width="55" height="20" rx="4"/><rect x="285" y="212" width="55" height="20" rx="4"/><rect x="365" y="212" width="55" height="20" rx="4"/><rect x="445" y="212" width="55" height="20" rx="4"/><rect x="525" y="212" width="55" height="20" rx="4"/><rect x="605" y="212" width="55" height="20" rx="4"/><rect x="685" y="212" width="55" height="20" rx="4"/><rect x="765" y="212" width="55" height="20" rx="4"/><rect x="845" y="212" width="55" height="20" rx="4"/><rect x="925" y="212" width="55" height="20" rx="4"/><rect x="1005" y="212" width="55" height="20" rx="4"/>
+                        <rect x="45" y="238" width="55" height="20" rx="4"/><rect x="125" y="238" width="55" height="20" rx="4"/><rect x="205" y="238" width="55" height="20" rx="4"/><rect x="285" y="238" width="55" height="20" rx="4"/><rect x="365" y="238" width="55" height="20" rx="4"/><rect x="445" y="238" width="55" height="20" rx="4"/><rect x="525" y="238" width="55" height="20" rx="4"/><rect x="605" y="238" width="55" height="20" rx="4"/><rect x="685" y="238" width="55" height="20" rx="4"/><rect x="765" y="238" width="55" height="20" rx="4"/><rect x="845" y="238" width="55" height="20" rx="4"/><rect x="925" y="238" width="55" height="20" rx="4"/><rect x="1005" y="238" width="55" height="20" rx="4"/>
+                        <rect x="45" y="264" width="55" height="20" rx="4"/><rect x="125" y="264" width="55" height="20" rx="4"/><rect x="205" y="264" width="55" height="20" rx="4"/><rect x="285" y="264" width="55" height="20" rx="4"/><rect x="365" y="264" width="55" height="20" rx="4"/><rect x="445" y="264" width="55" height="20" rx="4"/><rect x="525" y="264" width="55" height="20" rx="4"/><rect x="605" y="264" width="55" height="20" rx="4"/><rect x="685" y="264" width="55" height="20" rx="4"/><rect x="765" y="264" width="55" height="20" rx="4"/><rect x="845" y="264" width="55" height="20" rx="4"/><rect x="925" y="264" width="55" height="20" rx="4"/><rect x="1005" y="264" width="55" height="20" rx="4"/>
+                    </g>
+                </g>
+
+                <!-- Series connections (top) -->
+                <g stroke="#f6ad55" stroke-width="1.5" fill="none">
+                    <line x1="100" y1="82" x2="125" y2="82"/>
+                    <line x1="180" y1="82" x2="205" y2="82"/>
+                    <line x1="260" y1="82" x2="285" y2="82"/>
+                    <line x1="340" y1="82" x2="365" y2="82"/>
+                    <line x1="420" y1="82" x2="445" y2="82"/>
+                    <line x1="500" y1="82" x2="525" y2="82"/>
+                    <line x1="580" y1="82" x2="605" y2="82"/>
+                    <line x1="660" y1="82" x2="685" y2="82"/>
+                    <line x1="740" y1="82" x2="765" y2="82"/>
+                    <line x1="820" y1="82" x2="845" y2="82"/>
+                    <line x1="900" y1="82" x2="925" y2="82"/>
+                    <line x1="980" y1="82" x2="1005" y2="82"/>
+                </g>
+
+                <!-- + and - terminals -->
+                <circle cx="45" cy="180" r="12" fill="rgba(252,129,129,0.1)" stroke="#fc8181" stroke-width="1.5"/>
+                <text x="45" y="184" text-anchor="middle" fill="#fc8181" font-size="14" font-weight="800">+</text>
+                <text x="45" y="210" text-anchor="middle" fill="#fc8181" font-size="10" font-weight="600" class="mono">B+</text>
+
+                <circle cx="1060" cy="180" r="12" fill="rgba(99,179,237,0.1)" stroke="#63b3ed" stroke-width="1.5"/>
+                <text x="1060" y="185" text-anchor="middle" fill="#63b3ed" font-size="14" font-weight="800">-</text>
+                <text x="1060" y="210" text-anchor="middle" fill="#63b3ed" font-size="10" font-weight="600" class="mono">B-</text>
+
+                <!-- Spec Table -->
+                <rect x="45" y="310" width="1015" height="75" rx="8" fill="rgba(99,179,237,0.03)" stroke="rgba(99,179,237,0.08)" stroke-width="1"/>
+                <text x="80" y="335" fill="#63b3ed" font-size="11" font-weight="600" class="mono">CELL SPEC</text>
+                <text x="80" y="355" fill="#a0aec0" font-size="10" class="mono">Samsung INR18650-25R</text>
+                <text x="80" y="372" fill="#718096" font-size="10" class="mono">3.6V Nom / 2500mAh / 20A Max</text>
+
+                <text x="380" y="335" fill="#f6ad55" font-size="11" font-weight="600" class="mono">PACK SPEC</text>
+                <text x="380" y="355" fill="#a0aec0" font-size="10" class="mono">48V Nom (42V Min - 54.6V Max)</text>
+                <text x="380" y="372" fill="#718096" font-size="10" class="mono">20Ah / 960Wh / 160A Burst</text>
+
+                <text x="700" y="335" fill="#fc8181" font-size="11" font-weight="600" class="mono">BMS LIMITS</text>
+                <text x="700" y="355" fill="#a0aec0" font-size="10" class="mono">OVP: 4.25V/cell  |  UVP: 2.8V/cell</text>
+                <text x="700" y="372" fill="#718096" font-size="10" class="mono">OCP: 60A  |  Temp: -10°C to 45°C</text>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; padding: 40px 0; border-top: 1px solid rgba(99,179,237,0.1); margin-top: 40px;">
+        <p style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #4a5568;">
+            CONFIDENTIAL &mdash; Electric Utility Cart Hardware Architecture &mdash; Rev 1.0 &mdash; Page 1 of 1
+        </p>
+        <p style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #2d3748; margin-top: 8px;">
+            Generated for Engineering Review &mdash; Not for Production Use Without Validation
+        </p>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoLens AI - Impact Ledger</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; scrollbar-width: none; font-family: 'Inter', sans-serif; }
+  body { background: #f8faf8; color: #1a2e1a; position: relative; }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center;
+    position: relative; z-index: 100; background: #f8faf8;
+  }
+  .status-time { font-size: 15px; font-weight: 700; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  }
+
+  .content { height: calc(100% - 59px); overflow-y: auto; scrollbar-width: none; padding-bottom: 100px; }
+  .content::-webkit-scrollbar { display: none; }
+
+  /* Header */
+  .header { padding: 8px 28px 0; display: flex; justify-content: space-between; align-items: center; }
+  .header h1 { font-size: 24px; font-weight: 800; }
+  .header-period {
+    padding: 7px 14px; border-radius: 12px; background: #fff; border: 1px solid #e0ebe0;
+    font-size: 12px; font-weight: 600; color: #5a7a5a;
+    display: flex; align-items: center; gap: 5px;
+  }
+
+  /* Impact Cards */
+  .impact-hero {
+    margin: 16px 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .impact-card {
+    padding: 18px; border-radius: 20px; position: relative; overflow: hidden;
+  }
+  .impact-card.co2 { background: linear-gradient(135deg, #1a3d2a, #2d5a3e); }
+  .impact-card.water { background: linear-gradient(135deg, #1a2e3d, #2d4a5a); }
+  .impact-card.money { background: linear-gradient(135deg, #3d351a, #5a4a2d); }
+  .impact-card.items { background: linear-gradient(135deg, #2d1a3d, #4a2d5a); }
+  .impact-icon { font-size: 22px; margin-bottom: 8px; }
+  .impact-value { font-size: 28px; font-weight: 900; color: #fff; line-height: 1; }
+  .impact-unit { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.5); }
+  .impact-label { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 4px; font-weight: 500; }
+  .impact-trend {
+    display: inline-flex; align-items: center; gap: 3px; margin-top: 6px;
+    padding: 3px 8px; border-radius: 6px; background: rgba(255,255,255,0.1);
+    font-size: 10px; font-weight: 700; color: #7dffb3;
+  }
+
+  /* Green Credit */
+  .credit-card {
+    margin: 6px 28px 0; padding: 18px; border-radius: 20px;
+    background: linear-gradient(135deg, #2d8a4e, #34a85a);
+    position: relative; overflow: hidden;
+  }
+  .credit-card::after {
+    content: ''; position: absolute; top: -20px; right: -20px;
+    width: 120px; height: 120px; border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+  }
+  .credit-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .credit-label { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 600; text-transform: uppercase; }
+  .credit-value { font-size: 36px; font-weight: 900; color: #fff; line-height: 1; margin-top: 4px; }
+  .credit-tier {
+    padding: 6px 14px; border-radius: 12px; background: rgba(255,255,255,0.15);
+    font-size: 12px; font-weight: 700; color: #fff;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .credit-progress { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.15); }
+  .credit-fill { height: 100%; border-radius: 3px; background: #fff; width: 72%; }
+  .credit-footer { display: flex; justify-content: space-between; margin-top: 6px; }
+  .credit-footer span { font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 500; }
+
+  /* Chart */
+  .chart-card {
+    margin: 14px 28px; padding: 18px; border-radius: 20px; background: #fff;
+    border: 1px solid #e0ebe0;
+  }
+  .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .chart-title { font-size: 14px; font-weight: 700; }
+  .chart-period { font-size: 11px; color: #7a9a7a; font-weight: 600; }
+  .chart-bars {
+    display: flex; align-items: flex-end; gap: 8px; height: 120px;
+    padding-bottom: 20px; border-bottom: 1px solid #f0f5f0;
+    position: relative;
+  }
+  .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+  .chart-bar {
+    width: 100%; border-radius: 6px 6px 0 0; min-height: 8px;
+    background: linear-gradient(180deg, #2d8a4e, #34a85a);
+  }
+  .chart-bar.low { background: linear-gradient(180deg, #a0d0a0, #c0e0c0); }
+  .chart-day { font-size: 10px; color: #7a9a7a; font-weight: 600; position: absolute; bottom: 0; }
+  .chart-bar-wrap:nth-child(1) .chart-bar { height: 40%; }
+  .chart-bar-wrap:nth-child(2) .chart-bar { height: 65%; }
+  .chart-bar-wrap:nth-child(3) .chart-bar { height: 45%; }
+  .chart-bar-wrap:nth-child(4) .chart-bar { height: 80%; }
+  .chart-bar-wrap:nth-child(5) .chart-bar { height: 55%; }
+  .chart-bar-wrap:nth-child(6) .chart-bar { height: 90%; }
+  .chart-bar-wrap:nth-child(7) .chart-bar { height: 70%; }
+  .chart-labels { display: flex; justify-content: space-between; padding-top: 8px; }
+  .chart-labels span { font-size: 10px; color: #7a9a7a; font-weight: 600; flex: 1; text-align: center; }
+
+  /* ESG Section */
+  .esg-card {
+    margin: 0 28px; padding: 16px; border-radius: 18px;
+    background: linear-gradient(135deg, #f0f7f0, #e8f5e8);
+    border: 1px solid #d0ecd0;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .esg-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: linear-gradient(135deg, #2d8a4e, #34a85a);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: #fff; flex-shrink: 0;
+  }
+  .esg-info { flex: 1; }
+  .esg-title { font-size: 13px; font-weight: 700; color: #1a3d2a; }
+  .esg-sub { font-size: 11px; color: #5a7a5a; margin-top: 2px; }
+  .esg-arrow { font-size: 14px; color: #2d8a4e; }
+
+  /* Community */
+  .community-row {
+    margin: 14px 28px; display: flex; gap: 10px;
+  }
+  .community-card {
+    flex: 1; padding: 14px; border-radius: 16px; background: #fff;
+    border: 1px solid #e0ebe0; text-align: center;
+  }
+  .cc-rank { font-size: 28px; font-weight: 900; color: #2d8a4e; }
+  .cc-label { font-size: 11px; color: #7a9a7a; font-weight: 500; margin-top: 2px; }
+  .cc-avatars { display: flex; justify-content: center; margin-top: 8px; }
+  .cc-avatar {
+    width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff;
+    margin-left: -8px; overflow: hidden;
+  }
+  .cc-avatar:first-child { margin-left: 0; }
+  .cc-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(248,250,248,0.95); backdrop-filter: blur(30px);
+    border-top: 1px solid #e0ebe0;
+    display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px;
+    z-index: 200;
+  }
+  .tab-item { text-align: center; width: 60px; }
+  .tab-icon { font-size: 22px; color: #b0c0b0; margin-bottom: 4px; }
+  .tab-label { font-size: 10px; color: #b0c0b0; font-weight: 600; }
+  .tab-item.active .tab-icon { color: #2d8a4e; }
+  .tab-item.active .tab-label { color: #2d8a4e; }
+  .home-indicator {
+    width: 134px; height: 5px; background: #1a2e1a; border-radius: 3px;
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); opacity: 0.2;
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <h1>Impact Ledger</h1>
+      <div class="header-period"><i class="fas fa-calendar"></i> Jan 2025</div>
+    </div>
+
+    <div class="impact-hero">
+      <div class="impact-card co2">
+        <div class="impact-icon">🌍</div>
+        <div class="impact-value">18.4 <span class="impact-unit">kg</span></div>
+        <div class="impact-label">CO2 Reduced</div>
+        <div class="impact-trend"><i class="fas fa-arrow-up"></i> +23%</div>
+      </div>
+      <div class="impact-card water">
+        <div class="impact-icon">💧</div>
+        <div class="impact-value">340 <span class="impact-unit">L</span></div>
+        <div class="impact-label">Water Saved</div>
+        <div class="impact-trend"><i class="fas fa-arrow-up"></i> +15%</div>
+      </div>
+      <div class="impact-card money">
+        <div class="impact-icon">💰</div>
+        <div class="impact-value">$142</div>
+        <div class="impact-label">Money Saved</div>
+        <div class="impact-trend"><i class="fas fa-arrow-up"></i> +31%</div>
+      </div>
+      <div class="impact-card items">
+        <div class="impact-icon">♻️</div>
+        <div class="impact-value">12</div>
+        <div class="impact-label">Items Swapped</div>
+        <div class="impact-trend"><i class="fas fa-arrow-up"></i> +4</div>
+      </div>
+    </div>
+
+    <div class="credit-card">
+      <div class="credit-top">
+        <div>
+          <div class="credit-label">Green Credit Score</div>
+          <div class="credit-value">724</div>
+        </div>
+        <div class="credit-tier"><i class="fas fa-gem"></i> Gold</div>
+      </div>
+      <div class="credit-progress"><div class="credit-fill"></div></div>
+      <div class="credit-footer">
+        <span>Current: Gold</span>
+        <span>276 pts to Platinum</span>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Weekly Impact</div>
+        <div class="chart-period">This Week</div>
+      </div>
+      <div class="chart-bars">
+        <div class="chart-bar-wrap"><div class="chart-bar"></div></div>
+        <div class="chart-bar-wrap"><div class="chart-bar"></div></div>
+        <div class="chart-bar-wrap"><div class="chart-bar low"></div></div>
+        <div class="chart-bar-wrap"><div class="chart-bar"></div></div>
+        <div class="chart-bar-wrap"><div class="chart-bar"></div></div>
+        <div class="chart-bar-wrap"><div class="chart-bar"></div></div>
+        <div class="chart-bar-wrap"><div class="chart-bar low"></div></div>
+      </div>
+      <div class="chart-labels">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+      </div>
+    </div>
+
+    <div class="esg-card">
+      <div class="esg-icon"><i class="fas fa-building"></i></div>
+      <div class="esg-info">
+        <div class="esg-title">ESG Rewards Available</div>
+        <div class="esg-sub">3 partner companies offering green credits</div>
+      </div>
+      <i class="fas fa-chevron-right esg-arrow"></i>
+    </div>
+
+    <div class="community-row">
+      <div class="community-card">
+        <div class="cc-rank">#42</div>
+        <div class="cc-label">Community Rank</div>
+        <div class="cc-avatars">
+          <div class="cc-avatar"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&h=60&fit=crop&crop=face" alt=""></div>
+          <div class="cc-avatar"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face" alt=""></div>
+          <div class="cc-avatar"><img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face" alt=""></div>
+        </div>
+      </div>
+      <div class="community-card">
+        <div class="cc-rank">87%</div>
+        <div class="cc-label">Better than avg</div>
+        <div class="cc-avatars">
+          <div class="cc-avatar"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60&h=60&fit=crop&crop=face" alt=""></div>
+          <div class="cc-avatar"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=60&h=60&fit=crop&crop=face" alt=""></div>
+          <div class="cc-avatar"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=60&h=60&fit=crop&crop=face" alt=""></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-home"></i></div>
+      <div class="tab-label">Home</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-camera"></i></div>
+      <div class="tab-label">Scan</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-scale-balanced"></i></div>
+      <div class="tab-label">Trade-off</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-arrows-rotate"></i></div>
+      <div class="tab-label">Swap</div>
+    </div>
+    <div class="tab-item active">
+      <div class="tab-icon"><i class="fas fa-chart-line"></i></div>
+      <div class="tab-label">Impact</div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

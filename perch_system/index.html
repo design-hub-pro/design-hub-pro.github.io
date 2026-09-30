@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Perch, the cage hardware behind the app</title>
+<style>
+  :root{ --ink:#16202B; --soft:#5A6B7A; --line:#E2DED7; --blue:#1F4D3D; --orange:#B5651D; --paper:#FDFCFA; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--paper); color:var(--ink);
+        font:17px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+        overflow-x:hidden; }
+  .wrap{ max-width:720px; margin:0 auto; padding:0 24px; }
+  .wide{ max-width:960px; margin:0 auto; padding:0 24px; }
+  h1,h2,h3{ font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif; font-weight:600; letter-spacing:-0.01em; }
+  h1{ font-size:40px; line-height:1.15; margin:0 0 18px; }
+  h2{ font-size:27px; line-height:1.25; margin:0 0 14px; }
+  h3{ font-size:19px; margin:0 0 8px; }
+  p{ margin:0 0 16px; }
+  .lead{ font-size:20px; color:var(--soft); }
+  .sm{ font-size:15px; color:var(--soft); }
+  .xs{ font-size:13px; color:var(--soft); }
+  section{ padding:52px 0; border-top:1px solid var(--line); }
+  .eyebrow{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--orange); font-weight:600; margin-bottom:10px; }
+  img{ max-width:100%; display:block; border-radius:6px; }
+  figure{ margin:0 0 8px; }
+  figcaption{ font-size:13px; color:var(--soft); margin-top:8px; }
+  a{ color:var(--blue); }
+  .cite{ font-size:13px; color:var(--soft); }
+  table{ width:100%; border-collapse:collapse; font-size:15px; }
+  th,td{ text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ font-weight:600; font-size:13px; letter-spacing:.04em; text-transform:uppercase; color:var(--soft); }
+  td.num{ text-align:right; white-space:nowrap; }
+  tr.total td{ font-weight:700; border-bottom:none; }
+  .scroll{ overflow-x:auto; }
+  .row{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin:26px 0; }
+  .row div{ padding:18px; border:1px solid var(--line); border-radius:8px; background:#fff; font-size:15px; }
+  .row b{ display:block; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--orange); margin-bottom:6px; }
+  .duo{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:22px; margin:26px 0 8px; }
+  .flag{ background:#FBF3EC; border-left:3px solid var(--orange); padding:20px 22px; border-radius:0 6px 6px 0; margin:26px 0; }
+  .flag p:last-child{ margin-bottom:0; }
+  details{ border-top:1px solid var(--line); padding:18px 0; }
+  details summary{ cursor:pointer; font-weight:600; list-style:none; font-size:16px; }
+  details summary::-webkit-details-marker{ display:none; }
+  details summary::before{ content:"+ "; color:var(--orange); }
+  details[open] summary::before{ content:"– "; }
+  details .body{ padding-top:14px; font-size:15px; color:#33414F; }
+  details .body ul{ margin:0 0 14px; padding-left:20px; }
+  details .body li{ margin-bottom:5px; }
+  footer{ border-top:1px solid var(--line); padding:34px 0 60px; }
+  .backlink{ display:inline-block; margin-bottom:26px; font-size:14px; }
+</style>
+</head>
+<body>
+
+<div class="wrap" style="padding-top:34px;">
+  <a class="backlink" href="../index.html">← Overview</a>
+</div>
+
+<section style="border-top:0;padding-top:0;">
+  <div class="wrap">
+    <div class="eyebrow">Home aviary hardware</div>
+    <h1>Perch lets pet birds let themselves out, and counts them back in</h1>
+    <p class="lead">It bolts to a standard cage and runs the door, a warm perch, food, water and two cameras.</p>
+    <p class="sm">Every decision is made on the device. No cloud account, no bird locked outside.</p>
+  </div>
+  <div class="wide" style="margin-top:32px;">
+    <figure>
+      <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1787873223452-image-1.png" alt="A bird cage beside a window with the Perch module fitted to its side and a cockatiel on the landing perch">
+      <figcaption>Door open on a still morning.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">How it works</div>
+    <h2>Five sensors, one decision, five things it can move</h2>
+    <div class="row">
+      <div><b>Sense</b>Two cameras, load cell, probes</div>
+      <div><b>Process</b>Pi 5 counts and checks outside</div>
+      <div><b>Decide</b>All in, outside clear, perch empty</div>
+      <div><b>Act</b>Door, heater, lamp, feeder, chime</div>
+      <div><b>Record</b>Ten second clip per event</div>
+    </div>
+  </div>
+  <div class="wide">
+    <figure>
+      <img src="fig_path.svg" alt="Block diagram of the signal path from sensors through the Raspberry Pi to the door interlock and actuators">
+      <figcaption>The interlock is the only thing allowed to move the door.</figcaption>
+    </figure>
+  </div>
+  <div class="wrap" style="margin-top:26px;">
+    <p>The step that is not obvious is the decision, not the door. Sliding a panel is a weekend of work. Knowing every bird is inside before it moves is the project, and two independent sensors answer that one question.</p>
+  </div>
+  <div class="wide">
+    <figure>
+      <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1787873223073-image-1.png" alt="Hands refilling the seed hopper and water reservoir at a kitchen sink">
+      <figcaption>Both come off without tools. Ten days for two cockatiels.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">How we know it works</div>
+    <h2>Each measurement checked against something we did not build</h2>
+
+    <p><b>The door must never shut on a bird that is outside.</b> Before it moves, the inside camera counts birds and the landing perch load cell has to read under 15 g for twenty seconds together. Both are scored against a hand count of 200 recorded closes at midday, at dusk, and under room light. Acceptance is zero missed birds. False holds, where the door stays open although it could have shut, are allowed up to 10 percent.</p>
+
+    <p><b>The outside camera decides whether opening is allowed at all.</b> It is scored on 300 hand-labelled clips: 150 with a cat, a hovering raptor or a person at the fence, 150 clear. Acceptance is under 2 percent misses at under 15 percent false holds. Miss that and the camera is demoted to advisory, with the door opening only on a press.</p>
+
+    <p>The other three are bench work. The temperature probe sits in a stirred water bath beside a calibrated glass thermometer at 15, 25 and 35 °C, ten readings each, and has to agree within 0.5 °C. The feeder dispenses a 6 g target twenty times onto a 0.1 g scale: mean within 5 percent, nothing under 4 g or over 9 g. The closing edge is pushed onto a 0 to 20 N force gauge twenty times: peak under 5 N, stall reverse within 0.3 s.</p>
+
+    <p>Show a judge the trace and rig first.</p>
+  </div>
+  <div class="wide" style="margin-top:8px;">
+    <figure>
+      <img src="fig_trace.svg" alt="Illustrative trace of a door-close sequence showing bird count, perch load and door state">
+      <figcaption><b>Illustrative.</b> Drawn to show what the interlock keys on. Not recorded from a build.</figcaption>
+    </figure>
+    <figure style="margin-top:26px;">
+      <img src="fig_rig.svg" alt="Validation bench with a force gauge, a stirred water bath with a reference thermometer, and a bench scale">
+      <figcaption>One bench, three references. Building this rig is a week of the project.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Changes to the brief</div>
+    <h2>Three things in the brief would not survive the build</h2>
+
+    <h3>Cut the speech recognition</h3>
+    <p>Two problems sit inside the app's recorded voice call. The owner's trigger is cheap: a two word phrase spotted offline on the Pi. The recall is training, and a conditioned cue has to be identical every time, while a human voice varies in level and pitch. Play a fixed chime at 85 dB(A) at 1 m with 1 g of millet: still 62 dB(A) at 15 m, above a quiet garden. Open vocabulary speech costs two build weeks and buys none of that.</p>
+
+    <h3>The temperature setpoint is specified wrong twice</h3>
+    <p>A wire cage is about 90 percent open. Holding 0.36 m³ of it 5 °C above a 20 °C room means heating the room: in still air the open boundary carries on the order of 30 W, and a draught doubles that. A 50 W element cannot win. Heat one end instead, hold the perch 150 mm from the emitter at 28 °C within 1 °C, and leave the rest at room temperature. The number belongs to the owner's avian vet, not the firmware.</p>
+
+    <h3>The parts list is short a flap and five amps</h3>
+    <p>The 12 V branches total 8.4 A worst case, so the 5 A supply such a list usually names falls 3.4 A short of its own heater. Specify 10 A. The second gap is the fail state: if power drops while a bird is out, an open door invites a cat and a shut door strands the bird. A one way acrylic flap beside the powered door settles it for $6: a bird can push in, never out. Cheaper and more certain than the battery backup it replaces.</p>
+
+    <div class="flag">
+      <p><b>The number to argue about first.</b> Zero missed birds on 200 closes is demanding for a $35 camera. If the build misses it, the fallback below is the design.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Parts</div>
+    <h2>About $391 a unit, and build the door module twice</h2>
+  </div>
+  <div class="wide">
+    <figure>
+      <img src="fig_stack.svg" alt="Exploded view of the door module showing each layer, its material and its thickness">
+      <figcaption>The module, layer by layer. It bolts together and nothing on the cage is cut.</figcaption>
+    </figure>
+  </div>
+  <div class="wrap" style="margin-top:26px;">
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Part</th><th>What it does</th><th class="num">Price</th></tr></thead>
+        <tbody>
+          <tr><td>Raspberry Pi 5, 4 GB</td><td>Two camera streams and all control</td><td class="num">$60</td></tr>
+          <tr><td>Camera Module 3, wide and NoIR</td><td>Count inside, watch outside at dusk</td><td class="num">$70</td></tr>
+          <tr><td>NEMA 17, TMC2209, Hall endstops</td><td>Door drive, stall sensed</td><td class="num">$26</td></tr>
+          <tr><td>Panel, rails, rack and pinion, printed parts</td><td>The sliding door itself</td><td class="num">$18</td></tr>
+          <tr><td>One way entry flap</td><td>A bird can always get in</td><td class="num">$6</td></tr>
+          <tr><td>12 V PTC heater, guard, 70 °C cutout</td><td>Warm zone at one perch</td><td class="num">$20</td></tr>
+          <tr><td>DS18B20 ×2, BME280</td><td>Perch and room temperature</td><td class="num">$14</td></tr>
+          <tr><td>LED strip, avian UV lamp, relay socket</td><td>Dawn ramp, daylight hours</td><td class="num">$41</td></tr>
+          <tr><td>Auger feeder, peristaltic pump, hopper, reservoir</td><td>Food and water on a schedule</td><td class="num">$40</td></tr>
+          <tr><td>Load cells ×2 with HX711</td><td>Bowl mass, perch occupancy</td><td class="num">$18</td></tr>
+          <tr><td>I2S microphone, amplifier, 3 W speaker</td><td>Wake phrase, recall chime</td><td class="num">$14</td></tr>
+          <tr><td>12 V 10 A supply, buck converter, fuse, MOSFETs</td><td>Power chain</td><td class="num">$42</td></tr>
+          <tr><td>Enclosure, glands, fasteners, wire</td><td>Clamps it to the cage</td><td class="num">$22</td></tr>
+          <tr class="total"><td>Total, one unit</td><td>Cage not included</td><td class="num">$391</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sm" style="margin-top:14px;">Prices are approximate, from hobby suppliers in August 2026. Build the door module twice: $142 buys a spare Pi, camera, drive and rails, and one stripped rack costs more than that in lost days. Cut line: the UV lamp and socket, $41.</p>
+  </div>
+  <div class="wide">
+    <div class="duo">
+      <figure>
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1787873223753-image-1.png" alt="The Perch module on a workbench in three-quarter view beside a steel rule">
+        <figcaption>168 by 190 mm, 96 mm deep. Rule for scale.</figcaption>
+      </figure>
+      <figure>
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1787873222115-image-1.png" alt="The module bolted to the side of a bird cage with its landing perch on the outer face">
+        <figcaption>Fitted. Landing perch and load cell on the outer face.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">What could go wrong</div>
+    <h2>Three ways this ends badly</h2>
+    <p>The hard part is not the wiring. It is teaching the outside camera to tell a hovering sparrowhawk from a plastic bag, from a $35 sensor at two frames a second.</p>
+    <p>The safety valve is chosen now. If the hazard detector misses its numbers by week six, drop the automatic opening, keep the automatic closing, and open only on a press. Closing is where the safety lives, and that switch happens on a date, not when patience runs out.</p>
+    <p>The dull failure is seed dust. A feeder fills the air with husk, it settles on the inside camera window within a fortnight, and the count degrades quietly instead of failing loudly. Mount it above the feed path behind a wipeable window and log a sharpness score each morning.</p>
+  </div>
+  <div class="wide">
+    <figure>
+      <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1787873221636-image-1.png" alt="Two people fitting the module to a cage with a hex key, brackets and screws laid out on a cloth">
+      <figcaption>About twenty minutes. The frame clamps to the bars, so no cage is cut.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">For the engineer</div>
+    <h2>Build detail</h2>
+    <p class="sm">Working specification. Not needed to understand the project.</p>
+  </div>
+  <div class="wide" style="margin:22px auto 26px;">
+    <figure>
+      <img src="fig_power.svg" alt="Power chain showing the 12 V and 5 V rails with each load and its current, plus the isolated mains branch">
+      <figcaption>Currents agree with the parts table above.</figcaption>
+    </figure>
+  </div>
+  <div class="wrap">
+
+    <details>
+      <summary>Detection and control parameters</summary>
+      <div class="body">
+        <ul>
+          <li>Inside count: MobileNet-SSD 320, INT8, 2 fps, ROI cropped to the cage interior. Count accepted only after 5 consecutive agreeing frames.</li>
+          <li>Outside hazard: same backbone, 3 classes (cat, bird-of-prey silhouette, person). Hold if any class scores above 0.45 in 2 of 5 frames.</li>
+          <li>Perch occupancy: HX711 at 80 SPS, 16 sample median, tare re-zeroed hourly when the count is stable. Clear below 15 g.</li>
+          <li>Perch temperature: DS18B20 at 1 Hz, PI control on the PTC MOSFET, 1 Hz PWM period, Kp 12 %/°C, Ki 0.4 %/°C·s, integral clamped at 60 %.</li>
+          <li>Wake phrase: 40 ms frames, 40 mel bins, 12 kB depthwise CNN, threshold set for one false trigger per 24 h on household audio.</li>
+          <li>Lighting: 30 min dawn and dusk ramps, 12 h photoperiod default, UV lamp 4 h at midday on its own relay.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>Door state machine and log format</summary>
+      <div class="body">
+        <p>States: SHUT, OPENING, OPEN, CONFIRM, CLOSING, FAULT. CONFIRM requires count equal to the registered flock and perch under 15 g, held 20 s; any break returns to OPEN. Stall during CLOSING reverses 15 mm, waits 5 s, retries twice, then FAULT with the door open and a push to the phone.</p>
+        <p>Log line: <code>iso8601, state, count, perch_g, perch_C, ambient_C, hazard_score, dispensed_g, event_id</code>. One row per second, one 10 s H.264 clip per state change, both to the SD card. About 42 MB a day, so a 64 GB card holds four years.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Power budget and thermal margin</summary>
+      <div class="body">
+        <ul>
+          <li>12 V: heater 4.2 A, LED 1.0 A, stepper 1.0 A during a 4 s move, pump and auger 0.3 A, buck input 1.9 A. Worst case 8.4 A on a 10 A supply.</li>
+          <li>5 V: Pi 3.0 A, cameras 0.3 A, sensors 0.05 A, amplifier 0.6 A, microphone 0.01 A. Worst case 3.96 A on a 5 A buck.</li>
+          <li>Heater duty is capped at 60 percent while the stepper is energised, which keeps the peak at 7.4 A.</li>
+          <li>Continuous draw with the heater off is about 1.1 A at 12 V, roughly 13 W, so about $12 a year of electricity.</li>
+          <li>No battery. Filesystem runs read-only with an overlay so an unclean power cut cannot corrupt the card.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>Bring-up order</summary>
+      <div class="body">
+        <p>Test every component alone before wiring any two together.</p>
+        <ul>
+          <li>Bench the 12 V supply into a resistive load at 9 A for 30 min. Check the buck output ripple under 50 mV.</li>
+          <li>Stepper and driver on the bench, current limit set, endstops proven, 200 dry cycles before the panel goes on.</li>
+          <li>Each camera alone: exposure at dusk, fixed focus set at the door plane.</li>
+          <li>Load cells calibrated with 20 g, 50 g and 100 g check masses.</li>
+          <li>Heater on a bench frame with the thermal cutout in circuit, never near a bird, until the PI loop has held setpoint for two hours.</li>
+          <li>Only then assemble, and only then put a bird near it.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>Full validation checklist</summary>
+      <div class="body">
+        <ul>
+          <li>200 recorded door closes, hand counted, three lighting conditions. Zero missed birds.</li>
+          <li>300 hand-labelled outside clips. Under 2 percent misses, under 15 percent false holds.</li>
+          <li>Probe against a calibrated glass thermometer at 15, 25, 35 °C, ten readings each. Within 0.5 °C.</li>
+          <li>Perch zone holds setpoint within 1 °C for 2 h with the room between 18 and 24 °C.</li>
+          <li>20 dispenses of a 6 g target on a 0.1 g scale. Mean within 5 percent, none under 4 g or over 9 g.</li>
+          <li>20 closing force measurements on a 0 to 20 N gauge. Peak under 5 N, reverse within 0.3 s.</li>
+          <li>Flap tested 50 times from both sides. Opens inward under 0.3 N, never outward.</li>
+          <li>Wake phrase: one false trigger per 24 h over 72 h of household audio.</li>
+          <li>Power cut during OPEN, 10 repeats. Door stays where it is, bird can still enter through the flap.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>What the hardware cannot do</summary>
+      <div class="body">
+        <ul>
+          <li>It cannot make a bird come back. It gives a trained cue and a reason to return. Recall is the owner's training work, over months.</li>
+          <li>It cannot heat a cage. It holds one warm perch and leaves the rest of the cage at room temperature.</li>
+          <li>It cannot stop a hawk. It refuses to open when it sees one, which is a different and much weaker promise.</li>
+          <li>It cannot identify individual birds. It counts them, so it needs to be told how many live there.</li>
+          <li>It cannot tell an ill bird from a well one. The inside camera is for counting and for the owner to watch, not for diagnosis.</li>
+          <li>It is not weatherproof. Everything lives indoors, with only the flap and the landing perch on the outer face.</li>
+          <li>Free flight outdoors carries real risk of loss. This device reduces some of that risk and creates none of the training that makes it acceptable.</li>
+        </ul>
+      </div>
+    </details>
+
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="sm" style="margin-bottom:8px;">The cage half of Perch. The phone half is a separate document.</p>
+    <p><a href="../perch_app/index.html">The Perch app →</a></p>
+    <p class="xs" style="margin-top:26px;">PERCH · SYSTEM DESIGN · AUGUST 2026</p>
+  </div>
+</footer>
+
+</body>
+</html>

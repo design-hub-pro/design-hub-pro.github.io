@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SteadyRead - Reader</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif; background: #0f0f1a; color: #fff; }
+
+  .screen { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+
+  /* Status Bar */
+  .status-bar {
+    height: 59px; display: flex; justify-content: space-between; align-items: flex-end;
+    padding: 0 28px 8px 28px; position: relative; z-index: 10; flex-shrink: 0;
+    background: #0f0f1a;
+  }
+  .status-time { font-size: 17px; font-weight: 600; color: #fff; }
+  .status-icons { display: flex; gap: 6px; align-items: center; color: #fff; font-size: 14px; }
+  .dynamic-island { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 126px; height: 37px; background: #000; border-radius: 20px; }
+
+  /* Reader Nav */
+  .reader-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 28px 16px 28px; flex-shrink: 0;
+  }
+  .back-btn { display: flex; align-items: center; gap: 8px; color: #6c5ce7; font-size: 16px; font-weight: 600; }
+  .reader-actions { display: flex; gap: 18px; }
+  .reader-actions i { font-size: 20px; color: rgba(255,255,255,0.5); }
+
+  /* Motion indicator bar */
+  .motion-strip {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 28px;
+    background: rgba(0, 206, 201, 0.08);
+    border-top: 1px solid rgba(0, 206, 201, 0.1);
+    border-bottom: 1px solid rgba(0, 206, 201, 0.1);
+    flex-shrink: 0;
+  }
+  .motion-strip-icon {
+    width: 32px; height: 32px; border-radius: 10px;
+    background: rgba(0, 206, 201, 0.15);
+    display: flex; align-items: center; justify-content: center;
+    color: #00cec9; font-size: 14px;
+  }
+  .motion-strip-info { flex: 1; }
+  .motion-strip-label { font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; }
+  .motion-strip-bar { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; margin-top: 5px; overflow: hidden; }
+  .motion-strip-fill { height: 100%; width: 25%; background: linear-gradient(90deg, #00cec9, #6c5ce7); border-radius: 2px; transition: width 0.3s; }
+  .comfort-badge {
+    padding: 5px 12px; border-radius: 12px;
+    background: rgba(0, 206, 201, 0.15);
+    color: #00cec9; font-size: 12px; font-weight: 700;
+  }
+
+  /* Reading content */
+  .reading-area {
+    flex: 1; overflow-y: auto; padding: 28px 28px 30px 28px;
+    scrollbar-width: none;
+  }
+  .chapter-label {
+    font-size: 12px; color: #6c5ce7; text-transform: uppercase;
+    letter-spacing: 2px; font-weight: 700; margin-bottom: 10px;
+  }
+  .chapter-title {
+    font-size: 28px; font-weight: 800; margin-bottom: 28px;
+    line-height: 1.2; color: #fff;
+  }
+  .read-text {
+    font-family: 'Merriweather', Georgia, serif;
+    font-size: 18px; line-height: 1.9; color: rgba(255,255,255,0.75);
+    font-weight: 300;
+    letter-spacing: 0.2px;
+  }
+  .read-text p { margin-bottom: 24px; }
+  .highlight-line {
+    background: rgba(108, 92, 231, 0.12);
+    border-left: 3px solid #6c5ce7;
+    padding: 2px 0 2px 14px;
+    margin-left: -17px;
+    border-radius: 0 6px 6px 0;
+  }
+
+  /* Bottom reader bar */
+  .reader-bottom {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(15, 15, 26, 0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 16px 28px 36px 28px;
+  }
+  .progress-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .page-num { font-size: 12px; color: rgba(255,255,255,0.4); font-weight: 500; min-width: 30px; }
+  .full-bar { flex: 1; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+  .full-fill { height: 100%; width: 68%; background: linear-gradient(90deg, #6c5ce7, #00cec9); border-radius: 2px; }
+
+  .reader-controls { display: flex; justify-content: space-around; align-items: center; }
+  .ctrl-btn {
+    width: 44px; height: 44px; border-radius: 14px;
+    background: rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.5); font-size: 18px;
+  }
+  .ctrl-btn.active { background: rgba(108, 92, 231, 0.2); color: #6c5ce7; }
+  .ctrl-label { font-size: 10px; color: rgba(255,255,255,0.3); text-align: center; margin-top: 4px; }
+  .ctrl-item { display: flex; flex-direction: column; align-items: center; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal" style="font-size:15px"></i>
+      <i class="fas fa-wifi" style="font-size:15px"></i>
+      <i class="fas fa-battery-full" style="font-size:17px"></i>
+    </div>
+  </div>
+
+  <!-- Reader Nav -->
+  <div class="reader-nav">
+    <div class="back-btn">
+      <i class="fas fa-chevron-left"></i>
+      <span>Library</span>
+    </div>
+    <div class="reader-actions">
+      <i class="fas fa-font"></i>
+      <i class="fas fa-bookmark"></i>
+      <i class="fas fa-ellipsis-h"></i>
+    </div>
+  </div>
+
+  <!-- Motion Indicator -->
+  <div class="motion-strip">
+    <div class="motion-strip-icon"><i class="fas fa-wave-square"></i></div>
+    <div class="motion-strip-info">
+      <div class="motion-strip-label">Motion Detected</div>
+      <div class="motion-strip-bar"><div class="motion-strip-fill"></div></div>
+    </div>
+    <div class="comfort-badge">Comfort</div>
+  </div>
+
+  <!-- Reading Area -->
+  <div class="reading-area">
+    <div class="chapter-label">Chapter 5</div>
+    <div class="chapter-title">The Surprising Power of Small Habits</div>
+
+    <div class="read-text">
+      <p>It is so easy to overestimate the importance of one defining moment and underestimate the value of making small improvements on a daily basis.</p>
+
+      <p class="highlight-line">Meanwhile, improving by 1 percent isn't particularly notable — sometimes it isn't even noticeable — but it can be far more meaningful, especially in the long run.</p>
+
+      <p>The difference a tiny improvement can make over time is astounding. Here's how the math works out: if you can get 1 percent better each day for one year, you'll end up thirty-seven times better by the time you're done.</p>
+
+      <p>Conversely, if you get 1 percent worse each day for one year, you'll decline nearly down to zero. What starts as a small win or a minor setback accumulates into something much more.</p>
+
+      <p>Habits are the compound interest of self-improvement. The same way that money multiplies through compound interest, the effects of your habits multiply as you repeat them.</p>
+    </div>
+  </div>
+
+  <!-- Bottom Reader Bar -->
+  <div class="reader-bottom">
+    <div class="progress-row">
+      <span class="page-num">156</span>
+      <div class="full-bar"><div class="full-fill"></div></div>
+      <span class="page-num">230</span>
+    </div>
+    <div class="reader-controls">
+      <div class="ctrl-item">
+        <div class="ctrl-btn"><i class="fas fa-text-height"></i></div>
+        <div class="ctrl-label">Font</div>
+      </div>
+      <div class="ctrl-item">
+        <div class="ctrl-btn active"><i class="fas fa-eye"></i></div>
+        <div class="ctrl-label">Comfort</div>
+      </div>
+      <div class="ctrl-item">
+        <div class="ctrl-btn"><i class="fas fa-headphones-alt"></i></div>
+        <div class="ctrl-label">Listen</div>
+      </div>
+      <div class="ctrl-item">
+        <div class="ctrl-btn"><i class="fas fa-highlighter"></i></div>
+        <div class="ctrl-label">Highlight</div>
+      </div>
+      <div class="ctrl-item">
+        <div class="ctrl-btn"><i class="fas fa-moon"></i></div>
+        <div class="ctrl-label">Theme</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

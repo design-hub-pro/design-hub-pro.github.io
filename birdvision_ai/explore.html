@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BirdVision AI - Explore</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;
+    scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif;
+    background: #FAFBFC;
+  }
+
+  .status-bar {
+    height: 59px; padding: 0 28px; display: flex; align-items: flex-end;
+    justify-content: space-between; padding-bottom: 12px; background: #FAFBFC;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .status-time { font-size: 16px; font-weight: 600; letter-spacing: -0.5px; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island {
+    width: 126px; height: 37px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  }
+
+  .content { padding: 0 28px 120px; }
+
+  .page-title {
+    font-size: 32px; font-weight: 800; color: #1C1C1E; margin-top: 8px;
+  }
+
+  .search-bar {
+    margin-top: 16px; background: #F2F2F7; border-radius: 14px;
+    padding: 12px 16px; display: flex; align-items: center; gap: 10px;
+  }
+  .search-bar i { color: #8E8E93; font-size: 15px; }
+  .search-bar span { color: #8E8E93; font-size: 15px; }
+
+  .category-scroll {
+    display: flex; gap: 10px; margin-top: 18px; overflow-x: auto;
+    margin-left: -28px; margin-right: -28px; padding: 0 28px 4px;
+    scrollbar-width: none;
+  }
+  .category-scroll::-webkit-scrollbar { display: none; }
+  .cat-chip {
+    padding: 8px 18px; border-radius: 12px; font-size: 13px;
+    font-weight: 600; white-space: nowrap; flex-shrink: 0;
+  }
+  .cat-chip.active {
+    background: #1C1C1E; color: #fff;
+  }
+  .cat-chip:not(.active) {
+    background: #F2F2F7; color: #636366;
+  }
+
+  .featured-card {
+    margin-top: 20px; border-radius: 24px; overflow: hidden;
+    position: relative; height: 200px;
+  }
+  .featured-card img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .featured-overlay {
+    position: absolute; bottom: 0; left: 0; right: 0; padding: 20px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.75));
+  }
+  .featured-overlay h3 { color: #fff; font-size: 18px; font-weight: 700; }
+  .featured-overlay p { color: rgba(255,255,255,0.7); font-size: 12px; margin-top: 3px; }
+  .featured-stats {
+    display: flex; gap: 14px; margin-top: 8px;
+  }
+  .featured-stat {
+    display: flex; align-items: center; gap: 4px;
+    color: rgba(255,255,255,0.8); font-size: 11px; font-weight: 500;
+  }
+  .featured-stat i { font-size: 10px; }
+  .featured-badge {
+    position: absolute; top: 14px; right: 14px;
+    background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);
+    padding: 5px 10px; border-radius: 10px;
+    color: #fff; font-size: 11px; font-weight: 600;
+  }
+
+  .section-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 28px; margin-bottom: 14px;
+  }
+  .section-title { font-size: 20px; font-weight: 700; color: #1C1C1E; }
+  .section-more { font-size: 13px; color: #34C759; font-weight: 600; }
+
+  .species-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  .species-card {
+    background: #fff; border-radius: 18px; overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .species-card-img {
+    width: 100%; height: 120px; object-fit: cover;
+    position: relative;
+  }
+  .species-card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .species-card-info { padding: 12px; }
+  .species-card-name { font-size: 14px; font-weight: 700; color: #1C1C1E; }
+  .species-card-sci { font-size: 11px; color: #8E8E93; font-style: italic; margin-top: 1px; }
+  .species-card-meta {
+    display: flex; align-items: center; gap: 6px; margin-top: 6px;
+  }
+  .species-card-tag {
+    font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 6px;
+  }
+  .audio-indicator {
+    position: absolute; bottom: 8px; left: 8px;
+    background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+    padding: 3px 8px; border-radius: 8px; color: #FF9500;
+    font-size: 10px; font-weight: 600; display: flex; align-items: center; gap: 3px;
+  }
+
+  .sound-section {
+    margin-top: 24px;
+  }
+  .sound-card {
+    background: #fff; border-radius: 16px; padding: 14px;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 10px;
+  }
+  .sound-play {
+    width: 42px; height: 42px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .sound-play i { font-size: 14px; color: #fff; }
+  .sound-info { flex: 1; }
+  .sound-name { font-size: 14px; font-weight: 600; color: #1C1C1E; }
+  .sound-waves {
+    display: flex; align-items: center; gap: 1.5px; height: 18px; margin-top: 4px;
+  }
+  .sw-bar {
+    width: 2.5px; border-radius: 1px; background: #C7C7CC;
+  }
+  .sound-dur { font-size: 11px; color: #8E8E93; font-weight: 500; flex-shrink: 0; }
+
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 90px;
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: flex-start;
+    padding-top: 10px; border-top: 0.5px solid rgba(0,0,0,0.08);
+  }
+  .tab-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-size: 10px; color: #8E8E93; font-weight: 500;
+  }
+  .tab-item.active { color: #34C759; }
+  .tab-item i { font-size: 22px; }
+  .tab-center {
+    width: 52px; height: 52px; background: linear-gradient(135deg, #34C759, #30D158);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    margin-top: -20px; box-shadow: 0 4px 16px rgba(52,199,89,0.4);
+  }
+  .tab-center i { color: #fff; font-size: 22px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-title">Explore</div>
+
+    <div class="search-bar">
+      <i class="fas fa-magnifying-glass"></i>
+      <span>Search species, songs, habitats...</span>
+    </div>
+
+    <div class="category-scroll">
+      <div class="cat-chip active">All Birds</div>
+      <div class="cat-chip">Songbirds</div>
+      <div class="cat-chip">Raptors</div>
+      <div class="cat-chip">Waterfowl</div>
+      <div class="cat-chip">Woodpeckers</div>
+      <div class="cat-chip">Owls</div>
+    </div>
+
+    <div class="featured-card">
+      <img src="https://images.unsplash.com/photo-1480044965905-02098d419e96?w=800&q=80" alt="Eagle">
+      <div class="featured-badge"><i class="fas fa-star" style="margin-right:3px;"></i> Featured</div>
+      <div class="featured-overlay">
+        <h3>Bald Eagle</h3>
+        <p>Haliaeetus leucocephalus</p>
+        <div class="featured-stats">
+          <div class="featured-stat"><i class="fas fa-video"></i> 2.4K videos</div>
+          <div class="featured-stat"><i class="fas fa-music"></i> 340 songs</div>
+          <div class="featured-stat"><i class="fas fa-eye"></i> 89K views</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <span class="section-title">Popular Species</span>
+      <span class="section-more">See All</span>
+    </div>
+
+    <div class="species-grid">
+      <div class="species-card">
+        <div class="species-card-img">
+          <img src="https://images.unsplash.com/photo-1444464666168-49d633b86797?w=400&q=80" alt="Blue Jay">
+          <div class="audio-indicator"><i class="fas fa-volume-high"></i> Song</div>
+        </div>
+        <div class="species-card-info">
+          <div class="species-card-name">Blue Jay</div>
+          <div class="species-card-sci">Cyanocitta cristata</div>
+          <div class="species-card-meta">
+            <span class="species-card-tag" style="background:#E8F0FE;color:#007AFF;">Corvid</span>
+          </div>
+        </div>
+      </div>
+      <div class="species-card">
+        <div class="species-card-img">
+          <img src="https://images.unsplash.com/photo-1606567595334-d39972c85dbe?w=400&q=80" alt="Owl">
+          <div class="audio-indicator"><i class="fas fa-volume-high"></i> Call</div>
+        </div>
+        <div class="species-card-info">
+          <div class="species-card-name">Great Horned Owl</div>
+          <div class="species-card-sci">Bubo virginianus</div>
+          <div class="species-card-meta">
+            <span class="species-card-tag" style="background:#F0F0FE;color:#AF52DE;">Raptor</span>
+          </div>
+        </div>
+      </div>
+      <div class="species-card">
+        <div class="species-card-img">
+          <img src="https://images.unsplash.com/photo-1557401620-67270b4f9067?w=400&q=80" alt="Hummingbird">
+        </div>
+        <div class="species-card-info">
+          <div class="species-card-name">Ruby-throated</div>
+          <div class="species-card-sci">Archilochus colubris</div>
+          <div class="species-card-meta">
+            <span class="species-card-tag" style="background:#E8F9ED;color:#34C759;">Nectar</span>
+          </div>
+        </div>
+      </div>
+      <div class="species-card">
+        <div class="species-card-img">
+          <img src="https://images.unsplash.com/photo-1588702547919-26089e690ecc?w=400&q=80" alt="Woodpecker">
+          <div class="audio-indicator"><i class="fas fa-volume-high"></i> Drum</div>
+        </div>
+        <div class="species-card-info">
+          <div class="species-card-name">Pileated</div>
+          <div class="species-card-sci">Dryocopus pileatus</div>
+          <div class="species-card-meta">
+            <span class="species-card-tag" style="background:#FEF0F0;color:#FF3B30;">Woodpecker</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <span class="section-title">Bird Songs</span>
+      <span class="section-more">Library</span>
+    </div>
+
+    <div class="sound-card">
+      <div class="sound-play" style="background:linear-gradient(135deg,#FF9500,#FF6B00);">
+        <i class="fas fa-play"></i>
+      </div>
+      <div class="sound-info">
+        <div class="sound-name">Northern Cardinal Song</div>
+        <div class="sound-waves">
+          <div class="sw-bar" style="height:6px"></div><div class="sw-bar" style="height:12px"></div>
+          <div class="sw-bar" style="height:4px"></div><div class="sw-bar" style="height:16px"></div>
+          <div class="sw-bar" style="height:8px"></div><div class="sw-bar" style="height:14px"></div>
+          <div class="sw-bar" style="height:6px"></div><div class="sw-bar" style="height:18px"></div>
+          <div class="sw-bar" style="height:10px"></div><div class="sw-bar" style="height:14px"></div>
+          <div class="sw-bar" style="height:4px"></div><div class="sw-bar" style="height:16px"></div>
+          <div class="sw-bar" style="height:8px"></div><div class="sw-bar" style="height:12px"></div>
+          <div class="sw-bar" style="height:6px"></div><div class="sw-bar" style="height:18px"></div>
+          <div class="sw-bar" style="height:10px"></div><div class="sw-bar" style="height:14px"></div>
+        </div>
+      </div>
+      <div class="sound-dur">0:12</div>
+    </div>
+    <div class="sound-card">
+      <div class="sound-play" style="background:linear-gradient(135deg,#007AFF,#0A84FF);">
+        <i class="fas fa-play"></i>
+      </div>
+      <div class="sound-info">
+        <div class="sound-name">American Robin Morning Call</div>
+        <div class="sound-waves">
+          <div class="sw-bar" style="height:8px"></div><div class="sw-bar" style="height:14px"></div>
+          <div class="sw-bar" style="height:6px"></div><div class="sw-bar" style="height:18px"></div>
+          <div class="sw-bar" style="height:10px"></div><div class="sw-bar" style="height:12px"></div>
+          <div class="sw-bar" style="height:4px"></div><div class="sw-bar" style="height:16px"></div>
+          <div class="sw-bar" style="height:8px"></div><div class="sw-bar" style="height:14px"></div>
+          <div class="sw-bar" style="height:6px"></div><div class="sw-bar" style="height:18px"></div>
+          <div class="sw-bar" style="height:10px"></div><div class="sw-bar" style="height:12px"></div>
+          <div class="sw-bar" style="height:4px"></div><div class="sw-bar" style="height:16px"></div>
+          <div class="sw-bar" style="height:8px"></div><div class="sw-bar" style="height:14px"></div>
+        </div>
+      </div>
+      <div class="sound-dur">0:18</div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-compass"></i>
+      <span>Explore</span>
+    </div>
+    <div class="tab-center">
+      <i class="fas fa-plus"></i>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-book-open"></i>
+      <span>Collection</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>

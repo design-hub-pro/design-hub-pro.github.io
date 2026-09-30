@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SlopeSense — ski speed and route sensor</title>
+<style>
+  :root{ --ink:#16202B; --soft:#5A6B7A; --line:#E2DED7; --blue:#0B4F6C; --orange:#C4531E; --paper:#FDFCFA; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--paper); color:var(--ink);
+        font:17px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+        overflow-x:hidden; }
+  .wrap{ max-width:720px; margin:0 auto; padding:0 24px; }
+  .wide{ max-width:960px; margin:0 auto; padding:0 24px; }
+  h1,h2,h3{ font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif; font-weight:600; letter-spacing:-0.01em; }
+  h1{ font-size:40px; line-height:1.15; margin:0 0 18px; }
+  h2{ font-size:27px; line-height:1.25; margin:0 0 14px; }
+  h3{ font-size:19px; margin:0 0 8px; }
+  p{ margin:0 0 16px; }
+  .lead{ font-size:20px; color:var(--soft); }
+  .sm{ font-size:15px; color:var(--soft); }
+  .xs{ font-size:13px; color:var(--soft); }
+  section{ padding:52px 0; border-top:1px solid var(--line); }
+  .eyebrow{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--orange); font-weight:600; margin-bottom:10px; }
+  img{ max-width:100%; display:block; border-radius:6px; }
+  svg{ max-width:100%; height:auto; display:block; }
+  figure{ margin:0 0 8px; }
+  figcaption{ font-size:13px; color:var(--soft); margin-top:8px; }
+  a{ color:var(--blue); }
+  .cite{ font-size:13px; color:var(--soft); }
+  .cite a{ color:var(--soft); }
+  table{ width:100%; border-collapse:collapse; font-size:15px; }
+  th,td{ text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ font-weight:600; font-size:13px; letter-spacing:.04em; text-transform:uppercase; color:var(--soft); }
+  td.num{ text-align:right; white-space:nowrap; }
+  .scroll{ overflow-x:auto; }
+  .row{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin:26px 0; }
+  .row div{ padding:18px; border:1px solid var(--line); border-radius:8px; background:#fff; font-size:15px; }
+  .row b{ display:block; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--orange); margin-bottom:6px; }
+  .flag{ background:#FBF3EC; border-left:3px solid var(--orange); padding:20px 22px; border-radius:0 6px 6px 0; margin:26px 0; }
+  .flag p:last-child{ margin-bottom:0; }
+  .duo{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:640px){ .duo{ grid-template-columns:1fr; } }
+  details{ border-top:1px solid var(--line); padding:18px 0; }
+  details summary{ cursor:pointer; font-weight:600; list-style:none; font-size:16px; }
+  details summary::-webkit-details-marker{ display:none; }
+  details summary::before{ content:"+ "; color:var(--orange); }
+  details[open] summary::before{ content:"– "; }
+  details .body{ padding-top:14px; font-size:15px; color:#33414F; }
+  details .body ul{ padding-left:20px; }
+  details .body li{ margin-bottom:6px; }
+  footer{ border-top:1px solid var(--line); padding:34px 0 60px; }
+  .backlink{ display:inline-block; margin-bottom:26px; font-size:14px; }
+</style>
+</head>
+<body>
+
+<div class="wrap" style="padding-top:34px;">
+  <a class="backlink" href="../index.html">← Overview</a>
+</div>
+
+<!-- HERO -->
+<section style="border-top:0;padding-top:0;">
+  <div class="wrap">
+    <div class="eyebrow">Ski hardware</div>
+    <h1>SlopeSense tracks how you actually skied</h1>
+    <p class="lead">A chest-mounted sensor that logs speed, route and vertical descent all day, then turns the log into stats and a few concrete suggestions once you're back at the lodge.</p>
+    <p class="sm">No phone on the hill, and it has to survive a full day below freezing.</p>
+  </div>
+  <div class="wide" style="margin-top:32px;">
+    <figure><img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1788989548287-image-1.png" alt="Skier descending a groomed run wearing the sensor pod on a chest strap"></figure>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">How it works</div>
+    <h2>Five sensors, one chip, no screen</h2>
+    <div class="row">
+      <div><b>Sense</b>GPS, IMU and altimeter sample</div>
+      <div><b>Process</b>ESP32-S3 timestamps and fuses data</div>
+      <div><b>Record</b>Written to onboard microSD</div>
+      <div><b>Sync</b>Pulled to phone after skiing</div>
+      <div><b>Decide</b>App turns log into stats</div>
+    </div>
+  </div>
+  <div class="wide duo">
+    <figure><img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1788989548124-image-1.png" alt="The sensor pod charging over USB-C on a lodge boot-room bench"></figure>
+    <figure>
+<svg viewBox="0 0 1000 400" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#16202B"/>
+  </marker>
+</defs>
+<rect width="1000" height="400" fill="#FDFCFA"/>
+<text x="40" y="30" font-size="12" letter-spacing="1.5" fill="#C4531E" font-weight="700">SENSE</text>
+    <rect x="40" y="40" width="190" height="64" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/>
+    <text x="135" y="68" text-anchor="middle" font-size="15" font-weight="600" fill="#16202B">GPS module</text>
+    <text x="135" y="88" text-anchor="middle" font-size="12" fill="#5A6B7A">MAX-M10S · 5 Hz Doppler</text>
+    <rect x="40" y="124" width="190" height="64" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/>
+    <text x="135" y="152" text-anchor="middle" font-size="15" font-weight="600" fill="#16202B">IMU</text>
+    <text x="135" y="172" text-anchor="middle" font-size="12" fill="#5A6B7A">ICM-42688-P · 200 Hz</text>
+    <rect x="40" y="208" width="190" height="64" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/>
+    <text x="135" y="236" text-anchor="middle" font-size="15" font-weight="600" fill="#16202B">Altimeter</text>
+    <text x="135" y="256" text-anchor="middle" font-size="12" fill="#5A6B7A">BMP390 · 25 Hz</text>
+<text x="330" y="30" font-size="12" letter-spacing="1.5" fill="#C4531E" font-weight="700">PROCESS</text>
+    <rect x="330" y="124" width="190" height="80" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/>
+    <text x="425" y="160" text-anchor="middle" font-size="15" font-weight="600" fill="#16202B">MCU</text>
+    <text x="425" y="180" text-anchor="middle" font-size="12" fill="#5A6B7A">ESP32-S3 · timestamps + fuses</text>
+<line x1="230" y1="72" x2="330" y2="150" stroke="#16202B" stroke-width="1.6" marker-end="url(#arrow)"/>
+<line x1="230" y1="156" x2="330" y2="164" stroke="#16202B" stroke-width="1.6" marker-end="url(#arrow)"/>
+<line x1="230" y1="240" x2="330" y2="190" stroke="#16202B" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="620" y="30" font-size="12" letter-spacing="1.5" fill="#C4531E" font-weight="700">RECORD</text>
+    <rect x="620" y="40" width="180" height="64" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/>
+    <text x="710" y="68" text-anchor="middle" font-size="15" font-weight="600" fill="#16202B">microSD</text>
+    <text x="710" y="88" text-anchor="middle" font-size="12" fill="#5A6B7A">CSV · FAT32 · onboard</text>
+<line x1="520" y1="150" x2="620" y2="72" stroke="#16202B" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="620" y="146" font-size="12" letter-spacing="1.5" fill="#C4531E" font-weight="700">SYNC (post-run)</text>
+    <rect x="620" y="160" width="180" height="64" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/>
+    <text x="710" y="188" text-anchor="middle" font-size="15" font-weight="600" fill="#16202B">BLE 5.0</text>
+    <text x="710" y="208" text-anchor="middle" font-size="12" fill="#5A6B7A">paired to phone</text>
+<line x1="520" y1="178" x2="620" y2="192" stroke="#16202B" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="850" y="146" font-size="12" letter-spacing="1.5" fill="#C4531E" font-weight="700">DECIDE</text>
+    <rect x="840" y="160" width="130" height="64" rx="8" fill="#fff" stroke="#16202B" stroke-width="1.5"/>
+    <text x="905" y="188" text-anchor="middle" font-size="15" font-weight="600" fill="#16202B">Phone app</text>
+    <text x="905" y="208" text-anchor="middle" font-size="12" fill="#5A6B7A">stats + tips</text>
+<line x1="800" y1="192" x2="840" y2="192" stroke="#16202B" stroke-width="1.6" marker-end="url(#arrow)"/>
+<line x1="40" y1="330" x2="960" y2="330" stroke="#E2DED7" stroke-width="1"/>
+<text x="40" y="360" font-size="13" fill="#5A6B7A">Runs all day on local storage. Speed, route and vertical descent are logged with no phone on the hill;</text>
+<text x="40" y="380" font-size="13" fill="#5A6B7A">the app pulls the log over Bluetooth and turns it into stats and recommendations once skiing stops.</text>
+</svg>
+    </figure>
+  </div>
+  <div class="wrap" style="margin-top:24px;">
+    <p>The one step that is not obvious: GPS speed comes from the Doppler shift on the satellite signal, not from differencing two position fixes, which is why it holds to about 0.1 m/s even when the position itself wanders a few metres under trees. Everything is buffered on the pod; the phone is needed only once, after the lift closes, to pull the day's log over Bluetooth.</p>
+  </div>
+</section>
+
+<!-- HOW WE KNOW IT WORKS -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">How we know it works</div>
+    <h2>Checked against a radar gun, not a spec sheet</h2>
+    <p>The GPS chip's datasheet claims 0.1 m/s velocity accuracy from Doppler shift, which is a lab number, not a ski-hill one. Trees, valley walls and a skier's own body blocking the antenna at speed all degrade a real fix, so the number that matters is what the pod reads when someone is actually skiing.</p>
+    <p>The check: a handheld radar gun (accurate to ±1 mph on its own spec) stationed at the base of a groomed run, aimed through a 30 m timed gate. A skier wearing the pod, plus a Garmin ski watch as a second reference, passes through the gate at a range of speeds across a full day.</p>
+    <p><b>Acceptance number:</b> mean absolute speed error under 3% against the radar gun, sampled over 40 passes across 4 sessions spanning 15 to 55 km/h. Route distance over a full day, checked against the Garmin watch, has to agree within 5%.</p>
+    <p>If it misses: a consistent bias across all speeds points to antenna placement or multipath off the jacket fabric, fixed with a per-unit calibration offset written to flash. A bias that only shows up in trees or narrow valleys is a coverage limit, not a bug, and gets called out to the user in the app rather than papered over.</p>
+    <p class="cite">Reference accuracy figures: u-blox MAX-M10 series datasheet (GPS Doppler velocity), Bushnell Velocity Speed Gun specification (±1 mph).</p>
+  </div>
+  <div class="wide duo" style="margin-top:8px;">
+    <figure>
+<svg viewBox="0 0 1000 440" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui">
+<rect width="1000" height="440" fill="#FDFCFA"/>
+<text x="40" y="30" font-size="12" letter-spacing="1.5" fill="#C4531E" font-weight="700">VALIDATION RIG · BASE OF RUN, PLAN VIEW</text>
+<path d="M40,340 L720,180 L960,140" fill="none" stroke="#E2DED7" stroke-width="60" stroke-linecap="round"/>
+<path d="M40,340 L720,180 L960,140" fill="none" stroke="#16202B" stroke-width="1" stroke-dasharray="6,6"/>
+<line x1="560" y1="240" x2="600" y2="200" stroke="#16202B" stroke-width="2"/>
+<line x1="700" y1="200" x2="740" y2="160" stroke="#16202B" stroke-width="2"/>
+<text x="600" y="255" font-size="12" fill="#5A6B7A">gate in</text>
+<text x="745" y="150" font-size="12" fill="#5A6B7A">gate out</text>
+<text x="640" y="300" font-size="13" fill="#16202B" font-weight="600">timed gate, 30 m</text>
+<circle cx="630" cy="222" r="7" fill="#16202B"/>
+<line x1="630" y1="222" x2="655" y2="205" stroke="#16202B" stroke-width="2"/>
+<rect x="622" y="212" width="10" height="8" rx="2" fill="#C4531E"/>
+<line x1="600" y1="130" x2="628" y2="216" stroke="#5A6B7A" stroke-width="1" stroke-dasharray="3,3"/>
+<rect x="380" y="106" width="290" height="26" fill="#FDFCFA"/>
+<text x="380" y="124" font-size="12" fill="#5A6B7A">skier: sensor pod + reference GPS watch</text>
+<circle cx="820" cy="300" r="9" fill="#16202B"/>
+<rect x="826" y="292" width="26" height="8" rx="2" fill="#16202B"/>
+<line x1="826" y1="296" x2="700" y2="205" stroke="#C4531E" stroke-width="1.4" stroke-dasharray="5,4"/>
+<text x="800" y="330" font-size="13" font-weight="600" fill="#16202B">radar gun</text>
+<text x="770" y="348" font-size="12" fill="#5A6B7A">accurate to ± 1 mph</text>
+<text x="770" y="364" font-size="12" fill="#5A6B7A">15 m off the line, 20° angle</text>
+<line x1="40" y1="380" x2="960" y2="380" stroke="#E2DED7" stroke-width="1"/>
+<text x="40" y="405" font-size="13" fill="#5A6B7A">40 passes across 4 sessions, 15-55 km/h, checked against the radar gun; a Garmin ski watch worn</text>
+<text x="40" y="420" font-size="13" fill="#5A6B7A">the same day cross-checks the full route and distance.</text>
+</svg>
+      <figcaption>Plan view of the check rig at the base of a run.</figcaption>
+    </figure>
+    <figure>
+<svg viewBox="0 0 1000 360" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui">
+<rect width="1000" height="360" fill="#FDFCFA"/>
+<text x="40" y="22" font-size="12" letter-spacing="1.5" fill="#C4531E" font-weight="700">ONE RUN · SPEED VS. TIME</text>
+<line x1="70" y1="300.0" x2="930" y2="300.0" stroke="#E2DED7" stroke-width="1"/><text x="60" y="304.0" text-anchor="end" font-size="12" fill="#5A6B7A">0</text><line x1="70" y1="240.0" x2="930" y2="240.0" stroke="#E2DED7" stroke-width="1"/><text x="60" y="244.0" text-anchor="end" font-size="12" fill="#5A6B7A">15</text><line x1="70" y1="180.0" x2="930" y2="180.0" stroke="#E2DED7" stroke-width="1"/><text x="60" y="184.0" text-anchor="end" font-size="12" fill="#5A6B7A">30</text><line x1="70" y1="120.0" x2="930" y2="120.0" stroke="#E2DED7" stroke-width="1"/><text x="60" y="124.0" text-anchor="end" font-size="12" fill="#5A6B7A">45</text><line x1="70" y1="60.0" x2="930" y2="60.0" stroke="#E2DED7" stroke-width="1"/><text x="60" y="64.0" text-anchor="end" font-size="12" fill="#5A6B7A">60</text>
+<line x1="70" y1="300" x2="70" y2="306" stroke="#5A6B7A" stroke-width="1"/><text x="70" y="322" text-anchor="middle" font-size="12" fill="#5A6B7A">0</text><line x1="213.3" y1="300" x2="213.3" y2="306" stroke="#5A6B7A" stroke-width="1"/><text x="213.3" y="322" text-anchor="middle" font-size="12" fill="#5A6B7A">2</text><line x1="356.7" y1="300" x2="356.7" y2="306" stroke="#5A6B7A" stroke-width="1"/><text x="356.7" y="322" text-anchor="middle" font-size="12" fill="#5A6B7A">4</text><line x1="500.0" y1="300" x2="500.0" y2="306" stroke="#5A6B7A" stroke-width="1"/><text x="500.0" y="322" text-anchor="middle" font-size="12" fill="#5A6B7A">6</text><line x1="643.3" y1="300" x2="643.3" y2="306" stroke="#5A6B7A" stroke-width="1"/><text x="643.3" y="322" text-anchor="middle" font-size="12" fill="#5A6B7A">8</text><line x1="786.7" y1="300" x2="786.7" y2="306" stroke="#5A6B7A" stroke-width="1"/><text x="786.7" y="322" text-anchor="middle" font-size="12" fill="#5A6B7A">10</text><line x1="930.0" y1="300" x2="930.0" y2="306" stroke="#5A6B7A" stroke-width="1"/><text x="930.0" y="322" text-anchor="middle" font-size="12" fill="#5A6B7A">12</text>
+<text x="25" y="46" font-size="12" fill="#5A6B7A">km/h</text>
+<text x="900" y="342" font-size="12" fill="#5A6B7A">minutes</text>
+<path d="M 70.0,294.0 L 74.3,292.9 L 78.6,291.9 L 82.9,290.9 L 87.2,290.0 L 91.5,289.3 L 95.8,288.7 L 100.1,288.3 L 104.4,288.1 L 108.7,288.0 L 113.0,288.2 L 117.3,288.5 L 121.6,289.0 L 125.9,289.7 L 130.2,290.5 L 134.5,291.4 L 138.8,292.4 L 143.1,293.5 L 147.4,294.6 L 151.7,295.6 L 156.0,296.7 L 160.3,297.6 L 164.6,298.4 L 168.9,299.0 L 173.2,299.5 L 177.5,299.9 L 181.8,300.0 L 186.1,299.9 L 190.4,299.7 L 194.7,299.2 L 199.0,298.6 L 203.3,297.9 L 207.6,297.0 L 211.9,296.0 L 216.2,295.0 L 220.5,293.9 L 224.8,292.8 L 229.1,291.8 L 233.4,290.8 L 237.7,290.0 L 242.0,289.2 L 246.3,288.7 L 250.6,288.3 L 254.9,288.0 L 259.2,287.0 L 263.5,274.5 L 267.8,263.9 L 272.1,254.4 L 276.4,245.6 L 280.7,237.5 L 285.0,229.9 L 289.3,222.9 L 293.6,216.4 L 297.9,210.4 L 302.2,204.9 L 306.5,199.9 L 310.8,195.3 L 315.1,191.2 L 319.4,187.6 L 323.7,184.4 L 328.0,181.5 L 332.3,179.0 L 336.6,176.9 L 340.9,175.0 L 345.2,173.3 L 349.5,171.9 L 353.8,170.6 L 358.1,169.5 L 362.4,168.4 L 366.7,167.3 L 371.0,166.3 L 375.3,165.2 L 379.6,164.0 L 383.9,162.7 L 388.2,161.2 L 392.5,159.6 L 396.8,157.8 L 401.1,155.8 L 405.4,153.6 L 409.7,151.2 L 414.0,148.7 L 418.3,145.9 L 422.6,143.0 L 426.9,139.9 L 431.2,136.7 L 435.5,133.5 L 439.8,130.1 L 444.1,126.8 L 448.4,123.5 L 452.7,120.3 L 457.0,117.1 L 461.3,114.2 L 465.6,111.4 L 469.9,108.8 L 474.2,106.6 L 478.5,104.6 L 482.8,103.0 L 487.1,101.7 L 491.4,100.8 L 495.7,100.3 L 500.0,100.2 L 504.3,100.5 L 508.6,101.2 L 512.9,102.3 L 517.2,103.8 L 521.5,105.7 L 525.8,107.9 L 530.1,110.4 L 534.4,113.2 L 538.7,116.3 L 543.0,119.6 L 547.3,123.0 L 551.6,126.6 L 555.9,130.3 L 560.2,134.0 L 564.5,137.7 L 568.8,141.4 L 573.1,145.1 L 577.4,148.6 L 581.7,152.0 L 586.0,155.2 L 590.3,158.3 L 594.6,161.2 L 598.9,163.9 L 603.2,166.4 L 607.5,168.7 L 611.8,170.8 L 616.1,172.7 L 620.4,174.5 L 624.7,176.2 L 629.0,177.7 L 633.3,179.2 L 637.6,180.7 L 641.9,182.2 L 646.2,183.7 L 650.5,185.4 L 654.8,187.2 L 659.1,189.2 L 663.4,191.4 L 667.7,194.0 L 672.0,196.8 L 676.3,200.0 L 680.6,203.6 L 684.9,207.6 L 689.2,212.2 L 693.5,217.2 L 697.8,222.7 L 702.1,228.9 L 706.4,235.6 L 710.7,243.0 L 715.0,251.2 L 719.3,260.4 L 723.6,270.9 L 727.9,284.2 L 732.2,289.4 L 736.5,291.1 L 740.8,292.6 L 745.1,293.8 L 749.4,294.8 L 753.7,295.7 L 758.0,296.4 L 762.3,297.0 L 766.6,297.5 L 770.9,297.9 L 775.2,298.2 L 779.5,298.5 L 783.8,298.8 L 788.1,299.0 L 792.4,299.1 L 796.7,299.3 L 801.0,299.4 L 805.3,299.5 L 809.6,299.6 L 813.9,299.7 L 818.2,299.7 L 822.5,299.8 L 826.8,299.8 L 831.1,299.8 L 835.4,299.9 L 839.7,299.9 L 844.0,299.9 L 848.3,299.9 L 852.6,299.9 L 856.9,299.9 L 861.2,300.0 L 865.5,300.0 L 869.8,300.0 L 874.1,300.0 L 878.4,300.0 L 882.7,300.0 L 887.0,300.0 L 891.3,300.0 L 895.6,300.0 L 899.9,300.0 L 904.2,300.0 L 908.5,300.0 L 912.8,300.0 L 917.1,300.0 L 921.4,300.0 L 925.7,300.0 L 930.0,300.0" fill="none" stroke="#0B4F6C" stroke-width="2.4"/>
+<rect x="91.5" y="258.0" width="130" height="30" fill="#FDFCFA"/>
+<text x="91.5" y="276.0" font-size="12" fill="#5A6B7A">lift / flat traverse</text>
+<circle cx="256.3" cy="292.0" r="4" fill="#16202B"/>
+<rect x="246.3" y="252.0" width="120" height="28" fill="#FDFCFA"/>
+<text x="246.3" y="270.0" font-size="12" fill="#16202B" font-weight="600">descent start</text>
+<circle cx="385.3" cy="162.7" r="5" fill="none" stroke="#16202B" stroke-width="2"/>
+<rect x="315.3" y="122.7" width="150" height="30" fill="#FDFCFA"/>
+<text x="315.3" y="140.7" font-size="12" fill="#16202B" font-weight="600">radar check: 34 vs 35 km/h</text>
+<circle cx="500.0" cy="100.2" r="4.5" fill="#C4531E"/>
+<rect x="490.0" y="60.2" width="140" height="28" fill="#FDFCFA"/>
+<text x="490.0" y="78.2" font-size="12" fill="#C4531E" font-weight="700">top speed 50 km/h</text>
+<line x1="70" y1="300" x2="930" y2="300" stroke="#16202B" stroke-width="1.4"/>
+<line x1="70" y1="60" x2="70" y2="300" stroke="#16202B" stroke-width="1.4"/>
+</svg>
+      <figcaption><b>Illustrative</b> — one simulated run, not a recorded log.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- CHANGES TO PLAN -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Changes to the original plan</div>
+    <h2>Three corrections, all in scope before build</h2>
+
+    <h3>Cut: real-time edge-angle coaching</h3>
+    <p>A natural next feature is telling a skier their lean angle mid-turn, the way pressure-insole products do. Validating a ±1° edge-angle claim needs a synchronized motion-capture reference, which is out of reach for a season's build. We are shipping GPS speed, route and vertical descent only, all of which validate against a radar gun and a consumer GPS watch. Edge angle stays a stretch goal, not a claim.</p>
+
+    <h3>Correct: speed alerts should not be a fixed number</h3>
+    <p>The original idea used one global "too fast" threshold, borrowed from general ski-safety guidance. The same 40 km/h is cautious on an empty green run and reckless on an icy, crowded blue one. The fix: the app flags a run only when a skier's own speed sits above the 90th percentile of their last 10 sessions on comparable terrain, not against a number nobody calibrated to the slope.</p>
+
+    <h3>Add: charging and regulation, missing from the first parts list</h3>
+    <p>The original list had sensors and a battery but no path to charge it or step 3.7 V down cleanly to the 3.3 V the MCU and GPS need. Added: an MCP73831 charge IC behind a USB-C port, and an AP2112 regulator rated to 600 mA against a combined draw near 60 mA, leaving headroom for the microSD's 100 mA write bursts without browning out the GPS mid-fix.</p>
+  </div>
+</section>
+
+<!-- PARTS -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Parts</div>
+    <h2>About $80 in parts, hobbyist pricing</h2>
+  </div>
+  <div class="wide duo" style="margin-bottom:28px;">
+    <figure><img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1788989548708-image-1.png" alt="The sensor pod on a wood surface next to a ruler, showing the antenna, LED and USB-C port"></figure>
+    <figure><img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1788989549322-image-1.png" alt="The pod clipped into a chest-strap harness worn over a ski jacket"></figure>
+  </div>
+  <div class="wrap">
+    <div class="scroll">
+    <table>
+      <tr><th>Part</th><th>What it does</th><th>Price</th></tr>
+      <tr><td>ESP32-S3 module</td><td>MCU + BLE, logs and syncs</td><td class="num">$6</td></tr>
+      <tr><td>u-blox MAX-M10S</td><td>Position and Doppler speed</td><td class="num">$14</td></tr>
+      <tr><td>ICM-42688-P IMU</td><td>Motion and vibration sensing</td><td class="num">$8</td></tr>
+      <tr><td>BMP390 altimeter</td><td>Elevation, vertical descent</td><td class="num">$6</td></tr>
+      <tr><td>Ceramic GPS antenna</td><td>Sky-facing reception</td><td class="num">$5</td></tr>
+      <tr><td>microSD module + 32 GB card</td><td>Local storage, all day</td><td class="num">$8</td></tr>
+      <tr><td>LiPo battery, 1200 mAh</td><td>Power source</td><td class="num">$7</td></tr>
+      <tr><td>MCP73831 + USB-C port</td><td>Charging circuit</td><td class="num">$3</td></tr>
+      <tr><td>AP2112 3.3 V regulator</td><td>Power regulation</td><td class="num">$1</td></tr>
+      <tr><td>Enclosure, gasket, chest strap</td><td>Housing and mount</td><td class="num">$16</td></tr>
+      <tr><td>Wiring, connectors, foam</td><td>Assembly</td><td class="num">$6</td></tr>
+      <tr><td><b>Total</b></td><td></td><td class="num"><b>$80</b></td></tr>
+    </table>
+    </div>
+    <p class="sm" style="margin-top:16px;">Prices are approximate, single-unit hobbyist rates. Build two: a spare pod costs $80, a cracked one mid-competition costs a weekend. Cutting the altimeter saves $6 but loses a clean vertical-descent number, since GPS altitude alone drifts about 8 m against the barometer's roughly 1 m.</p>
+  </div>
+  <div class="wide" style="margin-top:8px;">
+<svg viewBox="0 0 1000 400" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui">
+<rect width="1000" height="400" fill="#FDFCFA"/>
+<text x="40" y="26" font-size="12" letter-spacing="1.5" fill="#C4531E" font-weight="700">EXPLODED STACK · SIDE PROFILE</text>
+<rect x="470" y="30" width="60" height="40" rx="6" fill="#F3EFE8" stroke="#16202B" stroke-width="1.5"/><line x1="530" y1="50" x2="740" y2="50" stroke="#E2DED7" stroke-width="1"/><text x="750" y="47" font-size="14" font-weight="600" fill="#16202B">Shell top</text><text x="750" y="65" font-size="12" fill="#5A6B7A">Polycarbonate + TPU bumper · 2.2 mm</text>
+<rect x="350" y="88" width="300" height="40" rx="6" fill="#fff" stroke="#16202B" stroke-width="1.5"/><line x1="650" y1="108" x2="740" y2="108" stroke="#E2DED7" stroke-width="1"/><text x="750" y="105" font-size="14" font-weight="600" fill="#16202B">GPS patch antenna</text><text x="750" y="123" font-size="12" fill="#5A6B7A">Ceramic, sky-facing · 3 mm</text>
+<rect x="330" y="146" width="340" height="40" rx="6" fill="#EFE3D8" stroke="#16202B" stroke-width="1.5"/><line x1="670" y1="166" x2="740" y2="166" stroke="#E2DED7" stroke-width="1"/><text x="750" y="163" font-size="14" font-weight="600" fill="#16202B">Gasket</text><text x="750" y="181" font-size="12" fill="#5A6B7A">Silicone O-ring seal · IP66</text>
+<rect x="350" y="204" width="300" height="40" rx="6" fill="#fff" stroke="#16202B" stroke-width="1.5"/><line x1="650" y1="224" x2="740" y2="224" stroke="#E2DED7" stroke-width="1"/><text x="750" y="221" font-size="14" font-weight="600" fill="#16202B">PCB</text><text x="750" y="239" font-size="12" fill="#5A6B7A">ESP32-S3, IMU, baro, regulator · 1.6 mm</text>
+<rect x="350" y="262" width="300" height="40" rx="6" fill="#F3EFE8" stroke="#16202B" stroke-width="1.5"/><line x1="650" y1="282" x2="740" y2="282" stroke="#E2DED7" stroke-width="1"/><text x="750" y="279" font-size="14" font-weight="600" fill="#16202B">Battery</text><text x="750" y="297" font-size="12" fill="#5A6B7A">LiPo pouch, 1200 mAh · 5.8 mm</text>
+<rect x="330" y="320" width="340" height="40" rx="6" fill="#fff" stroke="#16202B" stroke-width="1.5"/><line x1="670" y1="340" x2="740" y2="340" stroke="#E2DED7" stroke-width="1"/><text x="750" y="337" font-size="14" font-weight="600" fill="#16202B">Base plate</text><text x="750" y="355" font-size="12" fill="#5A6B7A">Glass-filled nylon, strap loops · 2.5 mm</text>
+<line x1="500" y1="20" x2="500" y2="370" stroke="#C4531E" stroke-width="1" stroke-dasharray="4,4"/>
+</svg>
+  </div>
+</section>
+
+<!-- WHAT COULD GO WRONG -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">What could go wrong</div>
+    <h2>The hard part is telling a real turn from noise</h2>
+    <p>Wiring five sensors to one MCU is a weekend. Writing firmware that reliably tells "start of run" from "still fiddling with boot buckles," or a real speed spike from a GPS glitch bouncing off a lift tower, is the actual work, and it needs a full season of logged runs to tune.</p>
+    <p><b>Safety valve:</b> if the ceramic patch antenna cannot hold a fix through tree cover by early December, fall back to a puck antenna mounted on the shoulder strap instead of the chest pod, which trades a slightly bulkier cable for a clearer sky view. That decision has to be made by the first test weekend, not mid-season.</p>
+    <p>The dull failure mode: an elastic chest strap loosens over a full day of falls and re-buckling, and a pod that has slid down to the sternum reads worse GPS and noisier IMU data than one that never moved. A strap with a positive mechanical stop, not just friction, is the fix.</p>
+  </div>
+  <div class="wide" style="margin-top:24px;">
+    <figure><img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1788989548864-image-1.png" alt="Gloved hands buckling the chest-strap harness with the pod attached, before a run"></figure>
+  </div>
+</section>
+
+<!-- APPENDIX -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">For the specialist</div>
+    <h2>Build detail</h2>
+    <p class="sm">Working specification. Not needed to understand the project.</p>
+  </div>
+  <div class="wide" style="margin:20px 0 8px;">
+<svg viewBox="0 0 1180 460" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui">
+<defs>
+  <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#16202B"/>
+  </marker>
+</defs>
+<rect width="1180" height="460" fill="#FDFCFA"/>
+<text x="40" y="26" font-size="12" letter-spacing="1.5" fill="#C4531E" font-weight="700">POWER CHAIN</text>
+    <rect x="40" y="90" width="150" height="70" rx="7" fill="#fff" stroke="#16202B" stroke-width="1.5"/>
+    <text x="115" y="121" text-anchor="middle" font-size="14" font-weight="600" fill="#16202B">USB-C</text>
+    <text x="115" y="140" text-anchor="middle" font-size="12" fill="#5A6B7A">5 V in, charging only</text>
+    <rect x="40" y="190" width="150" height="70" rx="7" fill="#fff" stroke="#16202B" stroke-width="1.5"/>
+    <text x="115" y="221" text-anchor="middle" font-size="14" font-weight="600" fill="#16202B">Charge IC</text>
+    <text x="115" y="240" text-anchor="middle" font-size="12" fill="#5A6B7A">MCP73831 · 500 mA</text>
+<line x1="115" y1="160" x2="115" y2="190" stroke="#16202B" stroke-width="1.6" marker-end="url(#arrow2)"/>
+    <rect x="250" y="140" width="160" height="70" rx="7" fill="#fff" stroke="#16202B" stroke-width="1.5"/>
+    <text x="330" y="171" text-anchor="middle" font-size="14" font-weight="600" fill="#16202B">LiPo battery</text>
+    <text x="330" y="190" text-anchor="middle" font-size="12" fill="#5A6B7A">3.7 V · 1200 mAh</text>
+<line x1="190" y1="225" x2="250" y2="185" stroke="#16202B" stroke-width="1.6" marker-end="url(#arrow2)"/>
+<line x1="115" y1="225" x2="180" y2="225" stroke="#16202B" stroke-width="1.6" marker-end="url(#arrow2)"/>
+    <rect x="470" y="140" width="120" height="70" rx="7" fill="#fff" stroke="#16202B" stroke-width="1.5"/>
+    <text x="530" y="171" text-anchor="middle" font-size="14" font-weight="600" fill="#16202B">Regulator</text>
+    <text x="530" y="190" text-anchor="middle" font-size="12" fill="#5A6B7A">AP2112 · 3.3 V / 600 mA</text>
+<line x1="410" y1="175" x2="470" y2="175" stroke="#16202B" stroke-width="1.6" marker-end="url(#arrow2)"/>
+<line x1="530" y1="210" x2="530" y2="270" stroke="#16202B" stroke-width="1.6"/>
+<line x1="530" y1="270" x2="1140" y2="270" stroke="#16202B" stroke-width="1.6"/>
+<text x="835" y="258" text-anchor="middle" font-size="12" fill="#5A6B7A">3.3 V rail, common to all loads</text>
+<line x1="570" y1="270" x2="570" y2="320" stroke="#16202B" stroke-width="1.6"/>
+    <rect x="495" y="320" width="150" height="62" rx="7" fill="#fff" stroke="#16202B" stroke-width="1.5"/>
+    <text x="570" y="347" text-anchor="middle" font-size="13" font-weight="600" fill="#16202B">MCU</text>
+    <text x="570" y="366" text-anchor="middle" font-size="11" fill="#5A6B7A">ESP32-S3 · 80 mA</text>
+<line x1="746.7" y1="270" x2="746.7" y2="320" stroke="#16202B" stroke-width="1.6"/>
+    <rect x="671.7" y="320" width="150" height="62" rx="7" fill="#fff" stroke="#16202B" stroke-width="1.5"/>
+    <text x="746.7" y="347" text-anchor="middle" font-size="13" font-weight="600" fill="#16202B">GPS</text>
+    <text x="746.7" y="366" text-anchor="middle" font-size="11" fill="#5A6B7A">MAX-M10S · 25 mA</text>
+<line x1="923.3" y1="270" x2="923.3" y2="320" stroke="#16202B" stroke-width="1.6"/>
+    <rect x="848.3" y="320" width="150" height="62" rx="7" fill="#fff" stroke="#16202B" stroke-width="1.5"/>
+    <text x="923.3" y="347" text-anchor="middle" font-size="13" font-weight="600" fill="#16202B">IMU + baro</text>
+    <text x="923.3" y="366" text-anchor="middle" font-size="11" fill="#5A6B7A">1 mA combined</text>
+<line x1="1100" y1="270" x2="1100" y2="320" stroke="#16202B" stroke-width="1.6"/>
+    <rect x="1025" y="320" width="150" height="62" rx="7" fill="#fff" stroke="#16202B" stroke-width="1.5"/>
+    <text x="1100" y="347" text-anchor="middle" font-size="13" font-weight="600" fill="#16202B">microSD</text>
+    <text x="1100" y="366" text-anchor="middle" font-size="11" fill="#5A6B7A">100 mA peak</text>
+<line x1="40" y1="400" x2="1140" y2="400" stroke="#E2DED7" stroke-width="1"/>
+<text x="40" y="425" font-size="13" fill="#5A6B7A">Average draw across all loads is about 60 mA. A 1200 mAh cell gives roughly 20 hours before</text>
+<text x="40" y="443" font-size="13" fill="#5A6B7A">regulator loss and cold derating, against an 8 hour ski day: about 2x margin.</text>
+</svg>
+  </div>
+  <div class="wrap">
+
+    <details>
+      <summary>Detection and processing</summary>
+      <div class="body">
+        <p>Descent detection: state machine on vertical speed (from the altimeter) and GPS speed. States: <i>idle</i> → <i>lift/traverse</i> (speed &lt; 5 km/h or steady altitude) → <i>run</i> (sustained descent, GPS speed &gt; 8 km/h for 5 s) → <i>stopped</i> (speed &lt; 2 km/h for 8 s). Run boundaries are what the app uses to segment stats per descent.</p>
+        <p>IMU sampled at 200 Hz but only summary statistics (peak vertical acceleration, RMS vibration) are logged per 1 s window, not the raw stream, to keep the log small. GPS logged at its native 5 Hz throughout, including lift rides, since that is what confirms route.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Data format and sync</summary>
+      <div class="body">
+        <p>One CSV per day on the microSD: timestamp, latitude, longitude, GPS speed, GPS altitude, barometric altitude, IMU summary fields, run-state flag. Roughly 5 Hz effective row rate, about 3 MB for a 6 hour day, well inside a 32 GB card for a full season.</p>
+        <p>BLE sync is a bulk file transfer of the day's CSV once the phone app is opened and paired, not a live stream. No live telemetry to the app is implemented in this version.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Power budget</summary>
+      <div class="body">
+        <ul>
+          <li>GPS tracking: 25 mA typical (u-blox MAX-M10S continuous tracking mode)</li>
+          <li>IMU: 1 mA at 200 Hz</li>
+          <li>Altimeter: 1 mA at 25 Hz</li>
+          <li>MCU: 80 mA during BLE sync, under 1 mA in deep sleep between logging ticks</li>
+          <li>microSD: 100 mA peak during a write burst, roughly 2% duty cycle</li>
+          <li>Blended average: about 60 mA</li>
+          <li>1200 mAh cell ÷ 60 mA ≈ 20 h at 85% regulator efficiency ≈ 17 h</li>
+          <li>Cold derate (LiPo capacity drops roughly 20% near 0°C): ≈ 14 h effective, against an 8 h ski day</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>Bring-up order</summary>
+      <div class="body">
+        <p>Power rail first, confirm 3.3 V under load with a bench supply before any sensor is attached. Then GPS alone, confirm a fix outdoors. Then IMU alone over I2C, confirm register reads. Then baro alone. Then all three together on the shared bus, checking for address conflicts. Then microSD, confirm write speed under the logging rate before sealing the enclosure. Then BLE pairing, last, since it is the least safety-critical link.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Validation checklist</summary>
+      <div class="body">
+        <ul>
+          <li>40 radar-gun passes across 4 sessions, 15-55 km/h, mean absolute error under 3%</li>
+          <li>Full-day route distance within 5% of a Garmin ski watch worn simultaneously</li>
+          <li>8 hour continuous logging test at -10°C in a chest freezer before the first ski day</li>
+          <li>Drop test of the enclosure from 1 m onto packed snow, 10 drops</li>
+          <li>IP66 spray test after gasket assembly, before first use</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>What this device cannot do</summary>
+      <div class="body">
+        <p>No live coaching or alerts while skiing; all feedback is after the day ends. No edge-angle, carving-technique or turn-shape analysis. No lane-level route accuracy: two parallel trails within about 5 m of each other may read as the same line. No indoor or under-canopy fix; a lost signal shows as a gap in the log, not a guess. Altitude drifts with weather and needs the user to confirm the base elevation once each day.</p>
+      </div>
+    </details>
+
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="xs" style="margin-top:6px;">SlopeSense · engineering overview · September 2026</p>
+  </div>
+</footer>
+
+</body>
+</html>

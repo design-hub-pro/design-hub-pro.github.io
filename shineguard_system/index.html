@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShineGuard: Engineering Overview</title>
+<style>
+  :root{ --ink:#16202B; --soft:#5A6B7A; --line:#E2DED7; --blue:#145C3D; --orange:#B45309; --paper:#FDFCFA; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--paper); color:var(--ink);
+        font:17px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+        overflow-x:hidden; }
+  .wrap{ max-width:720px; margin:0 auto; padding:0 24px; }
+  .wide{ max-width:960px; margin:0 auto; padding:0 24px; }
+  h1,h2,h3{ font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif; font-weight:600; letter-spacing:-0.01em; }
+  h1{ font-size:40px; line-height:1.15; margin:0 0 18px; }
+  h2{ font-size:27px; line-height:1.25; margin:0 0 14px; }
+  h3{ font-size:19px; margin:24px 0 8px; }
+  p{ margin:0 0 16px; }
+  .lead{ font-size:20px; color:var(--soft); }
+  .sm{ font-size:15px; color:var(--soft); }
+  .xs{ font-size:13px; color:var(--soft); }
+  section{ padding:52px 0; border-top:1px solid var(--line); }
+  .eyebrow{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--orange); font-weight:600; margin-bottom:10px; }
+  img{ max-width:100%; display:block; border-radius:6px; }
+  svg{ max-width:100%; height:auto; display:block; border-radius:6px; border:1px solid var(--line); }
+  figure{ margin:0 0 8px; }
+  figcaption{ font-size:13px; color:var(--soft); margin-top:8px; }
+  a{ color:var(--blue); }
+  .cite{ font-size:13px; color:var(--soft); }
+  .cite a{ color:var(--soft); }
+  table{ width:100%; border-collapse:collapse; font-size:15px; }
+  th,td{ text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ font-weight:600; font-size:13px; letter-spacing:.04em; text-transform:uppercase; color:var(--soft); }
+  td.num{ text-align:right; white-space:nowrap; }
+  .scroll{ overflow-x:auto; }
+  .row{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:14px; margin:26px 0; }
+  .row div{ padding:18px; border:1px solid var(--line); border-radius:8px; background:#fff; font-size:15px; }
+  .row b{ display:block; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--orange); margin-bottom:6px; }
+  .flag{ background:#FBF3EC; border-left:3px solid var(--orange); padding:20px 22px; border-radius:0 6px 6px 0; margin:26px 0; }
+  .flag p:last-child{ margin-bottom:0; }
+  .duo{ display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  @media (max-width:720px){ .duo{ grid-template-columns:1fr; } }
+  details{ border-top:1px solid var(--line); padding:18px 0; }
+  details summary{ cursor:pointer; font-weight:600; list-style:none; font-size:16px; }
+  details summary::-webkit-details-marker{ display:none; }
+  details summary::before{ content:"+ "; color:var(--orange); }
+  details[open] summary::before{ content:"– "; }
+  details .body{ padding-top:14px; font-size:15px; color:#33414F; }
+  details .body ul{ padding-left:20px; }
+  details .body li{ margin-bottom:6px; }
+  footer{ border-top:1px solid var(--line); padding:34px 0 60px; }
+  .backlink{ display:inline-block; margin-bottom:26px; font-size:14px; }
+</style>
+</head>
+<body>
+
+<div class="wrap" style="padding-top:34px;">
+  <a class="backlink" href="../index.html">← Overview</a>
+</div>
+
+<!-- HERO -->
+<section style="border-top:0;padding-top:0;">
+  <div class="wrap">
+    <div class="eyebrow">Youth Soccer · Wearable Hardware</div>
+    <h1>ShineGuard: a shin guard that watches for overuse injury</h1>
+    <p class="lead">A matched pair of smart shin guards that measure impact and motion during a match, and flag when one leg is carrying too much load.</p>
+    <p class="sm">Fits, flexes, and survives a season the way an ordinary shin guard does.</p>
+  </div>
+  <div class="wide" style="margin-top:32px;">
+    <figure>
+      <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1790026070597-image-1.png" alt="Youth soccer player running on grass, wearing a dark green shin guard visible under the sock">
+      <figcaption>ShineGuard fits under the sock like any other shin guard. This pair pairs with the <a href="../shinepulse_app/index.html">ShinePulse</a> app over Bluetooth.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">How it works</div>
+    <h2>Each guard senses, judges, and scores before it ever talks to the phone</h2>
+    <p>Each guard runs its own sense-to-decide loop, not just a radio bolted to a chip. A 6-axis IMU samples acceleration and rotation at 200Hz; two thin-film force pads read the shin's contact pressure directly. Both feed an on-chip classifier that separates a real impact from footfall, turf texture, or a knock against the other shin, then rolls the result into a running load index per leg. None of that needs the phone nearby. It only sees a light summary during play, and the full detail after the match.</p>
+    <div class="row">
+      <div><b>Sense</b>IMU + force pads</div>
+      <div><b>Filter</b>remove gravity, noise</div>
+      <div><b>Detect</b>find real impacts</div>
+      <div><b>Decide</b>score the load</div>
+      <div><b>Record</b>buffer on-device</div>
+      <div><b>Transmit</b>sync after match</div>
+    </div>
+  </div>
+  <div class="wide">
+    <div class="duo">
+      <figure>
+        <svg viewBox="0 0 1150 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui,Helvetica,Arial,sans-serif">
+<rect x="0" y="0" width="1150" height="220" fill="#FDFCFA"/>
+<rect x="30" y="50" width="165" height="92" rx="10" fill="#FDFCFA" stroke="#16202B" stroke-width="1.4"/>
+<text x="112.5" y="84" text-anchor="middle" font-size="14" font-weight="700" fill="#16202B">SENSE</text>
+<text x="112.5" y="104" text-anchor="middle" font-size="10.5" fill="#5A6B7A">IMU 200Hz + 2x FSR 100Hz</text>
+<rect x="215" y="50" width="165" height="92" rx="10" fill="#FDFCFA" stroke="#16202B" stroke-width="1.4"/>
+<text x="297.5" y="84" text-anchor="middle" font-size="14" font-weight="700" fill="#16202B">FILTER</text>
+<text x="297.5" y="104" text-anchor="middle" font-size="10.5" fill="#5A6B7A">gravity removal,</text>
+<text x="297.5" y="118" text-anchor="middle" font-size="10.5" fill="#5A6B7A">low-pass</text>
+<rect x="400" y="50" width="165" height="92" rx="10" fill="#FDFCFA" stroke="#16202B" stroke-width="1.4"/>
+<text x="482.5" y="84" text-anchor="middle" font-size="14" font-weight="700" fill="#16202B">DETECT</text>
+<text x="482.5" y="104" text-anchor="middle" font-size="10.5" fill="#5A6B7A">peak threshold, event</text>
+<text x="482.5" y="118" text-anchor="middle" font-size="10.5" fill="#5A6B7A">window</text>
+<rect x="585" y="50" width="165" height="92" rx="10" fill="#FDFCFA" stroke="#16202B" stroke-width="1.4"/>
+<text x="667.5" y="84" text-anchor="middle" font-size="14" font-weight="700" fill="#16202B">DECIDE</text>
+<text x="667.5" y="104" text-anchor="middle" font-size="10.5" fill="#5A6B7A">load index, risk</text>
+<text x="667.5" y="118" text-anchor="middle" font-size="10.5" fill="#5A6B7A">accumulate</text>
+<rect x="770" y="50" width="165" height="92" rx="10" fill="#FDFCFA" stroke="#16202B" stroke-width="1.4"/>
+<text x="852.5" y="84" text-anchor="middle" font-size="14" font-weight="700" fill="#16202B">RECORD</text>
+<text x="852.5" y="104" text-anchor="middle" font-size="10.5" fill="#5A6B7A">4MB flash ring buffer</text>
+<rect x="955" y="50" width="165" height="92" rx="10" fill="#FDFCFA" stroke="#16202B" stroke-width="1.4"/>
+<text x="1037.5" y="84" text-anchor="middle" font-size="14" font-weight="700" fill="#16202B">TRANSMIT</text>
+<text x="1037.5" y="104" text-anchor="middle" font-size="10.5" fill="#5A6B7A">BLE notify 2Hz + burst</text>
+<text x="1037.5" y="118" text-anchor="middle" font-size="10.5" fill="#5A6B7A">sync</text>
+<line x1="199" y1="96.0" x2="209" y2="96.0" stroke="#B45309" stroke-width="2"/>
+<polygon points="209,91.0 215,96.0 209,101.0" fill="#B45309"/>
+<line x1="384" y1="96.0" x2="394" y2="96.0" stroke="#B45309" stroke-width="2"/>
+<polygon points="394,91.0 400,96.0 394,101.0" fill="#B45309"/>
+<line x1="569" y1="96.0" x2="579" y2="96.0" stroke="#B45309" stroke-width="2"/>
+<polygon points="579,91.0 585,96.0 579,101.0" fill="#B45309"/>
+<line x1="754" y1="96.0" x2="764" y2="96.0" stroke="#B45309" stroke-width="2"/>
+<polygon points="764,91.0 770,96.0 764,101.0" fill="#B45309"/>
+<line x1="939" y1="96.0" x2="949" y2="96.0" stroke="#B45309" stroke-width="2"/>
+<polygon points="949,91.0 955,96.0 949,101.0" fill="#B45309"/>
+<text x="575.0" y="180" text-anchor="middle" font-size="11" fill="#5A6B7A">per shin guard &#183; on-chip pipeline, nRF52832 + ICM-42688-P, ~15 mA average during active streaming</text>
+</svg>
+        <figcaption>The signal path. Detection and scoring happen on the guard; the phone gets results, not raw data.</figcaption>
+      </figure>
+      <figure>
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1790026103463-image-1.png" alt="A pair of shin guards resting in a small charging dock on a table at home">
+        <figcaption>Between matches, the pair sits in a two-cup charging dock, the same pogo contacts used for firmware and burst sync.</figcaption>
+      </figure>
+    </div>
+    <p class="sm" style="margin-top:20px;">The IMU is 6-axis, not 9: the magnetometer some IMUs add drifts near steel cleats and turf infill, and heading doesn't help detect an impact anyway. Streaming raw 200Hz over Bluetooth would also blow the power budget below, so the classifier runs on the guard and the radio only carries results.</p>
+  </div>
+</section>
+
+<!-- HOW WE KNOW IT WORKS -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Validation</div>
+    <h2>The load number has to be checked against a real force, not a feeling</h2>
+    <p>The injury-risk score is only as good as the force number underneath it, so that number gets checked against a reference before anything downstream is trusted.</p>
+    <p>The rig mounts a molded tibia fixture over a reference load cell, sampled at 5kHz. A 2kg padded mass drops onto a guard clamped to the fixture from five heights, 5 to 40cm, ten drops each, for 50 trials spanning 0.1 to 0.8 J of impact energy, roughly a moderate to hard studs-in plant. The guard's own peak-force estimate is logged alongside the load cell's reading for every drop.</p>
+    <p><b>Target:</b> the guard's peak estimate lands within 8% of the reference load cell across all 50 drops. Below 10cm the FSR response flattens near its floor and tends to undercount, so those trials are checked separately, and a miss there flags the low end of the injury-risk scale as unreliable rather than silently reporting a number.</p>
+    <p>A cheaper second check covers motion: top speed and distance, both from the same IMU, against a photocell timing gate over 20 flying-start sprints, target within 5% of the gate. The two figures worth showing a coach or a judge are below, because a device that lights up proves nothing on its own.</p>
+  </div>
+  <div class="wide">
+    <div class="duo">
+      <figure>
+        <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui,Helvetica,Arial,sans-serif">
+<rect x="0" y="0" width="760" height="300" fill="#FDFCFA"/>
+<line x1="70" y1="230" x2="720" y2="230" stroke="#16202B" stroke-width="1.2"/>
+<line x1="70" y1="40" x2="70" y2="230" stroke="#16202B" stroke-width="1.2"/>
+<line x1="70.0" y1="230" x2="70.0" y2="235" stroke="#5A6B7A" stroke-width="1"/>
+<text x="70.0" y="248" text-anchor="middle" font-size="9.5" fill="#5A6B7A">-80</text>
+<line x1="135.0" y1="230" x2="135.0" y2="235" stroke="#5A6B7A" stroke-width="1"/>
+<text x="135.0" y="248" text-anchor="middle" font-size="9.5" fill="#5A6B7A">-60</text>
+<line x1="200.0" y1="230" x2="200.0" y2="235" stroke="#5A6B7A" stroke-width="1"/>
+<text x="200.0" y="248" text-anchor="middle" font-size="9.5" fill="#5A6B7A">-40</text>
+<line x1="265.0" y1="230" x2="265.0" y2="235" stroke="#5A6B7A" stroke-width="1"/>
+<text x="265.0" y="248" text-anchor="middle" font-size="9.5" fill="#5A6B7A">-20</text>
+<line x1="330.0" y1="230" x2="330.0" y2="235" stroke="#5A6B7A" stroke-width="1"/>
+<text x="330.0" y="248" text-anchor="middle" font-size="9.5" fill="#5A6B7A">0</text>
+<line x1="395.0" y1="230" x2="395.0" y2="235" stroke="#5A6B7A" stroke-width="1"/>
+<text x="395.0" y="248" text-anchor="middle" font-size="9.5" fill="#5A6B7A">20</text>
+<line x1="460.0" y1="230" x2="460.0" y2="235" stroke="#5A6B7A" stroke-width="1"/>
+<text x="460.0" y="248" text-anchor="middle" font-size="9.5" fill="#5A6B7A">40</text>
+<line x1="525.0" y1="230" x2="525.0" y2="235" stroke="#5A6B7A" stroke-width="1"/>
+<text x="525.0" y="248" text-anchor="middle" font-size="9.5" fill="#5A6B7A">60</text>
+<line x1="590.0" y1="230" x2="590.0" y2="235" stroke="#5A6B7A" stroke-width="1"/>
+<text x="590.0" y="248" text-anchor="middle" font-size="9.5" fill="#5A6B7A">80</text>
+<line x1="655.0" y1="230" x2="655.0" y2="235" stroke="#5A6B7A" stroke-width="1"/>
+<text x="655.0" y="248" text-anchor="middle" font-size="9.5" fill="#5A6B7A">100</text>
+<line x1="720.0" y1="230" x2="720.0" y2="235" stroke="#5A6B7A" stroke-width="1"/>
+<text x="720.0" y="248" text-anchor="middle" font-size="9.5" fill="#5A6B7A">120</text>
+<text x="395.0" y="264" text-anchor="middle" font-size="11" fill="#5A6B7A">time, ms (0 = threshold crossing)</text>
+<text x="18" y="135.0" text-anchor="middle" font-size="11" fill="#5A6B7A" transform="rotate(-90 18 135.0)">acceleration, g</text>
+<line x1="65" y1="230.0" x2="70" y2="230.0" stroke="#5A6B7A" stroke-width="1"/>
+<text x="60" y="234.0" text-anchor="end" font-size="9.5" fill="#5A6B7A">0</text>
+<line x1="65" y1="177.22" x2="70" y2="177.22" stroke="#5A6B7A" stroke-width="1"/>
+<text x="60" y="181.22" text-anchor="end" font-size="9.5" fill="#5A6B7A">5</text>
+<line x1="65" y1="124.44" x2="70" y2="124.44" stroke="#5A6B7A" stroke-width="1"/>
+<text x="60" y="128.44" text-anchor="end" font-size="9.5" fill="#5A6B7A">10</text>
+<line x1="65" y1="71.67" x2="70" y2="71.67" stroke="#5A6B7A" stroke-width="1"/>
+<text x="60" y="75.67" text-anchor="end" font-size="9.5" fill="#5A6B7A">15</text>
+<rect x="70" y="215.22" width="650" height="29.56" fill="#E2DED7" opacity="0.5"/>
+<rect x="265.0" y="40" width="195.0" height="190" fill="#B45309" opacity="0.10"/>
+<line x1="70" y1="182.5" x2="720" y2="182.5" stroke="#B45309" stroke-width="1.3" stroke-dasharray="6,4"/>
+<rect x="602" y="162.5" width="118" height="16" fill="#FDFCFA"/>
+<text x="716" y="176.5" text-anchor="end" font-size="10.5" fill="#B45309" font-weight="700">threshold, 4.5g</text>
+<path d="M 70.0,228.4 L 73.2,234.0 L 76.5,233.7 L 79.8,228.0 L 83.0,225.1 L 86.2,229.5 L 89.5,234.6 L 92.8,233.0 L 96.0,227.0 L 99.2,225.4 L 102.5,230.5 L 105.8,235.0 L 109.0,232.1 L 112.2,226.1 L 115.5,225.8 L 118.8,231.6 L 122.0,235.1 L 125.2,231.1 L 128.5,225.5 L 131.8,226.4 L 135.0,232.7 L 138.2,235.0 L 141.5,230.0 L 144.8,225.0 L 148.0,227.3 L 151.2,233.6 L 154.5,234.7 L 157.8,228.9 L 161.0,224.7 L 164.2,228.3 L 167.5,234.4 L 170.8,234.1 L 174.0,227.7 L 177.2,224.7 L 180.5,229.4 L 183.8,235.1 L 187.0,233.3 L 190.2,226.7 L 193.5,224.9 L 196.8,230.6 L 200.0,235.5 L 203.2,232.3 L 206.5,225.8 L 209.8,225.4 L 213.0,231.8 L 216.2,235.6 L 219.5,231.2 L 222.8,225.0 L 226.0,226.1 L 229.2,232.9 L 232.5,235.5 L 235.8,230.0 L 239.0,224.4 L 242.2,227.0 L 245.5,234.0 L 248.8,235.2 L 252.0,228.7 L 255.2,224.1 L 258.5,228.1 L 261.8,234.9 L 265.0,230.0 L 268.2,229.9 L 271.5,229.4 L 274.8,228.5 L 278.0,227.2 L 281.2,225.4 L 284.5,223.1 L 287.8,220.3 L 291.0,217.1 L 294.2,213.2 L 297.5,208.8 L 300.8,203.9 L 304.0,198.4 L 307.2,192.3 L 310.5,185.7 L 313.8,178.4 L 317.0,170.5 L 320.2,162.0 L 323.5,152.9 L 326.8,143.2 L 330.0,132.8 L 333.2,121.8 L 336.5,110.1 L 339.8,97.8 L 343.0,84.8 L 346.2,71.2 L 349.5,56.9 L 352.8,65.6 L 356.0,75.8 L 359.2,87.3 L 362.5,99.7 L 365.8,112.8 L 369.0,126.4 L 372.2,140.3 L 375.5,154.2 L 378.8,167.9 L 382.0,181.3 L 385.2,194.1 L 388.5,206.4 L 391.8,217.9 L 395.0,228.6 L 398.2,238.4 L 401.5,247.2 L 404.8,255.0 L 408.0,261.8 L 411.2,267.5 L 414.5,272.3 L 417.8,276.0 L 421.0,278.8 L 424.2,280.7 L 427.5,281.7 L 430.8,281.9 L 434.0,281.4 L 437.2,280.2 L 440.5,278.5 L 443.7,276.2 L 447.0,273.5 L 450.2,270.4 L 453.5,267.0 L 456.8,263.4 L 460.0,259.7 L 463.2,255.9 L 466.5,252.0 L 469.8,248.2 L 473.0,244.5 L 476.2,240.9 L 479.5,237.4 L 482.8,234.2 L 486.0,231.2 L 489.2,228.4 L 492.5,225.9 L 495.8,223.6 L 499.0,221.7 L 502.2,220.0 L 505.5,218.6 L 508.8,217.5 L 512.0,216.7 L 515.2,216.1 L 518.5,215.8 L 521.8,215.6 L 525.0,215.7 L 528.2,216.0 L 531.5,216.4 L 534.8,217.0 L 538.0,217.8 L 541.2,218.6 L 544.5,219.5 L 547.8,220.5 L 551.0,221.5 L 554.2,222.6 L 557.5,223.6 L 560.8,224.7 L 564.0,225.7 L 567.2,226.7 L 570.5,227.7 L 573.8,228.6 L 577.0,229.5 L 580.2,230.2 L 583.5,231.0 L 586.8,231.6 L 590.0,232.2 L 593.2,232.6 L 596.5,233.0 L 599.8,233.4 L 603.0,233.6 L 606.2,233.8 L 609.5,233.9 L 612.8,234.0 L 616.0,234.0 L 619.2,233.9 L 622.5,233.8 L 625.8,233.6 L 629.0,233.4 L 632.2,233.2 L 635.5,233.0 L 638.8,232.7 L 642.0,232.4 L 645.2,232.1 L 648.5,231.8 L 651.8,231.6 L 655.0,231.3 L 658.2,231.0 L 661.5,230.7 L 664.8,230.5 L 668.0,230.2 L 671.2,230.0 L 674.5,229.8 L 677.8,229.6 L 681.0,229.4 L 684.2,229.3 L 687.5,229.2 L 690.8,229.1 L 694.0,229.0 L 697.2,229.0 L 700.5,228.9 L 703.8,228.9 L 707.0,228.9 L 710.2,228.9 L 713.5,228.9 L 716.8,229.0 L 720.0,229.0" fill="none" stroke="#145C3D" stroke-width="1.8"/>
+<circle cx="349.5" cy="56.89" r="3.2" fill="#16202B"/>
+<rect x="357.5" y="30.89" width="112" height="30" fill="#FDFCFA"/>
+<text x="359.5" y="44.89" font-size="10.5" font-weight="700" fill="#16202B">peak 16.4g</text>
+<text x="359.5" y="57.89" font-size="10.5" fill="#5A6B7A">rise time 26ms</text>
+<rect x="269.0" y="10" width="160" height="16" fill="#FDFCFA"/>
+<text x="271.0" y="22" font-size="10.5" fill="#B45309" font-weight="700">detection window &#177;40ms</text>
+<rect x="74" y="228.78" width="90" height="14" fill="#FDFCFA"/>
+<text x="76" y="239.78" font-size="10" fill="#5A6B7A">noise floor</text>
+</svg>
+        <figcaption><b>Illustrative:</b> a simulated single-impact trace, not recorded data, showing the features the classifier keys on.</figcaption>
+      </figure>
+      <figure>
+        <svg viewBox="0 0 760 360" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui,Helvetica,Arial,sans-serif">
+<rect x="0" y="0" width="760" height="360" fill="#FDFCFA"/>
+<line x1="420" y1="30" x2="420" y2="230" stroke="#5A6B7A" stroke-width="1.4" stroke-dasharray="4,4"/>
+<rect x="380" y="30" width="80" height="34" rx="4" fill="#FDFCFA" stroke="#16202B" stroke-width="1.4"/>
+<text x="420" y="52" text-anchor="middle" font-size="11" font-weight="700" fill="#16202B">2 kg mass</text>
+<line x1="475" y1="64" x2="475" y2="220" stroke="#B45309" stroke-width="1.4"/>
+<polygon points="470,70 475,64 480,70" fill="#B45309"/>
+<polygon points="470,214 475,220 480,214" fill="#B45309"/>
+<rect x="482" y="128" width="86" height="30" fill="#FDFCFA"/>
+<text x="485" y="140" font-size="11" font-weight="700" fill="#B45309">drop height</text>
+<text x="485" y="153" font-size="11" fill="#B45309">5 &#8211; 40 cm</text>
+<rect x="380" y="220" width="80" height="70" fill="#EDEAE1" stroke="#16202B" stroke-width="1.4"/>
+<text x="420" y="250" text-anchor="middle" font-size="11" font-weight="700" fill="#16202B">tibia</text>
+<text x="420" y="264" text-anchor="middle" font-size="11" font-weight="700" fill="#16202B">fixture</text>
+<rect x="390" y="222" width="60" height="18" rx="5" fill="#145C3D" opacity="0.85"/>
+<rect x="330" y="222" width="44" height="30" fill="#FDFCFA"/>
+<text x="324" y="234" text-anchor="end" font-size="10.5" fill="#5A6B7A">shin guard</text>
+<text x="324" y="247" text-anchor="end" font-size="10.5" fill="#5A6B7A">under test</text>
+<rect x="390" y="290" width="60" height="24" fill="#D8E3EC" stroke="#16202B" stroke-width="1.4"/>
+<rect x="325" y="286" width="55" height="32" fill="#FDFCFA"/>
+<text x="380" y="298" text-anchor="end" font-size="10.5" font-weight="700" fill="#16202B">reference</text>
+<text x="380" y="311" text-anchor="end" font-size="10.5" font-weight="700" fill="#16202B">load cell</text>
+<rect x="280" y="314" width="280" height="10" fill="#16202B"/>
+<rect x="490" y="280" width="110" height="46" rx="6" fill="#FDFCFA" stroke="#16202B" stroke-width="1.4"/>
+<text x="545" y="299" text-anchor="middle" font-size="11" font-weight="700" fill="#16202B">DAQ, 5 kHz</text>
+<text x="545" y="312" text-anchor="middle" font-size="10.5" fill="#5A6B7A">peak force log</text>
+<line x1="450" y1="302" x2="490" y2="302" stroke="#5A6B7A" stroke-width="1.2"/>
+<text x="30" y="30" font-size="12" fill="#5A6B7A">50 trials total &#183; 10 drops at each of 5 heights &#183; 0.1&#8211;0.8 J impact energy</text>
+</svg>
+        <figcaption>The drop-impact rig: a calibrated mass, a tibia fixture holding the guard, and a reference load cell underneath.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- CHANGES -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Changes to the plan</div>
+    <h2>Three corrections worth making before any hardware is cut</h2>
+
+    <h3>Stop streaming raw 200Hz over Bluetooth</h3>
+    <p>Streaming raw 200Hz IMU data continuously (2.4 kB/s per guard) would keep the radio active far more of each interval than the 2Hz link the power budget assumes, plausibly doubling draw and cutting the 18-hour target to under 9. Fix: detect peaks on the MCU, notify the phone at 2Hz, and reserve full-rate export for a burst sync of only the &#177;200ms window around each impact.</p>
+
+    <h3>Cut the EMG channel, keep two force pads</h3>
+    <p>The app lists an "EMG Pressure" sensor, but dry-contact surface EMG needs stable skin-electrode impedance, and a sock sliding against sweaty skin for 70 minutes pushes that impedance up by an order of magnitude, burying the muscle signal in motion artifact. What the injury-risk score actually needs is normal force at the shin, which a pair of thin-film force sensors reads directly with no skin contact. Cut EMG, keep two FSR pads.</p>
+
+    <h3>Move heart rate off the shin guard</h3>
+    <p>Heart rate can't be read reliably from a shin: photoplethysmography needs steady skin contact, shin skin is thin over bone with little perfusion signal, and sprinting doubles the motion artifact a wrist or chest sensor already fights. Recommendation: pair a standard BLE chest strap and merge its stream in the same app session, rather than taking on a sensor channel the shin guard can't deliver.</p>
+  </div>
+</section>
+
+<!-- PARTS -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Parts</div>
+    <h2>About $23 per guard, approximate and before assembly labor</h2>
+    <p class="sm">Prices are per single shin guard. ShineGuard ships as a matched pair, so double the total for one player.</p>
+  </div>
+  <div class="wide">
+    <div class="duo" style="margin-bottom:28px;">
+      <figure>
+        <svg viewBox="0 0 760 340" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui,Helvetica,Arial,sans-serif">
+<rect x="0" y="0" width="760" height="340" fill="#FDFCFA"/>
+<rect x="260" y="24" width="360" height="34" fill="#DCE7E0" stroke="#16202B" stroke-width="1.2"/>
+<line x1="260" y1="41.0" x2="230" y2="41.0" stroke="#5A6B7A" stroke-width="1"/>
+<rect x="20" y="25.0" width="220" height="32" fill="#FDFCFA"/>
+<text x="224" y="38.0" text-anchor="end" font-size="12.5" font-weight="700" fill="#16202B">Outer shell</text>
+<text x="224" y="53.0" text-anchor="end" font-size="11" fill="#5A6B7A">PC/ABS, 2.2 mm</text>
+<rect x="260" y="66" width="360" height="34" fill="#EDEAE1" stroke="#16202B" stroke-width="1.2"/>
+<line x1="260" y1="83.0" x2="230" y2="83.0" stroke="#5A6B7A" stroke-width="1"/>
+<rect x="20" y="67.0" width="220" height="32" fill="#FDFCFA"/>
+<text x="224" y="80.0" text-anchor="end" font-size="12.5" font-weight="700" fill="#16202B">Impact liner</text>
+<text x="224" y="95.0" text-anchor="end" font-size="11" fill="#5A6B7A">closed-cell EVA foam, 6.0 mm</text>
+<rect x="260" y="108" width="360" height="34" fill="#D8E3EC" stroke="#16202B" stroke-width="1.2"/>
+<line x1="260" y1="125.0" x2="230" y2="125.0" stroke="#5A6B7A" stroke-width="1"/>
+<rect x="20" y="109.0" width="220" height="32" fill="#FDFCFA"/>
+<text x="224" y="122.0" text-anchor="end" font-size="12.5" font-weight="700" fill="#16202B">Flex-PCB + MCU/IMU/flash</text>
+<text x="224" y="137.0" text-anchor="end" font-size="11" fill="#5A6B7A">1.2 mm</text>
+<rect x="260" y="150" width="360" height="34" fill="#F0DCC8" stroke="#16202B" stroke-width="1.2"/>
+<line x1="260" y1="167.0" x2="230" y2="167.0" stroke="#5A6B7A" stroke-width="1"/>
+<rect x="20" y="151.0" width="220" height="32" fill="#FDFCFA"/>
+<text x="224" y="164.0" text-anchor="end" font-size="12.5" font-weight="700" fill="#16202B">Dual FSR pads</text>
+<text x="224" y="179.0" text-anchor="end" font-size="11" fill="#5A6B7A">thin-film, 0.4 mm</text>
+<rect x="260" y="192" width="360" height="34" fill="#F3D6D6" stroke="#16202B" stroke-width="1.2"/>
+<line x1="260" y1="209.0" x2="230" y2="209.0" stroke="#5A6B7A" stroke-width="1"/>
+<rect x="20" y="193.0" width="220" height="32" fill="#FDFCFA"/>
+<text x="224" y="206.0" text-anchor="end" font-size="12.5" font-weight="700" fill="#16202B">LiPo pouch cell</text>
+<text x="224" y="221.0" text-anchor="end" font-size="11" fill="#5A6B7A">3.7V 320mAh, 3.4 mm</text>
+<rect x="260" y="234" width="360" height="34" fill="#EDEAE1" stroke="#16202B" stroke-width="1.2"/>
+<line x1="260" y1="251.0" x2="230" y2="251.0" stroke="#5A6B7A" stroke-width="1"/>
+<rect x="20" y="235.0" width="220" height="32" fill="#FDFCFA"/>
+<text x="224" y="248.0" text-anchor="end" font-size="12.5" font-weight="700" fill="#16202B">Skin-side liner</text>
+<text x="224" y="263.0" text-anchor="end" font-size="11" fill="#5A6B7A">sweat-wicking foam, 3.0 mm</text>
+<text x="440.0" y="292" text-anchor="middle" font-size="11" fill="#5A6B7A">total stack &#8776; 16.2 mm at the center ridge, matched to the molded shell at right</text>
+</svg>
+        <figcaption>The build stack, layer by layer, inside a single guard.</figcaption>
+      </figure>
+      <figure>
+        <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1790026078860-image-1.png" alt="A single dark green shin guard shell on a plain surface next to a ruler">
+        <figcaption>The molded shell, roughly 18cm long at the ridge, matching the stack at left.</figcaption>
+      </figure>
+    </div>
+    <div class="scroll">
+      <table>
+        <tr><th>Part</th><th>What it does</th><th>Price</th></tr>
+        <tr><td>Nordic nRF52832</td><td>MCU + Bluetooth radio, runs edge processing</td><td class="num">$3.10</td></tr>
+        <tr><td>TDK ICM-42688-P</td><td>6-axis IMU, sampled at 200Hz</td><td class="num">$2.80</td></tr>
+        <tr><td>2x Interlink FSR402 pad</td><td>Direct force sensing at the shin</td><td class="num">$4.00</td></tr>
+        <tr><td>Winbond W25Q32, 4MB flash</td><td>Local buffer for impact waveforms</td><td class="num">$0.60</td></tr>
+        <tr><td>LiPo pouch cell, 3.7V 320mAh</td><td>Power source</td><td class="num">$3.50</td></tr>
+        <tr><td>TI BQ25100</td><td>Charge IC from dock contacts</td><td class="num">$0.70</td></tr>
+        <tr><td>3.3V LDO regulator</td><td>Logic supply rail</td><td class="num">$0.35</td></tr>
+        <tr><td>2x pogo-pin contacts</td><td>Dock charging interface</td><td class="num">$0.60</td></tr>
+        <tr><td>Flex-PCB + potted silicone shell</td><td>Carries circuit, seals against sweat</td><td class="num">$5.50</td></tr>
+        <tr><td>Passives, antenna, connectors</td><td>Decoupling, matching, ESD</td><td class="num">$1.80</td></tr>
+        <tr><td><b>Total, one guard</b></td><td></td><td class="num"><b>&#8776; $23</b></td></tr>
+      </table>
+    </div>
+    <p class="sm" style="margin-top:16px;">A matched pair runs about $46. Build two pairs instead of one, about $92 for four guards, since the drop-rig testing above is exactly the bench work that cracks a shell or shorts a flex-PCB. A spare pair costs less than a lost week.</p>
+    <figure style="margin-top:24px;">
+      <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1790026087580-image-1.png" alt="A shin guard fitted and centered over the shin under a sock, standing on grass">
+      <figcaption>Fitted and centered over the tibia, the position it holds during play.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- WHAT COULD GO WRONG -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">What could go wrong</div>
+    <h2>The wiring is a weekend. Telling a real hit from noise is the work.</h2>
+    <p>The genuinely hard part is teaching the classifier to tell a real studs-in plant from turf texture, a shin-to-shin knock, or a hard sprint start, since all three throw a similar spike into a 6-axis IMU. That needs a short per-player calibration capture, not one global threshold.</p>
+    <p>If the FSR pads prove noisy under sweat and strap-pressure variance by the six-week bench-test checkpoint, fall back to an accelerometer-only load proxy, already supported in published stress-fracture research, and report relative loading only until the pads are reworked.</p>
+    <p>Slide tackles flex the shell enough to fatigue flex-PCB solder joints and loosen an FSR's adhesive backing over a season, and sweat past the strap seam corrodes the pogo contacts if the shell isn't potted well.</p>
+  </div>
+  <div class="wide" style="margin-top:8px;">
+    <figure>
+      <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1790026127655-image-1.png" alt="Two hands fitting the elastic strap of a shin guard onto a lower leg on a bench beside a field">
+      <figcaption>Fit is a strap and a sock, same as any shin guard, so wear-and-tear risk is mostly mechanical, not electronic.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- APPENDIX -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">For the specialist</div>
+    <h2>The details</h2>
+    <p class="sm">Working specification. Not needed to understand the project.</p>
+  </div>
+  <div class="wide" style="margin:24px 0 8px;">
+    <figure>
+      <svg viewBox="0 0 800 380" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui,Helvetica,Arial,sans-serif">
+<rect x="0" y="0" width="800" height="380" fill="#FDFCFA"/>
+<rect x="20" y="40" width="120" height="46" rx="6" fill="#FDFCFA" stroke="#16202B" stroke-width="1.4"/>
+<text x="80" y="60" text-anchor="middle" font-size="11" font-weight="700" fill="#16202B">dock, 5V</text>
+<text x="80" y="74" text-anchor="middle" font-size="10" fill="#5A6B7A">pogo contacts</text>
+<rect x="180" y="40" width="140" height="46" rx="6" fill="#FDFCFA" stroke="#16202B" stroke-width="1.4"/>
+<text x="250" y="60" text-anchor="middle" font-size="11" font-weight="700" fill="#16202B">BQ25100</text>
+<text x="250" y="74" text-anchor="middle" font-size="10" fill="#5A6B7A">charge IC, 250mA</text>
+<line x1="140" y1="63" x2="180" y2="63" stroke="#5A6B7A" stroke-width="1.3"/>
+<polygon points="174,58 180,63 174,68" fill="#5A6B7A"/>
+<rect x="180" y="120" width="140" height="46" rx="6" fill="#F3D6D6" stroke="#16202B" stroke-width="1.4"/>
+<text x="250" y="140" text-anchor="middle" font-size="11" font-weight="700" fill="#16202B">LiPo cell</text>
+<text x="250" y="154" text-anchor="middle" font-size="10" fill="#5A6B7A">3.7V, 320mAh</text>
+<line x1="250" y1="86" x2="250" y2="120" stroke="#5A6B7A" stroke-width="1.3"/>
+<rect x="380" y="80" width="140" height="46" rx="6" fill="#FDFCFA" stroke="#16202B" stroke-width="1.4"/>
+<text x="450" y="100" text-anchor="middle" font-size="11" font-weight="700" fill="#16202B">LDO</text>
+<text x="450" y="114" text-anchor="middle" font-size="10" fill="#5A6B7A">3.3V rail</text>
+<line x1="320" y1="143" x2="450" y2="143" stroke="#5A6B7A" stroke-width="1.3"/>
+<line x1="450" y1="143" x2="450" y2="126" stroke="#5A6B7A" stroke-width="1.3"/>
+<polygon points="445,132 450,126 455,132" fill="#5A6B7A"/>
+<line x1="450" y1="126" x2="450" y2="200" stroke="#16202B" stroke-width="1.6"/>
+<line x1="180" y1="200" x2="720" y2="200" stroke="#16202B" stroke-width="1.6"/>
+<rect x="410" y="184" width="80" height="14" fill="#FDFCFA"/>
+<text x="450" y="196" text-anchor="middle" font-size="10.5" font-weight="700" fill="#16202B">3.3V rail</text>
+<line x1="200" y1="200" x2="200" y2="240" stroke="#5A6B7A" stroke-width="1.3"/>
+<rect x="125" y="240" width="150" height="52" rx="6" fill="#FDFCFA" stroke="#16202B" stroke-width="1.3"/>
+<text x="200" y="258" text-anchor="middle" font-size="10.5" font-weight="700" fill="#16202B">nRF52832</text>
+<text x="200" y="272" text-anchor="middle" font-size="9.5" fill="#5A6B7A">MCU + BLE, 9 mA avg</text>
+<line x1="340" y1="200" x2="340" y2="240" stroke="#5A6B7A" stroke-width="1.3"/>
+<rect x="265" y="240" width="150" height="52" rx="6" fill="#FDFCFA" stroke="#16202B" stroke-width="1.3"/>
+<text x="340" y="258" text-anchor="middle" font-size="10.5" font-weight="700" fill="#16202B">ICM-42688-P</text>
+<text x="340" y="272" text-anchor="middle" font-size="9.5" fill="#5A6B7A">IMU @200Hz, 1.0 mA</text>
+<line x1="480" y1="200" x2="480" y2="240" stroke="#5A6B7A" stroke-width="1.3"/>
+<rect x="405" y="240" width="150" height="52" rx="6" fill="#FDFCFA" stroke="#16202B" stroke-width="1.3"/>
+<text x="480" y="258" text-anchor="middle" font-size="10.5" font-weight="700" fill="#16202B">FSR x2 + ADC</text>
+<text x="480" y="272" text-anchor="middle" font-size="9.5" fill="#5A6B7A">1.5 mA combined</text>
+<line x1="620" y1="200" x2="620" y2="240" stroke="#5A6B7A" stroke-width="1.3"/>
+<rect x="545" y="240" width="150" height="52" rx="6" fill="#FDFCFA" stroke="#16202B" stroke-width="1.3"/>
+<text x="620" y="258" text-anchor="middle" font-size="10.5" font-weight="700" fill="#16202B">W25Q32 flash</text>
+<text x="620" y="272" text-anchor="middle" font-size="9.5" fill="#5A6B7A">0.5 mA avg (write peak 15mA)</text>
+<text x="20" y="364" font-size="11" fill="#5A6B7A">sleep (wake-on-motion): 180&#956;A total &#183; active streaming: &#8776;15 mA average &#183; 320mAh / 15mA &#8776; 21.3h at full charge</text>
+</svg>
+      <figcaption>Power chain: every load hangs off the shared 3.3V rail, not chained in series.</figcaption>
+    </figure>
+  </div>
+  <div class="wrap">
+    <details>
+      <summary>Signal path and state machine</summary>
+      <div class="body">
+        <ul>
+          <li>Sleep: accelerometer wake-on-motion, threshold 0.3g, 180&#956;A total draw</li>
+          <li>Active session: IMU at 200Hz, FSR pair polled at 100Hz, on-chip peak/impact detection</li>
+          <li>BLE notify at 2Hz during play: speed, per-limb load index, merged HR from the paired chest strap</li>
+          <li>Full 200Hz waveform lives only in the flash ring buffer; long-term storage keeps just the &#177;200ms window around each detected event, plus a 1Hz summary stream</li>
+          <li>End-of-session burst sync over BLE, roughly 2 minutes at a larger MTU</li>
+        </ul>
+      </div>
+    </details>
+    <details>
+      <summary>Data budget</summary>
+      <div class="body">
+        <ul>
+          <li>Raw 200Hz &#215; 6 axes &#215; 2 bytes = 2.4 kB/s per guard; a 70-minute match at that rate is 10MB, too big to keep, which is why it isn't</li>
+          <li>1Hz summary log: ~40 B/sample &#215; 4,200s &#8776; 168 kB/match</li>
+          <li>Impact event buffers: ~80 events/match &#215; 400ms window &#215; 200Hz &#215; 6 axes &#215; 2 bytes &#8776; 77 kB/match</li>
+          <li>Total &#8776; 245 kB/match against a 4MB flash budget, about 16 matches of headroom before a sync is required</li>
+        </ul>
+      </div>
+    </details>
+    <details>
+      <summary>Power budget</summary>
+      <div class="body">
+        <table>
+          <tr><th>State</th><th>Draw</th><th>Typical duration/day</th></tr>
+          <tr><td>Sleep, wake-on-motion</td><td>180&#956;A</td><td>~22.5h</td></tr>
+          <tr><td>Active match/practice streaming</td><td>~15mA avg</td><td>~1.5h</td></tr>
+        </table>
+        <p style="margin-top:12px;">320mAh / 15mA &#8776; 21.3h of continuous active use at full charge; at 84% that's ~17.9h, matching the app's battery screen. That reading assumes continuous active streaming, a worst case, not a typical day of intermittent use.</p>
+      </div>
+    </details>
+    <details>
+      <summary>Bring-up order</summary>
+      <div class="body">
+        <ul>
+          <li>Battery + charge IC + LDO alone: verify regulation and the charge curve from the dock</li>
+          <li>MCU alone: clock, flash blink</li>
+          <li>IMU alone over a bench UART harness: verify the raw 200Hz stream</li>
+          <li>FSR + ADC divider alone: calibrate the force-to-voltage curve against known weights</li>
+          <li>BLE advertising alone: bench range and RSSI check</li>
+          <li>Flash write/read alone: buffer timing</li>
+          <li>Full integration on the bench: sensors through edge detection to flash to BLE</li>
+          <li>Field bring-up: worn static, then walking, then the drop-rig validation above</li>
+        </ul>
+      </div>
+    </details>
+    <details>
+      <summary>Validation checklist</summary>
+      <div class="body">
+        <ul>
+          <li>Drop-rig vs. reference load cell: 50 trials, within 8%</li>
+          <li>Sprint speed vs. photocell gate: 20 sprints, within 5%</li>
+          <li>Battery rundown at 15mA continuous load: confirm &#8805;17h to empty</li>
+          <li>Saline soak, 30 minutes: no continuity fault after, a simulated sweat-exposure check</li>
+          <li>Strap-flex fatigue rig: 20 full-match cycles, inspect flex-PCB continuity and FSR adhesion after</li>
+        </ul>
+      </div>
+    </details>
+    <details>
+      <summary>What this device cannot do</summary>
+      <div class="body">
+        <ul>
+          <li>Not a medical device and not FDA-cleared; it flags elevated mechanical loading, it does not diagnose a stress fracture or a shin splint</li>
+          <li>Does not measure true muscle activation; the EMG channel was cut, see the changes above</li>
+          <li>Carries no heart-rate sensor itself; HR requires a separately worn, separately charged BLE chest strap</li>
+          <li>Accuracy figures come from controlled bench drops, not a clinical study tying sensor readings to real injury outcomes</li>
+          <li>Untested on turf types and cleat-stud patterns outside the bench test surface</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="sm" style="margin-bottom:8px;">ShineGuard is the hardware behind the ShinePulse companion app.</p>
+    <p><a href="../shinepulse_app/index.html">See the ShinePulse app →</a></p>
+    <p class="xs" style="margin-top:26px;">SHINEGUARD · ENGINEERING OVERVIEW · SEPTEMBER 2026</p>
+  </div>
+</footer>
+
+</body>
+</html>

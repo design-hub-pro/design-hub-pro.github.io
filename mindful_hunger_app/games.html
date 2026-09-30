@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MindfulHunger - Focus Games</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; font-family: 'Inter', -apple-system, sans-serif; scrollbar-width: none; background: #0A0A0A; color: #fff; }
+
+  .status-bar {
+    height: 59px; display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 28px 8px 28px; background: #0A0A0A; position: sticky; top: 0; z-index: 100;
+  }
+  .status-bar .time { font-size: 17px; font-weight: 600; color: #fff; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .status-bar .icons i { font-size: 14px; color: #fff; }
+  .dynamic-island { width: 120px; height: 36px; background: #000; border-radius: 20px; position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 101; }
+
+  .content { padding: 0 20px 120px 20px; }
+
+  /* Focus Score Header */
+  .focus-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px; padding-top: 4px;
+  }
+
+  .focus-header-left { display: flex; align-items: center; gap: 12px; }
+  .page-title { font-size: 28px; font-weight: 800; }
+  .page-title span {
+    background: linear-gradient(135deg, #00E5FF, #2979FF);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .focus-score-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, rgba(0,229,255,0.12), rgba(41,121,255,0.08));
+    border: 1px solid rgba(0,229,255,0.2);
+    padding: 8px 16px; border-radius: 20px;
+  }
+
+  .focus-score-badge .score { font-size: 18px; font-weight: 800; color: #00E5FF; }
+  .focus-score-badge .label { font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 600; }
+  .focus-score-badge i { font-size: 16px; color: #00E5FF; }
+
+  /* Daily Focus Challenge */
+  .daily-challenge {
+    border-radius: 24px; overflow: hidden; position: relative; margin-bottom: 20px;
+    background: linear-gradient(135deg, #0D47A1, #1565C0, #1A237E);
+    padding: 24px;
+  }
+
+  .daily-challenge::before {
+    content: ''; position: absolute; top: -30px; right: -30px;
+    width: 140px; height: 140px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,229,255,0.2), transparent);
+  }
+
+  .daily-challenge::after {
+    content: ''; position: absolute; bottom: -20px; left: -20px;
+    width: 100px; height: 100px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(41,121,255,0.15), transparent);
+  }
+
+  .daily-label {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.1); backdrop-filter: blur(8px);
+    padding: 5px 12px; border-radius: 12px; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+    color: #80D8FF;
+  }
+
+  .daily-label .pulse-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: #00E5FF;
+    animation: dotPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes dotPulse {
+    0%, 100% { opacity: 0.5; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+
+  .daily-content { position: relative; z-index: 1; }
+  .daily-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; line-height: 1.3; }
+  .daily-desc { font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 16px; }
+
+  .daily-row {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .daily-stats { display: flex; gap: 16px; }
+  .daily-stat { display: flex; align-items: center; gap: 5px; font-size: 11px; color: rgba(255,255,255,0.6); }
+  .daily-stat i { font-size: 12px; color: #80D8FF; }
+
+  .daily-play-btn {
+    display: flex; align-items: center; gap: 8px;
+    background: #00E5FF; color: #0A0A0A;
+    padding: 10px 22px; border-radius: 14px;
+    font-size: 13px; font-weight: 700;
+  }
+
+  .daily-play-btn i { font-size: 12px; }
+
+  /* Focus Streak */
+  .focus-streak-row {
+    display: flex; gap: 10px; margin-bottom: 20px;
+  }
+
+  .streak-pill {
+    flex: 1; background: rgba(255,255,255,0.04); border-radius: 16px;
+    padding: 14px; display: flex; align-items: center; gap: 12px;
+  }
+
+  .streak-pill-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  .streak-pill-info { flex: 1; }
+  .streak-pill-value { font-size: 20px; font-weight: 800; line-height: 1; }
+  .streak-pill-label { font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 500; margin-top: 2px; }
+
+  /* Game Categories */
+  .game-categories {
+    display: flex; gap: 8px; overflow-x: auto; margin-bottom: 20px; padding-bottom: 4px;
+  }
+
+  .game-cat {
+    flex-shrink: 0; padding: 9px 18px; border-radius: 14px; font-size: 13px; font-weight: 600;
+    background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.4);
+    display: flex; align-items: center; gap: 7px;
+  }
+
+  .game-cat.active { background: rgba(0,229,255,0.12); color: #00E5FF; border: 1px solid rgba(0,229,255,0.2); }
+  .game-cat span { font-size: 14px; }
+
+  /* Section Headers */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+  }
+  .section-title { font-size: 18px; font-weight: 700; }
+  .section-more { font-size: 12px; color: #00E5FF; font-weight: 600; }
+
+  /* Featured Games Grid */
+  .featured-games-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;
+  }
+
+  .featured-game-card {
+    border-radius: 22px; overflow: hidden; position: relative;
+  }
+
+  .featured-game-card.large {
+    grid-column: 1 / -1; height: 180px;
+  }
+
+  .featured-game-card.small {
+    height: 160px;
+  }
+
+  .featured-game-card .bg {
+    position: absolute; inset: 0;
+  }
+
+  .featured-game-card .overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 18px;
+  }
+
+  .featured-game-card.large .overlay {
+    padding: 22px;
+  }
+
+  .game-card-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 8px; font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px; width: fit-content; margin-bottom: 8px;
+  }
+
+  .badge-hot { background: rgba(255,59,48,0.3); color: #FF6B6B; }
+  .badge-new { background: rgba(0,229,255,0.2); color: #00E5FF; }
+  .badge-popular { background: rgba(76,175,80,0.2); color: #81C784; }
+  .badge-calm { background: rgba(206,147,216,0.2); color: #CE93D8; }
+
+  .game-card-title { font-size: 16px; font-weight: 800; margin-bottom: 3px; }
+  .featured-game-card.small .game-card-title { font-size: 14px; }
+  .game-card-desc { font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 8px; }
+
+  .game-card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .game-card-meta {
+    display: flex; gap: 10px;
+  }
+
+  .game-meta-item {
+    display: flex; align-items: center; gap: 4px; font-size: 10px; color: rgba(255,255,255,0.5);
+  }
+
+  .game-meta-item i { font-size: 10px; }
+
+  .game-card-play {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .game-card-play i { font-size: 12px; color: #fff; margin-left: 2px; }
+
+  .featured-game-card.large .game-card-play {
+    width: 44px; height: 44px;
+  }
+
+  .featured-game-card.large .game-card-play i { font-size: 16px; }
+
+  /* Focus Benefits Tags */
+  .focus-tags {
+    display: flex; gap: 5px; margin-bottom: 8px;
+  }
+
+  .focus-tag {
+    padding: 3px 8px; border-radius: 6px; font-size: 9px; font-weight: 600;
+    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5);
+  }
+
+  /* Game List */
+  .game-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+
+  .game-list-item {
+    display: flex; gap: 14px; align-items: center;
+    background: rgba(255,255,255,0.03); border-radius: 18px; padding: 12px;
+  }
+
+  .game-list-icon {
+    width: 56px; height: 56px; border-radius: 16px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 24px;
+  }
+
+  .game-list-info { flex: 1; }
+  .game-list-title { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .game-list-meta { font-size: 11px; color: rgba(255,255,255,0.35); margin-bottom: 6px; }
+
+  .game-list-tags { display: flex; gap: 5px; }
+  .game-tag {
+    padding: 2px 8px; border-radius: 6px; font-size: 9px; font-weight: 600;
+    background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.35);
+  }
+
+  .game-play-btn {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    background: rgba(0,229,255,0.12); display: flex; align-items: center; justify-content: center;
+  }
+
+  .game-play-btn i { font-size: 12px; color: #00E5FF; margin-left: 2px; }
+
+  /* Focus Leaderboard */
+  .leaderboard {
+    background: rgba(255,255,255,0.03); border-radius: 22px; padding: 18px;
+    margin-bottom: 24px;
+  }
+
+  .leader-item {
+    display: flex; align-items: center; gap: 12px; padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+
+  .leader-item:last-child { border-bottom: none; }
+
+  .leader-rank {
+    width: 26px; font-size: 14px; font-weight: 800; text-align: center;
+  }
+
+  .leader-rank.gold { color: #FFD700; }
+  .leader-rank.silver { color: #C0C0C0; }
+  .leader-rank.bronze { color: #CD7F32; }
+
+  .leader-avatar {
+    width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
+  }
+
+  .leader-info { flex: 1; }
+  .leader-name { font-size: 13px; font-weight: 600; }
+  .leader-game { font-size: 10px; color: rgba(255,255,255,0.3); }
+
+  .leader-score-col { text-align: right; }
+  .leader-score { font-size: 15px; font-weight: 800; color: #00E5FF; }
+  .leader-focus { font-size: 9px; color: rgba(255,255,255,0.3); }
+
+  /* Focus Tips */
+  .focus-tip {
+    background: linear-gradient(135deg, rgba(0,229,255,0.06), rgba(41,121,255,0.04));
+    border: 1px solid rgba(0,229,255,0.08);
+    border-radius: 20px; padding: 18px; margin-bottom: 24px;
+    display: flex; gap: 14px; align-items: center;
+  }
+
+  .tip-icon {
+    width: 44px; height: 44px; border-radius: 14px; flex-shrink: 0;
+    background: rgba(0,229,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+
+  .tip-text { font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.5; }
+  .tip-text strong { color: #fff; font-weight: 700; }
+
+  .tab-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(10,10,10,0.95); backdrop-filter: blur(20px);
+    display: flex; align-items: flex-start; justify-content: space-around; padding-top: 10px;
+    border-top: 0.5px solid rgba(255,255,255,0.1);
+  }
+
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; min-width: 60px; }
+  .tab-item i { font-size: 22px; color: rgba(255,255,255,0.4); }
+  .tab-item span { font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 500; }
+  .tab-item.active i { color: #00E5FF; }
+  .tab-item.active span { color: #00E5FF; }
+
+  .sos-btn {
+    width: 52px; height: 52px; border-radius: 16px; border: none;
+    background: linear-gradient(135deg, #FF6B6B, #FF3B30);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(255,59,48,0.4); margin-top: -10px;
+  }
+  .sos-btn i { font-size: 22px; color: #fff; }
+
+  /* Difficulty dots */
+  .difficulty {
+    display: flex; gap: 3px; align-items: center;
+  }
+  .diff-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.12);
+  }
+  .diff-dot.filled { background: #00E5FF; }
+  .diff-dot.filled.hard { background: #FF6B6B; }
+</style>
+</head>
+<body>
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Header with Focus Score -->
+    <div class="focus-header">
+      <span class="page-title"><span>Focus</span> Games</span>
+      <div class="focus-score-badge">
+        <i class="fas fa-brain"></i>
+        <div>
+          <div class="score">847</div>
+          <div class="label">Focus Score</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Focus Challenge -->
+    <div class="daily-challenge">
+      <div class="daily-content">
+        <div class="daily-label">
+          <span class="pulse-dot"></span> Today's Challenge
+        </div>
+        <div class="daily-title">Stroop Speed Run</div>
+        <div class="daily-desc">Name the color, ignore the word. Beat 30 in 60 seconds.</div>
+        <div class="daily-row">
+          <div class="daily-stats">
+            <div class="daily-stat"><i class="fas fa-users"></i> 5.2K played</div>
+            <div class="daily-stat"><i class="fas fa-trophy"></i> Top: 38</div>
+          </div>
+          <div class="daily-play-btn">
+            <i class="fas fa-play"></i> Play Now
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Focus Streak Row -->
+    <div class="focus-streak-row">
+      <div class="streak-pill">
+        <div class="streak-pill-icon" style="background: rgba(0,229,255,0.12)">🔥</div>
+        <div class="streak-pill-info">
+          <div class="streak-pill-value">12</div>
+          <div class="streak-pill-label">Day Streak</div>
+        </div>
+      </div>
+      <div class="streak-pill">
+        <div class="streak-pill-icon" style="background: rgba(76,175,80,0.12)">🧠</div>
+        <div class="streak-pill-info">
+          <div class="streak-pill-value">4.2h</div>
+          <div class="streak-pill-label">Focus Time</div>
+        </div>
+      </div>
+      <div class="streak-pill">
+        <div class="streak-pill-icon" style="background: rgba(255,183,77,0.12)">⚡</div>
+        <div class="streak-pill-info">
+          <div class="streak-pill-value">32</div>
+          <div class="streak-pill-label">Games Won</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Categories -->
+    <div class="game-categories">
+      <div class="game-cat active"><span>🎯</span> Focus</div>
+      <div class="game-cat"><span>🧠</span> Memory</div>
+      <div class="game-cat"><span>⚡</span> Reaction</div>
+      <div class="game-cat"><span>🧘</span> Calm</div>
+      <div class="game-cat"><span>🧩</span> Puzzle</div>
+    </div>
+
+    <!-- Featured Focus Games -->
+    <div class="section-header">
+      <span class="section-title">Featured</span>
+      <span class="section-more">See All</span>
+    </div>
+
+    <div class="featured-games-grid">
+      <!-- Large Featured Card -->
+      <div class="featured-game-card large">
+        <div class="bg" style="background: linear-gradient(135deg, #1A237E, #0D47A1, #01579B);"></div>
+        <div class="overlay">
+          <div class="game-card-badge badge-hot"><i class="fas fa-fire"></i> Most Played</div>
+          <div class="game-card-title">Stroop Challenge</div>
+          <div class="game-card-desc">Name the color, not the word. Train your selective attention.</div>
+          <div class="game-card-footer">
+            <div class="game-card-meta">
+              <div class="game-meta-item"><i class="fas fa-clock"></i> 3 min</div>
+              <div class="game-meta-item"><i class="fas fa-users"></i> 8.4K</div>
+              <div class="difficulty">
+                <div class="diff-dot filled"></div>
+                <div class="diff-dot filled"></div>
+                <div class="diff-dot filled"></div>
+                <div class="diff-dot"></div>
+              </div>
+            </div>
+            <div class="game-card-play"><i class="fas fa-play"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Small Card 1 -->
+      <div class="featured-game-card small">
+        <div class="bg" style="background: linear-gradient(135deg, #4A148C, #7B1FA2);"></div>
+        <div class="overlay">
+          <div class="game-card-badge badge-new"><i class="fas fa-sparkles"></i> New</div>
+          <div class="game-card-title">Pattern Lock</div>
+          <div class="game-card-desc">Remember & recreate patterns</div>
+          <div class="game-card-footer">
+            <div class="game-card-meta">
+              <div class="game-meta-item"><i class="fas fa-clock"></i> 5 min</div>
+              <div class="difficulty">
+                <div class="diff-dot filled"></div>
+                <div class="diff-dot filled"></div>
+                <div class="diff-dot"></div>
+                <div class="diff-dot"></div>
+              </div>
+            </div>
+            <div class="game-card-play"><i class="fas fa-play"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Small Card 2 -->
+      <div class="featured-game-card small">
+        <div class="bg" style="background: linear-gradient(135deg, #004D40, #00695C);"></div>
+        <div class="overlay">
+          <div class="game-card-badge badge-popular"><i class="fas fa-arrow-trend-up"></i> Trending</div>
+          <div class="game-card-title">Focus Flow</div>
+          <div class="game-card-desc">Tap circles in sequence</div>
+          <div class="game-card-footer">
+            <div class="game-card-meta">
+              <div class="game-meta-item"><i class="fas fa-clock"></i> 4 min</div>
+              <div class="difficulty">
+                <div class="diff-dot filled"></div>
+                <div class="diff-dot filled"></div>
+                <div class="diff-dot filled"></div>
+                <div class="diff-dot filled hard"></div>
+              </div>
+            </div>
+            <div class="game-card-play"><i class="fas fa-play"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- More Focus Games -->
+    <div class="section-header">
+      <span class="section-title">All Focus Games</span>
+      <span class="section-more">8 Games</span>
+    </div>
+
+    <div class="game-list">
+      <div class="game-list-item">
+        <div class="game-list-icon" style="background: linear-gradient(135deg, rgba(0,229,255,0.15), rgba(41,121,255,0.1))">🧠</div>
+        <div class="game-list-info">
+          <div class="game-list-title">Memory Matrix</div>
+          <div class="game-list-meta">Remember lit tiles & replay the sequence</div>
+          <div class="game-list-tags">
+            <span class="game-tag">4 min</span>
+            <span class="game-tag">Memory</span>
+            <span class="game-tag" style="color:#00E5FF">+15 Focus</span>
+          </div>
+        </div>
+        <div class="game-play-btn"><i class="fas fa-play"></i></div>
+      </div>
+      <div class="game-list-item">
+        <div class="game-list-icon" style="background: linear-gradient(135deg, rgba(255,183,77,0.15), rgba(230,81,0,0.1))">🎯</div>
+        <div class="game-list-info">
+          <div class="game-list-title">Color Sort</div>
+          <div class="game-list-meta">Sort falling colors into correct bins fast</div>
+          <div class="game-list-tags">
+            <span class="game-tag">3 min</span>
+            <span class="game-tag">Reaction</span>
+            <span class="game-tag" style="color:#00E5FF">+12 Focus</span>
+          </div>
+        </div>
+        <div class="game-play-btn"><i class="fas fa-play"></i></div>
+      </div>
+      <div class="game-list-item">
+        <div class="game-list-icon" style="background: linear-gradient(135deg, rgba(76,175,80,0.15), rgba(46,125,50,0.1))">🔢</div>
+        <div class="game-list-info">
+          <div class="game-list-title">Number Sequence</div>
+          <div class="game-list-meta">Find the next number in the pattern</div>
+          <div class="game-list-tags">
+            <span class="game-tag">2 min</span>
+            <span class="game-tag">Logic</span>
+            <span class="game-tag" style="color:#00E5FF">+10 Focus</span>
+          </div>
+        </div>
+        <div class="game-play-btn"><i class="fas fa-play"></i></div>
+      </div>
+      <div class="game-list-item">
+        <div class="game-list-icon" style="background: linear-gradient(135deg, rgba(206,147,216,0.15), rgba(106,27,154,0.1))">🌊</div>
+        <div class="game-list-info">
+          <div class="game-list-title">Breath Rhythm</div>
+          <div class="game-list-meta">Tap in sync with expanding circles</div>
+          <div class="game-list-tags">
+            <span class="game-tag">∞</span>
+            <span class="game-tag">Calm</span>
+            <span class="game-tag" style="color:#00E5FF">+8 Focus</span>
+          </div>
+        </div>
+        <div class="game-play-btn"><i class="fas fa-play"></i></div>
+      </div>
+      <div class="game-list-item">
+        <div class="game-list-icon" style="background: linear-gradient(135deg, rgba(255,107,107,0.15), rgba(255,59,48,0.1))">🔍</div>
+        <div class="game-list-info">
+          <div class="game-list-title">Word Hunt</div>
+          <div class="game-list-meta">Find hidden words in the letter grid</div>
+          <div class="game-list-tags">
+            <span class="game-tag">5 min</span>
+            <span class="game-tag">Puzzle</span>
+            <span class="game-tag" style="color:#00E5FF">+18 Focus</span>
+          </div>
+        </div>
+        <div class="game-play-btn"><i class="fas fa-play"></i></div>
+      </div>
+    </div>
+
+    <!-- Focus Tip -->
+    <div class="focus-tip">
+      <div class="tip-icon">💡</div>
+      <div class="tip-text"><strong>Focus Tip:</strong> Playing just 5 minutes of attention games daily can improve your focus by 23% in 2 weeks.</div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="section-header">
+      <span class="section-title">Focus Leaderboard</span>
+      <span class="section-more">This Week</span>
+    </div>
+
+    <div class="leaderboard">
+      <div class="leader-item">
+        <span class="leader-rank gold">1</span>
+        <img class="leader-avatar" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80" alt="">
+        <div class="leader-info">
+          <div class="leader-name">Lisa K.</div>
+          <div class="leader-game">Stroop Master</div>
+        </div>
+        <div class="leader-score-col">
+          <div class="leader-score">12,480</div>
+          <div class="leader-focus">Focus: 962</div>
+        </div>
+      </div>
+      <div class="leader-item">
+        <span class="leader-rank silver">2</span>
+        <img class="leader-avatar" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80" alt="">
+        <div class="leader-info">
+          <div class="leader-name">Mike C.</div>
+          <div class="leader-game">Pattern Pro</div>
+        </div>
+        <div class="leader-score-col">
+          <div class="leader-score">11,230</div>
+          <div class="leader-focus">Focus: 918</div>
+        </div>
+      </div>
+      <div class="leader-item">
+        <span class="leader-rank bronze">3</span>
+        <img class="leader-avatar" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80" alt="">
+        <div class="leader-info">
+          <div class="leader-name">James R.</div>
+          <div class="leader-game">Memory King</div>
+        </div>
+        <div class="leader-score-col">
+          <div class="leader-score">9,870</div>
+          <div class="leader-focus">Focus: 854</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-compass"></i>
+      <span>Discover</span>
+    </div>
+    <div class="tab-item">
+      <button class="sos-btn"><i class="fas fa-bolt"></i></button>
+      <span style="color:rgba(255,255,255,0.4);font-size:10px;margin-top:4px">SOS</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-chart-line"></i>
+      <span>Progress</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-gamepad"></i>
+      <span>Games</span>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LogicTrace - Clinic report</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; } * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#F6F2EA; color:#211D17; overflow-x:hidden; position:relative; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:absolute; top:0; left:0; right:0; z-index:100; color:#fff; }
+  .status-time { font-size:17px; font-weight:700; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .hero { position:relative; height:196px; overflow:hidden; }
+  .hero img { width:100%; height:100%; object-fit:cover; }
+  .hero-ov { position:absolute; inset:0; background:linear-gradient(to top, #F6F2EA 3%, rgba(20,18,30,0.44) 48%, rgba(20,18,30,0.56) 100%); padding:0 28px 20px; display:flex; flex-direction:column; justify-content:flex-end; color:#fff; }
+  .h-l { font-size:11px; font-weight:850; letter-spacing:1.6px; text-transform:uppercase; opacity:0.82; }
+  .h-t { font-size:25px; font-weight:900; letter-spacing:-0.9px; margin-top:7px; line-height:1.16; }
+
+  .content { padding:0 28px 110px; }
+
+  .doc { background:#fff; border:1px solid #E7DFCF; border-radius:24px; padding:17px 19px; display:flex; align-items:center; gap:14px; }
+  .ini { width:48px; height:48px; border-radius:16px; background:linear-gradient(145deg,#6C60C9,#35306E); color:#fff; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:800; flex-shrink:0; }
+  .doc-n { font-size:15.5px; font-weight:800; letter-spacing:-0.2px; }
+  .doc-s { font-size:12.5px; color:#8B8073; margin-top:3px; }
+  .doc-b { font-size:11.5px; font-weight:800; color:#1F7A4E; background:#E4F1E9; padding:6px 10px; border-radius:9px; flex-shrink:0; }
+
+  .sec { display:flex; justify-content:space-between; align-items:baseline; margin:22px 0 11px; }
+  .sec-t { font-size:19px; font-weight:850; letter-spacing:-0.4px; }
+  .sec-l { font-size:13px; color:#8B8073; font-weight:700; }
+
+  .paper { background:#fff; border:1px solid #E7DFCF; border-radius:24px; padding:22px 24px 20px; }
+  .p-h { font-size:10.5px; font-weight:850; letter-spacing:1.5px; text-transform:uppercase; color:#B0A794; }
+  .p-t { font-size:19px; font-weight:850; letter-spacing:-0.5px; margin-top:8px; line-height:1.3; }
+  .p-meta { display:flex; gap:22px; margin-top:16px; padding-bottom:16px; border-bottom:1px solid #F0E9DC; }
+  .pm-l { font-size:10px; font-weight:800; letter-spacing:1px; color:#B0A794; }
+  .pm-v { font-size:19px; font-weight:900; letter-spacing:-0.7px; margin-top:5px; }
+  .pm-v span { font-size:11px; font-weight:700; color:#A79C8D; letter-spacing:0; }
+
+  .fr { display:flex; align-items:center; gap:13px; padding:14px 0; border-bottom:1px solid #F0E9DC; }
+  .fr:last-of-type { border-bottom:none; }
+  .fr-i { width:34px; height:34px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:13px; color:#fff; flex-shrink:0; }
+  .fr-t { font-size:14px; font-weight:700; letter-spacing:-0.2px; line-height:1.35; }
+  .fr-s { font-size:11.5px; color:#A79C8D; margin-top:3px; }
+  .fr-v { font-size:15px; font-weight:850; flex-shrink:0; letter-spacing:-0.3px; }
+
+  .caveat { margin-top:16px; padding-top:15px; border-top:1px solid #F0E9DC; font-size:12px; color:#8B8073; line-height:1.55; }
+
+  .btns { display:flex; gap:11px; margin-top:18px; }
+  .btn { flex:1; height:60px; border-radius:19px; display:flex; align-items:center; justify-content:center; gap:9px; font-size:16px; font-weight:800; }
+  .b1 { background:#A24E22; color:#fff; box-shadow:0 9px 22px rgba(162,78,34,0.24); }
+  .b2 { background:#fff; border:1px solid #E0D6C2; color:#211D17; flex:0 0 82px; }
+
+  .tab-bar { position:absolute; bottom:0; left:0; right:0; height:92px; background:rgba(255,255,255,0.97); backdrop-filter:blur(20px); display:flex; justify-content:space-around; align-items:flex-start; padding-top:13px; border-top:1px solid #E7DFCF; }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:5px; font-size:11px; color:#A79C8D; font-weight:650; }
+  .tab.on { color:#A24E22; }
+  .tab i { font-size:20px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">20:12</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full" style="font-size:16px"></i></div>
+  </div>
+
+  <div class="hero">
+    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1788998154889-image-1.png" alt="">
+    <div class="hero-ov">
+      <div class="h-l">Appointment · 21 September</div>
+      <div class="h-t">One page for<br>your neurologist</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="doc">
+      <div class="ini">AC</div>
+      <div style="flex:1">
+        <div class="doc-n">Dr. Amara Chen</div>
+        <div class="doc-s">Geriatric Neurology, Lakeside Clinic</div>
+      </div>
+      <div class="doc-b">Linked</div>
+    </div>
+
+    <div class="sec"><div class="sec-t">What she will see</div><div class="sec-l">Preview</div></div>
+    <div class="paper">
+      <div class="p-h">LogicTrace summary</div>
+      <div class="p-t">Frank Alonso · 10 Mar to 9 Sep 2026</div>
+      <div class="p-meta">
+        <div>
+          <div class="pm-l">SESSIONS</div>
+          <div class="pm-v">142</div>
+        </div>
+        <div>
+          <div class="pm-l">ROUNDS</div>
+          <div class="pm-v">640</div>
+        </div>
+        <div>
+          <div class="pm-l">ADHERENCE</div>
+          <div class="pm-v">88<span>%</span></div>
+        </div>
+      </div>
+
+      <div class="fr">
+        <div class="fr-i" style="background:#BD5642"><i class="fas fa-arrow-up"></i></div>
+        <div style="flex:1">
+          <div class="fr-t">Order-recovery time rising</div>
+          <div class="fr-s">+1.2s since June. Right-hand drags still steady.</div>
+        </div>
+        <div class="fr-v">Watch</div>
+      </div>
+      <div class="fr">
+        <div class="fr-i" style="background:#AD7C2A"><i class="fas fa-clock"></i></div>
+        <div style="flex:1">
+          <div class="fr-t">Morning sessions weaker</div>
+          <div class="fr-s">9 points below the same puzzle in the afternoon.</div>
+        </div>
+        <div class="fr-v">Watch</div>
+      </div>
+      <div class="fr">
+        <div class="fr-i" style="background:#3B8F63"><i class="fas fa-arrow-down"></i></div>
+        <div style="flex:1">
+          <div class="fr-t">Drag steadiness improved</div>
+          <div class="fr-s">+11 pts since occupational therapy began in June.</div>
+        </div>
+        <div class="fr-v">Good</div>
+      </div>
+
+      <div class="caveat">Sequencing and drag timing are monitoring signals, not diagnostic tests. Readings reflect the device, the puzzle and the time of day as well as motor and cognitive state. Interpret alongside clinical examination.</div>
+    </div>
+
+
+    <div class="btns">
+      <div class="btn b2"><i class="fas fa-file-pdf"></i></div>
+      <div class="btn b1">Send to the clinic</div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab"><i class="fas fa-house"></i>Today</div>
+    <div class="tab"><i class="fas fa-shapes"></i>Puzzles</div>
+    <div class="tab"><i class="fas fa-chart-line"></i>Trends</div>
+    <div class="tab on"><i class="fas fa-user-group"></i>Circle</div>
+    <div class="tab"><i class="fas fa-gear"></i>Me</div>
+  </div>
+</body>
+</html>

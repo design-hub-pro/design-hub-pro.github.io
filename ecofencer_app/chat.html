@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eco-Fencer - Chat</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif; background: #fff; width: 100%; height: 100%; overflow-x: hidden; }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center;
+    background: #fff; position: sticky; top: 0; z-index: 100;
+  }
+  .status-time { font-size: 16px; font-weight: 600; letter-spacing: -0.5px; }
+  .dynamic-island { width: 120px; height: 36px; background: #000; border-radius: 20px; position: absolute; left: 50%; transform: translateX(-50%); top: 10px; }
+  .status-icons { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+
+  /* Chat Header */
+  .chat-header {
+    display: flex; align-items: center; gap: 12px; padding: 8px 28px 12px;
+    border-bottom: 0.5px solid #F2F2F7;
+  }
+  .chat-back { font-size: 20px; color: #34C759; }
+  .chat-user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+  .chat-user-info { flex: 1; }
+  .chat-user-name { font-size: 16px; font-weight: 600; color: #1C1C1E; }
+  .chat-user-status { font-size: 12px; color: #34C759; font-weight: 500; }
+  .chat-actions { display: flex; gap: 16px; }
+  .chat-actions i { font-size: 18px; color: #8E8E93; }
+
+  /* Item Banner */
+  .item-banner {
+    display: flex; align-items: center; gap: 12px; padding: 10px 28px;
+    background: #F9F9FB; border-bottom: 0.5px solid #F2F2F7;
+  }
+  .item-banner img { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; }
+  .item-banner-info { flex: 1; }
+  .item-banner-name { font-size: 13px; font-weight: 600; color: #1C1C1E; }
+  .item-banner-price { font-size: 12px; color: #34C759; font-weight: 700; }
+  .item-banner-btn {
+    padding: 6px 14px; border-radius: 10px; background: #34C759; color: #fff;
+    font-size: 12px; font-weight: 600; border: none;
+  }
+
+  /* Messages Area */
+  .messages { padding: 16px 28px 100px; display: flex; flex-direction: column; gap: 16px; }
+
+  .msg-date { text-align: center; font-size: 12px; color: #8E8E93; font-weight: 500; margin: 8px 0; }
+
+  .msg-row { display: flex; gap: 8px; max-width: 85%; }
+  .msg-row.sent { align-self: flex-end; flex-direction: row-reverse; }
+
+  .msg-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; align-self: flex-end; }
+
+  .msg-bubble {
+    padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; color: #1C1C1E;
+    background: #F2F2F7; border-bottom-left-radius: 6px;
+  }
+  .msg-row.sent .msg-bubble {
+    background: #34C759; color: #fff; border-bottom-left-radius: 20px; border-bottom-right-radius: 6px;
+  }
+  .msg-time-small { font-size: 10px; color: #8E8E93; margin-top: 4px; padding-left: 40px; }
+  .msg-row.sent .msg-time-small { text-align: right; padding-left: 0; padding-right: 40px; }
+
+  /* Offer Card */
+  .offer-card {
+    background: #F9F9FB; border-radius: 18px; padding: 14px; border: 1.5px solid #E5E5EA;
+    margin-top: 4px;
+  }
+  .offer-label { font-size: 11px; color: #8E8E93; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .offer-price { font-size: 24px; font-weight: 800; color: #34C759; margin: 4px 0; }
+  .offer-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .offer-btn {
+    flex: 1; padding: 10px; border-radius: 12px; font-size: 13px; font-weight: 600; border: none;
+    font-family: 'Inter', sans-serif;
+  }
+  .offer-accept { background: #34C759; color: #fff; }
+  .offer-counter { background: #F2F2F7; color: #3C3C43; }
+
+  /* Input Bar */
+  .input-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 28px 36px;
+    background: rgba(255,255,255,0.95); backdrop-filter: blur(20px);
+    border-top: 0.5px solid #F2F2F7; display: flex; align-items: center; gap: 10px;
+  }
+  .input-btn { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; font-size: 18px; }
+  .input-plus { background: #34C759; color: #fff; }
+  .input-field {
+    flex: 1; padding: 10px 16px; border-radius: 20px; border: 1.5px solid #E5E5EA;
+    font-size: 15px; font-family: 'Inter', sans-serif; outline: none; background: #F9F9FB;
+  }
+  .input-field::placeholder { color: #C7C7CC; }
+  .input-send { background: none; color: #34C759; font-size: 22px; border: none; }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="chat-header">
+  <div class="chat-back"><i class="fas fa-chevron-left"></i></div>
+  <img class="chat-user-avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80" alt="">
+  <div class="chat-user-info">
+    <div class="chat-user-name">Sarah Chen</div>
+    <div class="chat-user-status"><i class="fas fa-circle" style="font-size:6px;vertical-align:middle;"></i> Online</div>
+  </div>
+  <div class="chat-actions">
+    <i class="fas fa-phone"></i>
+    <i class="fas fa-ellipsis"></i>
+  </div>
+</div>
+
+<div class="item-banner">
+  <img src="https://images.pexels.com/photos/6538992/pexels-photo-6538992.jpeg?auto=compress&cs=tinysrgb&w=100" alt="">
+  <div class="item-banner-info">
+    <div class="item-banner-name">Uhlmann Foil Mask</div>
+    <div class="item-banner-price">$45 · Excellent</div>
+  </div>
+  <button class="item-banner-btn">View</button>
+</div>
+
+<div class="messages">
+  <div class="msg-date">Today, 9:30 AM</div>
+
+  <div>
+    <div class="msg-row">
+      <img class="msg-avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&q=80" alt="">
+      <div class="msg-bubble">Hi! Is the foil mask still available? 🤺</div>
+    </div>
+    <div class="msg-time-small">9:30 AM</div>
+  </div>
+
+  <div>
+    <div class="msg-row sent">
+      <div class="msg-bubble">Yes it is! It's been used for about 8 months. Still in great condition.</div>
+    </div>
+    <div class="msg-row sent" style="margin-top:4px;">
+      <div class="msg-bubble">My kid outgrew it 😅</div>
+    </div>
+    <div class="msg-time-small" style="text-align:right;">9:32 AM</div>
+  </div>
+
+  <div>
+    <div class="msg-row">
+      <img class="msg-avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&q=80" alt="">
+      <div class="msg-bubble">That's exactly what happened to us too! Can I pick it up today at the Irvine club?</div>
+    </div>
+    <div class="msg-time-small">9:35 AM</div>
+  </div>
+
+  <div>
+    <div class="msg-row sent">
+      <div class="msg-bubble">Sure! I'll be there at 4pm for my son's practice.</div>
+    </div>
+    <div class="msg-time-small" style="text-align:right;">9:36 AM</div>
+  </div>
+
+  <div>
+    <div class="msg-row">
+      <img class="msg-avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&q=80" alt="">
+      <div>
+        <div class="msg-bubble">I'd like to make an offer:</div>
+        <div class="offer-card">
+          <div class="offer-label">Offer for Foil Mask</div>
+          <div class="offer-price">$40</div>
+          <div class="offer-actions">
+            <button class="offer-btn offer-accept"><i class="fas fa-check"></i> Accept</button>
+            <button class="offer-btn offer-counter"><i class="fas fa-arrows-rotate"></i> Counter</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="msg-time-small">9:38 AM</div>
+  </div>
+</div>
+
+<div class="input-bar">
+  <button class="input-btn input-plus"><i class="fas fa-plus"></i></button>
+  <input class="input-field" type="text" placeholder="Type a message...">
+  <button class="input-btn input-send"><i class="fas fa-paper-plane"></i></button>
+</div>
+
+</body>
+</html>

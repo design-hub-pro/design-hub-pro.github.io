@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BirdVision AI - Collection</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;
+    scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif;
+    background: #FAFBFC;
+  }
+
+  .status-bar {
+    height: 59px; padding: 0 28px; display: flex; align-items: flex-end;
+    justify-content: space-between; padding-bottom: 12px; background: #FAFBFC;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .status-time { font-size: 16px; font-weight: 600; letter-spacing: -0.5px; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island {
+    width: 126px; height: 37px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  }
+
+  .content { padding: 0 28px 120px; }
+
+  .header-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 8px;
+  }
+  .page-title { font-size: 32px; font-weight: 800; color: #1C1C1E; }
+  .header-btn {
+    width: 36px; height: 36px; background: #F2F2F7; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .header-btn i { font-size: 14px; color: #1C1C1E; }
+
+  .collection-stats {
+    display: flex; gap: 10px; margin-top: 18px;
+  }
+  .cs-card {
+    flex: 1; border-radius: 18px; padding: 16px; position: relative;
+    overflow: hidden;
+  }
+  .cs-card-number {
+    font-size: 32px; font-weight: 800; color: #fff; line-height: 1;
+  }
+  .cs-card-label {
+    font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 4px; font-weight: 500;
+  }
+  .cs-card-icon {
+    position: absolute; top: 12px; right: 12px; font-size: 20px;
+    color: rgba(255,255,255,0.3);
+  }
+
+  .achievements {
+    margin-top: 24px;
+  }
+  .achievements-title { font-size: 16px; font-weight: 700; color: #1C1C1E; margin-bottom: 12px; }
+  .achievement-row {
+    display: flex; gap: 10px; overflow-x: auto;
+    margin: 0 -28px; padding: 0 28px 4px;
+    scrollbar-width: none;
+  }
+  .achievement-row::-webkit-scrollbar { display: none; }
+  .achievement-badge {
+    min-width: 80px; text-align: center; flex-shrink: 0;
+  }
+  .achievement-icon {
+    width: 60px; height: 60px; border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto; font-size: 24px;
+  }
+  .achievement-label {
+    font-size: 10px; font-weight: 600; color: #636366; margin-top: 6px;
+    line-height: 1.2;
+  }
+
+  .filter-bar {
+    display: flex; gap: 8px; margin-top: 24px; margin-bottom: 14px;
+  }
+  .filter-chip {
+    padding: 7px 14px; border-radius: 10px; font-size: 12px;
+    font-weight: 600;
+  }
+  .filter-chip.active { background: #1C1C1E; color: #fff; }
+  .filter-chip:not(.active) { background: #F2F2F7; color: #636366; }
+
+  .bird-list { display: flex; flex-direction: column; gap: 10px; }
+  .bird-item {
+    background: #fff; border-radius: 16px; padding: 12px;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+  .bird-thumb {
+    width: 60px; height: 60px; border-radius: 14px; overflow: hidden;
+    flex-shrink: 0; position: relative;
+  }
+  .bird-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .bird-item-info { flex: 1; }
+  .bird-item-name { font-size: 15px; font-weight: 700; color: #1C1C1E; }
+  .bird-item-sci { font-size: 11px; color: #8E8E93; font-style: italic; }
+  .bird-item-meta {
+    display: flex; align-items: center; gap: 8px; margin-top: 4px;
+  }
+  .bird-item-date { font-size: 11px; color: #8E8E93; }
+  .bird-item-conf {
+    font-size: 11px; font-weight: 600; padding: 2px 8px;
+    border-radius: 6px;
+  }
+  .bird-item-arrow { color: #C7C7CC; font-size: 14px; }
+  .bird-vid-badge {
+    position: absolute; bottom: 4px; right: 4px;
+    width: 18px; height: 18px; background: rgba(0,0,0,0.5);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  }
+  .bird-vid-badge i { color: #fff; font-size: 7px; }
+
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 90px;
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: flex-start;
+    padding-top: 10px; border-top: 0.5px solid rgba(0,0,0,0.08);
+  }
+  .tab-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-size: 10px; color: #8E8E93; font-weight: 500;
+  }
+  .tab-item.active { color: #34C759; }
+  .tab-item i { font-size: 22px; }
+  .tab-center {
+    width: 52px; height: 52px; background: linear-gradient(135deg, #34C759, #30D158);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    margin-top: -20px; box-shadow: 0 4px 16px rgba(52,199,89,0.4);
+  }
+  .tab-center i { color: #fff; font-size: 22px; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="header-row">
+      <div class="page-title">My Collection</div>
+      <div class="header-btn"><i class="fas fa-sliders"></i></div>
+    </div>
+
+    <div class="collection-stats">
+      <div class="cs-card" style="background:linear-gradient(135deg,#34C759,#248A3D);">
+        <i class="fas fa-feather-alt cs-card-icon"></i>
+        <div class="cs-card-number">47</div>
+        <div class="cs-card-label">Species</div>
+      </div>
+      <div class="cs-card" style="background:linear-gradient(135deg,#FF9500,#C93400);">
+        <i class="fas fa-video cs-card-icon"></i>
+        <div class="cs-card-number">128</div>
+        <div class="cs-card-label">Videos</div>
+      </div>
+      <div class="cs-card" style="background:linear-gradient(135deg,#007AFF,#0040DD);">
+        <i class="fas fa-music cs-card-icon"></i>
+        <div class="cs-card-number">83</div>
+        <div class="cs-card-label">Songs</div>
+      </div>
+    </div>
+
+    <div class="achievements">
+      <div class="achievements-title">Achievements</div>
+      <div class="achievement-row">
+        <div class="achievement-badge">
+          <div class="achievement-icon" style="background:linear-gradient(135deg,#FFD60A,#FF9F0A);">
+            <i class="fas fa-trophy"></i>
+          </div>
+          <div class="achievement-label">First Scan</div>
+        </div>
+        <div class="achievement-badge">
+          <div class="achievement-icon" style="background:linear-gradient(135deg,#34C759,#30D158);">
+            <i class="fas fa-leaf"></i>
+          </div>
+          <div class="achievement-label">10 Species</div>
+        </div>
+        <div class="achievement-badge">
+          <div class="achievement-icon" style="background:linear-gradient(135deg,#007AFF,#5856D6);">
+            <i class="fas fa-music"></i>
+          </div>
+          <div class="achievement-label">Song Expert</div>
+        </div>
+        <div class="achievement-badge">
+          <div class="achievement-icon" style="background:linear-gradient(135deg,#FF2D55,#FF375F);">
+            <i class="fas fa-fire"></i>
+          </div>
+          <div class="achievement-label">7-Day Streak</div>
+        </div>
+        <div class="achievement-badge">
+          <div class="achievement-icon" style="background:#F2F2F7;">
+            <i class="fas fa-lock" style="color:#C7C7CC;"></i>
+          </div>
+          <div class="achievement-label">50 Species</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <div class="filter-chip active">All</div>
+      <div class="filter-chip">Songbirds</div>
+      <div class="filter-chip">Raptors</div>
+      <div class="filter-chip">Rare</div>
+    </div>
+
+    <div class="bird-list">
+      <div class="bird-item">
+        <div class="bird-thumb">
+          <img src="https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=200&q=80" alt="Cardinal">
+          <div class="bird-vid-badge"><i class="fas fa-play"></i></div>
+        </div>
+        <div class="bird-item-info">
+          <div class="bird-item-name">Northern Cardinal</div>
+          <div class="bird-item-sci">Cardinalis cardinalis</div>
+          <div class="bird-item-meta">
+            <span class="bird-item-date">Today</span>
+            <span class="bird-item-conf" style="background:#E8F9ED;color:#34C759;">97%</span>
+          </div>
+        </div>
+        <i class="fas fa-chevron-right bird-item-arrow"></i>
+      </div>
+
+      <div class="bird-item">
+        <div class="bird-thumb">
+          <img src="https://images.unsplash.com/photo-1591608971362-f08b2a75731a?w=200&q=80" alt="Robin">
+          <div class="bird-vid-badge"><i class="fas fa-play"></i></div>
+        </div>
+        <div class="bird-item-info">
+          <div class="bird-item-name">American Robin</div>
+          <div class="bird-item-sci">Turdus migratorius</div>
+          <div class="bird-item-meta">
+            <span class="bird-item-date">Yesterday</span>
+            <span class="bird-item-conf" style="background:#E8F9ED;color:#34C759;">94%</span>
+          </div>
+        </div>
+        <i class="fas fa-chevron-right bird-item-arrow"></i>
+      </div>
+
+      <div class="bird-item">
+        <div class="bird-thumb">
+          <img src="https://images.unsplash.com/photo-1444464666168-49d633b86797?w=200&q=80" alt="Blue Jay">
+          <div class="bird-vid-badge"><i class="fas fa-play"></i></div>
+        </div>
+        <div class="bird-item-info">
+          <div class="bird-item-name">Blue Jay</div>
+          <div class="bird-item-sci">Cyanocitta cristata</div>
+          <div class="bird-item-meta">
+            <span class="bird-item-date">2 days ago</span>
+            <span class="bird-item-conf" style="background:#E8F9ED;color:#34C759;">92%</span>
+          </div>
+        </div>
+        <i class="fas fa-chevron-right bird-item-arrow"></i>
+      </div>
+
+      <div class="bird-item">
+        <div class="bird-thumb">
+          <img src="https://images.unsplash.com/photo-1480044965905-02098d419e96?w=200&q=80" alt="Eagle">
+          <div class="bird-vid-badge"><i class="fas fa-play"></i></div>
+        </div>
+        <div class="bird-item-info">
+          <div class="bird-item-name">Bald Eagle</div>
+          <div class="bird-item-sci">Haliaeetus leucocephalus</div>
+          <div class="bird-item-meta">
+            <span class="bird-item-date">Last week</span>
+            <span class="bird-item-conf" style="background:#FFF3E0;color:#FF9500;">88%</span>
+          </div>
+        </div>
+        <i class="fas fa-chevron-right bird-item-arrow"></i>
+      </div>
+
+      <div class="bird-item">
+        <div class="bird-thumb">
+          <img src="https://images.unsplash.com/photo-1557401620-67270b4f9067?w=200&q=80" alt="Hummingbird">
+          <div class="bird-vid-badge"><i class="fas fa-play"></i></div>
+        </div>
+        <div class="bird-item-info">
+          <div class="bird-item-name">Ruby-throated Hummingbird</div>
+          <div class="bird-item-sci">Archilochus colubris</div>
+          <div class="bird-item-meta">
+            <span class="bird-item-date">Last week</span>
+            <span class="bird-item-conf" style="background:#E8F9ED;color:#34C759;">91%</span>
+          </div>
+        </div>
+        <i class="fas fa-chevron-right bird-item-arrow"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-compass"></i>
+      <span>Explore</span>
+    </div>
+    <div class="tab-center">
+      <i class="fas fa-plus"></i>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-book-open"></i>
+      <span>Collection</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>

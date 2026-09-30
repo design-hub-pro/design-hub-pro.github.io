@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Player - Heritage Alive</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: #000; color: #fff; width: 100%; height: 100%; overflow: hidden; }
+html { width: 100%; height: 100%; }
+
+.video-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.video-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Status Bar */
+.status-bar {
+  height: 59px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 28px 8px 28px;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 10;
+}
+.status-time { font-size: 16px; font-weight: 600; }
+.dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 20px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+.status-icons { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+
+/* Right Side Actions */
+.side-actions {
+  position: absolute;
+  right: 20px;
+  bottom: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  z-index: 10;
+}
+.side-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.side-action i { font-size: 28px; }
+.side-action span { font-size: 11px; color: rgba(255,255,255,0.7); }
+.side-action .liked { color: #FF3B30; }
+
+/* Bottom Info */
+.bottom-info {
+  position: absolute;
+  bottom: 100px;
+  left: 0; right: 80px;
+  padding: 0 28px;
+  z-index: 10;
+}
+.creator-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.creator-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; }
+.creator-name { font-size: 15px; font-weight: 700; }
+.follow-tag {
+  padding: 3px 10px;
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.video-desc { font-size: 13px; line-height: 1.4; margin-bottom: 10px; color: rgba(255,255,255,0.85); }
+.video-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.video-tag { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.6); }
+
+/* Subtitle */
+.subtitle-bar {
+  text-align: center;
+  margin-bottom: 8px;
+}
+.subtitle-text {
+  display: inline-block;
+  padding: 6px 16px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(5px);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.subtitle-cn { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+/* Progress Bar */
+.video-progress {
+  position: absolute;
+  bottom: 88px;
+  left: 0; right: 0;
+  height: 3px;
+  background: rgba(255,255,255,0.15);
+  z-index: 10;
+}
+.video-progress-fill {
+  height: 100%;
+  width: 35%;
+  background: #FF6B35;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Play Button Center */
+.center-play {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 72px; height: 72px;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 5;
+  opacity: 0;
+}
+.center-play i { font-size: 28px; margin-left: 4px; }
+
+/* Tab Bar */
+.tab-bar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 88px;
+  background: rgba(10,10,10,0.75);
+  backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  padding-top: 10px;
+  z-index: 10;
+}
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: rgba(255,255,255,0.35);
+}
+.tab-item.active { color: #fff; }
+.tab-item i { font-size: 22px; }
+.tab-item.create-tab i {
+  background: linear-gradient(135deg, #FF6B35, #F7931E);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 28px;
+}
+</style>
+</head>
+<body>
+
+<div class="video-screen">
+  <img class="video-bg" src="https://images.unsplash.com/photo-1596367407372-96cb88503db6?w=600&q=80" alt="">
+
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="center-play"><i class="fas fa-play"></i></div>
+
+  <!-- Side Actions -->
+  <div class="side-actions">
+    <div class="side-action">
+      <i class="fas fa-heart liked"></i>
+      <span>3.1K</span>
+    </div>
+    <div class="side-action">
+      <i class="fas fa-comment"></i>
+      <span>248</span>
+    </div>
+    <div class="side-action">
+      <i class="fas fa-bookmark"></i>
+      <span>Save</span>
+    </div>
+    <div class="side-action">
+      <i class="fas fa-share"></i>
+      <span>Share</span>
+    </div>
+  </div>
+
+  <!-- Bottom Info -->
+  <div class="bottom-info">
+    <div class="subtitle-bar">
+      <div class="subtitle-text">
+        Carefully folding along the ancient pattern lines...
+        <div class="subtitle-cn">沿着古老的图案线仔细折叠...</div>
+      </div>
+    </div>
+    <div class="creator-row">
+      <img class="creator-avatar" src="https://images.unsplash.com/photo-1566753323558-f4e0952af115?w=100&q=80" alt="">
+      <span class="creator-name">Master Li Wei</span>
+      <span class="follow-tag">Follow</span>
+    </div>
+    <div class="video-desc">The art of paper cutting passed down through 5 generations in Shaanxi</div>
+    <div class="video-tags">
+      <span class="video-tag">#PaperCutting</span>
+      <span class="video-tag">#Heritage</span>
+      <span class="video-tag">#Shaanxi</span>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="video-progress">
+    <div class="video-progress-fill"></div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item active">
+      <i class="fas fa-compass"></i>
+      <span>Discover</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-book-open"></i>
+      <span>Learn</span>
+    </div>
+    <div class="tab-item create-tab">
+      <i class="fas fa-plus-circle"></i>
+      <span style="background: linear-gradient(135deg, #FF6B35, #F7931E); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 600;">Create</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-users"></i>
+      <span>Connect</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

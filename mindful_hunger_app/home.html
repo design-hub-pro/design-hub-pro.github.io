@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MindfulHunger - Home</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-scrollbar: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', -apple-system, sans-serif; scrollbar-width: none; background: #000; }
+
+  .status-bar {
+    height: 59px; display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 28px 8px 28px; background: transparent; position: absolute; top: 0; left: 0; right: 0; z-index: 100;
+  }
+  .status-bar .time { font-size: 17px; font-weight: 600; color: #fff; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .status-bar .icons i { font-size: 14px; color: #fff; }
+  .dynamic-island { width: 120px; height: 36px; background: #000; border-radius: 20px; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 101; }
+
+  .feed-container {
+    width: 100%; height: 100%; position: relative; overflow: hidden;
+  }
+
+  .feed-card {
+    width: 100%; height: 100%; position: absolute; top: 0; left: 0;
+  }
+
+  .feed-card img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+
+  .feed-overlay {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    padding: 100px 28px 120px 28px;
+  }
+
+  .feed-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(0,229,255,0.2); backdrop-filter: blur(10px);
+    padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; color: #80D8FF;
+    margin-bottom: 12px;
+  }
+
+  .feed-title {
+    font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 8px; line-height: 1.3;
+  }
+
+  .feed-author {
+    display: flex; align-items: center; gap: 10px; margin-top: 14px;
+  }
+
+  .feed-author img {
+    width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.4);
+  }
+
+  .feed-author-info { display: flex; flex-direction: column; }
+  .feed-author-name { font-size: 14px; font-weight: 600; color: #fff; }
+  .feed-author-label { font-size: 11px; color: rgba(255,255,255,0.6); }
+
+  .feed-actions {
+    position: absolute; right: 16px; bottom: 140px;
+    display: flex; flex-direction: column; align-items: center; gap: 22px;
+  }
+
+  .feed-action {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+
+  .feed-action-btn {
+    width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center;
+    border: none; cursor: pointer;
+  }
+
+  .feed-action-btn i { font-size: 20px; color: #fff; }
+  .feed-action-btn.liked { background: rgba(255,59,48,0.3); }
+  .feed-action-btn.liked i { color: #FF3B30; }
+  .feed-action-btn.game-action { background: rgba(0,229,255,0.2); }
+  .feed-action-btn.game-action i { color: #00E5FF; }
+  .feed-action span { font-size: 11px; color: rgba(255,255,255,0.8); font-weight: 500; }
+
+  .top-nav {
+    position: absolute; top: 59px; left: 0; right: 0; z-index: 50;
+    display: flex; justify-content: center; gap: 24px; padding: 12px 28px;
+  }
+
+  .top-nav-item {
+    font-size: 16px; font-weight: 500; color: rgba(255,255,255,0.5); cursor: pointer;
+    position: relative; padding-bottom: 6px;
+  }
+
+  .top-nav-item.active {
+    color: #fff; font-weight: 700;
+  }
+
+  .top-nav-item.active::after {
+    content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 24px; height: 3px; background: #fff; border-radius: 2px;
+  }
+
+  .play-indicator {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 70px; height: 70px; border-radius: 50%; background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+  }
+
+  .play-indicator i { font-size: 28px; color: #fff; margin-left: 4px; }
+
+  .duration-badge {
+    position: absolute; bottom: 130px; left: 28px;
+    background: rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+    padding: 4px 10px; border-radius: 8px; font-size: 12px; color: #fff; font-weight: 500;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .music-ticker {
+    display: flex; align-items: center; gap: 8px; margin-top: 12px;
+  }
+
+  .music-ticker i { font-size: 14px; color: rgba(255,255,255,0.7); }
+  .music-ticker span { font-size: 12px; color: rgba(255,255,255,0.7); }
+
+  /* Focus Game CTA overlay */
+  .focus-game-cta {
+    position: absolute; bottom: 130px; left: 28px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .focus-cta-btn {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(0,229,255,0.2); backdrop-filter: blur(12px);
+    border: 1px solid rgba(0,229,255,0.3);
+    padding: 8px 16px; border-radius: 14px;
+    font-size: 12px; font-weight: 700; color: #00E5FF;
+  }
+
+  .focus-cta-btn i { font-size: 14px; }
+
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);
+    display: flex; align-items: flex-start; justify-content: space-around; padding-top: 10px;
+    border-top: 0.5px solid rgba(255,255,255,0.1);
+  }
+
+  .tab-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer;
+    min-width: 60px;
+  }
+
+  .tab-item i { font-size: 22px; color: rgba(255,255,255,0.4); }
+  .tab-item span { font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 500; }
+  .tab-item.active i { color: #fff; }
+  .tab-item.active span { color: #fff; }
+
+  .sos-btn {
+    width: 52px; height: 52px; border-radius: 16px; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #FF6B6B, #FF3B30);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(255,59,48,0.4); margin-top: -10px;
+  }
+
+  .sos-btn i { font-size: 22px; color: #fff; }
+</style>
+</head>
+<body>
+  <div class="feed-container">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="icons">
+        <i class="fas fa-signal"></i>
+        <i class="fas fa-wifi"></i>
+        <i class="fas fa-battery-full"></i>
+      </div>
+    </div>
+
+    <div class="top-nav">
+      <div class="top-nav-item">Following</div>
+      <div class="top-nav-item active">For You</div>
+      <div class="top-nav-item">Games</div>
+    </div>
+
+    <!-- AR Glass Connected Badge -->
+    <div style="position:absolute;top:110px;left:20px;z-index:50;display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);padding:6px 14px;border-radius:14px;border:1px solid rgba(0,229,255,0.15)">
+      <div style="width:6px;height:6px;border-radius:50%;background:#4CAF50;animation:blink 2s ease-in-out infinite"></div>
+      <i class="fas fa-glasses" style="font-size:12px;color:#00E5FF"></i>
+      <span style="font-size:10px;font-weight:600;color:#00E5FF">AR Glass</span>
+    </div>
+    <style>@keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}</style>
+
+    <div class="feed-card">
+      <img src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80" alt="Healthy food">
+      <div class="play-indicator"><i class="fas fa-play"></i></div>
+
+      <div class="focus-game-cta">
+        <div class="focus-cta-btn">
+          <i class="fas fa-gamepad"></i> Play a Focus Game
+        </div>
+        <div class="focus-cta-btn" style="background:rgba(0,229,255,0.15);border-color:rgba(0,229,255,0.25);margin-left:8px">
+          <i class="fas fa-glasses"></i> Scan Food
+        </div>
+      </div>
+
+      <div class="feed-actions">
+        <div class="feed-action">
+          <button class="feed-action-btn liked"><i class="fas fa-heart"></i></button>
+          <span>24.5K</span>
+        </div>
+        <div class="feed-action">
+          <button class="feed-action-btn"><i class="fas fa-comment-dots"></i></button>
+          <span>1,832</span>
+        </div>
+        <div class="feed-action">
+          <button class="feed-action-btn game-action"><i class="fas fa-gamepad"></i></button>
+          <span>Games</span>
+        </div>
+        <div class="feed-action">
+          <button class="feed-action-btn"><i class="fas fa-share"></i></button>
+          <span>Share</span>
+        </div>
+      </div>
+
+      <div class="feed-overlay">
+        <div class="feed-tag"><i class="fas fa-brain" style="margin-right:4px"></i> Focus Training</div>
+        <div class="feed-title">Stroop games train your brain to resist impulses — including cravings.</div>
+        <div class="feed-author">
+          <img src="https://images.unsplash.com/photo-1594381898411-846e7d193883?w=200&q=80" alt="">
+          <div class="feed-author-info">
+            <span class="feed-author-name">@FocusMindCoach</span>
+            <span class="feed-author-label">Cognitive Scientist</span>
+          </div>
+        </div>
+        <div class="music-ticker">
+          <i class="fas fa-music"></i>
+          <span>Deep Focus — Ambient Beats</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab-item active">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+      </div>
+      <div class="tab-item">
+        <i class="fas fa-compass"></i>
+        <span>Discover</span>
+      </div>
+      <div class="tab-item">
+        <button class="sos-btn"><i class="fas fa-bolt"></i></button>
+        <span style="color:rgba(255,255,255,0.4);font-size:10px;margin-top:4px">SOS</span>
+      </div>
+      <div class="tab-item">
+        <i class="fas fa-chart-line"></i>
+        <span>Progress</span>
+      </div>
+      <div class="tab-item">
+        <i class="fas fa-gamepad"></i>
+        <span>Games</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

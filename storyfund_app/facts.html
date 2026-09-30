@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>StoryFund — Collect Facts</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *::-webkit-scrollbar { display:none; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:#FAF6F1; color:#221B2E; scrollbar-width:none; -webkit-font-smoothing:antialiased; }
+  .screen { width:100%; height:100%; position:relative; overflow-y:auto; padding-bottom:120px; background:#FAF6F1; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:101; }
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; }
+  .status-bar .time { font-size:17px; font-weight:700; } .status-bar .icons { display:flex; gap:6px; } .status-bar .icons i { font-size:14px; }
+
+  .topnav { display:flex; align-items:center; justify-content:space-between; padding:6px 24px 4px; }
+  .nav-btn { width:40px; height:40px; border-radius:50%; background:#fff; border:1px solid rgba(34,27,46,0.07); display:flex; align-items:center; justify-content:center; } .nav-btn i { font-size:15px; }
+  .topnav b { font-size:16px; font-weight:850; }
+  .pad { padding:0 28px; }
+
+  .lead { padding:10px 28px 4px; }
+  .lead h1 { font-size:24px; font-weight:900; letter-spacing:-0.7px; line-height:1.18; }
+  .lead h1 span { color:#D97706; }
+  .lead p { font-size:13px; color:#8C8798; line-height:1.55; margin-top:8px; }
+
+  /* campaign ref + progress */
+  .ref { display:flex; align-items:center; gap:12px; background:#fff; border:1px solid rgba(34,27,46,0.06); border-radius:16px; padding:13px; margin:16px 28px 0; }
+  .ref img { width:44px; height:44px; border-radius:12px; object-fit:cover; }
+  .ref-info { flex:1; } .ref-info b { font-size:13px; font-weight:800; line-height:1.2; display:block; } .ref-info span { font-size:11px; color:#8C8798; }
+  .ref-pct { text-align:center; } .ref-pct b { font-size:17px; font-weight:900; color:#D97706; display:block; line-height:1; } .ref-pct span { font-size:9px; color:#8C8798; font-weight:700; }
+
+  .strength { margin:14px 28px 0; background:linear-gradient(135deg,#FFFBEB,#FEF3C7); border:1px solid rgba(245,158,11,0.22); border-radius:16px; padding:15px; }
+  .strength-top { display:flex; justify-content:space-between; align-items:center; }
+  .strength-top b { font-size:12.5px; font-weight:800; color:#92670C; } .strength-top span { font-size:12px; font-weight:900; color:#D97706; }
+  .sbar { height:8px; border-radius:6px; background:rgba(245,158,11,0.18); margin-top:10px; overflow:hidden; } .sbar > div { height:100%; border-radius:6px; background:linear-gradient(90deg,#F59E0B,#FB923C); }
+  .strength p { font-size:10.5px; color:#A6792B; line-height:1.45; margin-top:9px; }
+
+  .lbl { font-size:12.5px; font-weight:800; color:#8C8798; letter-spacing:0.3px; text-transform:uppercase; margin:24px 28px 13px; }
+
+  /* fact checklist */
+  .fact { display:flex; align-items:flex-start; gap:12px; background:#fff; border:1px solid rgba(34,27,46,0.06); border-radius:15px; padding:14px; margin:0 28px 10px; }
+  .fact-ico { width:36px; height:36px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; } .fact-ico i { color:#fff; font-size:14px; }
+  .fact-body { flex:1; min-width:0; } .fact-body b { font-size:13px; font-weight:800; display:block; } .fact-body p { font-size:11px; color:#8C8798; margin-top:3px; line-height:1.45; }
+  .fact-src { display:inline-flex; align-items:center; gap:6px; font-size:10px; font-weight:700; color:#0891B2; background:rgba(6,182,212,0.1); padding:5px 9px; border-radius:8px; margin-top:9px; }
+  .fact-state { font-size:9px; font-weight:800; padding:4px 9px; border-radius:8px; white-space:nowrap; flex-shrink:0; }
+  .st-done { background:rgba(22,163,122,0.12); color:#16A37A; } .st-need { background:rgba(245,158,11,0.14); color:#D97706; }
+  .fact.need { border-style:dashed; border-color:rgba(245,158,11,0.4); background:#FFFDF8; }
+
+  /* add evidence */
+  .add { display:flex; gap:10px; margin:0 28px; }
+  .add-btn { flex:1; background:#fff; border:1px solid rgba(34,27,46,0.08); border-radius:14px; padding:14px 8px; display:flex; flex-direction:column; align-items:center; gap:7px; }
+  .add-btn i { font-size:17px; color:#D97706; } .add-btn span { font-size:10.5px; font-weight:800; color:#6A6577; }
+
+  .note { display:flex; align-items:center; gap:8px; font-size:11px; color:#8C8798; margin:18px 28px 0; line-height:1.5; }
+  .note i { color:#16A37A; flex-shrink:0; }
+
+  .foot { position:absolute; bottom:0; left:0; right:0; padding:16px 28px 30px; background:linear-gradient(180deg,rgba(250,246,241,0),#FAF6F1 30%); }
+  .submit-btn { width:100%; height:56px; border-radius:18px; background:linear-gradient(135deg,#F59E0B,#FB923C); display:flex; align-items:center; justify-content:center; gap:9px; box-shadow:0 12px 28px rgba(245,158,11,0.4); }
+  .submit-btn b { color:#fff; font-size:16px; font-weight:850; } .submit-btn i { color:#fff; font-size:14px; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="dynamic-island"></div>
+  <div class="status-bar"><span class="time">9:41</span><div class="icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div></div>
+
+  <div class="topnav">
+    <div class="nav-btn"><i class="fas fa-arrow-left"></i></div>
+    <b>Collect facts</b>
+    <div class="nav-btn"><i class="fas fa-circle-question"></i></div>
+  </div>
+
+  <div class="lead">
+    <h1>Donors give when a<br>story is <span>backed by facts.</span></h1>
+    <p>Gather the quotes, costs and proof that turn a plea into something people can trust.</p>
+  </div>
+
+  <div class="ref">
+    <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=120&q=80" alt="">
+    <div class="ref-info"><b>Warm meals for the Rivera family</b><span>Refugee Support Network</span></div>
+    <div class="ref-pct"><b>2/4</b><span>FACTS</span></div>
+  </div>
+
+  <div class="strength">
+    <div class="strength-top"><b>Story strength</b><span>Good · 64%</span></div>
+    <div class="sbar"><div style="width:64%"></div></div>
+    <p>Two more verified facts will move this story to "Strong" — and unlock the Verified badge for donors.</p>
+  </div>
+
+  <div class="lbl">Facts this story needs</div>
+
+  <div class="fact">
+    <div class="fact-ico" style="background:linear-gradient(135deg,#16A37A,#34D399)"><i class="fas fa-receipt"></i></div>
+    <div class="fact-body">
+      <b>Monthly grocery cost</b>
+      <p>"$420 / month for a family of five" — confirmed against receipts.</p>
+      <span class="fact-src"><i class="fas fa-paperclip"></i> 2 receipts attached</span>
+    </div>
+    <span class="fact-state st-done">Collected</span>
+  </div>
+
+  <div class="fact">
+    <div class="fact-ico" style="background:linear-gradient(135deg,#06B6D4,#0891B2)"><i class="fas fa-comment-dots"></i></div>
+    <div class="fact-body">
+      <b>Quote from a caseworker</b>
+      <p>"The Riveras arrived in March with two suitcases." — Ana D., RSN</p>
+      <span class="fact-src"><i class="fas fa-id-badge"></i> Source verified</span>
+    </div>
+    <span class="fact-state st-done">Collected</span>
+  </div>
+
+  <div class="fact need">
+    <div class="fact-ico" style="background:linear-gradient(135deg,#F59E0B,#FB923C)"><i class="fas fa-camera"></i></div>
+    <div class="fact-body">
+      <b>Photo of the situation</b>
+      <p>An empty pantry or shared room — with consent, no faces of children.</p>
+    </div>
+    <span class="fact-state st-need">Needed</span>
+  </div>
+
+  <div class="fact need">
+    <div class="fact-ico" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA)"><i class="fas fa-file-lines"></i></div>
+    <div class="fact-body">
+      <b>Official referral letter</b>
+      <p>A line from RSN confirming the family is enrolled in support.</p>
+    </div>
+    <span class="fact-state st-need">Needed</span>
+  </div>
+
+  <div class="lbl">Add a fact</div>
+  <div class="add">
+    <div class="add-btn"><i class="fas fa-camera"></i><span>Photo</span></div>
+    <div class="add-btn"><i class="fas fa-link"></i><span>Source link</span></div>
+    <div class="add-btn"><i class="fas fa-quote-left"></i><span>Quote</span></div>
+    <div class="add-btn"><i class="fas fa-file-arrow-up"></i><span>Document</span></div>
+  </div>
+
+  <div class="note"><i class="fas fa-shield-halved"></i> Every fact you add goes to community verifiers before it strengthens the story.</div>
+
+  <div class="foot">
+    <div class="submit-btn"><i class="fas fa-circle-plus"></i><b>Submit to fact pack</b></div>
+  </div>
+</div>
+</body>
+</html>

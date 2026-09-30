@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>发现 - 遗火相传</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+body { font-family: 'Noto Sans SC', 'Inter', -apple-system, sans-serif; background: #000; color: #fff; width: 100%; height: 100%; overflow-x: hidden; }
+html { width: 100%; height: 100%; }
+
+.status-bar {
+  height: 59px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 28px 8px 28px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #000;
+}
+.status-time { font-size: 16px; font-weight: 600; font-family: 'Inter', sans-serif; }
+.dynamic-island { width: 126px; height: 37px; background: #000; border-radius: 20px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); }
+.status-icons { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+
+.content { padding: 0 28px 120px 28px; overflow-y: auto; }
+
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.header h1 { font-size: 28px; font-weight: 800; }
+.header-icons { display: flex; gap: 14px; }
+.header-icons i { font-size: 22px; opacity: 0.7; }
+
+.categories { display: flex; gap: 10px; margin-bottom: 22px; overflow-x: auto; padding-bottom: 4px; }
+.cat-pill { padding: 8px 18px; border-radius: 22px; font-size: 13px; font-weight: 600; white-space: nowrap; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); flex-shrink: 0; }
+.cat-pill.active { background: linear-gradient(135deg, #FF6B35, #F7931E); color: #fff; }
+
+.hero-card {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  height: 260px;
+}
+.hero-card img { width: 100%; height: 100%; object-fit: cover; }
+.hero-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 24px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.85));
+}
+.hero-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: rgba(255,107,53,0.9);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+.hero-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+.hero-meta { font-size: 12px; color: rgba(255,255,255,0.6); display: flex; align-items: center; gap: 10px; }
+.play-btn {
+  position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 56px; height: 56px;
+  background: rgba(255,255,255,0.25);
+  backdrop-filter: blur(10px);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.play-btn i { font-size: 22px; margin-left: 3px; }
+.duration-badge {
+  position: absolute;
+  top: 16px; right: 16px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(5px);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+}
+
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.section-title { font-size: 20px; font-weight: 700; }
+.see-all { font-size: 13px; color: #FF6B35; font-weight: 600; }
+
+.heritage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+.heritage-item { position: relative; border-radius: 18px; overflow: hidden; height: 120px; }
+.heritage-item img { width: 100%; height: 100%; object-fit: cover; }
+.heritage-item-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 12px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.8));
+}
+.heritage-item-name { font-size: 14px; font-weight: 700; }
+.heritage-item-count { font-size: 11px; color: rgba(255,255,255,0.5); }
+
+.video-feed { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
+.video-card { display: flex; gap: 14px; background: rgba(255,255,255,0.04); border-radius: 16px; overflow: hidden; }
+.video-thumb { width: 130px; min-height: 96px; position: relative; flex-shrink: 0; }
+.video-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.video-thumb .mini-play {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 32px; height: 32px;
+  background: rgba(255,255,255,0.3); backdrop-filter: blur(5px);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+}
+.video-thumb .mini-play i { font-size: 12px; margin-left: 2px; }
+.video-thumb .mini-duration {
+  position: absolute; bottom: 6px; right: 6px;
+  background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px;
+  font-size: 10px; font-weight: 600; font-family: 'Inter', sans-serif;
+}
+.video-info { padding: 10px 14px 10px 0; display: flex; flex-direction: column; justify-content: center; }
+.video-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; line-height: 1.3; }
+.video-info .video-creator { font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
+.video-stats { display: flex; gap: 10px; font-size: 11px; color: rgba(255,255,255,0.35); }
+.video-stats i { margin-right: 3px; }
+
+.story-scroll {
+  display: flex; gap: 14px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 28px;
+  margin-left: -28px; margin-right: -28px; padding-left: 28px; padding-right: 28px;
+}
+.story-card { width: 200px; flex-shrink: 0; border-radius: 18px; overflow: hidden; background: rgba(255,255,255,0.06); }
+.story-card-img { width: 100%; height: 130px; object-fit: cover; }
+.story-card-body { padding: 12px; }
+.story-card-body h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.story-card-body p { font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.4; }
+.endangered-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; background: rgba(255,59,48,0.15); color: #FF3B30;
+  border-radius: 6px; font-size: 10px; font-weight: 600; margin-top: 6px;
+}
+
+.tab-bar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 88px;
+  background: rgba(10,10,10,0.92);
+  backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  padding-top: 10px;
+  border-top: 0.5px solid rgba(255,255,255,0.08);
+}
+.tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; color: rgba(255,255,255,0.35); }
+.tab-item.active { color: #FF6B35; }
+.tab-item i { font-size: 22px; }
+.tab-item.create-tab i {
+  background: linear-gradient(135deg, #FF6B35, #F7931E);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 28px;
+}
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="content">
+  <div class="header">
+    <h1>发现</h1>
+    <div class="header-icons">
+      <i class="fas fa-search"></i>
+      <i class="fas fa-bell"></i>
+    </div>
+  </div>
+
+  <div class="categories">
+    <div class="cat-pill active">全部</div>
+    <div class="cat-pill">传统工艺</div>
+    <div class="cat-pill">表演艺术</div>
+    <div class="cat-pill">传统技艺</div>
+    <div class="cat-pill">民间音乐</div>
+  </div>
+
+  <div class="hero-card">
+    <img src="https://images.unsplash.com/photo-1596367407372-96cb88503db6?w=800&q=80" alt="">
+    <div class="play-btn"><i class="fas fa-play"></i></div>
+    <div class="duration-badge">1:24</div>
+    <div class="hero-overlay">
+      <div class="hero-badge">精选推荐</div>
+      <div class="hero-title">中国剪纸艺术之美</div>
+      <div class="hero-meta">
+        <span><i class="fas fa-eye"></i> 2.4万</span>
+        <span><i class="fas fa-heart"></i> 3,100</span>
+        <span>李伟大师</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">探索非遗</div>
+    <span class="see-all">查看全部</span>
+  </div>
+  <div class="heritage-grid">
+    <div class="heritage-item">
+      <img src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400&q=80" alt="">
+      <div class="heritage-item-overlay">
+        <div class="heritage-item-name">陶瓷艺术</div>
+        <div class="heritage-item-count">128 个视频</div>
+      </div>
+    </div>
+    <div class="heritage-item">
+      <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&q=80" alt="">
+      <div class="heritage-item-overlay">
+        <div class="heritage-item-name">刺绣工艺</div>
+        <div class="heritage-item-count">96 个视频</div>
+      </div>
+    </div>
+    <div class="heritage-item">
+      <img src="https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=400&q=80" alt="">
+      <div class="heritage-item-overlay">
+        <div class="heritage-item-name">戏曲表演</div>
+        <div class="heritage-item-count">74 个视频</div>
+      </div>
+    </div>
+    <div class="heritage-item">
+      <img src="https://images.unsplash.com/photo-1563822249548-9a72b6353cd1?w=400&q=80" alt="">
+      <div class="heritage-item-overlay">
+        <div class="heritage-item-name">茶道技艺</div>
+        <div class="heritage-item-count">85 个视频</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">热门视频</div>
+    <span class="see-all">查看全部</span>
+  </div>
+  <div class="video-feed">
+    <div class="video-card">
+      <div class="video-thumb">
+        <img src="https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=400&q=80" alt="">
+        <div class="mini-play"><i class="fas fa-play"></i></div>
+        <div class="mini-duration">0:45</div>
+      </div>
+      <div class="video-info">
+        <h4>木雕：从原木到艺术品</h4>
+        <div class="video-creator">@陈工匠</div>
+        <div class="video-stats">
+          <span><i class="fas fa-play"></i> 1.2万</span>
+          <span><i class="fas fa-heart"></i> 891</span>
+        </div>
+      </div>
+    </div>
+    <div class="video-card">
+      <div class="video-thumb">
+        <img src="https://images.unsplash.com/photo-1528396518501-b53b655eb9b3?w=400&q=80" alt="">
+        <div class="mini-play"><i class="fas fa-play"></i></div>
+        <div class="mini-duration">1:12</div>
+      </div>
+      <div class="video-info">
+        <h4>丝绸织造的传统技艺</h4>
+        <div class="video-creator">@非遗工坊</div>
+        <div class="video-stats">
+          <span><i class="fas fa-play"></i> 8,700</span>
+          <span><i class="fas fa-heart"></i> 624</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">非遗故事</div>
+    <span class="see-all">查看全部</span>
+  </div>
+  <div class="story-scroll">
+    <div class="story-card">
+      <img class="story-card-img" src="https://images.unsplash.com/photo-1582738411706-bfc8e691d1c2?w=400&q=80" alt="">
+      <div class="story-card-body">
+        <h4>皮影戏</h4>
+        <p>源自陕西，两千年的光影传承</p>
+        <div class="endangered-tag"><i class="fas fa-exclamation-triangle"></i> 濒危</div>
+      </div>
+    </div>
+    <div class="story-card">
+      <img class="story-card-img" src="https://images.unsplash.com/photo-1509909756405-be0199881695?w=400&q=80" alt="">
+      <div class="story-card-body">
+        <h4>漆器工艺</h4>
+        <p>天然大漆层层髹涂的古老技艺</p>
+        <div class="endangered-tag"><i class="fas fa-exclamation-triangle"></i> 高危</div>
+      </div>
+    </div>
+    <div class="story-card">
+      <img class="story-card-img" src="https://images.unsplash.com/photo-1544967082-d9d25d867d66?w=400&q=80" alt="">
+      <div class="story-card-body">
+        <h4>手工造纸</h4>
+        <p>桑皮纸手工压制技艺</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item active">
+    <i class="fas fa-compass"></i>
+    <span>发现</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-book-open"></i>
+    <span>学习</span>
+  </div>
+  <div class="tab-item create-tab">
+    <i class="fas fa-plus-circle"></i>
+    <span style="background: linear-gradient(135deg, #FF6B35, #F7931E); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 600;">创作</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-users"></i>
+    <span>社区</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-user"></i>
+    <span>我的</span>
+  </div>
+</div>
+
+</body>
+</html>

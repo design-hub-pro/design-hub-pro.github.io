@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BirdVision AI - Analyzing</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;
+    scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif;
+    background: #0A0A0A;
+  }
+
+  .status-bar {
+    height: 59px; padding: 0 28px; display: flex; align-items: flex-end;
+    justify-content: space-between; padding-bottom: 12px;
+    position: sticky; top: 0; z-index: 100; color: #fff;
+  }
+  .status-time { font-size: 16px; font-weight: 600; letter-spacing: -0.5px; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island {
+    width: 126px; height: 37px; background: #1C1C1E; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  }
+
+  .content { padding: 0 28px 40px; }
+
+  .video-preview {
+    margin-top: 8px; border-radius: 24px; overflow: hidden;
+    position: relative; height: 240px;
+  }
+  .video-preview img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .video-overlay {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.3); display: flex; align-items: center;
+    justify-content: center;
+  }
+  .play-ring {
+    width: 64px; height: 64px; border: 3px solid rgba(255,255,255,0.6);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  }
+  .play-ring i { color: #fff; font-size: 22px; margin-left: 3px; }
+  .video-time {
+    position: absolute; bottom: 14px; left: 14px; background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px); padding: 5px 10px; border-radius: 8px;
+    color: #fff; font-size: 12px; font-weight: 600;
+  }
+  .video-scrub {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+    background: rgba(255,255,255,0.2);
+  }
+  .video-scrub-fill {
+    width: 65%; height: 100%; background: #34C759; border-radius: 0 2px 2px 0;
+  }
+
+  .analysis-header {
+    text-align: center; margin-top: 28px;
+  }
+  .analysis-header h2 {
+    color: #fff; font-size: 22px; font-weight: 700;
+  }
+  .analysis-header p {
+    color: #8E8E93; font-size: 13px; margin-top: 4px;
+  }
+
+  .progress-ring-container {
+    display: flex; justify-content: center; margin-top: 28px;
+    position: relative;
+  }
+  .progress-circle {
+    width: 120px; height: 120px; position: relative;
+  }
+  .progress-circle svg { transform: rotate(-90deg); }
+  .progress-bg {
+    fill: none; stroke: #2C2C2E; stroke-width: 8;
+  }
+  .progress-fill {
+    fill: none; stroke: url(#greenGrad); stroke-width: 8;
+    stroke-linecap: round; stroke-dasharray: 339.292;
+    stroke-dashoffset: 118.75;
+    animation: fillProgress 3s ease-in-out infinite alternate;
+  }
+  @keyframes fillProgress {
+    0% { stroke-dashoffset: 200; }
+    100% { stroke-dashoffset: 50; }
+  }
+  .progress-text {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%); text-align: center;
+  }
+  .progress-text .pct {
+    font-size: 32px; font-weight: 800; color: #fff;
+  }
+  .progress-text .label {
+    font-size: 11px; color: #8E8E93; margin-top: -2px;
+  }
+
+  .analysis-steps { margin-top: 28px; display: flex; flex-direction: column; gap: 12px; }
+  .step {
+    background: #1C1C1E; border-radius: 16px; padding: 16px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .step-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .step-info { flex: 1; }
+  .step-name { font-size: 14px; font-weight: 600; color: #fff; }
+  .step-desc { font-size: 11px; color: #8E8E93; margin-top: 2px; }
+  .step-progress {
+    width: 100%; height: 4px; background: #2C2C2E; border-radius: 2px; margin-top: 8px;
+  }
+  .step-progress-fill {
+    height: 100%; border-radius: 2px; transition: width 0.5s;
+  }
+  .step-status {
+    font-size: 11px; font-weight: 600; flex-shrink: 0;
+  }
+
+  .step.completed .step-icon { background: rgba(52,199,89,0.15); color: #34C759; }
+  .step.active .step-icon { background: rgba(0,122,255,0.15); color: #007AFF; }
+  .step.pending .step-icon { background: #2C2C2E; color: #636366; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .pulse { animation: pulse 1.5s ease-in-out infinite; }
+
+  .waveform {
+    margin-top: 24px; background: #1C1C1E; border-radius: 16px;
+    padding: 16px; display: flex; align-items: center; gap: 12px;
+  }
+  .wave-icon {
+    width: 40px; height: 40px; background: rgba(255,149,0,0.15);
+    border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  }
+  .wave-icon i { color: #FF9500; font-size: 16px; }
+  .wave-bars {
+    flex: 1; display: flex; align-items: center; gap: 2px; height: 32px;
+  }
+  .wave-bar {
+    width: 3px; background: #FF9500; border-radius: 2px;
+    animation: waveAnim 0.8s ease-in-out infinite alternate;
+  }
+  @keyframes waveAnim {
+    0% { height: 6px; opacity: 0.4; }
+    100% { height: 28px; opacity: 1; }
+  }
+  .wave-label { font-size: 11px; color: #FF9500; font-weight: 600; white-space: nowrap; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="status-time">9:42</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="video-preview">
+      <img src="https://images.unsplash.com/photo-1522926193341-e9ffd686c60d?w=800&q=80" alt="Bird video">
+      <div class="video-overlay">
+        <div class="play-ring"><i class="fas fa-pause"></i></div>
+      </div>
+      <div class="video-time">0:24 / 0:38</div>
+      <div class="video-scrub"><div class="video-scrub-fill"></div></div>
+    </div>
+
+    <div class="analysis-header">
+      <h2>Analyzing Video</h2>
+      <p>Processing visual & audio data</p>
+    </div>
+
+    <div class="progress-ring-container">
+      <div class="progress-circle">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <defs>
+            <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#34C759"/>
+              <stop offset="100%" style="stop-color:#30D158"/>
+            </linearGradient>
+          </defs>
+          <circle class="progress-bg" cx="60" cy="60" r="54"/>
+          <circle class="progress-fill" cx="60" cy="60" r="54"/>
+        </svg>
+        <div class="progress-text">
+          <div class="pct">65%</div>
+          <div class="label">analyzing</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="analysis-steps">
+      <div class="step completed">
+        <div class="step-icon"><i class="fas fa-image"></i></div>
+        <div class="step-info">
+          <div class="step-name">Frame Extraction</div>
+          <div class="step-desc">38 key frames captured</div>
+          <div class="step-progress"><div class="step-progress-fill" style="width:100%;background:#34C759;"></div></div>
+        </div>
+        <span class="step-status" style="color:#34C759;"><i class="fas fa-check-circle"></i></span>
+      </div>
+
+      <div class="step completed">
+        <div class="step-icon"><i class="fas fa-eye"></i></div>
+        <div class="step-info">
+          <div class="step-name">Visual Recognition</div>
+          <div class="step-desc">Plumage, beak, body shape matched</div>
+          <div class="step-progress"><div class="step-progress-fill" style="width:100%;background:#34C759;"></div></div>
+        </div>
+        <span class="step-status" style="color:#34C759;"><i class="fas fa-check-circle"></i></span>
+      </div>
+
+      <div class="step active">
+        <div class="step-icon pulse"><i class="fas fa-music"></i></div>
+        <div class="step-info">
+          <div class="step-name">Audio Analysis</div>
+          <div class="step-desc">Matching bird song patterns...</div>
+          <div class="step-progress"><div class="step-progress-fill" style="width:65%;background:#007AFF;"></div></div>
+        </div>
+        <span class="step-status pulse" style="color:#007AFF;">65%</span>
+      </div>
+
+      <div class="step pending">
+        <div class="step-icon"><i class="fas fa-dna"></i></div>
+        <div class="step-info">
+          <div class="step-name">Species Classification</div>
+          <div class="step-desc">Cross-referencing databases</div>
+          <div class="step-progress"><div class="step-progress-fill" style="width:0%;background:#636366;"></div></div>
+        </div>
+        <span class="step-status" style="color:#636366;">Waiting</span>
+      </div>
+    </div>
+
+    <div class="waveform">
+      <div class="wave-icon"><i class="fas fa-waveform"></i></div>
+      <div class="wave-bars">
+        <div class="wave-bar" style="animation-delay:0s;height:12px;"></div>
+        <div class="wave-bar" style="animation-delay:0.1s;height:20px;"></div>
+        <div class="wave-bar" style="animation-delay:0.2s;height:8px;"></div>
+        <div class="wave-bar" style="animation-delay:0.3s;height:26px;"></div>
+        <div class="wave-bar" style="animation-delay:0.4s;height:14px;"></div>
+        <div class="wave-bar" style="animation-delay:0.5s;height:22px;"></div>
+        <div class="wave-bar" style="animation-delay:0.6s;height:10px;"></div>
+        <div class="wave-bar" style="animation-delay:0.7s;height:28px;"></div>
+        <div class="wave-bar" style="animation-delay:0.8s;height:16px;"></div>
+        <div class="wave-bar" style="animation-delay:0.15s;height:24px;"></div>
+        <div class="wave-bar" style="animation-delay:0.25s;height:8px;"></div>
+        <div class="wave-bar" style="animation-delay:0.35s;height:18px;"></div>
+        <div class="wave-bar" style="animation-delay:0.45s;height:26px;"></div>
+        <div class="wave-bar" style="animation-delay:0.55s;height:12px;"></div>
+        <div class="wave-bar" style="animation-delay:0.65s;height:20px;"></div>
+        <div class="wave-bar" style="animation-delay:0.75s;height:14px;"></div>
+        <div class="wave-bar" style="animation-delay:0.05s;height:22px;"></div>
+        <div class="wave-bar" style="animation-delay:0.12s;height:10px;"></div>
+        <div class="wave-bar" style="animation-delay:0.22s;height:28px;"></div>
+        <div class="wave-bar" style="animation-delay:0.32s;height:16px;"></div>
+      </div>
+      <div class="wave-label">Analyzing<br>Bird Song</div>
+    </div>
+  </div>
+</body>
+</html>

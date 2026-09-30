@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PrintSentry — early defect camera for FDM 3D printing</title>
+<style>
+  :root{ --ink:#16202B; --soft:#5A6B7A; --line:#E2DED7; --blue:#0B4F6C; --orange:#C4531E; --paper:#FDFCFA; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--paper); color:var(--ink);
+        font:17px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+        overflow-x:hidden; }
+  .wrap{ max-width:720px; margin:0 auto; padding:0 24px; }
+  .wide{ max-width:960px; margin:0 auto; padding:0 24px; }
+  h1,h2,h3{ font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif; font-weight:600; letter-spacing:-0.01em; }
+  h1{ font-size:40px; line-height:1.15; margin:0 0 18px; }
+  h2{ font-size:27px; line-height:1.25; margin:0 0 14px; }
+  h3{ font-size:19px; margin:0 0 8px; }
+  p{ margin:0 0 16px; }
+  .lead{ font-size:20px; color:var(--soft); }
+  .sm{ font-size:15px; color:var(--soft); }
+  .xs{ font-size:13px; color:var(--soft); }
+  section{ padding:52px 0; border-top:1px solid var(--line); }
+  .eyebrow{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--orange); font-weight:600; margin-bottom:10px; }
+  img{ max-width:100%; display:block; border-radius:6px; }
+  figure{ margin:0 0 8px; }
+  figcaption{ font-size:13px; color:var(--soft); margin-top:8px; }
+  a{ color:var(--blue); }
+  .cite{ font-size:13px; color:var(--soft); }
+  .cite a{ color:var(--soft); }
+  table{ width:100%; border-collapse:collapse; font-size:15px; }
+  th,td{ text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ font-weight:600; font-size:13px; letter-spacing:.04em; text-transform:uppercase; color:var(--soft); }
+  td.num{ text-align:right; white-space:nowrap; }
+  .scroll{ overflow-x:auto; }
+  .row{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin:26px 0; }
+  .row div{ padding:18px; border:1px solid var(--line); border-radius:8px; background:#fff; font-size:15px; }
+  .row b{ display:block; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--orange); margin-bottom:6px; }
+  .flag{ background:#FBF3EC; border-left:3px solid var(--orange); padding:20px 22px; border-radius:0 6px 6px 0; margin:26px 0; }
+  .flag p:last-child{ margin-bottom:0; }
+  .duo{ display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start; }
+  @media (max-width:700px){ .duo{ grid-template-columns:1fr; } }
+  details{ border-top:1px solid var(--line); padding:18px 0; }
+  details summary{ cursor:pointer; font-weight:600; list-style:none; font-size:16px; }
+  details summary::-webkit-details-marker{ display:none; }
+  details summary::before{ content:"+ "; color:var(--orange); }
+  details[open] summary::before{ content:"– "; }
+  details .body{ padding-top:14px; font-size:15px; color:#33414F; }
+  details .body table{ margin:10px 0 16px; }
+  details .body ul{ padding-left:20px; }
+  footer{ border-top:1px solid var(--line); padding:34px 0 60px; }
+</style>
+</head>
+<body>
+
+<section style="border-top:0;padding-top:34px;">
+  <div class="wrap">
+    <div class="eyebrow">Smart camera &middot; FDM 3D printing</div>
+    <h1>PrintSentry catches print failures while there is still something to save</h1>
+    <p class="lead">A fixed camera watches the build plate for the whole print and pushes an alert to a phone the moment it sees spaghetti, stringing, or a shifted layer.</p>
+    <p class="sm">Clips onto any FDM printer's frame. No firmware changes, and no cloud account needed for the alert to fire.</p>
+  </div>
+  <div class="wide" style="margin-top:32px;">
+    <figure><img src="images/hero.jpg" alt="PrintSentry camera on an articulated arm, clamped to a 3D printer's gantry, watching a partially finished print"></figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">How it works</div>
+    <h2>One frame, five steps, every two seconds</h2>
+    <div class="row">
+      <div><b>Sense</b>Camera grabs one frame</div>
+      <div><b>Process</b>MobileNetV2 scores it</div>
+      <div><b>Decide</b>3 of last 5 frames agree</div>
+      <div><b>Act</b>Push alert, request pause</div>
+      <div><b>Record</b>Save frame, log event</div>
+    </div>
+  </div>
+  <div class="wide">
+    <figure>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 280" font-family="ui-sans-serif,system-ui">
+<rect width="1180" height="280" fill="#FDFCFA"/>
+<text x="40" y="34" font-size="18" font-weight="700" fill="#16202B">Signal path</text>
+<text x="40" y="54" font-size="12.5" fill="#5A6B7A">One pass every 2 seconds while a print runs</text>
+<rect x="40" y="76" width="208" height="118" rx="8" fill="#FDFCFA" stroke="#0B4F6C" stroke-width="1.6"/>
+<text x="144.0" y="100" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="14" font-weight="700" fill="#16202B">SENSE</text>
+<text x="144.0" y="120" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" font-weight="400" fill="#5A6B7A"><tspan x="144.0" dy="0">Camera Module 3, fixed</tspan><tspan x="144.0" dy="14">focus</tspan></text>
+<text x="144.0" y="180" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10.5" font-weight="400" fill="#C4531E"><tspan x="144.0" dy="0">1 frame / 2 s, 1024x1024</tspan></text>
+<line x1="252" y1="135.0" x2="272" y2="135.0" stroke="#16202B" stroke-width="1.6"/>
+<polygon points="272,130.0 282,135.0 272,140.0" fill="#16202B"/>
+<rect x="278" y="76" width="208" height="118" rx="8" fill="#FDFCFA" stroke="#0B4F6C" stroke-width="1.6"/>
+<text x="382.0" y="100" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="14" font-weight="700" fill="#16202B">PROCESS</text>
+<text x="382.0" y="120" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" font-weight="400" fill="#5A6B7A"><tspan x="382.0" dy="0">Pi Zero 2 W, TFLite</tspan><tspan x="382.0" dy="14">MobileNetV2</tspan></text>
+<text x="382.0" y="180" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10.5" font-weight="400" fill="#C4531E"><tspan x="382.0" dy="0">about 180 ms / frame</tspan></text>
+<line x1="490" y1="135.0" x2="510" y2="135.0" stroke="#16202B" stroke-width="1.6"/>
+<polygon points="510,130.0 520,135.0 510,140.0" fill="#16202B"/>
+<rect x="516" y="76" width="208" height="118" rx="8" fill="#FDFCFA" stroke="#0B4F6C" stroke-width="1.6"/>
+<text x="620.0" y="100" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="14" font-weight="700" fill="#16202B">DECIDE</text>
+<text x="620.0" y="120" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" font-weight="400" fill="#5A6B7A"><tspan x="620.0" dy="0">Debounce filter</tspan></text>
+<text x="620.0" y="180" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10.5" font-weight="400" fill="#C4531E"><tspan x="620.0" dy="0">3 of last 5 frames over 0.85</tspan></text>
+<line x1="728" y1="135.0" x2="748" y2="135.0" stroke="#16202B" stroke-width="1.6"/>
+<polygon points="748,130.0 758,135.0 748,140.0" fill="#16202B"/>
+<rect x="754" y="76" width="208" height="118" rx="8" fill="#FDFCFA" stroke="#C4531E" stroke-width="1.6"/>
+<text x="858.0" y="100" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="14" font-weight="700" fill="#16202B">ACT</text>
+<text x="858.0" y="120" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" font-weight="400" fill="#5A6B7A"><tspan x="858.0" dy="0">ntfy.sh push, OctoPrint</tspan><tspan x="858.0" dy="14">pause call</tspan></text>
+<text x="858.0" y="180" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10.5" font-weight="400" fill="#C4531E"><tspan x="858.0" dy="0">HTTPS POST, under 1 s</tspan></text>
+<line x1="966" y1="135.0" x2="986" y2="135.0" stroke="#16202B" stroke-width="1.6"/>
+<polygon points="986,130.0 996,135.0 986,140.0" fill="#16202B"/>
+<rect x="992" y="76" width="208" height="118" rx="8" fill="#FDFCFA" stroke="#0B4F6C" stroke-width="1.6"/>
+<text x="1096.0" y="100" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="14" font-weight="700" fill="#16202B">RECORD</text>
+<text x="1096.0" y="120" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" font-weight="400" fill="#5A6B7A"><tspan x="1096.0" dy="0">Snapshot and log to</tspan><tspan x="1096.0" dy="14">microSD</tspan></text>
+<text x="1096.0" y="180" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10.5" font-weight="400" fill="#C4531E"><tspan x="1096.0" dy="0">JPEG plus one CSV row</tspan></text>
+<line x1="40" y1="228" x2="1200" y2="228" stroke="#E2DED7" stroke-width="1"/>
+<text x="40" y="250" font-size="12" fill="#5A6B7A">ACT is the only step that leaves the device. Sense, process, decide, and record run on board, offline.</text>
+</svg>
+    </figure>
+  </div>
+  <div class="wrap" style="margin-top:24px;">
+    <p>The DECIDE step is the one that is not obvious. Single frames misfire on filament color changes and light glare, so PrintSentry waits for three of the last five frames to agree before it wakes the phone.</p>
+  </div>
+  <div class="wide" style="margin-top:8px;">
+    <figure>
+      <img src="images/storage.jpg" alt="PrintSentry camera resting on a workshop shelf between prints, cable coiled beside it">
+      <figcaption>PrintSentry stays clipped to the frame between prints. The same camera position keeps calibration and thresholds valid from one print to the next.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">How we know it works</div>
+    <h2>Every alert is checked against a human reviewing the same footage</h2>
+    <p>PrintSentry's accuracy claim rests on comparing its live score against a person reviewing the same footage afterward, frame by frame, on prints the model never trained on.</p>
+    <p><strong>Test protocol.</strong> Mount PrintSentry beside a reference camera on a fixed 60&nbsp;mm baseline bracket, run 40 prints to completion or failure across three printers and four filament colors, and have a second person label every frame as defect or no-defect without seeing PrintSentry's score. Sample size: roughly 30 minutes of footage per print, one frame every two seconds, about 36,000 frames total.</p>
+    <p><strong>Acceptance number.</strong> PrintSentry has to catch at least 90% of confirmed failures with no more than one false alarm per 10 successful prints. That bar matches the field precedent set by Obico's Spaghetti Detective, an open-source project that has run this same check on community printers for several years.</p>
+    <p>A false alarm costs a text message. A missed one costs a spool and an evening, so the debounce settings are tuned to over-alert rather than under-alert. If a test run misses the true-positive target, the fix is to loosen the debounce (2 of 5 frames instead of 3 of 5) before touching the model, since debounce strictness is the more likely cause of a missed catch than the model itself.</p>
+    <p class="cite">Reference: <a href="https://www.obico.io/" target="_blank" rel="noopener">Obico (formerly The Spaghetti Detective)</a>, an open-source failure-detection project for FDM printers.</p>
+  </div>
+  <div class="wide">
+    <div class="duo">
+      <figure>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 420" font-family="ui-sans-serif,system-ui">
+<rect width="1000" height="420" fill="#FDFCFA"/>
+<text x="30" y="34" font-size="18" font-weight="700" fill="#16202B">Defect-confidence trace, illustrative</text>
+<text x="30" y="54" font-size="12.5" fill="#5A6B7A">One stringing event, sampled every 2 s over 60 s</text>
+<line x1="90" y1="340" x2="940" y2="340" stroke="#16202B" stroke-width="1.4"/>
+<line x1="90" y1="340" x2="90" y2="100" stroke="#16202B" stroke-width="1.4"/>
+<text x="76" y="344" text-anchor="end" font-size="11" fill="#5A6B7A">0.0</text>
+<text x="76" y="104" text-anchor="end" font-size="11" fill="#5A6B7A">1.0</text>
+<text x="515.0" y="374" text-anchor="middle" font-size="12" fill="#5A6B7A">time (s)</text>
+<line x1="90.0" y1="340" x2="90.0" y2="346" stroke="#16202B" stroke-width="1"/>
+<text x="90.0" y="362" text-anchor="middle" font-size="10.5" fill="#5A6B7A">0</text>
+<line x1="231.66666666666666" y1="340" x2="231.66666666666666" y2="346" stroke="#16202B" stroke-width="1"/>
+<text x="231.66666666666666" y="362" text-anchor="middle" font-size="10.5" fill="#5A6B7A">10</text>
+<line x1="373.3333333333333" y1="340" x2="373.3333333333333" y2="346" stroke="#16202B" stroke-width="1"/>
+<text x="373.3333333333333" y="362" text-anchor="middle" font-size="10.5" fill="#5A6B7A">20</text>
+<line x1="515.0" y1="340" x2="515.0" y2="346" stroke="#16202B" stroke-width="1"/>
+<text x="515.0" y="362" text-anchor="middle" font-size="10.5" fill="#5A6B7A">30</text>
+<line x1="656.6666666666666" y1="340" x2="656.6666666666666" y2="346" stroke="#16202B" stroke-width="1"/>
+<text x="656.6666666666666" y="362" text-anchor="middle" font-size="10.5" fill="#5A6B7A">40</text>
+<line x1="798.3333333333334" y1="340" x2="798.3333333333334" y2="346" stroke="#16202B" stroke-width="1"/>
+<text x="798.3333333333334" y="362" text-anchor="middle" font-size="10.5" fill="#5A6B7A">50</text>
+<line x1="940.0" y1="340" x2="940.0" y2="346" stroke="#16202B" stroke-width="1"/>
+<text x="940.0" y="362" text-anchor="middle" font-size="10.5" fill="#5A6B7A">60</text>
+<line x1="90" y1="136.0" x2="940" y2="136.0" stroke="#C4531E" stroke-width="1.3" stroke-dasharray="6,4"/>
+<text x="946" y="140.0" font-size="11" fill="#C4531E">threshold 0.85</text>
+<path d="M 90.0,311.2 L 104.2,304.1 L 118.3,308.4 L 132.5,317.5 L 146.7,317.0 L 160.8,306.9 L 175.0,302.7 L 189.2,311.7 L 203.3,320.9 L 217.5,315.8 L 231.7,302.9 L 245.8,301.4 L 260.0,314.7 L 274.2,323.9 L 288.3,314.8 L 302.5,299.7 L 316.7,300.4 L 330.8,317.1 L 345.0,326.1 L 359.2,314.0 L 373.3,297.3 L 387.5,299.9 L 401.7,318.8 L 415.8,327.4 L 430.0,313.2 L 444.2,296.0 L 458.3,300.0 L 472.5,319.8 L 486.7,327.5 L 500.8,312.4 L 515.0,308.4 L 529.2,297.3 L 543.3,270.3 L 557.5,254.8 L 571.7,240.1 L 585.8,212.9 L 600.0,201.2 L 614.2,181.8 L 628.3,157.0 L 642.5,147.0 L 656.7,115.0 L 670.8,122.5 L 685.0,116.8 L 699.2,120.6 L 713.3,118.8 L 727.5,118.6 L 741.7,120.8 L 755.8,116.6 L 770.0,122.7 L 784.2,114.8 L 798.3,124.3 L 812.5,113.4 L 826.7,125.5 L 840.8,112.4 L 855.0,126.2 L 869.2,112.0 L 883.3,126.4 L 897.5,112.2 L 911.7,125.9 L 925.8,112.9 L 940.0,125.0" fill="none" stroke="#0B4F6C" stroke-width="2"/>
+<rect x="571.6666666666667" y="100" width="84.99999999999989" height="240" fill="#C4531E" opacity="0.08"/>
+<text x="614.1666666666667" y="90" text-anchor="middle" font-size="11" fill="#C4531E">detection window</text>
+<text x="231.66666666666666" y="290.0" text-anchor="middle" font-size="11" fill="#5A6B7A">noise floor</text>
+<text x="30" y="404" font-size="12" font-weight="700" fill="#16202B">Illustrative</text>
+<text x="105" y="404" font-size="12" fill="#5A6B7A">synthetic curve for explanation, not a recorded run</text>
+</svg>
+      </figure>
+      <figure>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" font-family="ui-sans-serif,system-ui">
+<rect width="1000" height="620" fill="#FDFCFA"/>
+<text x="30" y="34" font-size="18" font-weight="700" fill="#16202B">Validation rig</text>
+<text x="30" y="54" font-size="12.5" fill="#5A6B7A">Fixed offset bracket holds both cameras on the same printer, same print, same time base</text>
+<text x="260" y="90" text-anchor="middle" font-size="11" font-weight="700" fill="#0B4F6C">PrintSentry</text>
+<rect x="215" y="100" width="90" height="30" rx="6" fill="#FDFCFA" stroke="#0B4F6C" stroke-width="1.8"/>
+<text x="380" y="90" text-anchor="middle" font-size="11" font-weight="700" fill="#C4531E">Reference cam</text>
+<rect x="335" y="100" width="90" height="30" rx="6" fill="#FDFCFA" stroke="#C4531E" stroke-width="1.8"/>
+<rect x="200" y="156" width="240" height="22" rx="4" fill="#FDFCFA" stroke="#16202B" stroke-width="1.6"/>
+<text x="320" y="171" text-anchor="middle" font-size="10.5" fill="#5A6B7A">Rigid offset bracket, 60 mm baseline</text>
+<rect x="140" y="218" width="360" height="260" rx="4" fill="none" stroke="#E2DED7" stroke-width="2"/>
+<rect x="220" y="438" width="200" height="14" rx="3" fill="#16202B" opacity="0.85"/>
+<rect x="290" y="408" width="60" height="30" rx="3" fill="none" stroke="#16202B" stroke-width="1.6"/>
+<text x="320" y="504" text-anchor="middle" font-size="12" fill="#5A6B7A">Build plate under test</text>
+<line x1="260" y1="130" x2="320" y2="423" stroke="#0B4F6C" stroke-width="1.2" stroke-dasharray="4,3"/>
+<line x1="380" y1="130" x2="320" y2="423" stroke="#C4531E" stroke-width="1.2" stroke-dasharray="4,3"/>
+<rect x="560" y="218" width="380" height="260" rx="8" fill="#FDFCFA" stroke="#E2DED7" stroke-width="1.6"/>
+<text x="576" y="246" font-size="13" font-weight="700" fill="#16202B">Human review log</text>
+<text x="576" y="274" font-family="ui-monospace,monospace" font-size="11.5" fill="#5A6B7A">t=00:14:02</text>
+<text x="700" y="274" font-size="12" fill="#5A6B7A">no defect</text>
+<text x="576" y="310" font-family="ui-monospace,monospace" font-size="11.5" fill="#5A6B7A">t=00:14:04</text>
+<text x="700" y="310" font-size="12" fill="#5A6B7A">no defect</text>
+<text x="576" y="346" font-family="ui-monospace,monospace" font-size="11.5" fill="#5A6B7A">t=00:14:06</text>
+<text x="700" y="346" font-size="12" fill="#C4531E">stringing starts</text>
+<text x="576" y="382" font-family="ui-monospace,monospace" font-size="11.5" fill="#5A6B7A">t=00:14:08</text>
+<text x="700" y="382" font-size="12" fill="#C4531E">stringing, confirmed</text>
+<text x="576" y="418" font-family="ui-monospace,monospace" font-size="11.5" fill="#5A6B7A">t=00:14:10</text>
+<text x="700" y="418" font-size="12" fill="#5A6B7A">no defect</text>
+<line x1="560" y1="448" x2="940" y2="448" stroke="#E2DED7" stroke-width="1"/>
+<text x="576" y="468" font-size="11.5" fill="#5A6B7A">Labeled independently, timestamp-matched to both cameras</text>
+<line x1="500" y1="348.0" x2="550" y2="348.0" stroke="#16202B" stroke-width="1.4"/>
+<polygon points="550,342.0 560,348.0 550,354.0" fill="#16202B"/>
+<text x="30" y="596" font-size="12" fill="#5A6B7A">Every labeled frame carries two votes: PrintSentry's score and the human reviewer's call.</text>
+</svg>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Changes to the original plan</div>
+    <h2>Three changes to the brief, and why</h2>
+    <h3>Cut: automatic power-cut relay</h3>
+    <p>The original idea was to let PrintSentry cut printer power on a confirmed defect. A relay switching a live 24V, 15A heater and bed circuit hundreds of times over a project's life is a fire-risk component with no supervision, and a relay that welds shut mid-print is worse than the spaghetti it prevents. PrintSentry now sends the pause command through OctoPrint's API when OctoPrint is present, and alerts only otherwise. Reversible, with no new failure mode.</p>
+    <h3>Corrected: one hardcoded confidence threshold</h3>
+    <p>A single global 0.85 threshold does not survive contact with black or clear filament, both of which cut contrast and shift the model's baseline score. Each printer now runs a 5-minute calibration print on first use, records its own noise floor, and stores a per-filament threshold instead of one shared number. Skipping this step is the single most likely cause of both missed catches and false alarms in the field.</p>
+    <h3>Added: illumination ring, missing from the original parts list</h3>
+    <p>The original brief assumed ambient shop lighting was enough. It is not: a printer enclosure with the lid down, or evening light through a window, changes exposure enough to move the noise floor by 0.2, roughly a third of the way to the alert threshold. An 8-LED, 5V ring around the lens fixes exposure at one level regardless of the room, for $6 and 120&nbsp;mA added to the power budget.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Parts</div>
+    <h2>About $77 per unit, build two</h2>
+    <p>Prices are approximate, no volume discount. A second unit costs less than the evening lost restarting a failed calibration print, and a working spare means one camera can stay mounted through a multi-day print job.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Part</th><th>What it does</th><th class="num">Price</th></tr></thead>
+        <tbody>
+          <tr><td>Raspberry Pi Zero 2 W</td><td>Runs the model, sends alerts</td><td class="num">$15</td></tr>
+          <tr><td>Camera Module 3, wide</td><td>Watches the build plate</td><td class="num">$25</td></tr>
+          <tr><td>MicroSD card, 32GB</td><td>Boots the Pi, stores logs</td><td class="num">$8</td></tr>
+          <tr><td>LED ring, 5V, 8-LED</td><td>Holds exposure constant</td><td class="num">$6</td></tr>
+          <tr><td>USB wall adapter, 5V 2A</td><td>Powers the whole unit</td><td class="num">$8</td></tr>
+          <tr><td>Printed bracket, ball joint</td><td>Mounts camera to frame</td><td class="num">$3</td></tr>
+          <tr><td>Ribbon cable extension, 300mm</td><td>Reaches Pi from camera</td><td class="num">$5</td></tr>
+          <tr><td>Printed enclosure</td><td>Shields Pi from dust</td><td class="num">$4</td></tr>
+          <tr><td>Standoffs, wire, fasteners</td><td>Assembly hardware</td><td class="num">$3</td></tr>
+        </tbody>
+        <tfoot><tr><td colspan="2"><strong>Total, per unit</strong></td><td class="num"><strong>$77</strong></td></tr></tfoot>
+      </table>
+    </div>
+    <p class="sm" style="margin-top:14px;">Cheaper option: skip the LED ring and cable extension by mounting the Pi directly behind the camera, saving about $11, if the room has steady overhead light.</p>
+  </div>
+  <div class="wide">
+    <figure>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 640" font-family="ui-sans-serif,system-ui">
+<rect width="780" height="640" fill="#FDFCFA"/>
+<text x="30" y="34" font-size="18" font-weight="700" fill="#16202B">Build, exploded</text>
+<rect x="160.0" y="70" width="460" height="34" rx="6" fill="#FDFCFA" stroke="#0B4F6C" stroke-width="1.6"/>
+<text x="176.0" y="91" font-size="13" font-weight="600" fill="#16202B">LED ring, 8x 5mm, 5V, PWM dimmable</text>
+<text x="604.0" y="91" text-anchor="end" font-size="11.5" fill="#5A6B7A">2 mm PCB</text>
+<line x1="390.0" y1="104" x2="390.0" y2="158" stroke="#E2DED7" stroke-width="1.4" stroke-dasharray="3,3"/>
+<rect x="160.0" y="158" width="460" height="34" rx="6" fill="#FDFCFA" stroke="#0B4F6C" stroke-width="1.6"/>
+<text x="176.0" y="179" font-size="13" font-weight="600" fill="#16202B">Camera Module 3, wide, fixed focus</text>
+<text x="604.0" y="179" text-anchor="end" font-size="11.5" fill="#5A6B7A">9 mm module</text>
+<line x1="390.0" y1="192" x2="390.0" y2="246" stroke="#E2DED7" stroke-width="1.4" stroke-dasharray="3,3"/>
+<rect x="160.0" y="246" width="460" height="34" rx="6" fill="#FDFCFA" stroke="#C4531E" stroke-width="1.6"/>
+<text x="176.0" y="267" font-size="13" font-weight="600" fill="#16202B">Printed bracket, ball joint</text>
+<text x="604.0" y="267" text-anchor="end" font-size="11.5" fill="#5A6B7A">PETG, 4 mm wall</text>
+<line x1="390.0" y1="280" x2="390.0" y2="334" stroke="#E2DED7" stroke-width="1.4" stroke-dasharray="3,3"/>
+<rect x="160.0" y="334" width="460" height="34" rx="6" fill="#FDFCFA" stroke="#0B4F6C" stroke-width="1.6"/>
+<text x="176.0" y="355" font-size="13" font-weight="600" fill="#16202B">Ribbon cable, 300 mm, to Pi</text>
+<text x="604.0" y="355" text-anchor="end" font-size="11.5" fill="#5A6B7A">flat FPC</text>
+<line x1="390.0" y1="368" x2="390.0" y2="422" stroke="#E2DED7" stroke-width="1.4" stroke-dasharray="3,3"/>
+<rect x="160.0" y="422" width="460" height="34" rx="6" fill="#FDFCFA" stroke="#0B4F6C" stroke-width="1.6"/>
+<text x="176.0" y="443" font-size="13" font-weight="600" fill="#16202B">Pi Zero 2 W board</text>
+<text x="604.0" y="443" text-anchor="end" font-size="11.5" fill="#5A6B7A">1.4 mm PCB</text>
+<line x1="390.0" y1="456" x2="390.0" y2="510" stroke="#E2DED7" stroke-width="1.4" stroke-dasharray="3,3"/>
+<rect x="160.0" y="510" width="460" height="34" rx="6" fill="#FDFCFA" stroke="#C4531E" stroke-width="1.6"/>
+<text x="176.0" y="531" font-size="13" font-weight="600" fill="#16202B">Printed enclosure base and lid</text>
+<text x="604.0" y="531" text-anchor="end" font-size="11.5" fill="#5A6B7A">PETG, 2.4 mm wall</text>
+<text x="30" y="616" font-size="12" fill="#5A6B7A">Stack order top to bottom. Enclosure carries the Pi and shields it from filament dust.</text>
+</svg>
+    </figure>
+  </div>
+  <div class="wide" style="margin-top:20px;">
+    <div class="duo">
+      <figure>
+        <img src="images/product.jpg" alt="PrintSentry camera module with LED ring, on its bracket, next to a ruler for scale">
+      </figure>
+      <figure>
+        <img src="images/installed.jpg" alt="PrintSentry mounting bracket clamped onto a 3D printer's aluminum frame, aimed at the build plate">
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">What could go wrong</div>
+    <h2>The camera is the easy part</h2>
+    <p>Mounting a camera is a Saturday afternoon. Teaching a model to tell a shifted layer from a shadow, on plastic in every color from black to clear, across different printers and lighting, is the actual work, and it is where most of the build time should go.</p>
+    <div class="flag">
+      <p>If the custom model is not hitting 90% true-positive by the second week of testing, fall back to Obico's published open-source model and weights rather than continuing to tune from scratch. Decision date: two weeks before the final demo, not the night before.</p>
+    </div>
+    <p>The ribbon cable is the failure nobody plans for. It runs past a moving gantry, and normal print vibration works screws loose and can pinch the cable against the frame over dozens of prints. Check the clamp and the cable's slack every ten prints.</p>
+  </div>
+  <div class="wide">
+    <figure>
+      <img src="images/setup.jpg" alt="Hands attaching the PrintSentry camera bracket to a printer frame, tightening a thumbscrew clamp">
+      <figcaption>Mounting takes a few minutes. Getting the model to tell a shadow from a shifted layer takes weeks.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">For the specialist</div>
+    <h2>Build detail</h2>
+    <p class="sm">Working specification. Not needed to understand the project.</p>
+  </div>
+  <div class="wide">
+    <figure>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 560" font-family="ui-sans-serif,system-ui">
+<rect width="1040" height="560" fill="#FDFCFA"/>
+<text x="30" y="34" font-size="18" font-weight="700" fill="#16202B">Wiring and power chain</text>
+<text x="30" y="54" font-size="12.5" fill="#5A6B7A">Independent 5V USB supply, not tapped from the printer</text>
+<rect x="30" y="100" width="190" height="60" rx="8" fill="#FDFCFA" stroke="#16202B" stroke-width="1.8"/>
+<text x="125.0" y="126" text-anchor="middle" font-size="13" font-weight="700" fill="#16202B">USB wall adapter</text>
+<text x="125.0" y="146" text-anchor="middle" font-size="11.5" fill="#5A6B7A">5V, 2A capacity</text>
+<line x1="220" y1="130.0" x2="260" y2="130.0" stroke="#16202B" stroke-width="1.8"/>
+<line x1="260" y1="130.0" x2="950" y2="130.0" stroke="#16202B" stroke-width="2.4"/>
+<text x="605.0" y="118.0" text-anchor="middle" font-size="11.5" fill="#5A6B7A">common 5V rail</text>
+<line x1="375.0" y1="130.0" x2="375.0" y2="200.0" stroke="#16202B" stroke-width="1.6"/>
+<rect x="265.0" y="200.0" width="220" height="118" rx="8" fill="#FDFCFA" stroke="#0B4F6C" stroke-width="1.8"/>
+<text x="375.0" y="224.0" text-anchor="middle" font-size="13" font-weight="700" fill="#16202B">Pi Zero 2 W</text>
+<text x="375.0" y="244.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" font-weight="400" fill="#5A6B7A"><tspan x="375.0" dy="0">5V rail, draws 350 mA</tspan><tspan x="375.0" dy="14">typical</tspan></text>
+<text x="375.0" y="294.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="10.5" font-weight="400" fill="#C4531E"><tspan x="375.0" dy="0">I2C to camera sensor, SPI</tspan><tspan x="375.0" dy="13">unused</tspan></text>
+<line x1="605.0" y1="130.0" x2="605.0" y2="200.0" stroke="#16202B" stroke-width="1.6"/>
+<rect x="495.0" y="200.0" width="220" height="118" rx="8" fill="#FDFCFA" stroke="#0B4F6C" stroke-width="1.8"/>
+<text x="605.0" y="224.0" text-anchor="middle" font-size="13" font-weight="700" fill="#16202B">Camera Module 3</text>
+<text x="605.0" y="244.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" font-weight="400" fill="#5A6B7A"><tspan x="605.0" dy="0">3.3V from Pi regulator,</tspan><tspan x="605.0" dy="14">draws 250 mA peak</tspan></text>
+<text x="605.0" y="294.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="10.5" font-weight="400" fill="#C4531E"><tspan x="605.0" dy="0">CSI ribbon to Pi</tspan></text>
+<line x1="835.0" y1="130.0" x2="835.0" y2="200.0" stroke="#16202B" stroke-width="1.6"/>
+<rect x="725.0" y="200.0" width="220" height="118" rx="8" fill="#FDFCFA" stroke="#C4531E" stroke-width="1.8"/>
+<text x="835.0" y="224.0" text-anchor="middle" font-size="13" font-weight="700" fill="#16202B">LED ring</text>
+<text x="835.0" y="244.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" font-weight="400" fill="#5A6B7A"><tspan x="835.0" dy="0">5V rail via 47 ohm resistor,</tspan><tspan x="835.0" dy="14">draws 120 mA</tspan></text>
+<text x="835.0" y="294.0" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="10.5" font-weight="400" fill="#C4531E"><tspan x="835.0" dy="0">PWM from Pi GPIO18</tspan></text>
+<text x="30" y="520" font-size="12" fill="#5A6B7A">Total draw about 720 mA at 5V, 3.6 W. Against a 2A (10W) adapter, margin is wide.</text>
+<text x="30" y="540" font-size="12" fill="#5A6B7A">Pi 3.3V rail (camera) is regulated on-board. No rail is drawn from the printer PSU.</text>
+</svg>
+    </figure>
+  </div>
+  <div class="wrap">
+    <details>
+      <summary>Detection method and parameters</summary>
+      <div class="body">
+        <p>MobileNetV2 (width multiplier 0.35), fine-tuned on labeled 3D-print-failure frames. Input 224x224, binary output (defect / no-defect) plus a confidence score. Exported as TFLite, int8 quantized, about 2.9MB. Inference on the Pi Zero 2 W's ARM Cortex-A53: about 180ms per frame. Default threshold 0.85, calibrated per filament profile. Debounce: 3 of the last 5 frames over threshold, within a 10-second window.</p>
+      </div>
+    </details>
+    <details>
+      <summary>State machine and data format</summary>
+      <div class="body">
+        <p>States: IDLE &rarr; WATCHING &rarr; SUSPECT (1&ndash;2 hits) &rarr; CONFIRMED (3+ hits) &rarr; ALERTED &rarr; COOLDOWN (5 minutes, suppresses repeat alerts for the same event).</p>
+        <p>Log: one CSV row per frame (timestamp, score, state). Snapshot JPEGs, about 150KB each, saved on a CONFIRMED transition, filename by timestamp.</p>
+      </div>
+    </details>
+    <details>
+      <summary>Power budget</summary>
+      <div class="body">
+        <p>Total draw about 720mA at 5V, 3.6W continuous. A 10-hour print draws about 36Wh. The unit stays plugged in for the duration, so no battery is needed. Margin: a 2A (10W) adapter against a 720mA load is about 2.8&times; headroom.</p>
+      </div>
+    </details>
+    <details>
+      <summary>Memory and storage</summary>
+      <div class="body">
+        <p>TFLite model, about 2.9MB, fits easily in the Pi Zero 2 W's 512MB RAM. A 32GB microSD card holds roughly 200,000 snapshot JPEGs before rotation is needed. Logs rotate weekly.</p>
+      </div>
+    </details>
+    <details>
+      <summary>Bring-up order</summary>
+      <div class="body">
+        <p>1. Power the Pi alone, confirm boot. 2. Attach the camera, confirm still capture. 3. Load the TFLite model, run inference on static test images. 4. Wire the LED ring, confirm PWM control. 5. Mount on the printer, confirm framing. 6. Run one full print with alerting disabled, review the log. 7. Enable alerting.</p>
+      </div>
+    </details>
+    <details>
+      <summary>Validation checklist</summary>
+      <div class="body">
+        <p>40 prints across 3 printers and 4 filament colors. Every frame labeled independently by a second person. Compute true-positive and false-positive rate. Confirm true-positive rate at or above 90%, false-positive rate at or below 1 per 10 successful prints. Re-run calibration after any camera repositioning.</p>
+      </div>
+    </details>
+    <details>
+      <summary>What this device cannot do</summary>
+      <div class="body">
+        <ul>
+          <li>Cannot see inside a fully enclosed chamber if the camera sits outside it.</li>
+          <li>Cannot detect internal defects such as voids or weak layer adhesion inside the part.</li>
+          <li>Cannot pause a print by itself without OctoPrint; without it, PrintSentry only alerts.</li>
+          <li>Camera and LED ring are not rated above 60&deg;C, so it is not suited to high-temperature enclosed chambers.</li>
+          <li>Does not replace routine mechanical maintenance: belt tension, nozzle clogs, bed leveling.</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="xs">PrintSentry &middot; System design &middot; September 2026</p>
+  </div>
+</footer>
+
+</body>
+</html>

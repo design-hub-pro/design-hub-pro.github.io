@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoLens AI - Sustainable Swap</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; scrollbar-width: none; font-family: 'Inter', sans-serif; }
+  body { background: #f8faf8; color: #1a2e1a; position: relative; }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center;
+    position: relative; z-index: 100; background: #f8faf8;
+  }
+  .status-time { font-size: 15px; font-weight: 700; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  }
+
+  .content { height: calc(100% - 59px); overflow-y: auto; scrollbar-width: none; padding-bottom: 100px; }
+  .content::-webkit-scrollbar { display: none; }
+
+  .nav { display: flex; align-items: center; padding: 4px 28px 0; gap: 14px; }
+  .nav-back { font-size: 18px; color: #2d8a4e; }
+  .nav-title { font-size: 17px; font-weight: 700; }
+
+  /* Swap Header */
+  .swap-hero {
+    margin: 16px 28px; padding: 20px; border-radius: 22px;
+    background: linear-gradient(135deg, #e8f5e8, #d0ecd0);
+    display: flex; align-items: center; gap: 16px;
+  }
+  .swap-from {
+    width: 60px; height: 60px; border-radius: 16px; overflow: hidden;
+    border: 2px solid #d04040;
+  }
+  .swap-from img { width: 100%; height: 100%; object-fit: cover; }
+  .swap-arrow {
+    font-size: 22px; color: #2d8a4e;
+  }
+  .swap-to-placeholder {
+    width: 60px; height: 60px; border-radius: 16px;
+    border: 2px dashed #2d8a4e; display: flex; align-items: center; justify-content: center;
+    font-size: 22px; color: #2d8a4e; background: rgba(45,138,78,0.1);
+  }
+  .swap-info { flex: 1; }
+  .swap-info-title { font-size: 14px; font-weight: 700; color: #1a3d2a; }
+  .swap-info-sub { font-size: 11px; color: #5a7a5a; margin-top: 2px; }
+
+  /* Filter Pills */
+  .filter-row {
+    display: flex; gap: 8px; padding: 0 28px; margin-bottom: 16px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-pill {
+    padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    white-space: nowrap; background: #fff; border: 1px solid #e0ebe0; color: #5a7a5a;
+  }
+  .filter-pill.active { background: #2d8a4e; color: #fff; border-color: #2d8a4e; }
+
+  /* Product Cards */
+  .swap-list { padding: 0 28px; }
+  .swap-card {
+    padding: 16px; border-radius: 20px; background: #fff;
+    border: 1px solid #e0ebe0; margin-bottom: 12px;
+  }
+  .swap-card-top { display: flex; gap: 14px; margin-bottom: 14px; }
+  .swap-card-img {
+    width: 80px; height: 80px; border-radius: 16px; overflow: hidden; flex-shrink: 0;
+  }
+  .swap-card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .swap-card-info { flex: 1; }
+  .swap-card-name { font-size: 15px; font-weight: 700; }
+  .swap-card-brand { font-size: 11px; color: #7a9a7a; margin-top: 2px; }
+  .swap-card-rating { display: flex; align-items: center; gap: 4px; margin-top: 6px; }
+  .swap-card-rating i { font-size: 11px; color: #fbbf24; }
+  .swap-card-rating span { font-size: 11px; font-weight: 600; color: #5a7a5a; }
+  .swap-card-price { text-align: right; }
+  .swap-price { font-size: 20px; font-weight: 800; color: #2d8a4e; }
+  .swap-price-old { font-size: 12px; color: #b0b0b0; text-decoration: line-through; }
+
+  .swap-card-scores { display: flex; gap: 6px; margin-bottom: 12px; }
+  .swap-score {
+    flex: 1; padding: 8px; border-radius: 10px; text-align: center;
+  }
+  .swap-score.eco { background: #e8f5e8; }
+  .swap-score.safe { background: #e8f0f5; }
+  .swap-score.dur { background: #f5f0e8; }
+  .swap-score-val { font-size: 16px; font-weight: 800; }
+  .swap-score.eco .swap-score-val { color: #2d8a4e; }
+  .swap-score.safe .swap-score-val { color: #2d6a8a; }
+  .swap-score.dur .swap-score-val { color: #8a6a2d; }
+  .swap-score-label { font-size: 9px; font-weight: 600; color: #7a9a7a; margin-top: 2px; }
+
+  .swap-card-btn {
+    width: 100%; padding: 12px; border-radius: 14px; border: none;
+    background: linear-gradient(135deg, #2d8a4e, #34a85a);
+    color: #fff; font-size: 13px; font-weight: 700; display: flex;
+    align-items: center; justify-content: center; gap: 8px;
+  }
+  .swap-card-btn.outline {
+    background: transparent; border: 1.5px solid #2d8a4e; color: #2d8a4e;
+  }
+
+  /* Verified Badge */
+  .verified-row {
+    display: flex; align-items: center; gap: 6px; margin-bottom: 14px;
+  }
+  .verified-badge {
+    padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .verified-badge.green { background: #e8f5e8; color: #2d8a4e; }
+  .verified-badge.partner { background: #e8e8f5; color: #5a5a8a; }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(248,250,248,0.95); backdrop-filter: blur(30px);
+    border-top: 1px solid #e0ebe0;
+    display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px;
+    z-index: 200;
+  }
+  .tab-item { text-align: center; width: 60px; }
+  .tab-icon { font-size: 22px; color: #b0c0b0; margin-bottom: 4px; }
+  .tab-label { font-size: 10px; color: #b0c0b0; font-weight: 600; }
+  .tab-item.active .tab-icon { color: #2d8a4e; }
+  .tab-item.active .tab-label { color: #2d8a4e; }
+  .home-indicator {
+    width: 134px; height: 5px; background: #1a2e1a; border-radius: 3px;
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); opacity: 0.2;
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="nav">
+      <i class="fas fa-chevron-left nav-back"></i>
+      <div class="nav-title">Sustainable Swap</div>
+    </div>
+
+    <div class="swap-hero">
+      <div class="swap-from">
+        <img src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=120&h=120&fit=crop" alt="">
+      </div>
+      <div class="swap-arrow"><i class="fas fa-arrow-right"></i></div>
+      <div class="swap-to-placeholder"><i class="fas fa-leaf"></i></div>
+      <div class="swap-info">
+        <div class="swap-info-title">Replacing PET Bottle</div>
+        <div class="swap-info-sub">3 eco-friendly alternatives found</div>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <div class="filter-pill active">All</div>
+      <div class="filter-pill">Best Value</div>
+      <div class="filter-pill">Most Eco</div>
+      <div class="filter-pill">Safest</div>
+      <div class="filter-pill">Popular</div>
+    </div>
+
+    <div class="swap-list">
+      <!-- Card 1 -->
+      <div class="swap-card">
+        <div class="swap-card-top">
+          <div class="swap-card-img">
+            <img src="https://images.unsplash.com/photo-1570831739435-6601aa3fa4fb?w=160&h=160&fit=crop" alt="">
+          </div>
+          <div class="swap-card-info">
+            <div class="swap-card-name">Hydro Flask Standard</div>
+            <div class="swap-card-brand">Hydro Flask</div>
+            <div class="swap-card-rating">
+              <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-stroke"></i>
+              <span>4.7 (2.3k)</span>
+            </div>
+          </div>
+          <div class="swap-card-price">
+            <div class="swap-price">$34</div>
+          </div>
+        </div>
+        <div class="verified-row">
+          <div class="verified-badge green"><i class="fas fa-check-circle"></i> Eco Verified</div>
+          <div class="verified-badge partner"><i class="fas fa-handshake"></i> Partner</div>
+        </div>
+        <div class="swap-card-scores">
+          <div class="swap-score eco">
+            <div class="swap-score-val">95</div>
+            <div class="swap-score-label">ECO</div>
+          </div>
+          <div class="swap-score safe">
+            <div class="swap-score-val">98</div>
+            <div class="swap-score-label">SAFE</div>
+          </div>
+          <div class="swap-score dur">
+            <div class="swap-score-val">97</div>
+            <div class="swap-score-label">DURABLE</div>
+          </div>
+        </div>
+        <div class="swap-card-btn">
+          <i class="fas fa-shopping-bag"></i> View on Store
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="swap-card">
+        <div class="swap-card-top">
+          <div class="swap-card-img">
+            <img src="https://images.unsplash.com/photo-1523362628745-0c100150b504?w=160&h=160&fit=crop" alt="">
+          </div>
+          <div class="swap-card-info">
+            <div class="swap-card-name">Klean Kanteen Classic</div>
+            <div class="swap-card-brand">Klean Kanteen</div>
+            <div class="swap-card-rating">
+              <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+              <span>4.9 (1.8k)</span>
+            </div>
+          </div>
+          <div class="swap-card-price">
+            <div class="swap-price">$28</div>
+          </div>
+        </div>
+        <div class="verified-row">
+          <div class="verified-badge green"><i class="fas fa-check-circle"></i> B Corp</div>
+        </div>
+        <div class="swap-card-scores">
+          <div class="swap-score eco">
+            <div class="swap-score-val">98</div>
+            <div class="swap-score-label">ECO</div>
+          </div>
+          <div class="swap-score safe">
+            <div class="swap-score-val">96</div>
+            <div class="swap-score-label">SAFE</div>
+          </div>
+          <div class="swap-score dur">
+            <div class="swap-score-val">94</div>
+            <div class="swap-score-label">DURABLE</div>
+          </div>
+        </div>
+        <div class="swap-card-btn outline">
+          <i class="fas fa-shopping-bag"></i> View on Store
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-home"></i></div>
+      <div class="tab-label">Home</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-camera"></i></div>
+      <div class="tab-label">Scan</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-scale-balanced"></i></div>
+      <div class="tab-label">Trade-off</div>
+    </div>
+    <div class="tab-item active">
+      <div class="tab-icon"><i class="fas fa-arrows-rotate"></i></div>
+      <div class="tab-label">Swap</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-chart-line"></i></div>
+      <div class="tab-label">Impact</div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CozyNest - Soundscapes</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; scrollbar-width: none; font-family: 'Nunito', sans-serif; }
+  body { background: linear-gradient(180deg, #0f1a2e 0%, #1a1520 40%, #1a1520 100%); color: #fff; }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center;
+    position: relative; z-index: 100;
+  }
+  .status-time { font-size: 15px; font-weight: 700; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  }
+
+  .screen { height: 100%; display: flex; flex-direction: column; overflow-y: auto; scrollbar-width: none; }
+
+  /* Now Playing Hero */
+  .now-playing-hero {
+    padding: 10px 28px 20px; text-align: center;
+  }
+  .np-artwork {
+    width: 200px; height: 200px; border-radius: 32px; margin: 0 auto 20px;
+    background: linear-gradient(135deg, #2a3a5a, #1a2a4a);
+    display: flex; align-items: center; justify-content: center; position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+  }
+  .np-artwork-bg {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: url('https://images.unsplash.com/photo-1501999635878-71cb5379c2d8?w=400&h=400&fit=crop') center/cover;
+    opacity: 0.7;
+  }
+  .np-artwork-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(135deg, rgba(26,21,32,0.3), rgba(106,74,138,0.3));
+  }
+  .np-icon-large {
+    font-size: 48px; position: relative; z-index: 2;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+  }
+
+  .np-track { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+  .np-category { font-size: 13px; color: rgba(255,255,255,0.4); font-weight: 600; }
+
+  /* Waveform */
+  .waveform { display: flex; gap: 3px; align-items: center; justify-content: center; height: 40px; margin: 16px 0; }
+  .wave-bar {
+    width: 4px; background: linear-gradient(180deg, #9ac0ff, #6a4a8a); border-radius: 2px;
+    animation: wave 1.5s ease-in-out infinite;
+  }
+  .wave-bar:nth-child(1) { height: 12px; animation-delay: 0s; }
+  .wave-bar:nth-child(2) { height: 20px; animation-delay: 0.1s; }
+  .wave-bar:nth-child(3) { height: 28px; animation-delay: 0.2s; }
+  .wave-bar:nth-child(4) { height: 36px; animation-delay: 0.3s; }
+  .wave-bar:nth-child(5) { height: 24px; animation-delay: 0.4s; }
+  .wave-bar:nth-child(6) { height: 32px; animation-delay: 0.15s; }
+  .wave-bar:nth-child(7) { height: 18px; animation-delay: 0.25s; }
+  .wave-bar:nth-child(8) { height: 28px; animation-delay: 0.35s; }
+  .wave-bar:nth-child(9) { height: 14px; animation-delay: 0.45s; }
+  .wave-bar:nth-child(10) { height: 22px; animation-delay: 0.05s; }
+  .wave-bar:nth-child(11) { height: 30px; animation-delay: 0.2s; }
+  .wave-bar:nth-child(12) { height: 16px; animation-delay: 0.35s; }
+  .wave-bar:nth-child(13) { height: 26px; animation-delay: 0.1s; }
+  .wave-bar:nth-child(14) { height: 20px; animation-delay: 0.3s; }
+  .wave-bar:nth-child(15) { height: 34px; animation-delay: 0.2s; }
+  @keyframes wave { 0%, 100% { transform: scaleY(0.4); } 50% { transform: scaleY(1); } }
+
+  /* Controls */
+  .controls { display: flex; align-items: center; justify-content: center; gap: 30px; margin-bottom: 8px; }
+  .ctrl-btn { font-size: 22px; color: rgba(255,255,255,0.4); background: none; border: none; }
+  .play-btn {
+    width: 64px; height: 64px; border-radius: 50%; border: none;
+    background: linear-gradient(135deg, #6a4a8a, #9a70c0);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: #fff;
+    box-shadow: 0 8px 25px rgba(106,74,138,0.4);
+  }
+
+  /* Timer */
+  .timer-row { display: flex; justify-content: center; gap: 20px; padding: 8px 28px 16px; }
+  .timer-chip {
+    padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .timer-chip.active { background: rgba(106,74,138,0.3); color: #c0a0ff; border-color: rgba(192,160,255,0.3); }
+
+  /* Sound Mix */
+  .section-label { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.4); padding: 0 28px; margin-bottom: 12px; letter-spacing: 1px; }
+
+  .sound-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 28px; margin-bottom: 20px; }
+  .sound-card {
+    padding: 16px 10px; border-radius: 16px; text-align: center;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+    position: relative;
+  }
+  .sound-card.active {
+    background: rgba(106,74,138,0.15); border-color: rgba(154,112,192,0.3);
+  }
+  .sound-emoji { font-size: 28px; margin-bottom: 6px; }
+  .sound-name { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.6); }
+  .sound-slider {
+    width: 80%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px;
+    margin: 8px auto 0; position: relative;
+  }
+  .sound-slider-fill {
+    height: 100%; border-radius: 2px; background: linear-gradient(90deg, #6a4a8a, #9a70c0);
+  }
+  .sound-card.active .sound-name { color: #c0a0ff; }
+
+  /* Playlists */
+  .playlist-scroll { display: flex; gap: 12px; padding: 0 28px; overflow-x: auto; scrollbar-width: none; padding-bottom: 100px; }
+  .playlist-card {
+    flex-shrink: 0; width: 130px;
+  }
+  .playlist-art {
+    width: 130px; height: 130px; border-radius: 18px; margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 40px;
+    position: relative; overflow: hidden;
+  }
+  .playlist-art.rain { background: linear-gradient(135deg, #2a3a5a, #4a5a7a); }
+  .playlist-art.forest { background: linear-gradient(135deg, #2a4a3a, #3a6a4a); }
+  .playlist-art.lofi { background: linear-gradient(135deg, #4a2a5a, #6a4a7a); }
+  .playlist-art.ocean { background: linear-gradient(135deg, #1a3a5a, #2a5a7a); }
+  .pl-name { font-size: 13px; font-weight: 700; }
+  .pl-count { font-size: 11px; color: rgba(255,255,255,0.3); }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(15,26,46,0.95); backdrop-filter: blur(30px);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px;
+  }
+  .tab-item { text-align: center; width: 60px; }
+  .tab-icon { font-size: 22px; color: rgba(255,255,255,0.3); margin-bottom: 4px; }
+  .tab-label { font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 600; }
+  .tab-item.active .tab-icon { color: #9ac0ff; }
+  .tab-item.active .tab-label { color: #9ac0ff; }
+  .home-indicator {
+    width: 134px; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px;
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <!-- Now Playing -->
+  <div class="now-playing-hero">
+    <div class="np-artwork">
+      <div class="np-artwork-bg"></div>
+      <div class="np-artwork-overlay"></div>
+      <div class="np-icon-large">🌧️</div>
+    </div>
+    <div class="np-track">Rainy Evening</div>
+    <div class="np-category">Ambient • Sleep</div>
+  </div>
+
+  <!-- Waveform -->
+  <div class="waveform">
+    <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+    <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+    <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+    <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+    <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="ctrl-btn"><i class="fas fa-shuffle"></i></button>
+    <button class="ctrl-btn"><i class="fas fa-backward-step"></i></button>
+    <button class="play-btn"><i class="fas fa-pause"></i></button>
+    <button class="ctrl-btn"><i class="fas fa-forward-step"></i></button>
+    <button class="ctrl-btn"><i class="fas fa-moon"></i></button>
+  </div>
+
+  <!-- Timer -->
+  <div class="timer-row">
+    <div class="timer-chip">15m</div>
+    <div class="timer-chip active">30m</div>
+    <div class="timer-chip">1h</div>
+    <div class="timer-chip">∞</div>
+  </div>
+
+  <!-- Sound Mix -->
+  <div class="section-label">SOUND MIX</div>
+  <div class="sound-grid">
+    <div class="sound-card active">
+      <div class="sound-emoji">🌧️</div>
+      <div class="sound-name">Rain</div>
+      <div class="sound-slider"><div class="sound-slider-fill" style="width:80%"></div></div>
+    </div>
+    <div class="sound-card active">
+      <div class="sound-emoji">🔥</div>
+      <div class="sound-name">Fireplace</div>
+      <div class="sound-slider"><div class="sound-slider-fill" style="width:40%"></div></div>
+    </div>
+    <div class="sound-card">
+      <div class="sound-emoji">🦗</div>
+      <div class="sound-name">Crickets</div>
+      <div class="sound-slider"><div class="sound-slider-fill" style="width:0%"></div></div>
+    </div>
+    <div class="sound-card active">
+      <div class="sound-emoji">🎹</div>
+      <div class="sound-name">Piano</div>
+      <div class="sound-slider"><div class="sound-slider-fill" style="width:60%"></div></div>
+    </div>
+    <div class="sound-card">
+      <div class="sound-emoji">🌊</div>
+      <div class="sound-name">Waves</div>
+      <div class="sound-slider"><div class="sound-slider-fill" style="width:0%"></div></div>
+    </div>
+    <div class="sound-card">
+      <div class="sound-emoji">🍃</div>
+      <div class="sound-name">Wind</div>
+      <div class="sound-slider"><div class="sound-slider-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- Playlists -->
+  <div class="section-label">CURATED FOR YOU</div>
+  <div class="playlist-scroll">
+    <div class="playlist-card">
+      <div class="playlist-art rain">🌧️</div>
+      <div class="pl-name">Rainy Night</div>
+      <div class="pl-count">12 sounds</div>
+    </div>
+    <div class="playlist-card">
+      <div class="playlist-art forest">🌲</div>
+      <div class="pl-name">Forest Bath</div>
+      <div class="pl-count">8 sounds</div>
+    </div>
+    <div class="playlist-card">
+      <div class="playlist-art lofi">🎵</div>
+      <div class="pl-name">Lo-fi Chill</div>
+      <div class="pl-count">24 tracks</div>
+    </div>
+    <div class="playlist-card">
+      <div class="playlist-art ocean">🐚</div>
+      <div class="pl-name">Ocean Calm</div>
+      <div class="pl-count">10 sounds</div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item">
+    <div class="tab-icon"><i class="fas fa-home"></i></div>
+    <div class="tab-label">Home</div>
+  </div>
+  <div class="tab-item">
+    <div class="tab-icon"><i class="fas fa-comment-dots"></i></div>
+    <div class="tab-label">Chat</div>
+  </div>
+  <div class="tab-item">
+    <div class="tab-icon"><i class="fas fa-couch"></i></div>
+    <div class="tab-label">Room</div>
+  </div>
+  <div class="tab-item">
+    <div class="tab-icon"><i class="fas fa-heart"></i></div>
+    <div class="tab-label">Warmth</div>
+  </div>
+  <div class="tab-item active">
+    <div class="tab-icon"><i class="fas fa-music"></i></div>
+    <div class="tab-label">Sounds</div>
+  </div>
+  <div class="home-indicator"></div>
+</div>
+</body>
+</html>

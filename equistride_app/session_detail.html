@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EquiStride - Session Detail</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif; background: #F8F7F4; width: 100%; height: 100%; overflow-x: hidden; }
+
+  .status-bar {
+    height: 59px; display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 28px 8px; background: transparent; position: absolute; top: 0; left: 0; right: 0; z-index: 100; color: #fff;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .status-bar .icons i { font-size: 13px; }
+  .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
+
+  /* Hero */
+  .hero { width: 100%; height: 280px; position: relative; }
+  .hero img { width: 100%; height: 100%; object-fit: cover; }
+  .hero-overlay { position: absolute; inset: 0; background: linear-gradient(transparent 40%, rgba(0,0,0,0.7)); }
+  .hero-content { position: absolute; bottom: 20px; left: 28px; right: 28px; }
+  .hero-content .back { color: #fff; font-size: 18px; position: absolute; top: -180px; }
+  .hero-content h2 { font-size: 24px; font-weight: 800; color: #fff; }
+  .hero-content p { font-size: 13px; color: rgba(255,255,255,0.7); }
+  .hero-score { position: absolute; bottom: 20px; right: 28px; text-align: center; }
+  .hero-score .val { font-size: 36px; font-weight: 800; color: #4A7C23; background: rgba(255,255,255,0.95); width: 64px; height: 64px; border-radius: 18px; display: flex; align-items: center; justify-content: center; }
+  .hero-score .lbl { font-size: 10px; color: rgba(255,255,255,0.7); margin-top: 4px; }
+
+  .content { padding: 20px 28px 120px; }
+
+  /* Summary Stats */
+  .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
+  .summary-item {
+    background: #fff; border-radius: 16px; padding: 14px; text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .summary-item .icon { font-size: 18px; margin-bottom: 6px; }
+  .summary-item .value { font-size: 20px; font-weight: 800; color: #1A1A1A; }
+  .summary-item .label { font-size: 10px; color: #8E8E93; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Section Title */
+  .section-title { font-size: 18px; font-weight: 700; color: #1A1A1A; margin-bottom: 12px; }
+
+  /* Timeline Chart */
+  .timeline-card {
+    background: #fff; border-radius: 20px; padding: 18px; margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .timeline-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+  .timeline-visual { width: 100%; height: 60px; display: flex; gap: 2px; align-items: flex-end; }
+  .timeline-bar { flex: 1; border-radius: 3px 3px 0 0; min-height: 4px; }
+  .timeline-legend { display: flex; gap: 16px; margin-top: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #8E8E93; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* Heart Rate Card */
+  .hr-card {
+    background: linear-gradient(145deg, #1A1A2E, #2D3250); border-radius: 20px; padding: 20px;
+    margin-bottom: 20px;
+  }
+  .hr-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .hr-header h4 { color: #fff; font-size: 15px; font-weight: 600; }
+  .hr-header .bpm { color: #FF6B6B; font-size: 13px; font-weight: 600; }
+  .hr-chart { width: 100%; height: 80px; }
+  .hr-chart svg { width: 100%; height: 100%; }
+  .hr-stats { display: flex; justify-content: space-around; margin-top: 12px; }
+  .hr-stat { text-align: center; }
+  .hr-stat .val { font-size: 18px; font-weight: 700; color: #fff; }
+  .hr-stat .lbl { font-size: 10px; color: rgba(255,255,255,0.5); }
+
+  /* Feedback Cards */
+  .feedback-card {
+    background: #fff; border-radius: 18px; padding: 16px; margin-bottom: 10px;
+    display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .feedback-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .feedback-info h4 { font-size: 14px; font-weight: 600; color: #1A1A1A; }
+  .feedback-info p { font-size: 12px; color: #8E8E93; margin-top: 2px; line-height: 1.4; }
+
+  /* Share Button */
+  .share-btn {
+    width: 100%; padding: 16px; border-radius: 16px; border: 1.5px solid #4A7C23;
+    background: transparent; font-size: 15px; font-weight: 600; color: #4A7C23;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 10px;
+  }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px;
+    border-top: 0.5px solid rgba(0,0,0,0.08);
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .tab-item i { font-size: 22px; color: #8E8E93; }
+  .tab-item span { font-size: 10px; font-weight: 500; color: #8E8E93; }
+  .tab-item.active i { color: #4A7C23; }
+  .tab-item.active span { color: #4A7C23; font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <img src="https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&h=400&fit=crop" alt="session">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <i class="fas fa-chevron-left back"></i>
+      <h2>Evening Jump Training</h2>
+      <p>Jan 28, 2026 • Thunder • Arena A</p>
+    </div>
+    <div class="hero-score">
+      <div class="val">92</div>
+      <div class="lbl">Score</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Summary -->
+    <div class="summary-grid">
+      <div class="summary-item">
+        <div class="icon">⏱</div>
+        <div class="value">45m</div>
+        <div class="label">Duration</div>
+      </div>
+      <div class="summary-item">
+        <div class="icon">📍</div>
+        <div class="value">5.8</div>
+        <div class="label">km</div>
+      </div>
+      <div class="summary-item">
+        <div class="icon">🔥</div>
+        <div class="value">1,240</div>
+        <div class="label">cal</div>
+      </div>
+    </div>
+
+    <!-- Gait Timeline -->
+    <h3 class="section-title">Gait Timeline</h3>
+    <div class="timeline-card">
+      <div class="timeline-visual">
+        <!-- Walk segments -->
+        <div class="timeline-bar" style="height: 25%; background: #4A7C23;"></div>
+        <div class="timeline-bar" style="height: 25%; background: #4A7C23;"></div>
+        <div class="timeline-bar" style="height: 25%; background: #4A7C23;"></div>
+        <div class="timeline-bar" style="height: 50%; background: #0066CC;"></div>
+        <div class="timeline-bar" style="height: 50%; background: #0066CC;"></div>
+        <div class="timeline-bar" style="height: 50%; background: #0066CC;"></div>
+        <div class="timeline-bar" style="height: 50%; background: #0066CC;"></div>
+        <div class="timeline-bar" style="height: 75%; background: #E67E22;"></div>
+        <div class="timeline-bar" style="height: 75%; background: #E67E22;"></div>
+        <div class="timeline-bar" style="height: 75%; background: #E67E22;"></div>
+        <div class="timeline-bar" style="height: 100%; background: #8E24AA;"></div>
+        <div class="timeline-bar" style="height: 100%; background: #8E24AA;"></div>
+        <div class="timeline-bar" style="height: 75%; background: #E67E22;"></div>
+        <div class="timeline-bar" style="height: 75%; background: #E67E22;"></div>
+        <div class="timeline-bar" style="height: 50%; background: #0066CC;"></div>
+        <div class="timeline-bar" style="height: 50%; background: #0066CC;"></div>
+        <div class="timeline-bar" style="height: 50%; background: #0066CC;"></div>
+        <div class="timeline-bar" style="height: 75%; background: #E67E22;"></div>
+        <div class="timeline-bar" style="height: 75%; background: #E67E22;"></div>
+        <div class="timeline-bar" style="height: 100%; background: #8E24AA;"></div>
+        <div class="timeline-bar" style="height: 75%; background: #E67E22;"></div>
+        <div class="timeline-bar" style="height: 50%; background: #0066CC;"></div>
+        <div class="timeline-bar" style="height: 50%; background: #0066CC;"></div>
+        <div class="timeline-bar" style="height: 25%; background: #4A7C23;"></div>
+        <div class="timeline-bar" style="height: 25%; background: #4A7C23;"></div>
+      </div>
+      <div class="timeline-legend">
+        <div class="legend-item"><div class="legend-dot" style="background: #4A7C23;"></div> Walk</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #0066CC;"></div> Trot</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #E67E22;"></div> Canter</div>
+        <div class="legend-item"><div class="legend-dot" style="background: #8E24AA;"></div> Gallop</div>
+      </div>
+    </div>
+
+    <!-- Heart Rate -->
+    <h3 class="section-title">Heart Rate</h3>
+    <div class="hr-card">
+      <div class="hr-header">
+        <h4>Heart Rate Zone</h4>
+        <span class="bpm">Avg 138 BPM</span>
+      </div>
+      <div class="hr-chart">
+        <svg viewBox="0 0 360 80" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="hrGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:0.4"/>
+              <stop offset="100%" style="stop-color:#FF6B6B;stop-opacity:0"/>
+            </linearGradient>
+          </defs>
+          <path d="M0,60 C20,55 40,50 60,45 C80,40 100,35 120,25 C140,15 160,20 180,30 C200,40 220,15 240,10 C260,5 280,20 300,25 C320,30 340,35 360,40 L360,80 L0,80 Z" fill="url(#hrGrad)"/>
+          <path d="M0,60 C20,55 40,50 60,45 C80,40 100,35 120,25 C140,15 160,20 180,30 C200,40 220,15 240,10 C260,5 280,20 300,25 C320,30 340,35 360,40" fill="none" stroke="#FF6B6B" stroke-width="2.5"/>
+        </svg>
+      </div>
+      <div class="hr-stats">
+        <div class="hr-stat"><div class="val">92</div><div class="lbl">Min</div></div>
+        <div class="hr-stat"><div class="val">138</div><div class="lbl">Avg</div></div>
+        <div class="hr-stat"><div class="val">186</div><div class="lbl">Max</div></div>
+      </div>
+    </div>
+
+    <!-- AI Feedback -->
+    <h3 class="section-title">AI Feedback</h3>
+    <div class="feedback-card">
+      <div class="feedback-icon" style="background: linear-gradient(135deg, #E8F5E0, #D1EABD);">
+        <i class="fas fa-thumbs-up" style="color: #4A7C23;"></i>
+      </div>
+      <div class="feedback-info">
+        <h4>Strong Rhythm Consistency</h4>
+        <p>Trot cadence maintained within 2% variance throughout the session.</p>
+      </div>
+    </div>
+    <div class="feedback-card">
+      <div class="feedback-icon" style="background: linear-gradient(135deg, #FFF3E0, #FFE0B2);">
+        <i class="fas fa-lightbulb" style="color: #E67E22;"></i>
+      </div>
+      <div class="feedback-info">
+        <h4>Hind Left Needs Attention</h4>
+        <p>Stride asymmetry of 4% detected. Consider targeted exercises.</p>
+      </div>
+    </div>
+    <div class="feedback-card">
+      <div class="feedback-icon" style="background: linear-gradient(135deg, #E3F0FF, #C8DFFF);">
+        <i class="fas fa-chart-line" style="color: #0066CC;"></i>
+      </div>
+      <div class="feedback-info">
+        <h4>Improving Fitness</h4>
+        <p>Recovery heart rate 15% faster than last month.</p>
+      </div>
+    </div>
+
+    <button class="share-btn"><i class="fas fa-share-from-square"></i> Share Session Report</button>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-chart-bar"></i>
+      <span>Analytics</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-plus-circle" style="font-size: 28px;"></i>
+      <span>Track</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-horse-head"></i>
+      <span>Horses</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>

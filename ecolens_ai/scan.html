@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoLens AI - Scan</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; scrollbar-width: none; font-family: 'Inter', sans-serif; }
+  body { background: #0a0a0a; color: #fff; position: relative; }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center;
+    position: relative; z-index: 100;
+  }
+  .status-time { font-size: 15px; font-weight: 700; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  }
+
+  /* Camera View */
+  .camera-view {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    z-index: 0;
+  }
+  .camera-view img {
+    width: 100%; height: 100%; object-fit: cover; opacity: 0.7;
+  }
+
+  .content { position: relative; z-index: 10; height: 100%; display: flex; flex-direction: column; }
+
+  /* Top Bar */
+  .top-controls {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 28px; margin-top: 4px;
+  }
+  .back-btn {
+    width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: #fff;
+  }
+  .flash-btn {
+    width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: #fff;
+  }
+
+  /* Scan Frame */
+  .scan-area { flex: 1; display: flex; align-items: center; justify-content: center; }
+  .scan-frame {
+    width: 300px; height: 300px; position: relative;
+  }
+  .corner {
+    position: absolute; width: 40px; height: 40px;
+    border-color: #2d8a4e; border-style: solid;
+  }
+  .corner.tl { top: 0; left: 0; border-width: 3px 0 0 3px; border-radius: 12px 0 0 0; }
+  .corner.tr { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 12px 0 0; }
+  .corner.bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-radius: 0 0 0 12px; }
+  .corner.br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 12px 0; }
+
+  .scan-line {
+    position: absolute; top: 30%; left: 10%; right: 10%; height: 2px;
+    background: linear-gradient(90deg, transparent, #2d8a4e, transparent);
+    animation: scanMove 2s ease-in-out infinite;
+    box-shadow: 0 0 15px rgba(45,138,78,0.5);
+  }
+  @keyframes scanMove { 0%, 100% { top: 20%; } 50% { top: 75%; } }
+
+  .scan-hint {
+    position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%);
+    font-size: 13px; color: rgba(255,255,255,0.6); font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* Product in frame */
+  .product-preview {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 180px; height: 220px; border-radius: 12px; overflow: hidden;
+    opacity: 0.85;
+  }
+  .product-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* Bottom Panel */
+  .bottom-panel {
+    padding: 20px 28px 0;
+  }
+  .detection-card {
+    padding: 18px; border-radius: 22px; background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 14px;
+  }
+  .detection-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .detection-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    background: linear-gradient(135deg, #2d8a4e, #34a85a);
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .detection-title { font-size: 16px; font-weight: 700; }
+  .detection-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .detection-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .det-tag {
+    padding: 6px 12px; border-radius: 10px; font-size: 11px; font-weight: 600;
+    background: rgba(45,138,78,0.2); color: #7dffb3;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .det-tag.warning { background: rgba(255,180,50,0.2); color: #ffd080; }
+  .det-tag i { font-size: 10px; }
+
+  /* Capture Controls */
+  .capture-controls {
+    display: flex; align-items: center; justify-content: center; gap: 30px;
+    padding: 16px 0;
+  }
+  .gallery-btn {
+    width: 48px; height: 48px; border-radius: 14px; overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.3);
+  }
+  .gallery-btn img { width: 100%; height: 100%; object-fit: cover; }
+  .capture-btn {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg, #2d8a4e, #34a85a);
+    border: 4px solid rgba(255,255,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(45,138,78,0.4);
+  }
+  .capture-btn i { font-size: 24px; color: #fff; }
+  .mode-btn {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: rgba(255,255,255,0.7);
+  }
+
+  /* Mode Selector */
+  .mode-selector {
+    display: flex; justify-content: center; gap: 8px; padding: 10px 0 30px;
+  }
+  .mode-pill {
+    padding: 7px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.06);
+  }
+  .mode-pill.active { background: rgba(45,138,78,0.3); color: #7dffb3; }
+</style>
+</head>
+<body>
+  <div class="camera-view">
+    <img src="https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=500&h=900&fit=crop" alt="">
+  </div>
+
+  <div class="content">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="dynamic-island"></div>
+      <div class="status-icons">
+        <i class="fas fa-signal"></i>
+        <i class="fas fa-wifi"></i>
+        <i class="fas fa-battery-full"></i>
+      </div>
+    </div>
+
+    <div class="top-controls">
+      <div class="back-btn"><i class="fas fa-xmark"></i></div>
+      <div class="flash-btn"><i class="fas fa-bolt"></i></div>
+    </div>
+
+    <div class="scan-area">
+      <div class="scan-frame">
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+        <div class="scan-line"></div>
+        <div class="product-preview">
+          <img src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=300&h=400&fit=crop" alt="">
+        </div>
+        <div class="scan-hint"><i class="fas fa-crosshairs"></i>&nbsp; Align material in frame</div>
+      </div>
+    </div>
+
+    <div class="bottom-panel">
+      <div class="detection-card">
+        <div class="detection-header">
+          <div class="detection-icon"><i class="fas fa-flask"></i></div>
+          <div>
+            <div class="detection-title">PET Plastic Detected</div>
+            <div class="detection-sub">Polyethylene Terephthalate · #1</div>
+          </div>
+        </div>
+        <div class="detection-tags">
+          <div class="det-tag"><i class="fas fa-recycle"></i> Recyclable</div>
+          <div class="det-tag"><i class="fas fa-shield-halved"></i> BPA-Free</div>
+          <div class="det-tag warning"><i class="fas fa-fire"></i> No Microwave</div>
+        </div>
+      </div>
+
+      <div class="capture-controls">
+        <div class="gallery-btn">
+          <img src="https://images.unsplash.com/photo-1609587312208-cea54be969e7?w=100&h=100&fit=crop" alt="">
+        </div>
+        <div class="capture-btn"><i class="fas fa-camera"></i></div>
+        <div class="mode-btn"><i class="fas fa-barcode"></i></div>
+      </div>
+
+      <div class="mode-selector">
+        <div class="mode-pill active">Material</div>
+        <div class="mode-pill">Barcode</div>
+        <div class="mode-pill">Label</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

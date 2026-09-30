@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EquiStride - Hardware Design</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif; background: #F8F7F4; width: 100%; height: 100%; overflow-x: hidden; }
+
+  .status-bar {
+    height: 59px; display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 28px 8px; background: #F8F7F4; position: sticky; top: 0; z-index: 100;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .status-bar .icons i { font-size: 13px; }
+  .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+
+  .nav-bar { display: flex; align-items: center; margin-bottom: 20px; gap: 12px; }
+  .nav-bar .back { font-size: 18px; color: #4A7C23; }
+  .nav-bar h2 { font-size: 20px; font-weight: 700; flex: 1; }
+
+  /* Sensor Hero */
+  .sensor-hero {
+    background: linear-gradient(145deg, #0D0D0D, #1A1A2E);
+    border-radius: 24px; padding: 32px 24px; text-align: center; margin-bottom: 20px;
+    position: relative; overflow: hidden;
+  }
+  .sensor-hero::before {
+    content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 260px; height: 260px; border: 1.5px solid rgba(74,124,35,0.15); border-radius: 50%;
+  }
+  .sensor-hero::after {
+    content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 360px; height: 360px; border: 1px solid rgba(74,124,35,0.08); border-radius: 50%;
+  }
+
+  /* 3D Sensor Render */
+  .sensor-3d {
+    width: 140px; height: 140px; margin: 0 auto 20px; position: relative; z-index: 1;
+  }
+  .sensor-body {
+    width: 120px; height: 120px; margin: 10px auto;
+    background: linear-gradient(145deg, #2A2A2A, #3A3A3A);
+    border-radius: 28px; position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+  .sensor-face {
+    position: absolute; inset: 8px;
+    background: linear-gradient(145deg, #1E1E1E, #2E2E2E);
+    border-radius: 22px; display: flex; align-items: center; justify-content: center;
+  }
+  .sensor-led {
+    width: 16px; height: 16px; background: #4A7C23;
+    border-radius: 50%; box-shadow: 0 0 20px rgba(74,124,35,0.8), 0 0 40px rgba(74,124,35,0.4);
+    animation: ledPulse 2s infinite;
+  }
+  @keyframes ledPulse { 0%,100% { box-shadow: 0 0 20px rgba(74,124,35,0.8); } 50% { box-shadow: 0 0 30px rgba(74,124,35,1), 0 0 60px rgba(74,124,35,0.5); } }
+  .sensor-ring {
+    position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+    width: 24px; height: 6px; background: linear-gradient(90deg, #555, #777, #555);
+    border-radius: 3px;
+  }
+  .sensor-hero h3 { color: #fff; font-size: 22px; font-weight: 800; position: relative; z-index: 1; }
+  .sensor-hero .version { color: rgba(255,255,255,0.4); font-size: 13px; margin-top: 4px; position: relative; z-index: 1; }
+
+  /* Spec Badges */
+  .spec-badges {
+    display: flex; justify-content: center; gap: 10px; margin-top: 18px; position: relative; z-index: 1;
+  }
+  .spec-badge {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+    padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7);
+  }
+
+  /* Component Diagram */
+  .section-title { font-size: 18px; font-weight: 700; color: #1A1A1A; margin-bottom: 14px; }
+  .component-card {
+    background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .component-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .component-icon {
+    width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0;
+  }
+  .component-header h4 { font-size: 16px; font-weight: 700; color: #1A1A1A; }
+  .component-header p { font-size: 12px; color: #8E8E93; }
+
+  /* Internal Chip Layout */
+  .chip-layout {
+    background: #F8F7F4; border-radius: 16px; padding: 16px; position: relative;
+  }
+  .chip-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .chip-item {
+    background: #fff; border-radius: 12px; padding: 12px; text-align: center;
+    border: 1.5px solid #E8E8E8;
+  }
+  .chip-item i { font-size: 18px; margin-bottom: 6px; display: block; }
+  .chip-item .name { font-size: 12px; font-weight: 700; color: #1A1A1A; }
+  .chip-item .detail { font-size: 10px; color: #8E8E93; margin-top: 2px; }
+
+  /* Specs List */
+  .specs-card {
+    background: #fff; border-radius: 20px; overflow: hidden; margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .spec-row {
+    display: flex; align-items: center; padding: 14px 18px;
+    border-bottom: 0.5px solid #F0F0F0;
+  }
+  .spec-row:last-child { border-bottom: none; }
+  .spec-icon-sm {
+    width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center;
+    justify-content: center; margin-right: 12px; flex-shrink: 0;
+  }
+  .spec-row .label { flex: 1; font-size: 14px; font-weight: 500; color: #1A1A1A; }
+  .spec-row .value { font-size: 14px; font-weight: 700; color: #4A7C23; }
+
+  /* Placement Diagram */
+  .placement-card {
+    background: linear-gradient(145deg, #2D5016, #3A6B1C);
+    border-radius: 20px; padding: 20px; margin-bottom: 16px; position: relative; overflow: hidden;
+  }
+  .placement-card::after {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 150px; height: 150px; background: rgba(255,255,255,0.05); border-radius: 50%;
+  }
+  .placement-card h4 { color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 14px; position: relative; z-index: 1; }
+
+  .leg-diagram { display: flex; justify-content: space-between; position: relative; z-index: 1; }
+  .leg-slot { flex: 1; text-align: center; }
+  .leg-dot-outer {
+    width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .leg-dot-inner {
+    width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center;
+  }
+  .leg-dot-inner i { font-size: 10px; color: #fff; }
+  .leg-name { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.9); }
+  .leg-pos { font-size: 9px; color: rgba(255,255,255,0.5); }
+
+  /* Connector Lines */
+  .connector-area {
+    display: flex; justify-content: center; align-items: center; margin: 8px 0;
+    position: relative; z-index: 1;
+  }
+  .horse-body-icon { font-size: 42px; color: rgba(255,255,255,0.3); }
+
+  /* Durability Features */
+  .durability-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  .dura-card {
+    background: #fff; border-radius: 16px; padding: 16px; text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .dura-icon {
+    width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center;
+    justify-content: center; margin: 0 auto 8px;
+  }
+  .dura-card h4 { font-size: 13px; font-weight: 700; color: #1A1A1A; }
+  .dura-card p { font-size: 11px; color: #8E8E93; margin-top: 2px; }
+
+  /* Battery Section */
+  .battery-card {
+    background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .battery-visual { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+  .battery-shell {
+    width: 80px; height: 36px; border: 3px solid #1A1A1A; border-radius: 8px;
+    position: relative; padding: 3px;
+  }
+  .battery-shell::after {
+    content: ''; position: absolute; right: -8px; top: 50%; transform: translateY(-50%);
+    width: 5px; height: 16px; background: #1A1A1A; border-radius: 0 3px 3px 0;
+  }
+  .battery-level {
+    height: 100%; width: 85%; background: linear-gradient(90deg, #4A7C23, #6BA832);
+    border-radius: 4px;
+  }
+  .battery-info h4 { font-size: 16px; font-weight: 700; color: #1A1A1A; }
+  .battery-info p { font-size: 12px; color: #8E8E93; }
+  .battery-specs { display: flex; justify-content: space-between; }
+  .battery-spec { text-align: center; }
+  .battery-spec .val { font-size: 20px; font-weight: 800; color: #1A1A1A; }
+  .battery-spec .lbl { font-size: 10px; color: #8E8E93; }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px;
+    border-top: 0.5px solid rgba(0,0,0,0.08);
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .tab-item i { font-size: 22px; color: #8E8E93; }
+  .tab-item span { font-size: 10px; font-weight: 500; color: #8E8E93; }
+  .tab-item.active i { color: #4A7C23; }
+  .tab-item.active span { color: #4A7C23; font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="nav-bar">
+      <i class="fas fa-chevron-left back"></i>
+      <h2>Sensor Hardware</h2>
+    </div>
+
+    <!-- Sensor Hero 3D -->
+    <div class="sensor-hero">
+      <div class="sensor-3d">
+        <div class="sensor-body">
+          <div class="sensor-ring"></div>
+          <div class="sensor-face">
+            <div class="sensor-led"></div>
+          </div>
+        </div>
+      </div>
+      <h3>EquiStride Sensor v2</h3>
+      <div class="version">Ankle-Mount Motion Tracker</div>
+      <div class="spec-badges">
+        <span class="spec-badge">38mm</span>
+        <span class="spec-badge">18g</span>
+        <span class="spec-badge">IP68</span>
+        <span class="spec-badge">BLE 5.3</span>
+      </div>
+    </div>
+
+    <!-- Internal Components -->
+    <h3 class="section-title">Internal Components</h3>
+    <div class="component-card">
+      <div class="chip-layout">
+        <div class="chip-grid">
+          <div class="chip-item">
+            <i class="fas fa-microchip" style="color: #4A7C23;"></i>
+            <div class="name">IMU 9-Axis</div>
+            <div class="detail">Accel + Gyro + Mag</div>
+          </div>
+          <div class="chip-item">
+            <i class="fas fa-bluetooth-b" style="color: #0066CC;"></i>
+            <div class="name">BLE 5.3</div>
+            <div class="detail">Low Energy Radio</div>
+          </div>
+          <div class="chip-item">
+            <i class="fas fa-brain" style="color: #8E24AA;"></i>
+            <div class="name">Edge AI MCU</div>
+            <div class="detail">nRF5340 Dual-Core</div>
+          </div>
+          <div class="chip-item">
+            <i class="fas fa-database" style="color: #E67E22;"></i>
+            <div class="name">Flash Storage</div>
+            <div class="detail">64MB QSPI</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sensor Placement -->
+    <div class="placement-card">
+      <h4>4-Sensor Placement</h4>
+      <div class="leg-diagram">
+        <div class="leg-slot">
+          <div class="leg-dot-outer" style="background: rgba(52,199,89,0.2);">
+            <div class="leg-dot-inner" style="background: #34C759;"><i class="fas fa-satellite-dish"></i></div>
+          </div>
+          <div class="leg-name">Front Left</div>
+          <div class="leg-pos">Fetlock</div>
+        </div>
+        <div class="leg-slot">
+          <div class="leg-dot-outer" style="background: rgba(52,199,89,0.2);">
+            <div class="leg-dot-inner" style="background: #34C759;"><i class="fas fa-satellite-dish"></i></div>
+          </div>
+          <div class="leg-name">Front Right</div>
+          <div class="leg-pos">Fetlock</div>
+        </div>
+        <div class="leg-slot">
+          <div class="leg-dot-outer" style="background: rgba(0,122,255,0.2);">
+            <div class="leg-dot-inner" style="background: #007AFF;"><i class="fas fa-satellite-dish"></i></div>
+          </div>
+          <div class="leg-name">Hind Left</div>
+          <div class="leg-pos">Pastern</div>
+        </div>
+        <div class="leg-slot">
+          <div class="leg-dot-outer" style="background: rgba(0,122,255,0.2);">
+            <div class="leg-dot-inner" style="background: #007AFF;"><i class="fas fa-satellite-dish"></i></div>
+          </div>
+          <div class="leg-name">Hind Right</div>
+          <div class="leg-pos">Pastern</div>
+        </div>
+      </div>
+      <div class="connector-area">
+        <i class="fas fa-horse horse-body-icon"></i>
+      </div>
+    </div>
+
+    <!-- Technical Specs -->
+    <h3 class="section-title">Technical Specs</h3>
+    <div class="specs-card">
+      <div class="spec-row">
+        <div class="spec-icon-sm" style="background: #E8F5E0;"><i class="fas fa-ruler" style="color: #4A7C23; font-size: 12px;"></i></div>
+        <span class="label">Dimensions</span>
+        <span class="value">38 × 38 × 12mm</span>
+      </div>
+      <div class="spec-row">
+        <div class="spec-icon-sm" style="background: #E3F0FF;"><i class="fas fa-weight-hanging" style="color: #0066CC; font-size: 12px;"></i></div>
+        <span class="label">Weight</span>
+        <span class="value">18 grams</span>
+      </div>
+      <div class="spec-row">
+        <div class="spec-icon-sm" style="background: #FFF3E0;"><i class="fas fa-gauge-high" style="color: #E67E22; font-size: 12px;"></i></div>
+        <span class="label">Sampling Rate</span>
+        <span class="value">200 Hz</span>
+      </div>
+      <div class="spec-row">
+        <div class="spec-icon-sm" style="background: #F3E5F5;"><i class="fas fa-tower-broadcast" style="color: #8E24AA; font-size: 12px;"></i></div>
+        <span class="label">Range</span>
+        <span class="value">50m BLE</span>
+      </div>
+      <div class="spec-row">
+        <div class="spec-icon-sm" style="background: #E0F7FA;"><i class="fas fa-thermometer-half" style="color: #00ACC1; font-size: 12px;"></i></div>
+        <span class="label">Operating Temp</span>
+        <span class="value">-20° to 60°C</span>
+      </div>
+    </div>
+
+    <!-- Durability -->
+    <h3 class="section-title">Built for the Stable</h3>
+    <div class="durability-grid">
+      <div class="dura-card">
+        <div class="dura-icon" style="background: linear-gradient(135deg, #E3F0FF, #C8DFFF);">
+          <i class="fas fa-droplet" style="color: #0066CC; font-size: 16px;"></i>
+        </div>
+        <h4>IP68 Waterproof</h4>
+        <p>Mud, rain, wash safe</p>
+      </div>
+      <div class="dura-card">
+        <div class="dura-icon" style="background: linear-gradient(135deg, #FFF3E0, #FFE0B2);">
+          <i class="fas fa-shield-halved" style="color: #E67E22; font-size: 16px;"></i>
+        </div>
+        <h4>Impact Resistant</h4>
+        <p>Military-grade shell</p>
+      </div>
+      <div class="dura-card">
+        <div class="dura-icon" style="background: linear-gradient(135deg, #E8F5E0, #D1EABD);">
+          <i class="fas fa-feather" style="color: #4A7C23; font-size: 16px;"></i>
+        </div>
+        <h4>Ultra Light</h4>
+        <p>18g — horse unfelt</p>
+      </div>
+      <div class="dura-card">
+        <div class="dura-icon" style="background: linear-gradient(135deg, #F3E5F5, #E1BEE7);">
+          <i class="fas fa-link" style="color: #8E24AA; font-size: 16px;"></i>
+        </div>
+        <h4>Secure Clip</h4>
+        <p>Quick-lock mount</p>
+      </div>
+    </div>
+
+    <!-- Battery -->
+    <h3 class="section-title">Battery Life</h3>
+    <div class="battery-card">
+      <div class="battery-visual">
+        <div class="battery-shell">
+          <div class="battery-level"></div>
+        </div>
+        <div class="battery-info">
+          <h4>500mAh Li-Po</h4>
+          <p>USB-C magnetic charging</p>
+        </div>
+      </div>
+      <div class="battery-specs">
+        <div class="battery-spec">
+          <div class="val">72h</div>
+          <div class="lbl">Active Use</div>
+        </div>
+        <div class="battery-spec">
+          <div class="val">30d</div>
+          <div class="lbl">Standby</div>
+        </div>
+        <div class="battery-spec">
+          <div class="val">45m</div>
+          <div class="lbl">Full Charge</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-chart-bar"></i>
+      <span>Analytics</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-plus-circle" style="font-size: 28px;"></i>
+      <span>Track</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-horse-head"></i>
+      <span>Horses</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>

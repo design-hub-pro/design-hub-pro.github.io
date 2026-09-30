@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CozyNest - Room</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; scrollbar-width: none; font-family: 'Nunito', sans-serif; }
+  body { background: #1a1520; color: #fff; position: relative; }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center;
+    position: relative; z-index: 100;
+  }
+  .status-time { font-size: 15px; font-weight: 700; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  }
+
+  /* Room View */
+  .room-view {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(180deg, #2a1f3d 0%, #3d2a55 40%, #2d2040 100%);
+  }
+
+  /* Floor */
+  .floor {
+    position: absolute; bottom: 88px; left: 0; right: 0; height: 35%;
+    background: linear-gradient(180deg, #3a2a4a, #2a1f3d);
+  }
+  .floor-pattern {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 60px);
+    opacity: 0.5;
+  }
+
+  /* Wall Art */
+  .wall-art {
+    position: absolute; top: 90px; left: 50%; transform: translateX(-50%);
+    width: 160px; height: 110px; border-radius: 12px; overflow: hidden;
+    border: 4px solid #5a4a6a;
+    background: url('https://images.unsplash.com/photo-1507400492013-162706c8c05e?w=300&h=200&fit=crop') center/cover;
+  }
+
+  /* Bookshelf */
+  .bookshelf {
+    position: absolute; top: 120px; left: 20px; width: 80px;
+  }
+  .shelf { width: 100%; height: 6px; background: #6a5a4a; border-radius: 2px; margin-bottom: 2px; }
+  .books { display: flex; gap: 3px; justify-content: center; margin-bottom: 4px; }
+  .book { width: 10px; border-radius: 2px; }
+
+  /* Bed */
+  .bed {
+    position: absolute; bottom: 250px; right: 20px; width: 170px; height: 90px;
+  }
+  .mattress {
+    width: 100%; height: 50px; background: linear-gradient(135deg, #8a6aaa, #a87ac0);
+    border-radius: 8px; position: absolute; bottom: 0;
+  }
+  .pillow {
+    width: 60px; height: 30px; background: #d4b8e8; border-radius: 10px;
+    position: absolute; top: 5px; right: 10px;
+  }
+  .pillow:nth-child(3) { right: 65px; background: #c8a8d8; }
+  .blanket {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 30px;
+    background: linear-gradient(135deg, #7a5a9a, #6a4a8a); border-radius: 0 0 8px 8px;
+  }
+  .bed-frame {
+    position: absolute; bottom: -8px; left: -5px; right: -5px; height: 12px;
+    background: #5a4a3a; border-radius: 4px;
+  }
+
+  /* Desk */
+  .desk {
+    position: absolute; bottom: 250px; left: 20px; width: 130px; height: 60px;
+  }
+  .desk-top {
+    width: 100%; height: 8px; background: #7a6a5a; border-radius: 4px;
+    position: absolute; top: 0;
+  }
+  .desk-leg { width: 6px; height: 52px; background: #6a5a4a; position: absolute; bottom: 0; }
+  .desk-leg:first-of-type { left: 8px; }
+  .desk-leg:last-of-type { right: 8px; }
+  .laptop {
+    position: absolute; top: -20px; left: 20px; width: 50px; height: 30px;
+    background: linear-gradient(180deg, #888, #666); border-radius: 4px 4px 0 0;
+  }
+  .laptop-screen {
+    width: 44px; height: 24px; background: #4a90d9; border-radius: 2px; margin: 3px auto 0;
+  }
+  .desk-plant {
+    position: absolute; top: -30px; right: 10px;
+  }
+  .dp-pot { width: 20px; height: 16px; background: #e8a060; border-radius: 3px 3px 5px 5px; }
+  .dp-leaf {
+    width: 14px; height: 18px; background: #5aaa6a; border-radius: 50% 0 50% 0;
+    position: absolute; top: -14px; left: 3px; transform: rotate(-10deg);
+  }
+
+  /* Fairy Lights */
+  .fairy-lights {
+    position: absolute; top: 70px; left: 30px; right: 30px; height: 30px;
+  }
+  .fairy-wire {
+    position: absolute; top: 12px; left: 0; right: 0; height: 2px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+  }
+  .fairy-bulb {
+    position: absolute; top: 10px; width: 8px; height: 8px; border-radius: 50%;
+    animation: glow 2s ease-in-out infinite;
+  }
+  .fairy-bulb:nth-child(2) { left: 10%; background: #ffcc70; animation-delay: 0s; }
+  .fairy-bulb:nth-child(3) { left: 25%; background: #ff9aaa; animation-delay: 0.3s; }
+  .fairy-bulb:nth-child(4) { left: 40%; background: #9af0ff; animation-delay: 0.6s; }
+  .fairy-bulb:nth-child(5) { left: 55%; background: #ffcc70; animation-delay: 0.9s; }
+  .fairy-bulb:nth-child(6) { left: 70%; background: #c0a0ff; animation-delay: 1.2s; }
+  .fairy-bulb:nth-child(7) { left: 85%; background: #ff9aaa; animation-delay: 1.5s; }
+  @keyframes glow { 0%, 100% { opacity: 0.5; box-shadow: none; } 50% { opacity: 1; box-shadow: 0 0 10px currentColor; } }
+
+  /* Cat Pet */
+  .pet-cat {
+    position: absolute; bottom: 310px; left: 50%; transform: translateX(-30%);
+  }
+  .cat-body { width: 36px; height: 22px; background: #ffcc70; border-radius: 12px 12px 8px 8px; position: relative; }
+  .cat-head { width: 26px; height: 22px; background: #ffcc70; border-radius: 50%; position: absolute; top: -14px; left: 1px; }
+  .cat-ear { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 10px solid #ffcc70; position: absolute; top: -8px; }
+  .cat-ear:first-child { left: 1px; }
+  .cat-ear:nth-child(2) { right: 1px; }
+  .cat-ear-inner { width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 7px solid #ffaa40; position: absolute; top: -6px; }
+  .cat-ear-inner:first-of-type { left: 3px; }
+  .cat-eye { width: 4px; height: 4px; background: #333; border-radius: 50%; position: absolute; top: 8px; }
+  .cat-eye:first-of-type { left: 5px; }
+  .cat-eye:nth-of-type(2) { right: 5px; }
+  .cat-tail { width: 20px; height: 6px; background: #ffcc70; border-radius: 3px; position: absolute; right: -16px; top: 8px; transform: rotate(-15deg); }
+  .zzz { position: absolute; top: -25px; right: -15px; font-size: 14px; animation: float 2s ease-in-out infinite; }
+  @keyframes float { 0%, 100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(-8px); opacity: 1; } }
+
+  .content { position: relative; z-index: 10; height: 100%; display: flex; flex-direction: column; }
+
+  /* Edit Mode Header */
+  .edit-header {
+    padding: 4px 28px 10px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .edit-title { font-size: 18px; font-weight: 800; }
+  .edit-coins { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; background: rgba(255,204,112,0.15); }
+  .coin-icon { font-size: 16px; color: #ffcc70; }
+  .coin-amount { font-size: 14px; font-weight: 700; color: #ffcc70; }
+
+  /* Bottom Edit Panel */
+  .edit-panel {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(26,21,32,0.95); backdrop-filter: blur(30px);
+    border-radius: 28px 28px 0 0; border-top: 1px solid rgba(255,255,255,0.08);
+    padding: 16px 0 30px;
+  }
+  .panel-handle {
+    width: 40px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+
+  /* Category Tabs */
+  .cat-tabs { display: flex; gap: 0; padding: 0 20px; margin-bottom: 16px; }
+  .cat-tab {
+    flex: 1; text-align: center; padding: 8px 0; font-size: 12px; font-weight: 600;
+    color: rgba(255,255,255,0.4); border-bottom: 2px solid transparent;
+  }
+  .cat-tab.active { color: #ffcc70; border-bottom-color: #ffcc70; }
+
+  /* Items Grid */
+  .items-scroll { padding: 0 20px; display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; }
+  .item-card {
+    flex-shrink: 0; width: 90px; text-align: center;
+  }
+  .item-preview {
+    width: 90px; height: 90px; border-radius: 18px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center; font-size: 36px;
+    margin-bottom: 6px; position: relative;
+  }
+  .item-preview.selected { border: 2px solid #ffcc70; box-shadow: 0 0 15px rgba(255,204,112,0.2); }
+  .item-name { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 600; }
+  .item-price { font-size: 10px; color: #ffcc70; font-weight: 700; }
+  .item-badge {
+    position: absolute; top: -4px; right: -4px; padding: 2px 6px; border-radius: 8px;
+    font-size: 9px; font-weight: 700; background: #4ade80; color: #1a1520;
+  }
+  .item-badge.new { background: #ff6b8a; color: #fff; }
+
+  .home-indicator {
+    width: 134px; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px;
+    margin: 0 auto; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  }
+</style>
+</head>
+<body>
+  <!-- Room Scene -->
+  <div class="room-view">
+    <div class="floor">
+      <div class="floor-pattern"></div>
+    </div>
+    <div class="fairy-lights">
+      <div class="fairy-wire"></div>
+      <div class="fairy-bulb"></div>
+      <div class="fairy-bulb"></div>
+      <div class="fairy-bulb"></div>
+      <div class="fairy-bulb"></div>
+      <div class="fairy-bulb"></div>
+      <div class="fairy-bulb"></div>
+    </div>
+    <div class="wall-art"></div>
+    <div class="bookshelf">
+      <div class="books">
+        <div class="book" style="height:24px;background:#e06060"></div>
+        <div class="book" style="height:28px;background:#6090e0"></div>
+        <div class="book" style="height:22px;background:#60c060"></div>
+        <div class="book" style="height:26px;background:#e0a060"></div>
+        <div class="book" style="height:20px;background:#c060c0"></div>
+      </div>
+      <div class="shelf"></div>
+      <div class="books">
+        <div class="book" style="height:26px;background:#60a0c0"></div>
+        <div class="book" style="height:22px;background:#c0a060"></div>
+        <div class="book" style="height:28px;background:#a06080"></div>
+      </div>
+      <div class="shelf"></div>
+    </div>
+    <div class="desk">
+      <div class="laptop"><div class="laptop-screen"></div></div>
+      <div class="desk-plant">
+        <div class="dp-leaf"></div>
+        <div class="dp-pot"></div>
+      </div>
+      <div class="desk-top"></div>
+      <div class="desk-leg"></div>
+      <div class="desk-leg"></div>
+    </div>
+    <div class="bed">
+      <div class="pillow"></div>
+      <div class="pillow"></div>
+      <div class="mattress"></div>
+      <div class="blanket"></div>
+      <div class="bed-frame"></div>
+    </div>
+    <div class="pet-cat">
+      <div class="zzz">💤</div>
+      <div class="cat-body">
+        <div class="cat-head">
+          <div class="cat-ear"></div>
+          <div class="cat-ear"></div>
+          <div class="cat-eye"></div>
+          <div class="cat-eye"></div>
+        </div>
+        <div class="cat-tail"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="dynamic-island"></div>
+      <div class="status-icons">
+        <i class="fas fa-signal"></i>
+        <i class="fas fa-wifi"></i>
+        <i class="fas fa-battery-full"></i>
+      </div>
+    </div>
+
+    <div class="edit-header">
+      <div class="edit-title">My Room ✨</div>
+      <div class="edit-coins">
+        <span class="coin-icon">🪙</span>
+        <span class="coin-amount">2,450</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Panel -->
+  <div class="edit-panel">
+    <div class="panel-handle"></div>
+    <div class="cat-tabs">
+      <div class="cat-tab active"><i class="fas fa-couch"></i> Furniture</div>
+      <div class="cat-tab"><i class="fas fa-paint-roller"></i> Walls</div>
+      <div class="cat-tab"><i class="fas fa-lightbulb"></i> Lights</div>
+      <div class="cat-tab"><i class="fas fa-paw"></i> Pets</div>
+    </div>
+    <div class="items-scroll">
+      <div class="item-card">
+        <div class="item-preview selected">🛋️</div>
+        <div class="item-name">Plush Sofa</div>
+        <div class="item-price">Owned</div>
+      </div>
+      <div class="item-card">
+        <div class="item-preview">🪴<div class="item-badge">FREE</div></div>
+        <div class="item-name">Bonsai Tree</div>
+        <div class="item-price">🪙 0</div>
+      </div>
+      <div class="item-card">
+        <div class="item-preview">🖼️<div class="item-badge new">NEW</div></div>
+        <div class="item-name">Night Sky Art</div>
+        <div class="item-price">🪙 300</div>
+      </div>
+      <div class="item-card">
+        <div class="item-preview">🕯️</div>
+        <div class="item-name">Candle Set</div>
+        <div class="item-price">🪙 150</div>
+      </div>
+      <div class="item-card">
+        <div class="item-preview">📚</div>
+        <div class="item-name">Bookshelf</div>
+        <div class="item-price">🪙 400</div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

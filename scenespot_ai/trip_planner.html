@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SceneSpot AI - Trip Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            -webkit-scrollbar: none;
+            scrollbar-width: none;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+        }
+        *::-webkit-scrollbar { display: none; }
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: #000;
+            overflow-x: hidden;
+        }
+        .dynamic-island {
+            width: 126px;
+            height: 37px;
+            background: #000;
+            border-radius: 20px;
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+        .status-bar {
+            height: 59px;
+            padding: 0 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-bottom: 8px;
+            background: transparent;
+            position: relative;
+            z-index: 50;
+        }
+        .content-area {
+            padding: 0 28px;
+            padding-bottom: 100px;
+        }
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 88px;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-top: 12px;
+            border-top: 0.5px solid rgba(255,255,255,0.1);
+        }
+        .day-tab {
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        .day-tab.active {
+            background: linear-gradient(135deg, #C44FFF 0%, #6B8AFF 100%);
+        }
+        .timeline-line {
+            position: absolute;
+            left: 18px;
+            top: 40px;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, #C44FFF 0%, #6B8AFF 50%, rgba(107, 138, 255, 0.2) 100%);
+        }
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #C44FFF;
+            border: 2px solid #000;
+            position: relative;
+            z-index: 1;
+        }
+        .spot-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 12px;
+        }
+        .progress-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #C44FFF 0%, #6B8AFF 100%);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-black text-white">
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span class="text-sm font-medium">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="flex items-center gap-1.5">
+            <i class="fas fa-signal text-xs"></i>
+            <i class="fas fa-wifi text-xs"></i>
+            <i class="fas fa-battery-full text-xs"></i>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content-area">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                <i class="fas fa-arrow-left text-lg"></i>
+            </div>
+            <h1 class="text-lg font-semibold">Your Name Pilgrimage</h1>
+            <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                <i class="fas fa-ellipsis-h text-lg"></i>
+            </div>
+        </div>
+
+        <!-- Trip Overview -->
+        <div class="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl p-4 mb-5">
+            <div class="flex items-center justify-between mb-3">
+                <div>
+                    <p class="text-gray-400 text-xs mb-1">AI-Generated Itinerary</p>
+                    <p class="text-xl font-bold">Tokyo, Japan</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-2xl font-bold text-purple-400">3</p>
+                    <p class="text-gray-400 text-xs">Days</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 mb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-map-marker-alt text-pink-400 text-sm"></i>
+                    <span class="text-sm">12 spots</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-walking text-blue-400 text-sm"></i>
+                    <span class="text-sm">8.5 km total</span>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 33%;"></div>
+            </div>
+            <p class="text-gray-400 text-xs mt-2">4 of 12 spots visited</p>
+        </div>
+
+        <!-- Day Tabs -->
+        <div class="flex gap-2 mb-5 overflow-x-auto pb-2">
+            <div class="day-tab active">Day 1</div>
+            <div class="day-tab bg-white/10">Day 2</div>
+            <div class="day-tab bg-white/10">Day 3</div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="relative">
+            <div class="timeline-line"></div>
+
+            <!-- Spot 1 -->
+            <div class="flex gap-4 mb-4">
+                <div class="flex flex-col items-center">
+                    <div class="timeline-dot bg-green-500"></div>
+                </div>
+                <div class="flex-1 -mt-1">
+                    <p class="text-gray-400 text-xs mb-2">09:00 AM</p>
+                    <div class="spot-card">
+                        <div class="flex gap-3">
+                            <img src="https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=200&q=80"
+                                 class="w-16 h-16 rounded-xl object-cover" alt="Suga Shrine">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <p class="font-medium text-sm">Suga Shrine Steps</p>
+                                    <span class="w-2 h-2 rounded-full bg-green-400"></span>
+                                </div>
+                                <p class="text-gray-400 text-xs mb-1">Shinjuku, Tokyo</p>
+                                <div class="flex items-center gap-2 text-xs text-gray-500">
+                                    <i class="fas fa-clock"></i>
+                                    <span>30 min visit</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spot 2 -->
+            <div class="flex gap-4 mb-4">
+                <div class="flex flex-col items-center">
+                    <div class="timeline-dot bg-green-500"></div>
+                </div>
+                <div class="flex-1 -mt-1">
+                    <p class="text-gray-400 text-xs mb-2">10:00 AM</p>
+                    <div class="spot-card">
+                        <div class="flex gap-3">
+                            <img src="https://images.unsplash.com/photo-1551641506-ee5bf4cb45f1?w=200&q=80"
+                                 class="w-16 h-16 rounded-xl object-cover" alt="Shinjuku">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <p class="font-medium text-sm">Shinjuku Station</p>
+                                    <span class="w-2 h-2 rounded-full bg-green-400"></span>
+                                </div>
+                                <p class="text-gray-400 text-xs mb-1">South Exit</p>
+                                <div class="flex items-center gap-2 text-xs text-gray-500">
+                                    <i class="fas fa-walking"></i>
+                                    <span>15 min from previous</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spot 3 - Current -->
+            <div class="flex gap-4 mb-4">
+                <div class="flex flex-col items-center">
+                    <div class="timeline-dot" style="box-shadow: 0 0 10px #C44FFF;"></div>
+                </div>
+                <div class="flex-1 -mt-1">
+                    <p class="text-purple-400 text-xs mb-2 font-medium">11:30 AM • Now</p>
+                    <div class="spot-card border border-purple-500/30">
+                        <div class="flex gap-3">
+                            <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=200&q=80"
+                                 class="w-16 h-16 rounded-xl object-cover" alt="Cafe">
+                            <div class="flex-1">
+                                <p class="font-medium text-sm mb-1">National Art Center</p>
+                                <p class="text-gray-400 text-xs mb-2">Roppongi, Tokyo</p>
+                                <div class="flex gap-2">
+                                    <div class="bg-purple-500/20 rounded-lg px-2 py-1 text-xs text-purple-300">
+                                        <i class="fas fa-directions mr-1"></i>Navigate
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spot 4 - Upcoming -->
+            <div class="flex gap-4">
+                <div class="flex flex-col items-center">
+                    <div class="timeline-dot bg-gray-600"></div>
+                </div>
+                <div class="flex-1 -mt-1 opacity-60">
+                    <p class="text-gray-400 text-xs mb-2">01:00 PM</p>
+                    <div class="spot-card">
+                        <div class="flex gap-3">
+                            <img src="https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=200&q=80"
+                                 class="w-16 h-16 rounded-xl object-cover" alt="Tower">
+                            <div class="flex-1">
+                                <p class="font-medium text-sm mb-1">Tokyo Tower</p>
+                                <p class="text-gray-400 text-xs mb-1">Minato, Tokyo</p>
+                                <div class="flex items-center gap-2 text-xs text-gray-500">
+                                    <i class="fas fa-subway"></i>
+                                    <span>20 min by train</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-home text-lg text-gray-500"></i>
+            <span class="text-xs text-gray-500">Home</span>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-search text-lg text-gray-500"></i>
+            <span class="text-xs text-gray-500">Search</span>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-map-marker-alt text-lg text-gray-500"></i>
+            <span class="text-xs text-gray-500">Map</span>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-heart text-lg text-gray-500"></i>
+            <span class="text-xs text-gray-500">Saved</span>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+            <i class="fas fa-suitcase text-lg text-purple-400"></i>
+            <span class="text-xs text-purple-400">Trips</span>
+        </div>
+    </div>
+</body>
+</html>

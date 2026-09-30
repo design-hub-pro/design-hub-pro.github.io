@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MindfulHunger - Playing: Stroop Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', -apple-system, sans-serif; scrollbar-width: none; background: #06091A; color: #fff; }
+
+  .dynamic-island { width: 120px; height: 36px; background: #000; border-radius: 20px; position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 101; }
+
+  .status-bar {
+    height: 59px; display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 28px 8px 28px; background: transparent; position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  }
+  .status-bar .time { font-size: 17px; font-weight: 600; color: #fff; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .status-bar .icons i { font-size: 14px; color: #fff; }
+
+  /* Background glow effects */
+  .bg-glow {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  }
+
+  .bg-glow::before {
+    content: ''; position: absolute; top: -10%; left: -10%;
+    width: 60%; height: 40%; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,229,255,0.06), transparent);
+  }
+
+  .bg-glow::after {
+    content: ''; position: absolute; bottom: 10%; right: -10%;
+    width: 50%; height: 40%; border-radius: 50%;
+    background: radial-gradient(circle, rgba(41,121,255,0.05), transparent);
+  }
+
+  .game-container {
+    width: 100%; height: 100%; display: flex; flex-direction: column;
+    position: relative; z-index: 1;
+  }
+
+  /* Top Bar */
+  .game-top-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 70px 24px 0 24px;
+  }
+
+  .game-back {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .game-back i { font-size: 16px; color: rgba(255,255,255,0.7); }
+
+  .game-title-bar { text-align: center; }
+  .game-name { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.9); }
+  .game-round { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 500; }
+
+  .game-pause {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .game-pause i { font-size: 16px; color: rgba(255,255,255,0.7); }
+
+  /* Stats Row */
+  .game-stats {
+    display: flex; justify-content: space-around; padding: 20px 24px 16px;
+  }
+
+  .game-stat {
+    text-align: center; flex: 1;
+  }
+
+  .game-stat-value { font-size: 28px; font-weight: 800; line-height: 1; }
+  .game-stat-label { font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 600; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .stat-score { color: #00E5FF; }
+  .stat-timer { color: #FF6B6B; }
+  .stat-combo { color: #FFD740; }
+
+  /* Timer Bar */
+  .timer-bar-container {
+    padding: 0 24px; margin-bottom: 8px;
+  }
+
+  .timer-bar {
+    width: 100%; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .timer-fill {
+    width: 62%; height: 100%; border-radius: 2px;
+    background: linear-gradient(90deg, #FF6B6B, #FFB74D, #4CAF50);
+    transition: width 0.3s ease;
+  }
+
+  /* Focus Meter */
+  .focus-meter {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 24px; margin-bottom: 20px;
+  }
+
+  .focus-meter-label { font-size: 10px; color: rgba(255,255,255,0.35); font-weight: 600; white-space: nowrap; }
+
+  .focus-meter-bar {
+    flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .focus-meter-fill {
+    width: 78%; height: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, #2979FF, #00E5FF);
+  }
+
+  .focus-meter-value { font-size: 12px; font-weight: 700; color: #00E5FF; }
+
+  /* Game Play Area */
+  .game-play-area {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 0 24px; gap: 36px;
+  }
+
+  /* Stroop Word Display */
+  .stroop-display {
+    text-align: center;
+  }
+
+  .stroop-instruction {
+    font-size: 12px; color: rgba(255,255,255,0.35); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px;
+  }
+
+  .stroop-word {
+    font-size: 52px; font-weight: 900; letter-spacing: -1px; line-height: 1;
+    color: #4CAF50;
+    text-shadow: 0 0 40px rgba(76,175,80,0.3);
+  }
+
+  .stroop-hint {
+    font-size: 12px; color: rgba(255,255,255,0.25); margin-top: 12px;
+    font-weight: 500;
+  }
+
+  /* Answer Buttons */
+  .answer-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    width: 100%; max-width: 320px;
+  }
+
+  .answer-btn {
+    height: 64px; border-radius: 18px; border: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; color: #fff;
+    position: relative; overflow: hidden;
+    cursor: pointer;
+  }
+
+  .answer-btn::before {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(255,255,255,0);
+    transition: background 0.2s;
+  }
+
+  .answer-btn.red {
+    background: linear-gradient(135deg, rgba(255,59,48,0.25), rgba(255,59,48,0.15));
+    border: 1.5px solid rgba(255,59,48,0.3);
+    color: #FF6B6B;
+  }
+
+  .answer-btn.blue {
+    background: linear-gradient(135deg, rgba(41,121,255,0.25), rgba(41,121,255,0.15));
+    border: 1.5px solid rgba(41,121,255,0.3);
+    color: #64B5F6;
+  }
+
+  .answer-btn.green {
+    background: linear-gradient(135deg, rgba(76,175,80,0.25), rgba(76,175,80,0.15));
+    border: 1.5px solid rgba(76,175,80,0.3);
+    color: #81C784;
+    position: relative;
+  }
+
+  .answer-btn.green.correct {
+    background: linear-gradient(135deg, rgba(76,175,80,0.5), rgba(76,175,80,0.35));
+    border: 2px solid rgba(76,175,80,0.8);
+    box-shadow: 0 0 24px rgba(76,175,80,0.3);
+  }
+
+  .answer-btn.yellow {
+    background: linear-gradient(135deg, rgba(255,215,64,0.25), rgba(255,215,64,0.15));
+    border: 1.5px solid rgba(255,215,64,0.3);
+    color: #FFD740;
+  }
+
+  /* Correct indicator */
+  .correct-check {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #4CAF50; display: flex; align-items: center; justify-content: center;
+  }
+
+  .correct-check i { font-size: 10px; color: #fff; }
+
+  /* Combo Indicator */
+  .combo-popup {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .combo-text {
+    font-size: 20px; font-weight: 900; color: #FFD740;
+    text-shadow: 0 0 20px rgba(255,215,64,0.5);
+    animation: comboFloat 1s ease-out;
+    opacity: 0.8;
+  }
+
+  @keyframes comboFloat {
+    0% { transform: translateY(0) scale(0.8); opacity: 0; }
+    30% { transform: translateY(-10px) scale(1.2); opacity: 1; }
+    100% { transform: translateY(-30px) scale(1); opacity: 0; }
+  }
+
+  /* Bottom Section */
+  .game-bottom {
+    padding: 16px 24px 50px;
+  }
+
+  .game-progress-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .progress-label { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 500; }
+  .progress-count { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 700; }
+
+  .game-progress-bar {
+    width: 100%; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px;
+    overflow: hidden; margin-bottom: 18px;
+  }
+
+  .game-progress-fill {
+    width: 57%; height: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, #00E5FF, #2979FF);
+  }
+
+  .game-actions-row {
+    display: flex; gap: 10px;
+  }
+
+  .game-action-btn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 14px; border-radius: 16px; font-size: 14px; font-weight: 700;
+  }
+
+  .btn-hint {
+    background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .btn-hint i { font-size: 16px; }
+
+  .btn-skip {
+    background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .btn-skip i { font-size: 14px; }
+
+  /* Streak indicator */
+  .streak-fire {
+    position: fixed; top: 120px; right: 24px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    animation: fireGlow 1.5s ease-in-out infinite;
+  }
+
+  .streak-fire-icon { font-size: 28px; }
+  .streak-fire-count { font-size: 12px; font-weight: 800; color: #FFD740; }
+
+  @keyframes fireGlow {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+</style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="game-container">
+    <!-- Top Bar -->
+    <div class="game-top-bar">
+      <div class="game-back"><i class="fas fa-xmark"></i></div>
+      <div class="game-title-bar">
+        <div class="game-name">Stroop Challenge</div>
+        <div class="game-round">Round 17 of 30</div>
+      </div>
+      <div class="game-pause"><i class="fas fa-pause"></i></div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="game-stats">
+      <div class="game-stat">
+        <div class="game-stat-value stat-score">2,450</div>
+        <div class="game-stat-label">Score</div>
+      </div>
+      <div class="game-stat">
+        <div class="game-stat-value stat-timer">0:37</div>
+        <div class="game-stat-label">Time Left</div>
+      </div>
+      <div class="game-stat">
+        <div class="game-stat-value stat-combo">x5</div>
+        <div class="game-stat-label">Combo</div>
+      </div>
+    </div>
+
+    <!-- Timer Bar -->
+    <div class="timer-bar-container">
+      <div class="timer-bar">
+        <div class="timer-fill"></div>
+      </div>
+    </div>
+
+    <!-- Focus Meter -->
+    <div class="focus-meter">
+      <span class="focus-meter-label">FOCUS</span>
+      <div class="focus-meter-bar">
+        <div class="focus-meter-fill"></div>
+      </div>
+      <span class="focus-meter-value">78%</span>
+    </div>
+
+    <!-- Streak Fire Indicator -->
+    <div class="streak-fire">
+      <div class="streak-fire-icon">🔥</div>
+      <div class="streak-fire-count">x5</div>
+    </div>
+
+    <!-- Game Play Area -->
+    <div class="game-play-area">
+      <!-- Stroop Display -->
+      <div class="stroop-display">
+        <div class="stroop-instruction">What color is this word?</div>
+        <div class="stroop-word">BLUE</div>
+        <div class="stroop-hint">Tap the color you see, not the word</div>
+      </div>
+
+      <!-- Answer Buttons -->
+      <div class="answer-grid">
+        <button class="answer-btn red">Red</button>
+        <button class="answer-btn blue">Blue</button>
+        <button class="answer-btn green correct">
+          Green
+          <div class="correct-check"><i class="fas fa-check"></i></div>
+        </button>
+        <button class="answer-btn yellow">Yellow</button>
+      </div>
+    </div>
+
+    <!-- Bottom Section -->
+    <div class="game-bottom">
+      <div class="game-progress-row">
+        <span class="progress-label">Round Progress</span>
+        <span class="progress-count">17 / 30</span>
+      </div>
+      <div class="game-progress-bar">
+        <div class="game-progress-fill"></div>
+      </div>
+      <div class="game-actions-row">
+        <div class="game-action-btn btn-hint">
+          <i class="fas fa-lightbulb"></i> Hint (2)
+        </div>
+        <div class="game-action-btn btn-skip">
+          <i class="fas fa-forward"></i> Skip
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

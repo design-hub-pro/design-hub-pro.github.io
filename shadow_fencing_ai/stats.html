@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shadow Fencing AI - Stats</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif; background: #0a0a1a; color: white; overflow-x: hidden; }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; z-index: 100; background: rgba(10,10,26,0.95); backdrop-filter: blur(20px);
+  }
+  .status-time { font-size: 16px; font-weight: 600; }
+  .dynamic-island { width: 120px; height: 36px; background: #000; border-radius: 20px; position: absolute; left: 50%; transform: translateX(-50%); top: 10px; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 14px; }
+
+  .content { padding: 0 28px 120px; }
+
+  .page-title { font-size: 28px; font-weight: 800; padding: 16px 0 20px; letter-spacing: -0.5px; }
+
+  /* Time range tabs */
+  .time-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+  .time-tab {
+    padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 600;
+    background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.4);
+  }
+  .time-tab.active {
+    background: linear-gradient(135deg, #00d4ff, #8b5cf6); color: white;
+  }
+
+  /* Weekly chart */
+  .weekly-chart {
+    background: rgba(255,255,255,0.03); border-radius: 22px; padding: 22px;
+    border: 1px solid rgba(255,255,255,0.06); margin-bottom: 24px;
+  }
+  .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .chart-label { font-size: 14px; font-weight: 700; }
+  .chart-value { font-size: 14px; font-weight: 700; color: #34c759; }
+
+  .bar-chart { display: flex; align-items: flex-end; justify-content: space-between; height: 120px; gap: 8px; }
+  .bar-col { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; }
+  .bar {
+    width: 100%; border-radius: 8px; min-height: 6px;
+    background: linear-gradient(180deg, rgba(0,212,255,0.7), rgba(139,92,246,0.5));
+  }
+  .bar.today { background: linear-gradient(180deg, #00d4ff, #8b5cf6); box-shadow: 0 0 12px rgba(0,212,255,0.3); }
+  .bar-day { font-size: 11px; color: rgba(255,255,255,0.3); font-weight: 600; }
+  .bar.today + .bar-day, .bar-col:last-child .bar-day { color: #00d4ff; }
+
+  /* Stats overview */
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+  .ov-card {
+    background: rgba(255,255,255,0.04); border-radius: 18px; padding: 18px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .ov-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .ov-icon {
+    width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .ov-icon.cyan { background: rgba(0,212,255,0.15); color: #00d4ff; }
+  .ov-icon.green { background: rgba(52,199,89,0.15); color: #34c759; }
+  .ov-icon.orange { background: rgba(255,149,0,0.15); color: #ff9500; }
+  .ov-icon.purple { background: rgba(139,92,246,0.15); color: #a78bfa; }
+  .ov-label { font-size: 12px; color: rgba(255,255,255,0.4); font-weight: 600; }
+  .ov-val { font-size: 28px; font-weight: 800; line-height: 1; }
+  .ov-trend { font-size: 11px; color: #34c759; font-weight: 600; margin-top: 4px; }
+  .ov-trend.down { color: #ff3b30; }
+
+  /* Skills radar placeholder */
+  .skills-section { margin-bottom: 24px; }
+  .skills-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+  .skill-bars { display: flex; flex-direction: column; gap: 14px; }
+  .skill-row { display: flex; align-items: center; gap: 12px; }
+  .skill-name { font-size: 13px; font-weight: 600; width: 80px; color: rgba(255,255,255,0.7); }
+  .skill-bar { flex: 1; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; }
+  .skill-fill { height: 100%; border-radius: 4px; }
+  .skill-fill.reaction { background: linear-gradient(90deg, #ff3b30, #ff9500); width: 85%; }
+  .skill-fill.form { background: linear-gradient(90deg, #00d4ff, #58a6ff); width: 72%; }
+  .skill-fill.distance { background: linear-gradient(90deg, #8b5cf6, #a855f7); width: 60%; }
+  .skill-fill.speed { background: linear-gradient(90deg, #34c759, #30d158); width: 90%; }
+  .skill-pct { font-size: 13px; font-weight: 700; width: 40px; text-align: right; }
+
+  /* Recent sessions */
+  .recent-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+  .session-card {
+    background: rgba(255,255,255,0.04); border-radius: 16px; padding: 16px;
+    border: 1px solid rgba(255,255,255,0.06); margin-bottom: 10px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .session-icon {
+    width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .session-icon.s-react { background: rgba(255,59,48,0.12); color: #ff6b4a; }
+  .session-icon.s-mimic { background: rgba(0,212,255,0.12); color: #00d4ff; }
+  .session-info { flex: 1; }
+  .session-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .session-time { font-size: 11px; color: rgba(255,255,255,0.35); font-weight: 500; }
+  .session-score { font-size: 20px; font-weight: 800; }
+  .session-score.high { color: #34c759; }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(10,10,26,0.95); backdrop-filter: blur(30px);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; justify-content: space-around; align-items: flex-start; padding-top: 12px;
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; opacity: 0.4; }
+  .tab-item.active { opacity: 1; }
+  .tab-item i { font-size: 22px; }
+  .tab-item.active i { background: linear-gradient(135deg, #00d4ff, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .tab-label { font-size: 10px; font-weight: 600; }
+  .tab-item.active .tab-label { background: linear-gradient(135deg, #00d4ff, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+</style>
+</head>
+<body>
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-title">Statistics</div>
+
+    <div class="time-tabs">
+      <div class="time-tab active">Week</div>
+      <div class="time-tab">Month</div>
+      <div class="time-tab">All Time</div>
+    </div>
+
+    <!-- Weekly Chart -->
+    <div class="weekly-chart">
+      <div class="chart-header">
+        <span class="chart-label">Training Sessions</span>
+        <span class="chart-value">+23%</span>
+      </div>
+      <div class="bar-chart">
+        <div class="bar-col"><div class="bar" style="height:40%;"></div><div class="bar-day">Mon</div></div>
+        <div class="bar-col"><div class="bar" style="height:70%;"></div><div class="bar-day">Tue</div></div>
+        <div class="bar-col"><div class="bar" style="height:50%;"></div><div class="bar-day">Wed</div></div>
+        <div class="bar-col"><div class="bar" style="height:85%;"></div><div class="bar-day">Thu</div></div>
+        <div class="bar-col"><div class="bar" style="height:60%;"></div><div class="bar-day">Fri</div></div>
+        <div class="bar-col"><div class="bar" style="height:30%;"></div><div class="bar-day">Sat</div></div>
+        <div class="bar-col"><div class="bar today" style="height:90%;"></div><div class="bar-day">Sun</div></div>
+      </div>
+    </div>
+
+    <!-- Overview Stats -->
+    <div class="overview-grid">
+      <div class="ov-card">
+        <div class="ov-card-header">
+          <div class="ov-icon cyan"><i class="fas fa-bolt"></i></div>
+          <span class="ov-label">Reaction</span>
+        </div>
+        <div class="ov-val" style="color:#00d4ff;">0.28s</div>
+        <div class="ov-trend"><i class="fas fa-arrow-up" style="font-size:10px;"></i> 12%</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-card-header">
+          <div class="ov-icon green"><i class="fas fa-crosshairs"></i></div>
+          <span class="ov-label">Accuracy</span>
+        </div>
+        <div class="ov-val" style="color:#34c759;">92%</div>
+        <div class="ov-trend"><i class="fas fa-arrow-up" style="font-size:10px;"></i> 5%</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-card-header">
+          <div class="ov-icon orange"><i class="fas fa-fire"></i></div>
+          <span class="ov-label">Streak</span>
+        </div>
+        <div class="ov-val" style="color:#ff9500;">5<span style="font-size:14px; color:rgba(255,255,255,0.3);">days</span></div>
+        <div class="ov-trend"><i class="fas fa-arrow-up" style="font-size:10px;"></i> Best!</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-card-header">
+          <div class="ov-icon purple"><i class="fas fa-clock"></i></div>
+          <span class="ov-label">Total Time</span>
+        </div>
+        <div class="ov-val" style="color:#a78bfa;">3.2<span style="font-size:14px; color:rgba(255,255,255,0.3);">hrs</span></div>
+        <div class="ov-trend"><i class="fas fa-arrow-up" style="font-size:10px;"></i> 18%</div>
+      </div>
+    </div>
+
+    <!-- Skills -->
+    <div class="skills-section">
+      <div class="skills-title">Skill Levels</div>
+      <div class="skill-bars">
+        <div class="skill-row">
+          <span class="skill-name">Reaction</span>
+          <div class="skill-bar"><div class="skill-fill reaction"></div></div>
+          <span class="skill-pct" style="color:#ff6b4a;">85%</span>
+        </div>
+        <div class="skill-row">
+          <span class="skill-name">Form</span>
+          <div class="skill-bar"><div class="skill-fill form"></div></div>
+          <span class="skill-pct" style="color:#00d4ff;">72%</span>
+        </div>
+        <div class="skill-row">
+          <span class="skill-name">Distance</span>
+          <div class="skill-bar"><div class="skill-fill distance"></div></div>
+          <span class="skill-pct" style="color:#a78bfa;">60%</span>
+        </div>
+        <div class="skill-row">
+          <span class="skill-name">Speed</span>
+          <div class="skill-bar"><div class="skill-fill speed"></div></div>
+          <span class="skill-pct" style="color:#34c759;">90%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Sessions -->
+    <div class="recent-title">Recent Sessions</div>
+    <div class="session-card">
+      <div class="session-icon s-react"><i class="fas fa-crosshairs"></i></div>
+      <div class="session-info">
+        <div class="session-name">Reaction Strike</div>
+        <div class="session-time">Today, 9:42 AM</div>
+      </div>
+      <div class="session-score high">92</div>
+    </div>
+    <div class="session-card">
+      <div class="session-icon s-mimic"><i class="fas fa-person-walking"></i></div>
+      <div class="session-info">
+        <div class="session-name">Motion Mimic</div>
+        <div class="session-time">Yesterday, 4:15 PM</div>
+      </div>
+      <div class="session-score high">85</div>
+    </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house"></i>
+      <span class="tab-label">Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-crosshairs"></i>
+      <span class="tab-label">Train</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-chart-line"></i>
+      <span class="tab-label">Stats</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span class="tab-label">Profile</span>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoLens AI - Scan History</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; scrollbar-width: none; font-family: 'Inter', sans-serif; }
+  body { background: #f8faf8; color: #1a2e1a; position: relative; }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center;
+    position: relative; z-index: 100; background: #f8faf8;
+  }
+  .status-time { font-size: 15px; font-weight: 700; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 13px; }
+  .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  }
+
+  .content { height: calc(100% - 59px); overflow-y: auto; scrollbar-width: none; padding-bottom: 100px; }
+  .content::-webkit-scrollbar { display: none; }
+
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 4px 28px 0; }
+  .nav-left { display: flex; align-items: center; gap: 14px; }
+  .nav-back { font-size: 18px; color: #2d8a4e; }
+  .nav-title { font-size: 17px; font-weight: 700; }
+  .nav-search { font-size: 18px; color: #5a7a5a; }
+
+  /* Stats Banner */
+  .stats-banner {
+    margin: 16px 28px; display: flex; gap: 8px;
+  }
+  .stat-chip {
+    flex: 1; padding: 14px 10px; border-radius: 16px; background: #fff;
+    border: 1px solid #e0ebe0; text-align: center;
+  }
+  .stat-chip-val { font-size: 22px; font-weight: 900; color: #2d8a4e; }
+  .stat-chip-label { font-size: 10px; color: #7a9a7a; font-weight: 600; margin-top: 2px; }
+
+  /* Category Filter */
+  .cat-filter {
+    display: flex; gap: 8px; padding: 0 28px; margin-bottom: 16px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .cat-filter::-webkit-scrollbar { display: none; }
+  .cat-pill {
+    padding: 8px 16px; border-radius: 14px; font-size: 12px; font-weight: 600;
+    white-space: nowrap; background: #fff; border: 1px solid #e0ebe0; color: #5a7a5a;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .cat-pill.active { background: #1a3d2a; color: #7dffb3; border-color: #1a3d2a; }
+  .cat-pill i { font-size: 11px; }
+
+  /* Timeline */
+  .timeline-section { padding: 0 28px; }
+  .timeline-date {
+    font-size: 12px; font-weight: 700; color: #7a9a7a; margin-bottom: 10px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .scan-entry {
+    display: flex; gap: 14px; margin-bottom: 14px; position: relative;
+  }
+  .scan-entry::before {
+    content: ''; position: absolute; left: 27px; top: 60px; bottom: -14px;
+    width: 2px; background: #e8f0e8;
+  }
+  .scan-entry:last-child::before { display: none; }
+  .scan-entry-img {
+    width: 56px; height: 56px; border-radius: 16px; overflow: hidden; flex-shrink: 0;
+    border: 2px solid #e0ebe0;
+  }
+  .scan-entry-img img { width: 100%; height: 100%; object-fit: cover; }
+  .scan-entry-content { flex: 1; padding: 2px 0; }
+  .scan-entry-name { font-size: 14px; font-weight: 700; }
+  .scan-entry-detail { font-size: 11px; color: #7a9a7a; margin-top: 2px; }
+  .scan-entry-scores { display: flex; gap: 6px; margin-top: 8px; }
+  .score-mini {
+    padding: 3px 8px; border-radius: 8px; font-size: 10px; font-weight: 700;
+  }
+  .score-mini.good { background: #e8f5e8; color: #2d8a4e; }
+  .score-mini.mid { background: #fef3e0; color: #c87b00; }
+  .score-mini.bad { background: #fee8e8; color: #d04040; }
+  .scan-entry-time { font-size: 10px; color: #b0c0b0; font-weight: 500; margin-top: 6px; }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(248,250,248,0.95); backdrop-filter: blur(30px);
+    border-top: 1px solid #e0ebe0;
+    display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px;
+    z-index: 200;
+  }
+  .tab-item { text-align: center; width: 60px; }
+  .tab-icon { font-size: 22px; color: #b0c0b0; margin-bottom: 4px; }
+  .tab-label { font-size: 10px; color: #b0c0b0; font-weight: 600; }
+  .tab-item.active .tab-icon { color: #2d8a4e; }
+  .tab-item.active .tab-label { color: #2d8a4e; }
+  .home-indicator {
+    width: 134px; height: 5px; background: #1a2e1a; border-radius: 3px;
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); opacity: 0.2;
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="nav">
+      <div class="nav-left">
+        <i class="fas fa-chevron-left nav-back"></i>
+        <div class="nav-title">Scan History</div>
+      </div>
+      <i class="fas fa-magnifying-glass nav-search"></i>
+    </div>
+
+    <div class="stats-banner">
+      <div class="stat-chip">
+        <div class="stat-chip-val">24</div>
+        <div class="stat-chip-label">Total Scans</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-val">8</div>
+        <div class="stat-chip-label">Swapped</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-val">5</div>
+        <div class="stat-chip-label">Flagged</div>
+      </div>
+    </div>
+
+    <div class="cat-filter">
+      <div class="cat-pill active"><i class="fas fa-border-all"></i> All</div>
+      <div class="cat-pill"><i class="fas fa-bottle-water"></i> Bottles</div>
+      <div class="cat-pill"><i class="fas fa-box"></i> Containers</div>
+      <div class="cat-pill"><i class="fas fa-bag-shopping"></i> Bags</div>
+      <div class="cat-pill"><i class="fas fa-utensils"></i> Utensils</div>
+    </div>
+
+    <div class="timeline-section">
+      <div class="timeline-date">Today</div>
+      <div class="scan-entry">
+        <div class="scan-entry-img">
+          <img src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=120&h=120&fit=crop" alt="">
+        </div>
+        <div class="scan-entry-content">
+          <div class="scan-entry-name">PET Water Bottle</div>
+          <div class="scan-entry-detail">Polyethylene Terephthalate · #1</div>
+          <div class="scan-entry-scores">
+            <span class="score-mini good">Eco 72</span>
+            <span class="score-mini good">Safe 85</span>
+          </div>
+          <div class="scan-entry-time">2 hours ago</div>
+        </div>
+      </div>
+      <div class="scan-entry">
+        <div class="scan-entry-img">
+          <img src="https://images.unsplash.com/photo-1609587312208-cea54be969e7?w=120&h=120&fit=crop" alt="">
+        </div>
+        <div class="scan-entry-content">
+          <div class="scan-entry-name">PP Food Container</div>
+          <div class="scan-entry-detail">Polypropylene · #5</div>
+          <div class="scan-entry-scores">
+            <span class="score-mini mid">Eco 65</span>
+            <span class="score-mini good">Safe 90</span>
+          </div>
+          <div class="scan-entry-time">5 hours ago</div>
+        </div>
+      </div>
+
+      <div class="timeline-date" style="margin-top: 10px;">Yesterday</div>
+      <div class="scan-entry">
+        <div class="scan-entry-img">
+          <img src="https://images.unsplash.com/photo-1605371924599-2d0365da1ae0?w=120&h=120&fit=crop" alt="">
+        </div>
+        <div class="scan-entry-content">
+          <div class="scan-entry-name">Styrofoam Cup</div>
+          <div class="scan-entry-detail">Polystyrene · #6</div>
+          <div class="scan-entry-scores">
+            <span class="score-mini bad">Eco 22</span>
+            <span class="score-mini mid">Safe 45</span>
+          </div>
+          <div class="scan-entry-time">Yesterday 3:20 PM</div>
+        </div>
+      </div>
+      <div class="scan-entry">
+        <div class="scan-entry-img">
+          <img src="https://images.unsplash.com/photo-1574263867128-a3d5c1b1deaf?w=120&h=120&fit=crop" alt="">
+        </div>
+        <div class="scan-entry-content">
+          <div class="scan-entry-name">Glass Jar</div>
+          <div class="scan-entry-detail">Soda-lime Glass · Inert</div>
+          <div class="scan-entry-scores">
+            <span class="score-mini good">Eco 95</span>
+            <span class="score-mini good">Safe 98</span>
+          </div>
+          <div class="scan-entry-time">Yesterday 11:05 AM</div>
+        </div>
+      </div>
+      <div class="scan-entry">
+        <div class="scan-entry-img">
+          <img src="https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=120&h=120&fit=crop" alt="">
+        </div>
+        <div class="scan-entry-content">
+          <div class="scan-entry-name">HDPE Milk Jug</div>
+          <div class="scan-entry-detail">High-Density Polyethylene · #2</div>
+          <div class="scan-entry-scores">
+            <span class="score-mini good">Eco 78</span>
+            <span class="score-mini good">Safe 88</span>
+          </div>
+          <div class="scan-entry-time">Yesterday 9:30 AM</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item active">
+      <div class="tab-icon"><i class="fas fa-home"></i></div>
+      <div class="tab-label">Home</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-camera"></i></div>
+      <div class="tab-label">Scan</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-scale-balanced"></i></div>
+      <div class="tab-label">Trade-off</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-arrows-rotate"></i></div>
+      <div class="tab-label">Swap</div>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"><i class="fas fa-chart-line"></i></div>
+      <div class="tab-label">Impact</div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

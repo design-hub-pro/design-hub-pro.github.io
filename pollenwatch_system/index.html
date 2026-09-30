@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PollenWatch — System Design</title>
+<style>
+  :root{ --ink:#16202B; --soft:#5A6B7A; --line:#E2DED7; --blue:#2E7D5B; --orange:#C4531E; --paper:#FDFCFA; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--paper); color:var(--ink);
+        font:17px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+        overflow-x:hidden; }
+  .wrap{ max-width:720px; margin:0 auto; padding:0 24px; }
+  .wide{ max-width:960px; margin:0 auto; padding:0 24px; }
+  h1,h2,h3{ font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif; font-weight:600; letter-spacing:-0.01em; }
+  h1{ font-size:40px; line-height:1.15; margin:0 0 18px; }
+  h2{ font-size:27px; line-height:1.25; margin:0 0 14px; }
+  h3{ font-size:19px; margin:0 0 8px; }
+  p{ margin:0 0 16px; }
+  .lead{ font-size:20px; color:var(--soft); }
+  .sm{ font-size:15px; color:var(--soft); }
+  .xs{ font-size:13px; color:var(--soft); }
+  section{ padding:52px 0; border-top:1px solid var(--line); }
+  .eyebrow{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--orange); font-weight:600; margin-bottom:10px; }
+  img{ max-width:100%; display:block; border-radius:6px; }
+  figure{ margin:0 0 8px; }
+  figcaption{ font-size:13px; color:var(--soft); margin-top:8px; }
+  a{ color:var(--blue); }
+  .cite{ font-size:13px; color:var(--soft); }
+  .cite a{ color:var(--soft); }
+  table{ width:100%; border-collapse:collapse; font-size:15px; }
+  th,td{ text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ font-weight:600; font-size:13px; letter-spacing:.04em; text-transform:uppercase; color:var(--soft); }
+  td.num{ text-align:right; white-space:nowrap; }
+  .scroll{ overflow-x:auto; }
+  .row{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin:26px 0; }
+  .row div{ padding:18px; border:1px solid var(--line); border-radius:8px; background:#fff; font-size:15px; }
+  .row b{ display:block; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--orange); margin-bottom:6px; }
+  .flag{ background:#FBF3EC; border-left:3px solid var(--orange); padding:20px 22px; border-radius:0 6px 6px 0; margin:26px 0; }
+  .flag p:last-child{ margin-bottom:0; }
+  .duo{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:720px){ .duo{ grid-template-columns:1fr; } }
+  details{ border-top:1px solid var(--line); padding:18px 0; }
+  details summary{ cursor:pointer; font-weight:600; list-style:none; font-size:16px; }
+  details summary::-webkit-details-marker{ display:none; }
+  details summary::before{ content:"+ "; color:var(--orange); }
+  details[open] summary::before{ content:"– "; }
+  details .body{ padding-top:14px; font-size:15px; color:#33414F; }
+  details .body ul{ padding-left:20px; }
+  details .body li{ margin-bottom:6px; }
+  footer{ border-top:1px solid var(--line); padding:34px 0 60px; }
+</style>
+</head>
+<body>
+
+<section style="border-top:0;padding-top:34px;">
+  <div class="wrap">
+    <div class="eyebrow">WEARABLE ENVIRONMENTAL SENSOR</div>
+    <h1>PollenWatch: a backpack clip that tracks pollen and dust exposure</h1>
+    <p class="lead">It clips to a shoulder strap, samples outdoor air every few minutes, and buzzes before an allergy flare, not after.</p>
+    <p class="sm">Constraint: it has to run a school day on one charge and survive being knocked against a locker.</p>
+  </div>
+  <div class="wide" style="margin-top:32px;">
+    <figure><img src="hero-worn.png" alt="Student wearing a backpack with the PollenWatch clip attached to the shoulder strap, walking outdoors near trees"></figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">HOW IT WORKS</div>
+    <h2>Five steps, once every ten minutes</h2>
+  </div>
+  <div class="wide">
+    <div class="row">
+      <div><b>Sense</b>Laser sensor draws in air, counts particles by size</div>
+      <div><b>Process</b>MCU smooths the count against noise</div>
+      <div><b>Decide</b>Compares against the wearer's own threshold</div>
+      <div><b>Act</b>LED and a phone push if it stays high</div>
+      <div><b>Record</b>Logs to flash, syncs overnight</div>
+    </div>
+  </div>
+  <div class="wide">
+    <div class="duo">
+      <figure><img src="fig06_signal_path.svg" alt="Block diagram of the sense, process, decide, act, record signal path"></figure>
+      <figure><img src="device-charging.png" alt="PollenWatch clip standing in its charging cradle on a nightstand"></figure>
+    </div>
+  </div>
+  <div class="wrap">
+    <p class="sm">The one non-obvious step is DECIDE: the alert only fires after three consecutive ten-minute windows above the wearer's threshold, so a single dust puff from a passing car does not trigger a false buzz.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">HOW WE KNOW IT WORKS</div>
+    <h2>The sensor is checked against two references, not trusted on its own</h2>
+    <p>The laser sensor at the center of this device (a Plantower PMS5003) reports particle counts in six size bins, from 0.3 to over 10 micrometers. Grass and ragweed pollen run 18 to 30 micrometers, so the device tracks the coarse, over-10-micrometer bin as a proxy for pollen load, not a species count.</p>
+    <p>Two checks establish that the proxy is trustworthy. First, a chamber test: the device sits beside a TSI DustTrak DRX 8533, a reference-grade optical particle counter, in a sealed 1 cubic meter chamber. A generator aerosolizes talc mixed with ragweed pollen surrogate at five concentration steps, 10 minutes per step, 6 repeats each. <b>Acceptance: the device's coarse-bin reading tracks the DustTrak's PM10 mass reading within 15% at every step, with R² of 0.90 or better across the full range.</b> Live pollen was ruled out for this step; handling airborne allergen at volume needs a safety protocol beyond a school project's scope, so a talc-pollen surrogate stands in for particle size and density.</p>
+    <p>Second, a field test: the device is worn outdoors alongside a stationary Burkard volumetric spore trap, the standard instrument local pollen count stations already run, for one full local pollen season, about ten weeks. <b>Acceptance: daily coarse-particle exposure from the device correlates with the trap's daily grain count at R² of 0.70 or better.</b> The looser field bar reflects a real difference: the trap sits at one fixed rooftop location, and the device moves with the wearer through gardens, sidewalks, and indoor rooms all day.</p>
+    <p>If either number is missed, the fallback is not to ship anyway. A chamber miss means the six size bins are re-weighted against the DustTrak curve. A field miss below 0.5 means the coarse-bin proxy does not hold outdoors, and the page is revised to say so before any claim about detecting pollen exposure stands.</p>
+  </div>
+  <div class="wide">
+    <div class="duo">
+      <figure><img src="fig09_trace.svg" alt="Line chart of coarse particle count against time during an outdoor walk, illustrative only"></figure>
+      <figure><img src="fig08_validation.svg" alt="Diagram of the validation rig showing the chamber, aerosol generator, reference instruments, and device under test"></figure>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">CHANGES TO THE ORIGINAL PLAN</div>
+    <h2>Three changes, each with the arithmetic behind it</h2>
+
+    <h3>Cut: species identification</h3>
+    <p>The brief implies telling ragweed from grass from tree pollen. That needs a fluorescence or spectral bioaerosol sensor, like a Poleno Mini, which costs upward of $15,000. The PMS5003's largest channel is a single undifferentiated "over 10 micrometers" bin, unable to separate 18-micrometer ragweed from 30-micrometer oak. Cut to a single coarse-particulate exposure index, and let the wearer's phone app pull the local pollen station's species breakdown separately.</p>
+
+    <h3>Wrong: a fixed alert threshold</h3>
+    <p>A hardcoded EPA PM10 breakpoint, 155 µg/m³ over 24 hours, is a regulatory air-quality number, not an allergy trigger. Sensitized individuals report symptoms at pollen counts of 20 to 50 grains per cubic meter, far below any air-quality alert level, and the threshold that matters is different for every wearer. Replace the fixed number with a per-user threshold, set from the wearer's own symptom log in the companion app.</p>
+
+    <h3>Missing: the 5-volt boost converter</h3>
+    <p>The original parts list ran the PMS5003 straight off the Li-Po cell. The sensor's datasheet requires 4.5 to 5.5 volts; a Li-Po tops out at 4.2 volts fully charged and averages 3.7 volts, so the sensor would never see a valid supply. Added a TPS61023 boost converter, sized for the sensor's 260 mA fan-startup inrush, between the battery rail and the sensor.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">PARTS</div>
+    <h2>About $45 in parts, assembled by hand</h2>
+    <p class="sm">Prices are approximate, based on single-unit distributor pricing.</p>
+  </div>
+  <div class="wide">
+    <div class="duo" style="margin-bottom:20px;">
+      <figure><img src="device-object.png" alt="The PollenWatch clip on a desk beside a ruler for scale, showing the mesh inlet and spring clip"></figure>
+      <figure><img src="device-fitted.png" alt="Close-up of the clip mounted on a backpack shoulder strap"></figure>
+    </div>
+    <figure style="margin-bottom:26px;"><img src="fig07_exploded.svg" alt="Exploded stack of the device layers, from the clip shell down to the base and USB-C port"></figure>
+  </div>
+  <div class="wrap">
+    <div class="scroll">
+      <table>
+        <tr><th>Part</th><th>What it does</th><th>Price</th></tr>
+        <tr><td>Plantower PMS5003</td><td>laser particle counter, 6 size bins</td><td class="num">$24</td></tr>
+        <tr><td>ESP32-C3 module</td><td>MCU and Bluetooth radio</td><td class="num">$4</td></tr>
+        <tr><td>TPS61023 boost converter</td><td>3.7 V battery to 5 V for the sensor</td><td class="num">$2</td></tr>
+        <tr><td>AP2112 LDO</td><td>3.3 V rail for the MCU</td><td class="num">$0.50</td></tr>
+        <tr><td>TP4056 charge module</td><td>USB-C charging for the cell</td><td class="num">$1.50</td></tr>
+        <tr><td>Li-Po cell, 500 mAh</td><td>battery</td><td class="num">$5</td></tr>
+        <tr><td>RGB LED + piezo buzzer</td><td>alert indicators</td><td class="num">$1</td></tr>
+        <tr><td>Stainless mesh + spring clip</td><td>inlet screen and strap mount</td><td class="num">$2</td></tr>
+        <tr><td>3D-printed ABS shell, 2 halves</td><td>enclosure</td><td class="num">$3</td></tr>
+        <tr><td>Wire, connectors, screws</td><td>assembly</td><td class="num">$2</td></tr>
+        <tr><td colspan="2"><b>Total, one unit</b></td><td class="num"><b>$45</b></td></tr>
+      </table>
+    </div>
+    <p class="sm" style="margin-top:14px;">Build two for about $90. One builder, one deadline, and a fried boost converter or a lost clip should not cost a week.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">WHAT COULD GO WRONG</div>
+    <h2>The hard part is software, not solder</h2>
+    <p>Telling a real spike from noise is the actual work. Lint at the mesh inlet, a puff of exhaust from a passing car, and fog on the optics from a cold-to-warm transition all raise the coarse-bin count the same way pollen does. The three-consecutive-window rule is the mitigation, and it gets tuned during the field test, not guessed at the bench.</p>
+    <p>The PMS5003 runs 4 to 6 weeks lead time from some distributors. If it is not in hand by the end of week 3, the fallback is a Sharp GP2Y1010AU0F infrared dust sensor, cheaper and shelf-stable, at the cost of the six size bins. That decision gets made at week 3, not week 7.</p>
+    <p>The dull failure mode: the spring clip loosens over a school day and the device dangles with its inlet against the fabric, or backpack lint clogs the mesh outright. Both are checked in the daily wear test, not just the lab bench.</p>
+  </div>
+  <div class="wide">
+    <figure><img src="device-attach.png" alt="Hands clipping the PollenWatch device onto a backpack shoulder strap"></figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">FOR THE SPECIALIST</div>
+    <h2>The details</h2>
+    <p class="sm">Working specification. Not needed to understand the project.</p>
+
+    <div class="wide" style="margin:0 0 26px;padding:0;">
+      <figure><img src="fig10_power.svg" alt="Power chain diagram showing the battery, charge module, boost converter, LDO, and their loads"></figure>
+    </div>
+
+    <details>
+      <summary>Sampling and alert parameters</summary>
+      <div class="body">
+        <ul>
+          <li>Sample window: 15 s active (fan spin-up plus 6 UART reads), then sleep for 10 min.</li>
+          <li>Alert rule: 3 consecutive windows above the wearer's threshold before the LED and BLE push fire.</li>
+          <li>Threshold: per-user, set in the companion app from the wearer's own symptom log, not a fixed AQI number.</li>
+          <li>UART link to the PMS5003: 9600 baud, 32-byte frames, 6 cumulative size-bin counts per 0.1 L.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>Data format and storage</summary>
+      <div class="body">
+        <ul>
+          <li>Each record: timestamp, 6 bin counts, battery voltage. 16 bytes.</li>
+          <li>Ring buffer in onboard flash: 30 days at 10-minute resolution, 4,320 records, about 69 KB.</li>
+          <li>Sync: BLE GATT characteristic, pulled by the phone app once nightly while charging.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>Power budget</summary>
+      <div class="body">
+        <ul>
+          <li>Active window (2.5% duty cycle): sensor draws 100 to 260 mA at 5 V; through the boost converter at 88% efficiency, that is roughly 154 mA from the battery.</li>
+          <li>Idle: sensor standby 0.2 mA, MCU light sleep with sparse BLE advertising, about 1.2 mA combined.</li>
+          <li>Weighted average: (0.025 × 154 mA) + (0.975 × 1.2 mA) ≈ 5.0 mA.</li>
+          <li>Endurance on a 500 mAh cell: about 100 hours, roughly 4 days of wear. Charged nightly in the cradle regardless, for margin.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>Bring-up order</summary>
+      <div class="body">
+        <ul>
+          <li>Battery and charge module alone; confirm charge and discharge curves on a bench supply.</li>
+          <li>LDO and MCU; confirm boot and BLE advertising before touching the sensor.</li>
+          <li>Boost converter and sensor together; confirm UART frames match the datasheet before writing parsing code.</li>
+          <li>Full loop on the bench, then the mechanical clip and strap fit, last.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>Validation checklist</summary>
+      <div class="body">
+        <ul>
+          <li>Chamber run against the DustTrak: 5 concentration steps, 6 repeats, within 15% and R² ≥ 0.90.</li>
+          <li>Field run against the Burkard trap: one full local pollen season, R² ≥ 0.70.</li>
+          <li>72-hour continuous wear test for mechanical fit and battery endurance.</li>
+          <li>Humidity chamber pass, 40 to 90% RH, to check for optics fogging false positives.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>What this device cannot do</summary>
+      <div class="body">
+        <ul>
+          <li>Cannot identify pollen species. It reports one coarse-particulate number, not a ragweed-versus-grass breakdown.</li>
+          <li>Cannot serve as a certified regulatory air-quality monitor; the DustTrak comparison is a validation step, not an EPA-grade calibration.</li>
+          <li>Cannot replace a doctor's allergy test or diagnose a new allergy.</li>
+          <li>Cannot sample continuously; the 2.5% duty cycle means a brief plume between windows can be missed.</li>
+          <li>Not rated for rain or submersion; the mesh inlet is not sealed against driven water.</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="xs">POLLENWATCH · SYSTEM DESIGN · SEPTEMBER 2026</p>
+  </div>
+</footer>
+
+</body>
+</html>

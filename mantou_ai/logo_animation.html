@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>馒头AI · Logo Animation</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    background: #FFF8E7;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    overflow: hidden;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stage {
+    position: relative;
+    width: 1080px;
+    height: 720px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ─── Logo ───────────────────────────────────────────── */
+  .logo {
+    position: relative;
+    width: 440px;
+    height: 440px;
+    transform-origin: center center;
+    animation: logoScale 6s cubic-bezier(.55,.15,.2,1) infinite;
+  }
+
+  .logo svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+  .blob {
+    transform-origin: 200px 210px;
+    animation: blobSquish 6s ease-in-out infinite;
+  }
+  .dot {
+    transform-origin: 200px 138px;
+    animation: dotPulse 6s ease-in-out infinite;
+  }
+  .dome {
+    transform-origin: 200px 290px;
+    animation: domePulse 6s ease-in-out infinite;
+  }
+
+  /* The hidden A crossbar that reveals the A inside the dome */
+  .a-crossbar {
+    stroke: #FFF8E7;
+    stroke-width: 14;
+    stroke-linecap: round;
+    fill: none;
+    stroke-dasharray: 80;
+    stroke-dashoffset: 80;
+    animation: crossbarDraw 6s ease-in-out infinite;
+  }
+
+  /* Soft outline glow tracing the i (dot + stem) */
+  .i-glow {
+    fill: none;
+    stroke: #E97A3D;
+    stroke-width: 5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0;
+    filter: drop-shadow(0 0 6px rgba(233,122,61,.55));
+    animation: iGlow 6s ease-in-out infinite;
+  }
+
+  /* Subtle steam wisps above mantou (only on entry) */
+  .steam {
+    fill: none;
+    stroke: #C9B17A;
+    stroke-width: 4;
+    stroke-linecap: round;
+    opacity: 0;
+    animation: steam 6s ease-in-out infinite;
+  }
+  .steam-2 { animation-delay: -.15s; }
+  .steam-3 { animation-delay: -.3s; }
+
+  /* ─── Big floating A / i labels ──────────────────────── */
+  .letter {
+    position: absolute;
+    top: 50%;
+    font-size: 380px;
+    font-weight: 900;
+    color: #E97A3D;
+    line-height: 1;
+    transform: translateY(-50%);
+    opacity: 0;
+    letter-spacing: -.04em;
+    text-shadow: 0 8px 32px rgba(233, 122, 61, 0.18);
+  }
+  .letter-A {
+    right: 130px;
+    animation: showA 6s cubic-bezier(.5,.1,.2,1) infinite;
+  }
+  .letter-i {
+    right: 170px;
+    animation: showI 6s cubic-bezier(.5,.1,.2,1) infinite;
+  }
+
+  /* ─── Brand wordmark ─────────────────────────────────── */
+  .brand {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translate(-50%, 24px);
+    font-size: 60px;
+    font-weight: 800;
+    color: #2C2A26;
+    letter-spacing: 4px;
+    opacity: 0;
+    animation: showBrand 6s cubic-bezier(.4,.1,.2,1) infinite;
+  }
+  .brand .ai {
+    color: #E97A3D;
+    font-style: italic;
+    margin-left: 8px;
+    background: linear-gradient(180deg,#F5C84A 0%,#E97A3D 100%);
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* ─── Background dots ────────────────────────────────── */
+  .bg-dot {
+    position: absolute;
+    border-radius: 50%;
+    background: #F0BC3B;
+    opacity: 0.10;
+  }
+  .bg-dot.d1 { width: 220px; height: 220px; top: -70px; left: -90px; }
+  .bg-dot.d2 { width: 340px; height: 340px; bottom: -120px; right: -130px; background: #E97A3D; opacity: 0.06; }
+  .bg-dot.d3 { width: 90px;  height: 90px;  top: 70px;  right: 70px; }
+  .bg-dot.d4 { width: 150px; height: 150px; bottom: 50px; left: 30px; background: #E97A3D; opacity: 0.05;}
+
+  /* ─── Play overlay ───────────────────────────────────── */
+  .play-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 248, 231, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    cursor: pointer;
+    transition: opacity .4s ease;
+    gap: 24px;
+  }
+  .play-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .play-btn {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #F5C84A, #E97A3D);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 12px 40px rgba(233,122,61,.35);
+    transition: transform .25s ease;
+  }
+  .play-btn:hover { transform: scale(1.06); }
+  .play-btn::after {
+    content: "";
+    width: 0; height: 0;
+    border-left: 28px solid white;
+    border-top: 18px solid transparent;
+    border-bottom: 18px solid transparent;
+    margin-left: 8px;
+  }
+  .play-label {
+    font-size: 18px;
+    color: #8a6730;
+    letter-spacing: 4px;
+    font-weight: 600;
+  }
+
+  /* ─── Sound toggle (top right) ───────────────────────── */
+  .sound-toggle {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: white;
+    border: none;
+    box-shadow: 0 4px 16px rgba(0,0,0,.08);
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    font-size: 22px;
+    color: #E97A3D;
+    transition: transform .15s ease;
+  }
+  .sound-toggle:hover { transform: scale(1.08); }
+  .sound-toggle.visible { display: flex; }
+
+  /* Pause animations until user clicks play */
+  body.paused .logo,
+  body.paused .blob,
+  body.paused .dot,
+  body.paused .dome,
+  body.paused .a-crossbar,
+  body.paused .i-glow,
+  body.paused .steam,
+  body.paused .letter-A,
+  body.paused .letter-i,
+  body.paused .brand {
+    animation-play-state: paused;
+  }
+
+  /* ─── Keyframes ──────────────────────────────────────── */
+
+  @keyframes logoScale {
+     0% { transform: scale(0)    rotate(-12deg); }
+     6% { transform: scale(1.18) rotate(2deg);   }
+    10% { transform: scale(.92)  rotate(-1deg);  }
+    13% { transform: scale(1)    rotate(0deg);   }
+    18% { transform: translateX(0) scale(1);     }
+    24% { transform: translateX(-230px) scale(.82); }
+    44% { transform: translateX(-230px) scale(.82); }
+    48% { transform: translateX(-230px) scale(.82); }
+    66% { transform: translateX(-230px) scale(.82); }
+    72% { transform: translateX(0) scale(1); }
+   100% { transform: translateX(0) scale(1); }
+  }
+
+  @keyframes blobSquish {
+     0% { transform: scaleY(1) scaleX(1); }
+     6% { transform: scaleY(.78) scaleX(1.18); }
+    10% { transform: scaleY(1.08) scaleX(.94); }
+    13% { transform: scaleY(.98) scaleX(1.02); }
+    16% { transform: scaleY(1) scaleX(1); }
+    52% { transform: scaleY(1) scaleX(1); }
+    56% { transform: scaleY(.96) scaleX(1.04); }
+    60% { transform: scaleY(1) scaleX(1); }
+    74% { transform: scaleY(1) scaleX(1); }
+    78% { transform: scaleY(1.02) scaleX(.98); }
+    82% { transform: scaleY(1) scaleX(1); }
+   100% { transform: scaleY(1) scaleX(1); }
+  }
+
+  @keyframes dotPulse {
+     0%, 45% { transform: scale(1); filter: brightness(1); }
+    48% { transform: scale(1.3);  filter: brightness(1.18); }
+    53% { transform: scale(1);    filter: brightness(1); }
+    58% { transform: scale(1.18); filter: brightness(1.12); }
+    62% { transform: scale(1);    filter: brightness(1); }
+   100% { transform: scale(1);    filter: brightness(1); }
+  }
+
+  @keyframes domePulse {
+     0%, 19% { transform: scale(1);   filter: brightness(1); }
+    24% { transform: scale(1.10); filter: brightness(1.15); }
+    28% { transform: scale(1);    filter: brightness(1); }
+    33% { transform: scale(1.06); filter: brightness(1.10); }
+    38% { transform: scale(1);    filter: brightness(1); }
+    48% { transform: scale(1.08); filter: brightness(1.10); }
+    53% { transform: scale(1);    filter: brightness(1); }
+    58% { transform: scale(1.06); filter: brightness(1.08); }
+    62% { transform: scale(1);    filter: brightness(1); }
+   100% { transform: scale(1);    filter: brightness(1); }
+  }
+
+  @keyframes crossbarDraw {
+     0%, 22% { stroke-dashoffset: 80; opacity: 0; }
+    27% { stroke-dashoffset: 0;  opacity: 1; }
+    42% { stroke-dashoffset: 0;  opacity: 1; }
+    46% { stroke-dashoffset: 0;  opacity: 0; }
+   100% { stroke-dashoffset: 80; opacity: 0; }
+  }
+
+  @keyframes iGlow {
+     0%, 47% { opacity: 0; }
+    52% { opacity: .95; }
+    66% { opacity: .95; }
+    70% { opacity: 0; }
+   100% { opacity: 0; }
+  }
+
+  @keyframes showA {
+     0%, 22% { opacity: 0; transform: translateY(-50%) translateX(60px) scale(.7); }
+    28% { opacity: 1; transform: translateY(-50%) translateX(0) scale(1); }
+    42% { opacity: 1; transform: translateY(-50%) translateX(0) scale(1); }
+    46% { opacity: 0; transform: translateY(-50%) translateX(-30px) scale(.9); }
+   100% { opacity: 0; transform: translateY(-50%) translateX(60px) scale(.7); }
+  }
+
+  @keyframes showI {
+     0%, 47% { opacity: 0; transform: translateY(-50%) translateX(60px) scale(.7); }
+    53% { opacity: 1; transform: translateY(-50%) translateX(0) scale(1); }
+    66% { opacity: 1; transform: translateY(-50%) translateX(0) scale(1); }
+    70% { opacity: 0; transform: translateY(-50%) translateX(-30px) scale(.9); }
+   100% { opacity: 0; transform: translateY(-50%) translateX(60px) scale(.7); }
+  }
+
+  @keyframes showBrand {
+     0%, 70% { opacity: 0; transform: translate(-50%, 24px); }
+    78% { opacity: 1; transform: translate(-50%, 0); }
+    93% { opacity: 1; transform: translate(-50%, 0); }
+    98% { opacity: 0; transform: translate(-50%, -8px); }
+   100% { opacity: 0; }
+  }
+
+  @keyframes steam {
+     0% { opacity: 0; transform: translateY(0); }
+     4% { opacity: .55; }
+    13% { opacity: 0; transform: translateY(-40px); }
+   100% { opacity: 0; }
+  }
+
+</style>
+</head>
+<body class="paused">
+
+<div class="stage">
+
+  <div class="bg-dot d1"></div>
+  <div class="bg-dot d2"></div>
+  <div class="bg-dot d3"></div>
+  <div class="bg-dot d4"></div>
+
+  <div class="letter letter-A">A</div>
+  <div class="letter letter-i">i</div>
+
+  <div class="logo">
+    <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+
+      <!-- Steam wisps -->
+      <path class="steam steam-1" d="M 175,40 Q 165,28 175,18 Q 185,8 175,0"/>
+      <path class="steam steam-2" d="M 200,32 Q 192,22 202,12 Q 212,2 202,-6"/>
+      <path class="steam steam-3" d="M 225,40 Q 217,30 227,20 Q 237,10 227,2"/>
+
+      <!-- Soft shadow under the mantou -->
+      <ellipse cx="205" cy="368" rx="148" ry="12" fill="#000" opacity="0.07"/>
+
+      <!--
+        Improved mantou shape:
+        - Pillowy dome top with a slight tilt-and-pinch
+        - Wider, softer base that feels like it's settled
+        - Hand-drawn organic curve, not a perfect oval
+      -->
+      <path class="blob"
+            d="M 80,232
+               C 70,160 100,98 168,76
+               C 232,56 300,80 332,128
+               C 360,170 358,228 344,272
+               C 326,322 268,344 210,344
+               C 150,344 96,326 82,290
+               C 76,275 78,250 80,232 Z"
+            fill="#F5C84A"/>
+
+      <!-- Subtle highlight for "freshly steamed" sheen -->
+      <ellipse cx="158" cy="138" rx="48" ry="22"
+               fill="#FFF" opacity="0.18"
+               transform="rotate(-28 158 138)"/>
+
+      <!-- Dome / 'A' body / 'i' stem -->
+      <path class="dome"
+            d="M 152,338
+               C 154,250 174,200 200,200
+               C 226,200 248,250 252,338 Z"
+            fill="#E97A3D"/>
+
+      <!-- Crossbar that reveals the A inside the dome -->
+      <line class="a-crossbar" x1="172" y1="288" x2="232" y2="288"/>
+
+      <!-- i outline (dot + stem trace) -->
+      <path class="i-glow"
+            d="M 200,108
+               a 32,32 0 1,0 0.1,0
+               M 152,338
+               C 154,250 174,200 200,200
+               C 226,200 248,250 252,338"/>
+
+      <!-- Dot -->
+      <circle class="dot" cx="200" cy="138" r="33" fill="#E97A3D"/>
+    </svg>
+  </div>
+
+  <div class="brand">馒头<span class="ai">AI</span></div>
+
+</div>
+
+<!-- Sound toggle (after user starts) -->
+<button class="sound-toggle" title="Toggle sound" aria-label="Toggle sound">🔊</button>
+
+<!-- Click-to-play overlay (required for audio context) -->
+<div class="play-overlay">
+  <div class="play-btn"></div>
+  <div class="play-label">CLICK TO PLAY · 馒头AI</div>
+</div>
+
+<script>
+/* ───────────────────────────────────────────────────────
+   Audio engine — uses Web Audio API to generate sounds
+   programmatically (no external assets needed).
+   ─────────────────────────────────────────────────────── */
+class AudioEngine {
+  constructor() {
+    this.ctx = null;
+    this.master = null;
+    this.muted = false;
+  }
+
+  init() {
+    if (this.ctx) return;
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    this.ctx = new Ctx();
+    this.master = this.ctx.createGain();
+    this.master.gain.value = 0.45;
+    this.master.connect(this.ctx.destination);
+  }
+
+  setMuted(m) {
+    this.muted = m;
+    if (this.master) this.master.gain.value = m ? 0 : 0.45;
+  }
+
+  /* Soft "boop" with quick pitch drop — for the mantou bounce */
+  pop(freq = 220) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq * 2.2, t);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.45, t + 0.18);
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.55, t + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+    osc.connect(gain).connect(this.master);
+    osc.start(t);
+    osc.stop(t + 0.25);
+
+    // Sub-thump for warmth
+    const sub = this.ctx.createOscillator();
+    const sg = this.ctx.createGain();
+    sub.type = 'sine';
+    sub.frequency.setValueAtTime(90, t);
+    sub.frequency.exponentialRampToValueAtTime(55, t + 0.16);
+    sg.gain.setValueAtTime(0, t);
+    sg.gain.linearRampToValueAtTime(0.4, t + 0.01);
+    sg.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+    sub.connect(sg).connect(this.master);
+    sub.start(t);
+    sub.stop(t + 0.2);
+  }
+
+  /* Triadic bell chime — for letter reveals */
+  chime(freqs, duration = 0.7) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    freqs.forEach((freq, i) => {
+      // Fundamental
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const peak = 0.22 / (i + 1);
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(peak, t + 0.018);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+      osc.connect(gain).connect(this.master);
+      osc.start(t);
+      osc.stop(t + duration + 0.05);
+
+      // Soft harmonic (octave above) for sparkle
+      const h = this.ctx.createOscillator();
+      const hg = this.ctx.createGain();
+      h.type = 'sine';
+      h.frequency.value = freq * 2;
+      hg.gain.setValueAtTime(0, t);
+      hg.gain.linearRampToValueAtTime(peak * 0.35, t + 0.02);
+      hg.gain.exponentialRampToValueAtTime(0.001, t + duration * 0.6);
+      h.connect(hg).connect(this.master);
+      h.start(t);
+      h.stop(t + duration);
+    });
+  }
+
+  /* Warm pad chord — for brand reveal */
+  pad(freqs, duration = 1.4) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    freqs.forEach((freq, i) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = i === 0 ? 'sine' : 'triangle';
+      osc.frequency.value = freq;
+      const peak = 0.18 / (i + 1);
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(peak, t + 0.18);
+      gain.gain.linearRampToValueAtTime(peak * 0.7, t + duration * 0.65);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+
+      // Subtle vibrato for warmth
+      const lfo = this.ctx.createOscillator();
+      const lfoGain = this.ctx.createGain();
+      lfo.frequency.value = 4.5;
+      lfoGain.gain.value = 1.5;
+      lfo.connect(lfoGain).connect(osc.frequency);
+
+      osc.connect(gain).connect(this.master);
+      osc.start(t); lfo.start(t);
+      osc.stop(t + duration); lfo.stop(t + duration);
+    });
+  }
+
+  /* Whoosh — short filtered noise burst */
+  whoosh(duration = 0.25) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    const bufferSize = this.ctx.sampleRate * duration;
+    const buf = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.6;
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(800, t);
+    filter.frequency.exponentialRampToValueAtTime(2400, t + duration);
+    filter.Q.value = 1.5;
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.18, t + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+    src.connect(filter).connect(gain).connect(this.master);
+    src.start(t);
+  }
+}
+
+/* ───────────────────────────────────────────────────────
+   Sound cue scheduler — synced to 6-second animation loop
+   ─────────────────────────────────────────────────────── */
+const audio = new AudioEngine();
+const LOOP_MS = 6000;
+
+const cues = [
+  { at:    0, fn: () => audio.pop(220) },                                // mantou bounces in
+  { at: 1280, fn: () => { audio.whoosh(.18); setTimeout(() => audio.chime([523.25, 659.25, 783.99]), 120); } }, // A reveal: C5+E5+G5
+  { at: 2880, fn: () => { audio.whoosh(.18); setTimeout(() => audio.chime([659.25, 830.61, 987.77]), 120); } }, // i reveal: E5+G#5+B5
+  { at: 4380, fn: () => audio.pad([261.63, 329.63, 392.00, 523.25], 1.45) },  // brand reveal: Cmaj
+];
+
+let scheduledTimeouts = [];
+function scheduleLoop() {
+  scheduledTimeouts.forEach(clearTimeout);
+  scheduledTimeouts = cues.map(c => setTimeout(c.fn, c.at));
+}
+
+/* ───────────────────────────────────────────────────────
+   Wire up play overlay + sound toggle
+   ─────────────────────────────────────────────────────── */
+const overlay = document.querySelector('.play-overlay');
+const toggle  = document.querySelector('.sound-toggle');
+const logo    = document.querySelector('.logo');
+
+let started = false;
+
+function start() {
+  if (started) return;
+  started = true;
+  audio.init();
+  document.body.classList.remove('paused');
+  overlay.classList.add('hidden');
+  toggle.classList.add('visible');
+
+  // Fire first set of cues now (sync with t=0 of animation)
+  scheduleLoop();
+  // Re-schedule on every iteration
+  logo.addEventListener('animationiteration', scheduleLoop);
+}
+
+overlay.addEventListener('click', start);
+
+toggle.addEventListener('click', () => {
+  audio.setMuted(!audio.muted);
+  toggle.textContent = audio.muted ? '🔇' : '🔊';
+});
+</script>
+
+</body>
+</html>

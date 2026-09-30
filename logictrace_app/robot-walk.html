@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LogicTrace - Robot's Walk</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  *::-webkit-scrollbar { display:none; } * { scrollbar-width:none; }
+  html, body { height:100%; }
+  body { font-family:'Inter',-apple-system,sans-serif; background:#1E1710; color:#fff; overflow-x:hidden; position:relative; }
+
+  .status-bar { height:59px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 8px; position:absolute; top:0; left:0; right:0; z-index:100; }
+  .status-time { font-size:17px; font-weight:700; }
+  .status-icons { display:flex; align-items:center; gap:6px; font-size:13px; }
+  .dynamic-island { width:120px; height:36px; background:#000; border-radius:20px; position:absolute; top:10px; left:50%; transform:translateX(-50%); }
+
+  .scene { position:relative; height:296px; overflow:hidden; }
+  .scene img { width:100%; height:100%; object-fit:cover; }
+  .scene-ov { position:absolute; inset:0; background:linear-gradient(to top, #1E1710 5%, rgba(30,23,16,0.24) 56%, rgba(30,23,16,0.58) 100%); }
+
+  .top { position:absolute; top:66px; left:28px; right:28px; display:flex; align-items:center; gap:14px; z-index:20; }
+  .x { width:42px; height:42px; border-radius:50%; background:rgba(0,0,0,0.34); backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+  .prog-pill { margin-left:auto; display:flex; align-items:center; gap:9px; background:rgba(0,0,0,0.36); backdrop-filter:blur(10px); padding:9px 15px; border-radius:50px; font-size:14px; font-weight:800; }
+  .prog-pill i { color:#F0BC72; font-size:12px; }
+
+  .title { position:absolute; top:246px; left:28px; right:28px; z-index:20; }
+  .t-l { font-size:11px; font-weight:850; letter-spacing:1.6px; text-transform:uppercase; color:#F0BC72; }
+  .t-t { font-size:23px; font-weight:900; letter-spacing:-0.7px; margin-top:7px; }
+
+  .content { position:relative; padding:22px 28px 0; }
+
+  .slots { display:flex; gap:8px; }
+  .slot { flex:1; height:58px; border-radius:16px; background:rgba(255,255,255,0.06); border:1.5px solid rgba(255,255,255,0.10); display:flex; align-items:center; justify-content:center; font-size:19px; color:rgba(255,255,255,0.28); }
+  .slot.done { background:rgba(240,188,114,0.16); border-color:rgba(240,188,114,0.4); color:#F0BC72; }
+  .slot.now { background:rgba(162,78,34,0.28); border:2px solid #C2703B; color:#fff; position:relative; }
+  .slot.now:after { content:''; position:absolute; inset:-6px; border-radius:20px; border:2px solid rgba(194,112,59,0.5); }
+  .slot-l { display:flex; justify-content:space-between; margin-top:8px; font-size:10.5px; color:rgba(255,255,255,0.42); font-weight:700; }
+
+  .prompt { text-align:center; margin-top:22px; }
+  .p-l { font-size:11px; font-weight:850; letter-spacing:1.6px; text-transform:uppercase; color:#F0BC72; }
+  .p-t { font-size:22px; font-weight:800; letter-spacing:-0.4px; margin-top:11px; line-height:1.35; }
+  .p-s { font-size:14px; color:rgba(255,255,255,0.5); margin-top:9px; }
+
+  .live { margin-top:20px; display:flex; gap:10px; }
+  .lv { flex:1; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.09); border-radius:18px; padding:13px 14px; }
+  .lv-l { font-size:10px; font-weight:800; letter-spacing:1.1px; text-transform:uppercase; color:rgba(255,255,255,0.42); }
+  .lv-v { font-size:25px; font-weight:900; letter-spacing:-1.1px; margin-top:7px; line-height:1; }
+  .lv-v span { font-size:12px; font-weight:700; letter-spacing:0; opacity:0.55; }
+  .lv-m { font-size:10.5px; margin-top:6px; font-weight:700; display:flex; align-items:center; gap:5px; color:#9BD9A8; }
+  .dot { width:7px; height:7px; border-radius:50%; display:inline-block; background:#9BD9A8; }
+
+  .adapt { margin-top:13px; background:rgba(240,188,114,0.12); border:1px solid rgba(240,188,114,0.28); border-radius:18px; padding:14px 16px; display:flex; align-items:center; gap:12px; }
+  .adapt i { color:#F0BC72; font-size:15px; }
+  .adapt-t { font-size:13.5px; font-weight:700; line-height:1.4; }
+  .adapt-t span { color:rgba(255,255,255,0.5); font-weight:500; }
+
+  .tray { position:absolute; bottom:0; left:0; right:0; background:#2A2117; padding:16px 16px 26px; border-radius:26px 26px 0 0; }
+  .tray-l { text-align:center; font-size:11.5px; font-weight:700; color:rgba(255,255,255,0.4); margin-bottom:12px; }
+  .blocks { display:flex; gap:9px; justify-content:center; }
+  .blk { width:64px; height:74px; border-radius:16px; background:#3C3122; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; font-size:10.5px; font-weight:750; box-shadow:0 3px 0 rgba(0,0,0,0.3); }
+  .blk i { font-size:19px; }
+  .blk.next { background:#A24E22; box-shadow:0 3px 0 #6B3016; position:relative; }
+  .blk.next:after { content:''; position:absolute; inset:-7px; border-radius:20px; border:2px solid rgba(194,112,59,0.5); }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <div class="status-time">9:12</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full" style="font-size:16px"></i></div>
+  </div>
+
+  <div class="scene">
+    <img src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1788998130229-image-1.png" alt="">
+    <div class="scene-ov"></div>
+  </div>
+
+  <div class="top">
+    <div class="x"><i class="fas fa-xmark"></i></div>
+    <div class="prog-pill"><i class="fas fa-shapes"></i> 3 of 5 placed</div>
+  </div>
+
+  <div class="title">
+    <div class="t-l">Robot's Walk · Round 4</div>
+    <div class="t-t">Get Pip to the garden gate</div>
+  </div>
+
+  <div class="content">
+    <div class="slots">
+      <div class="slot done"><i class="fas fa-arrow-right"></i></div>
+      <div class="slot done"><i class="fas fa-arrow-right"></i></div>
+      <div class="slot done"><i class="fas fa-arrow-turn-up" style="transform:rotate(90deg)"></i></div>
+      <div class="slot now"><i class="fas fa-question"></i></div>
+      <div class="slot"><i class="fas fa-circle" style="font-size:8px"></i></div>
+    </div>
+    <div class="slot-l"><span>Start</span><span>Gate</span></div>
+
+    <div class="prompt">
+      <div class="p-l">Which block goes next?</div>
+      <div class="p-t">Pip is facing the fence.<br>Pick the block that turns.</div>
+      <div class="p-s">Take your time. There is no clock.</div>
+    </div>
+
+    <div class="live">
+      <div class="lv">
+        <div class="lv-l">Rounds today</div>
+        <div class="lv-v">4</div>
+        <div class="lv-m"><span class="dot"></span> best this week</div>
+      </div>
+      <div class="lv">
+        <div class="lv-l">Steadiness</div>
+        <div class="lv-v">84<span>%</span></div>
+        <div class="lv-m"><span class="dot"></span> smooth drags</div>
+      </div>
+      <div class="lv">
+        <div class="lv-l">Do-overs</div>
+        <div class="lv-v">2</div>
+        <div class="lv-m"><span class="dot"></span> down from 5</div>
+      </div>
+    </div>
+
+    <div class="adapt">
+      <i class="fas fa-wand-magic-sparkles"></i>
+      <div class="adapt-t">Rounds got one block longer.<br><span>Your last four rounds were clean, so Pip's walk grew a little.</span></div>
+    </div>
+  </div>
+
+  <div class="tray">
+    <div class="tray-l">Drag a block into the next open slot</div>
+    <div class="blocks">
+      <div class="blk"><i class="fas fa-arrow-right"></i>Move</div>
+      <div class="blk next"><i class="fas fa-arrow-turn-up" style="transform:rotate(90deg)"></i>Turn</div>
+      <div class="blk"><i class="fas fa-clock"></i>Wait</div>
+      <div class="blk"><i class="fas fa-hand"></i>Pick up</div>
+      <div class="blk"><i class="fas fa-hand-back-fist"></i>Put down</div>
+    </div>
+  </div>
+</body>
+</html>

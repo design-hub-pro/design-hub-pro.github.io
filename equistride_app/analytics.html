@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EquiStride - Analytics</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif; background: #F8F7F4; width: 100%; height: 100%; overflow-x: hidden; }
+
+  .status-bar {
+    height: 59px; display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 28px 8px; background: #F8F7F4; position: sticky; top: 0; z-index: 100;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .status-bar .icons i { font-size: 13px; }
+  .dynamic-island { width: 120px; height: 34px; background: #000; border-radius: 20px; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); }
+
+  .content { padding: 0 28px 120px; }
+
+  .page-title { font-size: 28px; font-weight: 800; color: #1A1A1A; margin-bottom: 4px; }
+  .page-subtitle { font-size: 13px; color: #8E8E93; margin-bottom: 20px; }
+
+  /* Period Selector */
+  .period-selector { display: flex; gap: 8px; margin-bottom: 24px; }
+  .period-btn {
+    padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 600;
+    border: none; background: #fff; color: #8E8E93; cursor: pointer;
+  }
+  .period-btn.active { background: #4A7C23; color: #fff; }
+
+  /* Performance Chart Card */
+  .chart-card {
+    background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .chart-header h3 { font-size: 17px; font-weight: 700; color: #1A1A1A; }
+  .chart-trend { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: #34C759; }
+
+  /* SVG Chart */
+  .chart-area { width: 100%; height: 160px; position: relative; }
+  .chart-area svg { width: 100%; height: 100%; }
+
+  /* Stat Cards */
+  .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+  .stat-card {
+    background: #fff; border-radius: 18px; padding: 18px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .stat-card .stat-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+  .stat-card .stat-value { font-size: 28px; font-weight: 800; color: #1A1A1A; }
+  .stat-card .stat-label { font-size: 12px; color: #8E8E93; font-weight: 500; }
+  .stat-card .stat-change { font-size: 11px; font-weight: 600; margin-top: 4px; }
+  .change-up { color: #34C759; }
+  .change-down { color: #FF3B30; }
+
+  /* Gait Analysis */
+  .section-title { font-size: 20px; font-weight: 700; color: #1A1A1A; margin-bottom: 14px; }
+  .gait-card {
+    background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .gait-bars { display: flex; flex-direction: column; gap: 14px; }
+  .gait-item { }
+  .gait-label { display: flex; justify-content: space-between; margin-bottom: 6px; }
+  .gait-label span:first-child { font-size: 14px; font-weight: 600; color: #1A1A1A; }
+  .gait-label span:last-child { font-size: 14px; font-weight: 700; color: #4A7C23; }
+  .gait-bar { height: 10px; background: #F0F0F0; border-radius: 5px; overflow: hidden; }
+  .gait-fill { height: 100%; border-radius: 5px; }
+  .fill-green { background: linear-gradient(90deg, #4A7C23, #6BA832); }
+  .fill-blue { background: linear-gradient(90deg, #0066CC, #3399FF); }
+  .fill-orange { background: linear-gradient(90deg, #E67E22, #F39C12); }
+  .fill-purple { background: linear-gradient(90deg, #8E24AA, #AB47BC); }
+
+  /* Stride Pattern */
+  .stride-visual {
+    background: linear-gradient(145deg, #1A1A2E, #2D3250);
+    border-radius: 20px; padding: 20px; margin-bottom: 16px;
+  }
+  .stride-visual h3 { color: #fff; font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+  .stride-visual p { color: rgba(255,255,255,0.5); font-size: 12px; margin-bottom: 16px; }
+  .stride-legs { display: flex; justify-content: space-around; margin-bottom: 12px; }
+  .leg-item { text-align: center; }
+  .leg-circle { width: 48px; height: 48px; border-radius: 50%; border: 3px solid; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; }
+  .leg-circle span { font-size: 14px; font-weight: 800; color: #fff; }
+  .leg-label { font-size: 10px; color: rgba(255,255,255,0.6); font-weight: 500; }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px;
+    border-top: 0.5px solid rgba(0,0,0,0.08);
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .tab-item i { font-size: 22px; color: #8E8E93; }
+  .tab-item span { font-size: 10px; font-weight: 500; color: #8E8E93; }
+  .tab-item.active i { color: #4A7C23; }
+  .tab-item.active span { color: #4A7C23; font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-title">Analytics</div>
+    <div class="page-subtitle">Thunder • Last 7 days</div>
+
+    <div class="period-selector">
+      <button class="period-btn">Day</button>
+      <button class="period-btn active">Week</button>
+      <button class="period-btn">Month</button>
+      <button class="period-btn">Year</button>
+    </div>
+
+    <!-- Performance Chart -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Performance Score</h3>
+        <div class="chart-trend"><i class="fas fa-arrow-up"></i> +8.3%</div>
+      </div>
+      <div class="chart-area">
+        <svg viewBox="0 0 360 140" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:#4A7C23;stop-opacity:0.3"/>
+              <stop offset="100%" style="stop-color:#4A7C23;stop-opacity:0"/>
+            </linearGradient>
+          </defs>
+          <path d="M0,100 C40,85 80,90 120,60 C160,30 200,45 240,35 C280,25 320,20 360,10 L360,140 L0,140 Z" fill="url(#grad)"/>
+          <path d="M0,100 C40,85 80,90 120,60 C160,30 200,45 240,35 C280,25 320,20 360,10" fill="none" stroke="#4A7C23" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="360" cy="10" r="5" fill="#4A7C23"/>
+          <circle cx="360" cy="10" r="9" fill="#4A7C23" opacity="0.2"/>
+          <!-- X labels -->
+          <text x="0" y="138" fill="#8E8E93" font-size="10" font-family="Inter">Mon</text>
+          <text x="55" y="138" fill="#8E8E93" font-size="10" font-family="Inter">Tue</text>
+          <text x="110" y="138" fill="#8E8E93" font-size="10" font-family="Inter">Wed</text>
+          <text x="170" y="138" fill="#8E8E93" font-size="10" font-family="Inter">Thu</text>
+          <text x="225" y="138" fill="#8E8E93" font-size="10" font-family="Inter">Fri</text>
+          <text x="285" y="138" fill="#8E8E93" font-size="10" font-family="Inter">Sat</text>
+          <text x="340" y="138" fill="#8E8E93" font-size="10" font-family="Inter">Sun</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Stat Grid -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #E8F5E0, #D1EABD);">
+          <i class="fas fa-road" style="color: #4A7C23; font-size: 14px;"></i>
+        </div>
+        <div class="stat-value">27.4</div>
+        <div class="stat-label">Total Distance (km)</div>
+        <div class="stat-change change-up">↑ 12% vs last week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #FFF3E0, #FFE0B2);">
+          <i class="fas fa-stopwatch" style="color: #E67E22; font-size: 14px;"></i>
+        </div>
+        <div class="stat-value">4.2</div>
+        <div class="stat-label">Avg Session (hrs)</div>
+        <div class="stat-change change-up">↑ 5% vs last week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #E3F0FF, #C8DFFF);">
+          <i class="fas fa-heart" style="color: #0066CC; font-size: 14px;"></i>
+        </div>
+        <div class="stat-value">138</div>
+        <div class="stat-label">Avg Heart Rate</div>
+        <div class="stat-change change-down">↓ 3% vs last week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #F3E5F5, #E1BEE7);">
+          <i class="fas fa-fire" style="color: #8E24AA; font-size: 14px;"></i>
+        </div>
+        <div class="stat-value">8,420</div>
+        <div class="stat-label">Calories Burned</div>
+        <div class="stat-change change-up">↑ 18% vs last week</div>
+      </div>
+    </div>
+
+    <!-- Gait Analysis -->
+    <h3 class="section-title">Gait Distribution</h3>
+    <div class="gait-card">
+      <div class="gait-bars">
+        <div class="gait-item">
+          <div class="gait-label"><span>Walk</span><span>38%</span></div>
+          <div class="gait-bar"><div class="gait-fill fill-green" style="width: 38%;"></div></div>
+        </div>
+        <div class="gait-item">
+          <div class="gait-label"><span>Trot</span><span>32%</span></div>
+          <div class="gait-bar"><div class="gait-fill fill-blue" style="width: 32%;"></div></div>
+        </div>
+        <div class="gait-item">
+          <div class="gait-label"><span>Canter</span><span>22%</span></div>
+          <div class="gait-bar"><div class="gait-fill fill-orange" style="width: 22%;"></div></div>
+        </div>
+        <div class="gait-item">
+          <div class="gait-label"><span>Gallop</span><span>8%</span></div>
+          <div class="gait-bar"><div class="gait-fill fill-purple" style="width: 8%;"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stride Pattern -->
+    <div class="stride-visual">
+      <h3>Stride Symmetry</h3>
+      <p>All four legs within normal range</p>
+      <div class="stride-legs">
+        <div class="leg-item">
+          <div class="leg-circle" style="border-color: #34C759;"><span>96</span></div>
+          <div class="leg-label">Front L</div>
+        </div>
+        <div class="leg-item">
+          <div class="leg-circle" style="border-color: #34C759;"><span>98</span></div>
+          <div class="leg-label">Front R</div>
+        </div>
+        <div class="leg-item">
+          <div class="leg-circle" style="border-color: #FFCC00;"><span>91</span></div>
+          <div class="leg-label">Hind L</div>
+        </div>
+        <div class="leg-item">
+          <div class="leg-circle" style="border-color: #34C759;"><span>95</span></div>
+          <div class="leg-label">Hind R</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house"></i>
+      <span>Home</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-chart-bar"></i>
+      <span>Analytics</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-plus-circle" style="font-size: 28px;"></i>
+      <span>Track</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-horse-head"></i>
+      <span>Horses</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </div>
+</body>
+</html>

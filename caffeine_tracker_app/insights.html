@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CaffeineIQ - Insights</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body {
+    scrollbar-width: none;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #F8F6F3;
+    width: 100%; height: 100%;
+    overflow-x: hidden; overflow-y: auto;
+  }
+
+  .status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 28px 0 28px; height: 59px; background: #F8F6F3;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 600; }
+  .status-bar .dynamic-island {
+    width: 120px; height: 34px; background: #000; border-radius: 20px;
+    position: absolute; left: 50%; transform: translateX(-50%); top: 10px;
+  }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+  .battery {
+    width: 27px; height: 12px; border: 1.5px solid #000; border-radius: 3px;
+    position: relative; display: flex; align-items: center; padding: 1.5px;
+  }
+  .battery::after {
+    content: ''; position: absolute; right: -4px; width: 2px; height: 6px;
+    background: #000; border-radius: 0 1px 1px 0;
+  }
+  .battery-fill { width: 75%; height: 100%; background: #000; border-radius: 1.5px; }
+
+  .content { padding: 0 28px 120px 28px; }
+
+  .page-title {
+    font-size: 28px; font-weight: 700; color: #1A1A1A;
+    letter-spacing: -0.5px; margin: 16px 0 6px 0;
+  }
+  .page-sub { font-size: 13px; color: #8A8A8A; margin-bottom: 20px; }
+
+  .section-title {
+    font-size: 18px; font-weight: 700; color: #1A1A1A;
+    margin-bottom: 14px; letter-spacing: -0.3px;
+  }
+
+  /* AI Insight Card */
+  .ai-card {
+    background: linear-gradient(145deg, #0F172A, #1E293B);
+    border-radius: 24px; padding: 24px; margin-bottom: 20px;
+    position: relative; overflow: hidden;
+  }
+  .ai-card::before {
+    content: ''; position: absolute; top: -40%; right: -20%;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(96,165,250,0.2) 0%, transparent 70%);
+  }
+  .ai-card::after {
+    content: ''; position: absolute; bottom: -30%; left: -15%;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, rgba(196,122,32,0.15) 0%, transparent 70%);
+  }
+  .ai-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    position: relative; z-index: 1;
+  }
+  .ai-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, #60A5FA, #3B82F6);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 16px;
+  }
+  .ai-label {
+    font-size: 14px; font-weight: 600; color: #fff;
+  }
+  .ai-badge {
+    margin-left: auto; padding: 4px 10px; border-radius: 8px;
+    background: rgba(96,165,250,0.2); font-size: 11px;
+    font-weight: 600; color: #60A5FA;
+  }
+  .ai-text {
+    font-size: 15px; font-weight: 500; color: rgba(255,255,255,0.85);
+    line-height: 1.6; position: relative; z-index: 1; margin-bottom: 16px;
+  }
+  .ai-actions {
+    display: flex; gap: 10px; position: relative; z-index: 1;
+  }
+  .ai-action {
+    padding: 10px 18px; border-radius: 12px; font-size: 13px;
+    font-weight: 600; border: none; cursor: pointer; font-family: inherit;
+  }
+  .ai-action.primary {
+    background: linear-gradient(135deg, #C47A20, #E8A94A); color: #fff;
+  }
+  .ai-action.secondary {
+    background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);
+  }
+
+  /* Weekly Trend */
+  .trend-card {
+    background: #fff; border-radius: 22px; padding: 22px;
+    margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .trend-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 18px;
+  }
+  .trend-title { font-size: 15px; font-weight: 600; color: #1A1A1A; }
+  .trend-period { font-size: 12px; color: #999; font-weight: 500; }
+  .trend-chart {
+    display: flex; align-items: flex-end; gap: 8px; height: 100px;
+    margin-bottom: 10px;
+  }
+  .trend-bar-group {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .trend-bar-stack {
+    width: 100%; display: flex; flex-direction: column; gap: 2px;
+    align-items: center;
+  }
+  .trend-bar {
+    width: 24px; border-radius: 6px; min-height: 4px;
+  }
+  .trend-bar.caffeine { background: linear-gradient(180deg, #E8A94A, #C47A20); }
+  .trend-bar.focus { background: linear-gradient(180deg, #60A5FA, #3B7DD8); }
+  .trend-day {
+    font-size: 11px; color: #999; font-weight: 500;
+  }
+  .trend-day.active { color: #C47A20; font-weight: 600; }
+
+  /* Correlation Cards */
+  .correlation-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin-bottom: 24px;
+  }
+  .corr-card {
+    background: #fff; border-radius: 20px; padding: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .corr-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; margin-bottom: 12px;
+  }
+  .corr-icon.sleep-c { background: #EDE3F8; color: #7B5DB8; }
+  .corr-icon.focus-c { background: #E3EEFC; color: #3B7DD8; }
+  .corr-icon.mood-c { background: #FFF3E6; color: #C47A20; }
+  .corr-icon.energy-c { background: #E8F5EC; color: #2D8F4E; }
+  .corr-value {
+    font-size: 24px; font-weight: 700; color: #1A1A1A;
+    margin-bottom: 2px;
+  }
+  .corr-label {
+    font-size: 12px; color: #999; font-weight: 500;
+  }
+  .corr-trend {
+    display: flex; align-items: center; gap: 4px; margin-top: 8px;
+    font-size: 12px; font-weight: 600;
+  }
+  .corr-trend.up { color: #2D8F4E; }
+  .corr-trend.down { color: #D44; }
+
+  /* Pattern Discovery */
+  .pattern-card {
+    background: #fff; border-radius: 22px; padding: 22px;
+    margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .pattern-item {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 14px 0; border-bottom: 1px solid #F2F0ED;
+  }
+  .pattern-item:last-child { border-bottom: none; }
+  .pattern-num {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: #F0EDE8; display: flex; align-items: center;
+    justify-content: center; font-size: 13px; font-weight: 700;
+    color: #8A8A8A; flex-shrink: 0;
+  }
+  .pattern-text {
+    font-size: 14px; color: #1A1A1A; line-height: 1.5;
+    font-weight: 500;
+  }
+  .pattern-text strong {
+    color: #C47A20; font-weight: 700;
+  }
+  .pattern-confidence {
+    display: flex; align-items: center; gap: 6px; margin-top: 6px;
+    font-size: 11px; color: #999;
+  }
+  .confidence-bar {
+    width: 60px; height: 4px; background: #F0EDE8; border-radius: 2px;
+    overflow: hidden;
+  }
+  .confidence-fill {
+    height: 100%; border-radius: 2px;
+    background: linear-gradient(90deg, #C47A20, #E8A94A);
+  }
+
+  /* Optimal Schedule */
+  .schedule-rec {
+    background: linear-gradient(135deg, #F0FDF4, #DCFCE7);
+    border-radius: 22px; padding: 22px; margin-bottom: 24px;
+    border: 1px solid rgba(45,143,78,0.15);
+  }
+  .schedule-rec-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+  }
+  .schedule-rec-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: #2D8F4E; display: flex; align-items: center;
+    justify-content: center; color: #fff; font-size: 16px;
+  }
+  .schedule-rec-title {
+    font-size: 15px; font-weight: 600; color: #166534;
+  }
+  .rec-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0;
+  }
+  .rec-time {
+    font-size: 15px; font-weight: 700; color: #166534;
+    width: 72px;
+  }
+  .rec-text {
+    font-size: 13px; color: #15803D; font-weight: 500;
+  }
+  .rec-divider {
+    height: 1px; background: rgba(45,143,78,0.12); margin: 2px 0;
+  }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 90px;
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: flex-start;
+    padding-top: 12px; border-top: 0.5px solid rgba(0,0,0,0.06);
+  }
+  .tab-item {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 4px; font-size: 10px; font-weight: 500; color: #999;
+  }
+  .tab-item.active { color: #C47A20; }
+  .tab-item i { font-size: 22px; }
+  .tab-item .tab-dot { width: 4px; height: 4px; border-radius: 50%; background: #C47A20; }
+  .home-indicator {
+    width: 134px; height: 5px; background: #1A1A1A; border-radius: 3px;
+    position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  }
+</style>
+</head>
+<body>
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-title">Insights</div>
+    <div class="page-sub">AI-powered personal analysis</div>
+
+    <!-- AI Insight Card -->
+    <div class="ai-card">
+      <div class="ai-header">
+        <div class="ai-icon"><i class="fas fa-sparkles"></i></div>
+        <div class="ai-label">Personal AI Insight</div>
+        <div class="ai-badge">New</div>
+      </div>
+      <div class="ai-text">
+        Your focus scores are <strong>34% higher</strong> when you have coffee before 9 AM compared to after 10 AM. Try shifting your first cup 30 minutes earlier this week.
+      </div>
+      <div class="ai-actions">
+        <button class="ai-action primary">Try This</button>
+        <button class="ai-action secondary">Dismiss</button>
+      </div>
+    </div>
+
+    <!-- Correlation Cards -->
+    <div class="section-title">Your Numbers</div>
+    <div class="correlation-grid">
+      <div class="corr-card">
+        <div class="corr-icon sleep-c"><i class="fas fa-moon"></i></div>
+        <div class="corr-value">7.4h</div>
+        <div class="corr-label">Avg Sleep</div>
+        <div class="corr-trend up"><i class="fas fa-arrow-up"></i> +12%</div>
+      </div>
+      <div class="corr-card">
+        <div class="corr-icon focus-c"><i class="fas fa-brain"></i></div>
+        <div class="corr-value">78</div>
+        <div class="corr-label">Focus Score</div>
+        <div class="corr-trend up"><i class="fas fa-arrow-up"></i> +8%</div>
+      </div>
+      <div class="corr-card">
+        <div class="corr-icon mood-c"><i class="fas fa-mug-hot"></i></div>
+        <div class="corr-value">285</div>
+        <div class="corr-label">Avg Caffeine (mg)</div>
+        <div class="corr-trend down"><i class="fas fa-arrow-down"></i> -5%</div>
+      </div>
+      <div class="corr-card">
+        <div class="corr-icon energy-c"><i class="fas fa-bolt"></i></div>
+        <div class="corr-value">3.2</div>
+        <div class="corr-label">Drinks/Day</div>
+        <div class="corr-trend down"><i class="fas fa-arrow-down"></i> -0.5</div>
+      </div>
+    </div>
+
+    <!-- Weekly Trend -->
+    <div class="section-title">Weekly Trend</div>
+    <div class="trend-card">
+      <div class="trend-header">
+        <div class="trend-title">Caffeine vs Focus</div>
+        <div class="trend-period">This Week</div>
+      </div>
+      <div class="trend-chart">
+        <div class="trend-bar-group">
+          <div class="trend-bar-stack">
+            <div class="trend-bar caffeine" style="height:55px;"></div>
+            <div class="trend-bar focus" style="height:40px;"></div>
+          </div>
+          <div class="trend-day">M</div>
+        </div>
+        <div class="trend-bar-group">
+          <div class="trend-bar-stack">
+            <div class="trend-bar caffeine" style="height:70px;"></div>
+            <div class="trend-bar focus" style="height:30px;"></div>
+          </div>
+          <div class="trend-day">T</div>
+        </div>
+        <div class="trend-bar-group">
+          <div class="trend-bar-stack">
+            <div class="trend-bar caffeine" style="height:45px;"></div>
+            <div class="trend-bar focus" style="height:55px;"></div>
+          </div>
+          <div class="trend-day">W</div>
+        </div>
+        <div class="trend-bar-group">
+          <div class="trend-bar-stack">
+            <div class="trend-bar caffeine" style="height:60px;"></div>
+            <div class="trend-bar focus" style="height:45px;"></div>
+          </div>
+          <div class="trend-day">T</div>
+        </div>
+        <div class="trend-bar-group">
+          <div class="trend-bar-stack">
+            <div class="trend-bar caffeine" style="height:50px;"></div>
+            <div class="trend-bar focus" style="height:60px;"></div>
+          </div>
+          <div class="trend-day active">F</div>
+        </div>
+        <div class="trend-bar-group">
+          <div class="trend-bar-stack">
+            <div class="trend-bar caffeine" style="height:30px;"></div>
+            <div class="trend-bar focus" style="height:35px;"></div>
+          </div>
+          <div class="trend-day">S</div>
+        </div>
+        <div class="trend-bar-group">
+          <div class="trend-bar-stack">
+            <div class="trend-bar caffeine" style="height:25px;"></div>
+            <div class="trend-bar focus" style="height:20px;"></div>
+          </div>
+          <div class="trend-day">S</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;">
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#999;">
+          <div style="width:10px;height:10px;border-radius:3px;background:#E8A94A;"></div> Caffeine
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#999;">
+          <div style="width:10px;height:10px;border-radius:3px;background:#3B7DD8;"></div> Focus
+        </div>
+      </div>
+    </div>
+
+    <!-- Pattern Discovery -->
+    <div class="section-title">Discovered Patterns</div>
+    <div class="pattern-card">
+      <div class="pattern-item">
+        <div class="pattern-num">1</div>
+        <div>
+          <div class="pattern-text">Coffee before <strong>9 AM</strong> correlates with <strong>+34%</strong> better focus during morning study sessions</div>
+          <div class="pattern-confidence">
+            <div class="confidence-bar"><div class="confidence-fill" style="width:92%;"></div></div>
+            92% confidence
+          </div>
+        </div>
+      </div>
+      <div class="pattern-item">
+        <div class="pattern-num">2</div>
+        <div>
+          <div class="pattern-text">Caffeine after <strong>3 PM</strong> reduces deep sleep by <strong>23%</strong> on average</div>
+          <div class="pattern-confidence">
+            <div class="confidence-bar"><div class="confidence-fill" style="width:88%;"></div></div>
+            88% confidence
+          </div>
+        </div>
+      </div>
+      <div class="pattern-item">
+        <div class="pattern-num">3</div>
+        <div>
+          <div class="pattern-text">Days with <strong>&lt;200mg</strong> total show <strong>18%</strong> better sleep quality scores</div>
+          <div class="pattern-confidence">
+            <div class="confidence-bar"><div class="confidence-fill" style="width:79%;"></div></div>
+            79% confidence
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Optimal Schedule -->
+    <div class="section-title">Recommended Schedule</div>
+    <div class="schedule-rec">
+      <div class="schedule-rec-header">
+        <div class="schedule-rec-icon"><i class="fas fa-clock"></i></div>
+        <div class="schedule-rec-title">Your Optimal Caffeine Windows</div>
+      </div>
+      <div class="rec-item">
+        <div class="rec-time">7-9 AM</div>
+        <div class="rec-text">Best window for first coffee</div>
+      </div>
+      <div class="rec-divider"></div>
+      <div class="rec-item">
+        <div class="rec-time">11-1 PM</div>
+        <div class="rec-text">Secondary boost if needed</div>
+      </div>
+      <div class="rec-divider"></div>
+      <div class="rec-item">
+        <div class="rec-time">After 2 PM</div>
+        <div class="rec-text">Switch to decaf or tea only</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house"></i><span>Home</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-search"></i><span>Search</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-chart-line"></i><span>Activity</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-lightbulb"></i><span>Insights</span>
+      <div class="tab-dot"></div>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i><span>Profile</span>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

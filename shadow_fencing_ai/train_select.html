@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shadow Fencing AI - Training Select</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { width: 100%; height: 100%; scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif; background: #0a0a1a; color: white; overflow-x: hidden; }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; z-index: 100; background: rgba(10,10,26,0.95); backdrop-filter: blur(20px);
+  }
+  .status-time { font-size: 16px; font-weight: 600; }
+  .dynamic-island { width: 120px; height: 36px; background: #000; border-radius: 20px; position: absolute; left: 50%; transform: translateX(-50%); top: 10px; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons i { font-size: 14px; }
+
+  .content { padding: 0 28px 120px; }
+  .page-title { font-size: 28px; font-weight: 800; padding: 16px 0 8px; letter-spacing: -0.5px; }
+  .page-subtitle { font-size: 14px; color: rgba(255,255,255,0.4); margin-bottom: 28px; }
+
+  /* Mode cards - large visual cards */
+  .mode-card {
+    width: 100%; border-radius: 24px; overflow: hidden; margin-bottom: 18px;
+    position: relative; height: 200px;
+  }
+  .mode-bg {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .mode-overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; justify-content: flex-end; padding: 24px;
+  }
+  .mode-overlay.reaction {
+    background: linear-gradient(180deg, rgba(255,59,48,0.05) 0%, rgba(255,59,48,0.3) 50%, rgba(10,10,26,0.95) 100%);
+  }
+  .mode-overlay.mimic {
+    background: linear-gradient(180deg, rgba(0,212,255,0.05) 0%, rgba(0,212,255,0.25) 50%, rgba(10,10,26,0.95) 100%);
+  }
+  .mode-overlay.distance {
+    background: linear-gradient(180deg, rgba(139,92,246,0.05) 0%, rgba(139,92,246,0.25) 50%, rgba(10,10,26,0.95) 100%);
+  }
+
+  .mode-badge-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .mode-badge {
+    padding: 5px 12px; border-radius: 14px; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .mode-badge.difficulty { background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
+  .mode-badge.time { background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
+
+  .mode-title { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+  .mode-desc { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.4; }
+
+  .mode-icon-float {
+    position: absolute; top: 20px; right: 20px;
+    width: 52px; height: 52px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; backdrop-filter: blur(10px);
+  }
+  .mode-icon-float.reaction { background: rgba(255,59,48,0.2); color: #ff6b4a; border: 1px solid rgba(255,59,48,0.3); }
+  .mode-icon-float.mimic { background: rgba(0,212,255,0.2); color: #00d4ff; border: 1px solid rgba(0,212,255,0.3); }
+  .mode-icon-float.distance { background: rgba(139,92,246,0.2); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
+
+  .mode-play {
+    position: absolute; bottom: 20px; right: 20px;
+    width: 48px; height: 48px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mode-play.reaction { background: linear-gradient(135deg, #ff3b30, #ff9500); box-shadow: 0 4px 20px rgba(255,59,48,0.3); }
+  .mode-play.mimic { background: linear-gradient(135deg, #00d4ff, #58a6ff); box-shadow: 0 4px 20px rgba(0,212,255,0.3); }
+  .mode-play.distance { background: linear-gradient(135deg, #8b5cf6, #a855f7); box-shadow: 0 4px 20px rgba(139,92,246,0.3); }
+  .mode-play i { font-size: 18px; margin-left: 2px; }
+
+  /* Free Practice */
+  .free-card {
+    background: rgba(255,255,255,0.04); border-radius: 20px; padding: 22px;
+    border: 1px dashed rgba(255,255,255,0.1);
+    display: flex; align-items: center; gap: 16px;
+  }
+  .free-icon {
+    width: 52px; height: 52px; border-radius: 16px;
+    background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: rgba(255,255,255,0.4); flex-shrink: 0;
+  }
+  .free-info { flex: 1; }
+  .free-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .free-desc { font-size: 12px; color: rgba(255,255,255,0.35); }
+  .free-arrow { color: rgba(255,255,255,0.15); font-size: 14px; }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(10,10,26,0.95); backdrop-filter: blur(30px);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; justify-content: space-around; align-items: flex-start; padding-top: 12px;
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; opacity: 0.4; }
+  .tab-item.active { opacity: 1; }
+  .tab-item i { font-size: 22px; }
+  .tab-item.active i { background: linear-gradient(135deg, #00d4ff, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .tab-label { font-size: 10px; font-weight: 600; }
+  .tab-item.active .tab-label { background: linear-gradient(135deg, #00d4ff, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+</style>
+</head>
+<body>
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <i class="fas fa-signal"></i>
+      <i class="fas fa-wifi"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-title">Training</div>
+    <div class="page-subtitle">Choose your training mode</div>
+
+    <!-- Reaction Strike -->
+    <div class="mode-card">
+      <img class="mode-bg" src="https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=400&fit=crop&crop=center" alt="Fencing">
+      <div class="mode-overlay reaction">
+        <div class="mode-badge-row">
+          <span class="mode-badge difficulty"><i class="fas fa-signal" style="font-size:8px; margin-right:4px;"></i> Medium</span>
+          <span class="mode-badge time"><i class="fas fa-clock" style="font-size:8px; margin-right:4px;"></i> 2 min</span>
+        </div>
+        <div class="mode-title">Reaction Strike</div>
+        <div class="mode-desc">Hit targets as they appear on screen</div>
+      </div>
+      <div class="mode-icon-float reaction"><i class="fas fa-crosshairs"></i></div>
+      <div class="mode-play reaction"><i class="fas fa-play"></i></div>
+    </div>
+
+    <!-- Motion Mimic -->
+    <div class="mode-card">
+      <img class="mode-bg" src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&h=400&fit=crop" alt="Training">
+      <div class="mode-overlay mimic">
+        <div class="mode-badge-row">
+          <span class="mode-badge difficulty"><i class="fas fa-signal" style="font-size:8px; margin-right:4px;"></i> Hard</span>
+          <span class="mode-badge time"><i class="fas fa-clock" style="font-size:8px; margin-right:4px;"></i> 5 min</span>
+        </div>
+        <div class="mode-title">Motion Mimic</div>
+        <div class="mode-desc">Follow and replicate standard parry moves</div>
+      </div>
+      <div class="mode-icon-float mimic"><i class="fas fa-person-walking"></i></div>
+      <div class="mode-play mimic"><i class="fas fa-play"></i></div>
+    </div>
+
+    <!-- Distance Control -->
+    <div class="mode-card">
+      <img class="mode-bg" src="https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=800&h=400&fit=crop" alt="Distance">
+      <div class="mode-overlay distance">
+        <div class="mode-badge-row">
+          <span class="mode-badge difficulty"><i class="fas fa-signal" style="font-size:8px; margin-right:4px;"></i> Easy</span>
+          <span class="mode-badge time"><i class="fas fa-clock" style="font-size:8px; margin-right:4px;"></i> 3 min</span>
+        </div>
+        <div class="mode-title">Distance Control</div>
+        <div class="mode-desc">Master fencing distance and footwork</div>
+      </div>
+      <div class="mode-icon-float distance"><i class="fas fa-arrows-left-right"></i></div>
+      <div class="mode-play distance"><i class="fas fa-play"></i></div>
+    </div>
+
+    <!-- Free Practice -->
+    <div class="free-card">
+      <div class="free-icon"><i class="fas fa-dumbbell"></i></div>
+      <div class="free-info">
+        <div class="free-title">Free Practice</div>
+        <div class="free-desc">Open session, no time limit</div>
+      </div>
+      <i class="fas fa-chevron-right free-arrow"></i>
+    </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item">
+      <i class="fas fa-house"></i>
+      <span class="tab-label">Home</span>
+    </div>
+    <div class="tab-item active">
+      <i class="fas fa-crosshairs"></i>
+      <span class="tab-label">Train</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-chart-line"></i>
+      <span class="tab-label">Stats</span>
+    </div>
+    <div class="tab-item">
+      <i class="fas fa-user"></i>
+      <span class="tab-label">Profile</span>
+    </div>
+  </div>
+</body>
+</html>

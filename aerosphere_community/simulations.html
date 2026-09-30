@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AstroSphere - Simulation Lab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .display { font-family: 'Space Grotesk', sans-serif; }
+        .mono { font-family: 'Space Grotesk', ui-monospace, monospace; }
+        .starfield { background-image: radial-gradient(1px 1px at 20px 30px, rgba(255,255,255,0.6), transparent), radial-gradient(1px 1px at 90px 70px, rgba(255,255,255,0.5), transparent), radial-gradient(1.5px 1.5px at 160px 40px, rgba(255,255,255,0.7), transparent), radial-gradient(1px 1px at 230px 100px, rgba(255,255,255,0.4), transparent); background-size: 300px 130px; }
+        input[type=range] { -webkit-appearance: none; height: 6px; border-radius: 9999px; background: #e5e7eb; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #7c3aed; cursor: pointer; box-shadow: 0 1px 4px rgba(124,58,237,0.5); }
+        input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border: none; border-radius: 50%; background: #7c3aed; cursor: pointer; }
+        .sim-pick.active { border-color: #7c3aed; background: linear-gradient(135deg, #faf5ff, #f5f3ff); box-shadow: 0 8px 20px rgba(124,58,237,0.12); }
+        .sim-pick.active .pick-icon { background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-gradient-to-br from-indigo-600 to-violet-500 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-meteor text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-bold text-gray-900 display">AstroSphere</span>
+                        <span class="text-[10px] text-indigo-600 font-semibold uppercase tracking-wider ml-1.5">astrophysics</span>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="home.html" class="text-gray-500 hover:text-gray-900 text-sm font-medium">Hub</a>
+                    <a href="explore.html" class="text-gray-500 hover:text-gray-900 text-sm font-medium">Research Projects</a>
+                    <a href="buildathons.html" class="text-gray-500 hover:text-gray-900 text-sm font-medium">Observe-a-thons</a>
+                    <a href="simulations.html" class="text-indigo-600 font-semibold text-sm">Simulations</a>
+                    <a href="stories.html" class="text-gray-500 hover:text-gray-900 text-sm font-medium">Discoveries</a>
+                    <a href="videos.html" class="text-gray-500 hover:text-gray-900 text-sm font-medium">Videos</a>
+                    <a href="academy.html" class="text-gray-500 hover:text-gray-900 text-sm font-medium">Academy</a>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="relative"><i class="fas fa-bell text-gray-400 text-lg"></i></button>
+                    <div class="w-8 h-8 rounded-full overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=80&h=80&fit=crop" alt="Avatar" class="w-full h-full object-cover">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-cyan-700 via-indigo-800 to-violet-800 text-white relative overflow-hidden">
+        <div class="absolute inset-0 starfield opacity-50"></div>
+        <div class="absolute inset-0 opacity-15">
+            <div class="absolute top-0 right-0 w-80 h-80 bg-cyan-300 rounded-full blur-3xl"></div>
+        </div>
+        <div class="max-w-7xl mx-auto px-6 py-12 relative">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 mb-4 border border-white/20">
+                        <i class="fas fa-flask-vial text-cyan-100"></i>
+                        <span class="text-xs font-semibold">Live Physics · Runs in Your Browser · No Install</span>
+                    </div>
+                    <h1 class="text-3xl md:text-4xl font-extrabold mb-2 display">Simulation Lab</h1>
+                    <p class="text-white/90 text-lg max-w-2xl">Run the classic problems of astrophysics yourself. Drag the sliders, watch Newton's gravity play out in real time, and see why a planet's orbit, a starlight dip, and three dancing suns behave the way they do.</p>
+                </div>
+                <div class="hidden md:flex items-center gap-4">
+                    <div class="bg-white/15 backdrop-blur-sm rounded-2xl px-5 py-3 text-center border border-white/20">
+                        <div class="text-2xl font-bold display">3</div>
+                        <div class="text-[10px] text-white/80 uppercase">Problems</div>
+                    </div>
+                    <div class="bg-white/15 backdrop-blur-sm rounded-2xl px-5 py-3 text-center border border-white/20">
+                        <div class="text-2xl font-bold display">60</div>
+                        <div class="text-[10px] text-white/80 uppercase">FPS Integrator</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Problem picker -->
+        <div class="grid md:grid-cols-3 gap-4 mb-8">
+            <button data-sim="orbit" class="sim-pick active text-left bg-white rounded-2xl border-2 border-gray-200 p-5 transition">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="pick-icon w-10 h-10 rounded-xl bg-gray-100 text-gray-500 flex items-center justify-center"><i class="fas fa-circle-notch"></i></div>
+                    <div>
+                        <h3 class="font-bold text-gray-900">Two-Body Orbit</h3>
+                        <span class="text-[11px] text-gray-400 font-medium">Kepler & Newton</span>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 leading-relaxed">Launch a planet past a star and watch a circle, ellipse, or escape trajectory emerge from one inverse-square law.</p>
+            </button>
+            <button data-sim="transit" class="sim-pick text-left bg-white rounded-2xl border-2 border-gray-200 p-5 transition">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="pick-icon w-10 h-10 rounded-xl bg-gray-100 text-gray-500 flex items-center justify-center"><i class="fas fa-circle-half-stroke"></i></div>
+                    <div>
+                        <h3 class="font-bold text-gray-900">Transit Light Curve</h3>
+                        <span class="text-[11px] text-gray-400 font-medium">Exoplanet detection</span>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 leading-relaxed">Send a planet across a star's face and plot the brightness dip — the exact signal that finds real exoplanets.</p>
+            </button>
+            <button data-sim="threebody" class="sim-pick text-left bg-white rounded-2xl border-2 border-gray-200 p-5 transition">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="pick-icon w-10 h-10 rounded-xl bg-gray-100 text-gray-500 flex items-center justify-center"><i class="fas fa-circle-nodes"></i></div>
+                    <div>
+                        <h3 class="font-bold text-gray-900">Three-Body Problem</h3>
+                        <span class="text-[11px] text-gray-400 font-medium">Chaos & choreography</span>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 leading-relaxed">Three suns, mutual gravity, no closed-form solution. Try the famous figure-eight, then nudge it into chaos.</p>
+            </button>
+        </div>
+
+        <!-- Stage -->
+        <div class="grid lg:grid-cols-3 gap-6">
+            <!-- Canvas -->
+            <div class="lg:col-span-2">
+                <div class="bg-gradient-to-br from-indigo-950 to-violet-950 rounded-2xl border border-gray-800 overflow-hidden shadow-sm relative">
+                    <div class="flex items-center justify-between px-5 py-3 border-b border-white/10">
+                        <div class="flex items-center gap-2 text-white/90 text-sm font-semibold"><i id="stageIcon" class="fas fa-circle-notch text-violet-300"></i><span id="stageTitle">Two-Body Orbit</span></div>
+                        <div class="flex items-center gap-2">
+                            <button id="btnPlay" class="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-white/15 transition"><i class="fas fa-pause mr-1"></i>Pause</button>
+                            <button id="btnReset" class="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-white/15 transition"><i class="fas fa-rotate-left mr-1"></i>Reset</button>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <canvas id="stage" class="w-full block" style="height:480px;"></canvas>
+                        <div id="readout" class="absolute top-3 left-3 bg-black/40 backdrop-blur-sm rounded-lg px-3 py-2 text-[11px] text-white/90 mono leading-relaxed border border-white/10 pointer-events-none"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls + readouts -->
+            <div class="space-y-6">
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <h3 class="font-bold text-gray-900 mb-1"><i class="fas fa-sliders text-violet-500 mr-2"></i>Controls</h3>
+                    <p class="text-xs text-gray-400 mb-5">Adjust live — the simulation responds instantly.</p>
+
+                    <!-- Orbit controls -->
+                    <div data-panel="orbit" class="space-y-5">
+                        <div>
+                            <div class="flex justify-between text-xs font-medium text-gray-600 mb-1.5"><span>Launch speed (× circular)</span><span id="o_v_val" class="mono text-violet-600">1.00</span></div>
+                            <input id="o_v" type="range" min="0.30" max="1.45" step="0.01" value="1.00" class="w-full">
+                            <p class="text-[10px] text-gray-400 mt-1">1.0 = circle · &lt;1 falls inward · ≥1.41 escapes</p>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-medium text-gray-600 mb-1.5"><span>Orbit radius</span><span id="o_r_val" class="mono text-violet-600">150</span></div>
+                            <input id="o_r" type="range" min="70" max="200" step="1" value="150" class="w-full">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-medium text-gray-600 mb-1.5"><span>Star mass (× Sun)</span><span id="o_m_val" class="mono text-violet-600">1.0</span></div>
+                            <input id="o_m" type="range" min="0.4" max="2.5" step="0.1" value="1.0" class="w-full">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input id="o_trail" type="checkbox" checked class="accent-violet-600">
+                            <label for="o_trail" class="text-xs text-gray-600">Show orbit trail</label>
+                        </div>
+                    </div>
+
+                    <!-- Transit controls -->
+                    <div data-panel="transit" class="space-y-5 hidden">
+                        <div>
+                            <div class="flex justify-between text-xs font-medium text-gray-600 mb-1.5"><span>Planet size (Rₚ / R★)</span><span id="t_rp_val" class="mono text-violet-600">0.12</span></div>
+                            <input id="t_rp" type="range" min="0.03" max="0.30" step="0.005" value="0.12" class="w-full">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-medium text-gray-600 mb-1.5"><span>Impact parameter (b)</span><span id="t_b_val" class="mono text-violet-600">0.20</span></div>
+                            <input id="t_b" type="range" min="0.0" max="1.25" step="0.01" value="0.20" class="w-full">
+                            <p class="text-[10px] text-gray-400 mt-1">0 = dead-center · &gt;1 = grazing / no transit</p>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-medium text-gray-600 mb-1.5"><span>Orbital speed</span><span id="t_s_val" class="mono text-violet-600">1.0×</span></div>
+                            <input id="t_s" type="range" min="0.3" max="2.5" step="0.1" value="1.0" class="w-full">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-medium text-gray-600 mb-1.5"><span>Limb darkening</span><span id="t_ld_val" class="mono text-violet-600">0.6</span></div>
+                            <input id="t_ld" type="range" min="0.0" max="1.0" step="0.05" value="0.6" class="w-full">
+                            <p class="text-[10px] text-gray-400 mt-1">Edges of a real star look dimmer than the center.</p>
+                        </div>
+                    </div>
+
+                    <!-- Three-body controls -->
+                    <div data-panel="threebody" class="space-y-5 hidden">
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="tb_fig8" class="bg-violet-50 text-violet-700 text-xs font-semibold px-3 py-2 rounded-lg border border-violet-200 hover:bg-violet-100 transition"><i class="fas fa-infinity mr-1"></i>Figure-Eight</button>
+                            <button id="tb_rand" class="bg-amber-50 text-amber-700 text-xs font-semibold px-3 py-2 rounded-lg border border-amber-200 hover:bg-amber-100 transition"><i class="fas fa-dice mr-1"></i>Randomize</button>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-medium text-gray-600 mb-1.5"><span>Simulation speed</span><span id="tb_s_val" class="mono text-violet-600">1.0×</span></div>
+                            <input id="tb_s" type="range" min="0.2" max="3.0" step="0.1" value="1.0" class="w-full">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-medium text-gray-600 mb-1.5"><span>Trail length</span><span id="tb_t_val" class="mono text-violet-600">220</span></div>
+                            <input id="tb_t" type="range" min="0" max="600" step="10" value="220" class="w-full">
+                        </div>
+                        <p class="text-[10px] text-gray-400">The figure-eight is a real exact solution. Randomize a few times to see how quickly small changes blow up — that's deterministic chaos.</p>
+                    </div>
+                </div>
+
+                <!-- Live numbers -->
+                <div class="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl p-6 text-white">
+                    <h3 class="font-bold mb-3 text-sm"><i class="fas fa-gauge-high mr-2"></i>Live Measurements</h3>
+                    <div id="metrics" class="space-y-2 text-sm"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Explainer -->
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 mt-6">
+            <div class="flex items-center gap-2 mb-3">
+                <i class="fas fa-book-open text-indigo-500"></i>
+                <h3 class="font-bold text-gray-900">The Physics</h3>
+            </div>
+            <div id="explainer" class="text-sm text-gray-600 leading-relaxed"></div>
+            <div class="mt-4 flex items-center gap-3">
+                <a href="explore.html" class="text-indigo-600 text-sm font-semibold hover:text-indigo-800">Take this from simulation to a real observation <i class="fas fa-arrow-right ml-1"></i></a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 mt-10">
+        <div class="max-w-7xl mx-auto px-6 py-8 text-center">
+            <p class="text-gray-500 text-sm"><i class="fas fa-meteor text-indigo-600 mr-2"></i>Every simulation here is plain JavaScript — open the source and tinker. That's the whole point.</p>
+        </div>
+    </footer>
+
+    <script>
+    (function () {
+        const canvas = document.getElementById('stage');
+        const ctx = canvas.getContext('2d');
+        const readout = document.getElementById('readout');
+        const metrics = document.getElementById('metrics');
+        const explainer = document.getElementById('explainer');
+        const stageTitle = document.getElementById('stageTitle');
+        const stageIcon = document.getElementById('stageIcon');
+
+        let W = 800, H = 480;
+        function resize() {
+            W = canvas.clientWidth;
+            H = 480;
+            canvas.width = W;
+            canvas.height = H;
+        }
+
+        // ---------- helpers ----------
+        function metricRow(label, value) {
+            return '<div class="flex justify-between"><span class="text-white/70">' + label + '</span><span class="mono font-semibold">' + value + '</span></div>';
+        }
+        function lensArea(r, R, d) { // overlap area of two circles
+            if (d >= r + R) return 0;
+            if (d <= Math.abs(R - r)) return Math.PI * Math.min(r, R) * Math.min(r, R);
+            const r2 = r * r, R2 = R * R;
+            const a1 = r2 * Math.acos((d * d + r2 - R2) / (2 * d * r));
+            const a2 = R2 * Math.acos((d * d + R2 - r2) / (2 * d * R));
+            const a3 = 0.5 * Math.sqrt((-d + r + R) * (d + r - R) * (d - r + R) * (d + r + R));
+            return a1 + a2 - a3;
+        }
+
+        // ========================================================
+        // SIM 1 — TWO-BODY ORBIT
+        // ========================================================
+        const orbit = {
+            title: 'Two-Body Orbit', icon: 'fa-circle-notch',
+            p: { x: 0, y: 0, vx: 0, vy: 0 }, trail: [], t: 0, GM: 1, periodEst: 0,
+            params() {
+                return {
+                    v: parseFloat(document.getElementById('o_v').value),
+                    r: parseFloat(document.getElementById('o_r').value),
+                    m: parseFloat(document.getElementById('o_m').value),
+                    trail: document.getElementById('o_trail').checked
+                };
+            },
+            init() {
+                const pr = this.params();
+                this.GM = 42000 * pr.m;                 // gravitational parameter in pixel units
+                const cx = W / 2, cy = H / 2;
+                const vcirc = Math.sqrt(this.GM / pr.r);
+                this.p.x = cx + pr.r; this.p.y = cy;
+                this.p.vx = 0; this.p.vy = -vcirc * pr.v; // tangential launch (CCW)
+                this.trail = []; this.t = 0;
+            },
+            step() {
+                const pr = this.params();
+                const cx = W / 2, cy = H / 2;
+                const sub = 8, dt = 0.45 / sub;
+                for (let i = 0; i < sub; i++) {
+                    const dx = this.p.x - cx, dy = this.p.y - cy;
+                    let d = Math.hypot(dx, dy); if (d < 8) d = 8;
+                    const a = -this.GM / (d * d * d);
+                    this.p.vx += a * dx * dt;
+                    this.p.vy += a * dy * dt;
+                    this.p.x += this.p.vx * dt;
+                    this.p.y += this.p.vy * dt;
+                }
+                this.t++;
+                if (pr.trail) {
+                    this.trail.push({ x: this.p.x, y: this.p.y });
+                    if (this.trail.length > 1800) this.trail.shift();
+                } else { this.trail.length = 0; }
+                // recapture escaped planet so the demo never goes blank
+                if (this.p.x < -200 || this.p.x > W + 200 || this.p.y < -200 || this.p.y > H + 200) this.init();
+                this.updateMetrics();
+            },
+            updateMetrics() {
+                const cx = W / 2, cy = H / 2;
+                const dx = this.p.x - cx, dy = this.p.y - cy;
+                const d = Math.hypot(dx, dy);
+                const v = Math.hypot(this.p.vx, this.p.vy);
+                const eps = v * v / 2 - this.GM / d;          // specific orbital energy
+                const h = dx * this.p.vy - dy * this.p.vx;     // specific angular momentum
+                const e = Math.sqrt(Math.max(0, 1 + 2 * eps * h * h / (this.GM * this.GM)));
+                let kind = 'Ellipse', col = '#fbbf24';
+                if (eps >= -0.0005) { kind = e > 1.05 ? 'Hyperbola (escape)' : 'Parabola (escape)'; col = '#f472b6'; }
+                else if (e < 0.03) { kind = 'Near-circle'; col = '#a78bfa'; }
+                readout.innerHTML =
+                    'r = ' + d.toFixed(0) + ' px<br>' +
+                    'v = ' + v.toFixed(2) + ' px/step<br>' +
+                    'e = ' + e.toFixed(3);
+                metrics.innerHTML =
+                    metricRow('Trajectory', kind) +
+                    metricRow('Eccentricity e', e.toFixed(3)) +
+                    metricRow('Speed', v.toFixed(2)) +
+                    metricRow('Distance r', d.toFixed(0) + ' px');
+            },
+            draw() {
+                const cx = W / 2, cy = H / 2;
+                ctx.clearRect(0, 0, W, H);
+                drawStars();
+                // trail
+                if (this.trail.length > 1) {
+                    ctx.beginPath();
+                    for (let i = 0; i < this.trail.length; i++) {
+                        const pt = this.trail[i];
+                        if (i === 0) ctx.moveTo(pt.x, pt.y); else ctx.lineTo(pt.x, pt.y);
+                    }
+                    ctx.strokeStyle = 'rgba(167,139,250,0.55)';
+                    ctx.lineWidth = 1.5; ctx.stroke();
+                }
+                // star
+                const sg = ctx.createRadialGradient(cx, cy, 2, cx, cy, 26);
+                sg.addColorStop(0, '#fff7ed'); sg.addColorStop(0.4, '#fbbf24'); sg.addColorStop(1, 'rgba(251,146,60,0)');
+                ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(cx, cy, 26, 0, 7); ctx.fill();
+                ctx.fillStyle = '#fde68a'; ctx.beginPath(); ctx.arc(cx, cy, 9, 0, 7); ctx.fill();
+                // planet
+                ctx.fillStyle = '#c4b5fd';
+                ctx.beginPath(); ctx.arc(this.p.x, this.p.y, 6, 0, 7); ctx.fill();
+                ctx.strokeStyle = 'rgba(196,181,253,0.5)'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.arc(this.p.x, this.p.y, 10, 0, 7); ctx.stroke();
+            },
+            explain: 'A single force law — gravity pulling inward as 1/r² — produces every shape Kepler catalogued. Launch exactly at the <b>circular speed</b> and the planet traces a circle. Launch a little slower or faster and it settles into an <b>ellipse</b> with the star at one focus (Kepler\'s 1st law); watch it speed up at closest approach and slow down far away (Kepler\'s 2nd law). Push past √2 × circular speed (~1.41) and it reaches <b>escape velocity</b>, opening into a hyperbola that never returns. Nothing here is scripted — it\'s Newton\'s equations integrated 8 times per frame.'
+        };
+
+        // ========================================================
+        // SIM 2 — TRANSIT LIGHT CURVE
+        // ========================================================
+        const transit = {
+            title: 'Transit Light Curve', icon: 'fa-circle-half-stroke',
+            ang: -Math.PI, samples: [], Rs: 70,
+            params() {
+                return {
+                    rp: parseFloat(document.getElementById('t_rp').value),
+                    b: parseFloat(document.getElementById('t_b').value),
+                    s: parseFloat(document.getElementById('t_s').value),
+                    ld: parseFloat(document.getElementById('t_ld').value)
+                };
+            },
+            init() { this.ang = -Math.PI; this.samples = []; },
+            // fractional flux given projected center separation (with crude limb darkening)
+            flux(sep, Rp, ld) {
+                const Rs = this.Rs;
+                const overlap = lensArea(Rp, Rs, sep);
+                if (overlap <= 0) return 1;
+                // weight the blocked light by local brightness (limb darkening): brighter near center
+                const frac = sep / Rs;                       // 0 center .. 1 limb
+                const mu = Math.sqrt(Math.max(0, 1 - Math.min(1, frac) * Math.min(1, frac)));
+                const localBright = 1 - ld * (1 - mu);
+                const avgBright = 1 - ld / 3;                 // normalisation so disc integrates to 1
+                const blocked = (overlap / (Math.PI * Rs * Rs)) * (localBright / avgBright);
+                return Math.max(0, 1 - blocked);
+            },
+            step() {
+                const pr = this.params();
+                this.ang += 0.012 * pr.s;
+                if (this.ang > Math.PI) { this.ang -= 2 * Math.PI; this.samples = []; }
+                const Rp = pr.rp * this.Rs;
+                const A = W * 0.42;                            // projected orbit half-width
+                const px = (W / 2) + A * Math.sin(this.ang);   // sweeps across the face
+                const py = (H * 0.40) - pr.b * this.Rs;
+                const inFront = Math.cos(this.ang) > 0;
+                const sep = Math.hypot(px - W / 2, py - H * 0.40);
+                const f = inFront ? this.flux(sep, Rp, pr.ld) : 1;
+                this.samples.push(f);
+                if (this.samples.length > Math.floor(W)) this.samples.shift();
+                this._px = px; this._py = py; this._inFront = inFront; this._Rp = Rp; this._f = f;
+                this.updateMetrics(pr, f);
+            },
+            updateMetrics(pr, f) {
+                const depth = pr.rp * pr.rp;                   // (Rp/Rs)^2
+                const grazing = pr.b > (1 + pr.rp);
+                readout.innerHTML =
+                    'flux = ' + (f * 100).toFixed(2) + '%<br>' +
+                    'depth = ' + (depth * 100).toFixed(2) + '%<br>' +
+                    (grazing ? 'no transit' : 'transiting');
+                metrics.innerHTML =
+                    metricRow('Transit depth', (depth * 100).toFixed(2) + ' %') +
+                    metricRow('Planet : star', pr.rp.toFixed(2)) +
+                    metricRow('Impact b', pr.b.toFixed(2)) +
+                    metricRow('Current flux', (f * 100).toFixed(2) + ' %');
+            },
+            draw() {
+                ctx.clearRect(0, 0, W, H);
+                drawStars();
+                const cx = W / 2, cy = H * 0.40, Rs = this.Rs;
+                // star disc with limb darkening
+                const pr = this.params();
+                const g = ctx.createRadialGradient(cx, cy, 2, cx, cy, Rs);
+                g.addColorStop(0, '#fffbeb');
+                g.addColorStop(0.7, '#fcd34d');
+                g.addColorStop(1, pr.ld > 0.4 ? '#b45309' : '#f59e0b');
+                ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, Rs, 0, 7); ctx.fill();
+                // planet (behind star when not in front)
+                if (this._px !== undefined) {
+                    ctx.save();
+                    if (!this._inFront) { ctx.globalAlpha = 0.25; }
+                    ctx.fillStyle = '#0f172a';
+                    ctx.beginPath(); ctx.arc(this._px, this._py, this._Rp, 0, 7); ctx.fill();
+                    ctx.strokeStyle = 'rgba(148,163,184,0.6)'; ctx.lineWidth = 1;
+                    ctx.beginPath(); ctx.arc(this._px, this._py, this._Rp, 0, 7); ctx.stroke();
+                    ctx.restore();
+                }
+                // light curve panel
+                const baseY = H - 18, top = H * 0.72, scaleH = 150;
+                ctx.fillStyle = 'rgba(255,255,255,0.04)';
+                ctx.fillRect(0, top - 10, W, H - (top - 10));
+                ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(0, baseY - scaleH); ctx.lineTo(W, baseY - scaleH); ctx.stroke(); // 100% line
+                ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '10px Space Grotesk';
+                ctx.fillText('relative brightness', 8, top - 14);
+                ctx.fillText('100%', W - 34, baseY - scaleH - 4);
+                // plot samples (map flux 0.90..1.00 region but autoscale floor to 0.85)
+                const floor = 0.80;
+                ctx.beginPath();
+                for (let i = 0; i < this.samples.length; i++) {
+                    const fv = this.samples[i];
+                    const y = baseY - ((fv - floor) / (1 - floor)) * scaleH;
+                    const x = i;
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                }
+                ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2; ctx.stroke();
+                // moving readout dot
+                if (this.samples.length) {
+                    const fv = this.samples[this.samples.length - 1];
+                    const y = baseY - ((fv - floor) / (1 - floor)) * scaleH;
+                    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(this.samples.length - 1, y, 3, 0, 7); ctx.fill();
+                }
+            },
+            explain: 'When a planet crosses in front of its star, it blocks a sliver of light and the star dims by a tiny, repeatable amount. The <b>depth</b> of that dip equals the area ratio (Rₚ/R★)² — so a Jupiter-sized planet on a Sun-sized star drops the brightness ~1%, while an Earth drops it ~0.01%. The <b>impact parameter b</b> sets how centrally the planet crosses: near b=0 you get a flat-bottomed dip, near b=1 just a grazing nick. The softer, rounded shoulders come from <b>limb darkening</b> — a real star is brighter at its center than its edge. This is exactly how Kepler, TESS, and student observers find new worlds.'
+        };
+
+        // ========================================================
+        // SIM 3 — THREE-BODY PROBLEM
+        // ========================================================
+        const three = {
+            title: 'Three-Body Problem', icon: 'fa-circle-nodes',
+            bodies: [], scale: 150, G: 1, trailMax: 220, t: 0, mode: 'fig8',
+            colors: ['#fbbf24', '#a78bfa', '#38bdf8'],
+            params() {
+                return {
+                    s: parseFloat(document.getElementById('tb_s').value),
+                    t: parseInt(document.getElementById('tb_t').value)
+                };
+            },
+            figure8() {
+                this.mode = 'fig8';
+                const p1 = { x: -0.97000436, y: 0.24308753 };
+                const p2 = { x: 0.97000436, y: -0.24308753 };
+                const v3 = { x: 0.93240737, y: 0.86473146 };
+                this.bodies = [
+                    { m: 1, x: p1.x, y: p1.y, vx: -v3.x / 2, vy: -v3.y / 2, trail: [] },
+                    { m: 1, x: p2.x, y: p2.y, vx: -v3.x / 2, vy: -v3.y / 2, trail: [] },
+                    { m: 1, x: 0, y: 0, vx: v3.x, vy: v3.y, trail: [] }
+                ];
+                this.t = 0;
+            },
+            randomize() {
+                this.mode = 'rand';
+                this.bodies = [];
+                const r = (a, b) => a + (Math.random() * (b - a));
+                for (let i = 0; i < 3; i++) {
+                    this.bodies.push({ m: r(0.8, 1.4), x: r(-0.9, 0.9), y: r(-0.7, 0.7), vx: r(-0.45, 0.45), vy: r(-0.45, 0.45), trail: [] });
+                }
+                // remove net drift so the system stays on screen
+                let mvx = 0, mvy = 0, M = 0;
+                this.bodies.forEach(b => { mvx += b.m * b.vx; mvy += b.m * b.vy; M += b.m; });
+                this.bodies.forEach(b => { b.vx -= mvx / M; b.vy -= mvy / M; });
+                this.t = 0;
+            },
+            init() { if (this.mode === 'rand') this.randomize(); else this.figure8(); },
+            step() {
+                const pr = this.params();
+                this.trailMax = pr.t;
+                const sub = 12, dt = 0.0016 * pr.s;
+                const eps2 = 0.0009;
+                for (let s = 0; s < sub; s++) {
+                    const ax = [0, 0, 0], ay = [0, 0, 0];
+                    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+                        if (i === j) continue;
+                        const dx = this.bodies[j].x - this.bodies[i].x;
+                        const dy = this.bodies[j].y - this.bodies[i].y;
+                        const d2 = dx * dx + dy * dy + eps2;
+                        const inv = this.G * this.bodies[j].m / (d2 * Math.sqrt(d2));
+                        ax[i] += inv * dx; ay[i] += inv * dy;
+                    }
+                    for (let i = 0; i < 3; i++) {
+                        this.bodies[i].vx += ax[i] * dt; this.bodies[i].vy += ay[i] * dt;
+                        this.bodies[i].x += this.bodies[i].vx * dt; this.bodies[i].y += this.bodies[i].vy * dt;
+                    }
+                }
+                this.t++;
+                this.bodies.forEach(b => {
+                    b.trail.push({ x: b.x, y: b.y });
+                    while (b.trail.length > this.trailMax) b.trail.shift();
+                });
+                this.updateMetrics();
+            },
+            updateMetrics() {
+                // total energy as a stability gauge
+                let ke = 0, pe = 0;
+                for (let i = 0; i < 3; i++) {
+                    const b = this.bodies[i];
+                    ke += 0.5 * b.m * (b.vx * b.vx + b.vy * b.vy);
+                    for (let j = i + 1; j < 3; j++) {
+                        const o = this.bodies[j];
+                        const d = Math.hypot(o.x - b.x, o.y - b.y) + 0.03;
+                        pe -= this.G * b.m * o.m / d;
+                    }
+                }
+                readout.innerHTML =
+                    'mode = ' + (this.mode === 'fig8' ? 'figure-8' : 'random') + '<br>' +
+                    'E = ' + (ke + pe).toFixed(3) + '<br>' +
+                    't = ' + this.t;
+                metrics.innerHTML =
+                    metricRow('Configuration', this.mode === 'fig8' ? 'Figure-eight' : 'Random') +
+                    metricRow('Kinetic E', ke.toFixed(2)) +
+                    metricRow('Potential E', pe.toFixed(2)) +
+                    metricRow('Total E', (ke + pe).toFixed(2));
+            },
+            draw() {
+                ctx.clearRect(0, 0, W, H);
+                drawStars();
+                const cx = W / 2, cy = H / 2, sc = this.scale;
+                for (let i = 0; i < 3; i++) {
+                    const b = this.bodies[i];
+                    if (b.trail.length > 1) {
+                        ctx.beginPath();
+                        for (let k = 0; k < b.trail.length; k++) {
+                            const x = cx + b.trail[k].x * sc, y = cy + b.trail[k].y * sc;
+                            if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                        }
+                        ctx.strokeStyle = this.colors[i] + '66'; ctx.lineWidth = 1.5; ctx.stroke();
+                    }
+                }
+                for (let i = 0; i < 3; i++) {
+                    const b = this.bodies[i];
+                    const x = cx + b.x * sc, y = cy + b.y * sc;
+                    const R = 5 + b.m * 3;
+                    const g = ctx.createRadialGradient(x, y, 1, x, y, R + 6);
+                    g.addColorStop(0, '#fff'); g.addColorStop(0.5, this.colors[i]); g.addColorStop(1, this.colors[i] + '00');
+                    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, R + 6, 0, 7); ctx.fill();
+                    ctx.fillStyle = this.colors[i]; ctx.beginPath(); ctx.arc(x, y, R, 0, 7); ctx.fill();
+                }
+            },
+            explain: 'Two bodies under gravity have a clean, exact solution — Kepler nailed it. Add a <b>third</b> and the math breaks: there is no general closed-form answer, a fact proven in the 1880s. Most starting conditions are <b>chaotic</b> — two nearly identical setups diverge wildly, which is why you can randomize this all day and rarely see anything repeat. Yet special <b>exact solutions</b> exist, like this figure-eight choreography (discovered numerically in 2000) where three equal masses chase each other forever along the same looping path. Watch the <b>total energy</b> readout: a good integrator keeps it nearly constant even as the motion looks wild.'
+        };
+
+        // ---------- shared starfield backdrop ----------
+        let starPts = null;
+        function drawStars() {
+            if (!starPts || starPts.W !== W) {
+                starPts = { W: W, pts: [] };
+                let seed = 12345;
+                const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+                for (let i = 0; i < 90; i++) starPts.pts.push({ x: rnd() * W, y: rnd() * H, r: rnd() * 1.2 + 0.2, a: rnd() * 0.5 + 0.2 });
+            }
+            ctx.fillStyle = '#fff';
+            for (const s of starPts.pts) { ctx.globalAlpha = s.a; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 7); ctx.fill(); }
+            ctx.globalAlpha = 1;
+        }
+
+        // ---------- engine ----------
+        const sims = { orbit, transit, threebody: three };
+        let current = 'orbit';
+        let running = true;
+
+        function selectSim(key) {
+            current = key;
+            resize();
+            sims[key].init();
+            stageTitle.textContent = sims[key].title;
+            stageIcon.className = 'fas ' + sims[key].icon + ' text-violet-300';
+            explainer.innerHTML = sims[key].explain;
+            document.querySelectorAll('.sim-pick').forEach(b => b.classList.toggle('active', b.dataset.sim === key));
+            document.querySelectorAll('[data-panel]').forEach(p => p.classList.toggle('hidden', p.dataset.panel !== key));
+        }
+
+        function loop() {
+            if (running) sims[current].step();
+            sims[current].draw();
+            requestAnimationFrame(loop);
+        }
+
+        // picker + controls wiring
+        document.querySelectorAll('.sim-pick').forEach(b => b.addEventListener('click', () => selectSim(b.dataset.sim)));
+
+        document.getElementById('btnPlay').addEventListener('click', function () {
+            running = !running;
+            this.innerHTML = running ? '<i class="fas fa-pause mr-1"></i>Pause' : '<i class="fas fa-play mr-1"></i>Play';
+        });
+        document.getElementById('btnReset').addEventListener('click', () => sims[current].init());
+
+        // orbit slider labels + re-init on structural change
+        const o_v = document.getElementById('o_v'), o_r = document.getElementById('o_r'), o_m = document.getElementById('o_m');
+        function oLbl() {
+            document.getElementById('o_v_val').textContent = parseFloat(o_v.value).toFixed(2);
+            document.getElementById('o_r_val').textContent = o_r.value;
+            document.getElementById('o_m_val').textContent = parseFloat(o_m.value).toFixed(1);
+        }
+        [o_v, o_r, o_m].forEach(el => el.addEventListener('input', () => { oLbl(); orbit.init(); }));
+        document.getElementById('o_trail').addEventListener('change', () => orbit.init());
+
+        // transit labels
+        const t_rp = document.getElementById('t_rp'), t_b = document.getElementById('t_b'), t_s = document.getElementById('t_s'), t_ld = document.getElementById('t_ld');
+        function tLbl() {
+            document.getElementById('t_rp_val').textContent = parseFloat(t_rp.value).toFixed(2);
+            document.getElementById('t_b_val').textContent = parseFloat(t_b.value).toFixed(2);
+            document.getElementById('t_s_val').textContent = parseFloat(t_s.value).toFixed(1) + '×';
+            document.getElementById('t_ld_val').textContent = parseFloat(t_ld.value).toFixed(2);
+        }
+        [t_rp, t_b, t_s, t_ld].forEach(el => el.addEventListener('input', tLbl));
+
+        // three-body labels + buttons
+        const tb_s = document.getElementById('tb_s'), tb_t = document.getElementById('tb_t');
+        function tbLbl() {
+            document.getElementById('tb_s_val').textContent = parseFloat(tb_s.value).toFixed(1) + '×';
+            document.getElementById('tb_t_val').textContent = tb_t.value;
+        }
+        [tb_s, tb_t].forEach(el => el.addEventListener('input', tbLbl));
+        document.getElementById('tb_fig8').addEventListener('click', () => three.figure8());
+        document.getElementById('tb_rand').addEventListener('click', () => three.randomize());
+
+        window.addEventListener('resize', () => { resize(); starPts = null; });
+
+        // boot
+        resize(); oLbl(); tLbl(); tbLbl();
+        selectSim('orbit');
+        loop();
+    })();
+    </script>
+</body>
+</html>

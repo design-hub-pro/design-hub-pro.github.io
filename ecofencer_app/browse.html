@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eco-Fencer - Browse</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { scrollbar-width: none; font-family: 'Inter', -apple-system, sans-serif; background: #F2F2F7; width: 100%; height: 100%; overflow-x: hidden; }
+
+  .status-bar {
+    height: 59px; padding: 14px 28px 0; display: flex; justify-content: space-between; align-items: center;
+    background: #fff; position: sticky; top: 0; z-index: 100;
+  }
+  .status-time { font-size: 16px; font-weight: 600; letter-spacing: -0.5px; }
+  .dynamic-island { width: 120px; height: 36px; background: #000; border-radius: 20px; position: absolute; left: 50%; transform: translateX(-50%); top: 10px; }
+  .status-icons { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+
+  .content { padding: 0 28px 120px; background: #fff; min-height: 100vh; }
+
+  .page-title { font-size: 32px; font-weight: 800; color: #1C1C1E; padding: 14px 0 16px; }
+
+  /* Search Bar */
+  .search-bar {
+    display: flex; align-items: center; gap: 10px; background: #F2F2F7; border-radius: 14px;
+    padding: 12px 16px; margin-bottom: 16px;
+  }
+  .search-bar i { color: #8E8E93; font-size: 16px; }
+  .search-bar input { border: none; background: none; flex: 1; font-size: 16px; font-family: 'Inter', sans-serif; outline: none; color: #1C1C1E; }
+  .search-bar input::placeholder { color: #C7C7CC; }
+
+  /* Filter Pills */
+  .filter-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 16px; }
+  .filter-pill {
+    flex-shrink: 0; padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 600;
+    border: 1.5px solid #E5E5EA; color: #3C3C43; background: #fff;
+  }
+  .filter-pill.active { background: #34C759; color: #fff; border-color: #34C759; }
+
+  /* Map Preview */
+  .map-preview {
+    width: 100%; height: 140px; border-radius: 20px; overflow: hidden; margin-bottom: 20px;
+    position: relative; background: #E8F5E9;
+  }
+  .map-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .map-overlay {
+    position: absolute; bottom: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .map-text { font-size: 13px; font-weight: 600; color: #1C1C1E; background: rgba(255,255,255,0.9); padding: 6px 14px; border-radius: 12px; backdrop-filter: blur(10px); }
+  .map-btn { background: #34C759; color: #fff; border: none; padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; }
+
+  /* Product Grid */
+  .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .product-card { background: #F9F9FB; border-radius: 20px; overflow: hidden; }
+  .product-img { width: 100%; height: 170px; object-fit: cover; position: relative; }
+  .product-img-wrap { position: relative; }
+  .product-badge {
+    position: absolute; top: 10px; left: 10px; padding: 4px 10px; border-radius: 8px;
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+  }
+  .badge-sale { background: #FF3B30; color: #fff; }
+  .badge-free { background: #34C759; color: #fff; }
+  .badge-new { background: #007AFF; color: #fff; }
+  .product-fav {
+    position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,0.85); display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(10px);
+  }
+  .product-fav i { font-size: 14px; color: #FF3B30; }
+  .product-info { padding: 12px; }
+  .product-name { font-size: 14px; font-weight: 600; color: #1C1C1E; line-height: 1.3; }
+  .product-detail { font-size: 12px; color: #8E8E93; margin-top: 4px; }
+  .product-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .product-price { font-size: 18px; font-weight: 800; color: #34C759; }
+  .product-condition { display: flex; align-items: center; gap: 4px; }
+  .cond-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .cond-dot.green { background: #34C759; }
+  .cond-dot.yellow { background: #FF9500; }
+  .cond-text { font-size: 11px; color: #8E8E93; }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 88px;
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: flex-start; padding-top: 10px;
+    border-top: 0.5px solid rgba(0,0,0,0.08);
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; border: none; background: none; }
+  .tab-item i { font-size: 22px; color: #8E8E93; }
+  .tab-item span { font-size: 10px; color: #8E8E93; font-weight: 500; }
+  .tab-item.active i { color: #34C759; }
+  .tab-item.active span { color: #34C759; }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <i class="fas fa-signal"></i>
+    <i class="fas fa-wifi"></i>
+    <i class="fas fa-battery-full"></i>
+  </div>
+</div>
+
+<div class="content">
+  <div class="page-title">Browse</div>
+
+  <div class="search-bar">
+    <i class="fas fa-magnifying-glass"></i>
+    <input type="text" placeholder="Search gear, clubs, sizes...">
+    <i class="fas fa-sliders" style="color:#34C759;"></i>
+  </div>
+
+  <div class="filter-row">
+    <span class="filter-pill active">All</span>
+    <span class="filter-pill">Foil</span>
+    <span class="filter-pill">Epee</span>
+    <span class="filter-pill">Sabre</span>
+    <span class="filter-pill">Protective</span>
+    <span class="filter-pill">Free</span>
+  </div>
+
+  <!-- Map Preview -->
+  <div class="map-preview">
+    <img src="https://images.pexels.com/photos/9643099/pexels-photo-9643099.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Map">
+    <div class="map-overlay">
+      <span class="map-text"><i class="fas fa-location-dot" style="color:#FF3B30;"></i> 156 items nearby</span>
+      <button class="map-btn"><i class="fas fa-map"></i> Map</button>
+    </div>
+  </div>
+
+  <!-- Product Grid -->
+  <div class="product-grid">
+    <div class="product-card">
+      <div class="product-img-wrap">
+        <img class="product-img" src="https://images.pexels.com/photos/6538992/pexels-photo-6538992.jpeg?auto=compress&cs=tinysrgb&w=400" alt="">
+        <span class="product-badge badge-sale">-40%</span>
+        <div class="product-fav"><i class="fas fa-heart"></i></div>
+      </div>
+      <div class="product-info">
+        <div class="product-name">Leon Paul Foil Mask</div>
+        <div class="product-detail">Size S · Youth</div>
+        <div class="product-bottom">
+          <span class="product-price">$45</span>
+          <div class="product-condition"><span class="cond-dot green"></span><span class="cond-text">Excellent</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-img-wrap">
+        <img class="product-img" src="https://images.pexels.com/photos/6832427/pexels-photo-6832427.jpeg?auto=compress&cs=tinysrgb&w=400" alt="">
+        <span class="product-badge badge-free">Donate</span>
+        <div class="product-fav"><i class="far fa-heart"></i></div>
+      </div>
+      <div class="product-info">
+        <div class="product-name">FIE Jacket 800N</div>
+        <div class="product-detail">Youth L · Newport</div>
+        <div class="product-bottom">
+          <span class="product-price" style="color:#34C759;">Free</span>
+          <div class="product-condition"><span class="cond-dot green"></span><span class="cond-text">Good</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-img-wrap">
+        <img class="product-img" src="https://images.pexels.com/photos/6538966/pexels-photo-6538966.jpeg?auto=compress&cs=tinysrgb&w=400" alt="">
+        <span class="product-badge badge-new">New</span>
+        <div class="product-fav"><i class="far fa-heart"></i></div>
+      </div>
+      <div class="product-info">
+        <div class="product-name">Allstar Epee Blade</div>
+        <div class="product-detail">Maraging · French</div>
+        <div class="product-bottom">
+          <span class="product-price">$80</span>
+          <div class="product-condition"><span class="cond-dot green"></span><span class="cond-text">Like New</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-img-wrap">
+        <img class="product-img" src="https://images.pexels.com/photos/9643414/pexels-photo-9643414.jpeg?auto=compress&cs=tinysrgb&w=400" alt="">
+        <div class="product-fav"><i class="far fa-heart"></i></div>
+      </div>
+      <div class="product-info">
+        <div class="product-name">Fencing Shoes Sz 6</div>
+        <div class="product-detail">Hi-Tec · Irvine FC</div>
+        <div class="product-bottom">
+          <span class="product-price">$25</span>
+          <div class="product-condition"><span class="cond-dot yellow"></span><span class="cond-text">Fair</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-img-wrap">
+        <img class="product-img" src="https://images.pexels.com/photos/6831998/pexels-photo-6831998.jpeg?auto=compress&cs=tinysrgb&w=400" alt="">
+        <span class="product-badge badge-free">Donate</span>
+        <div class="product-fav"><i class="far fa-heart"></i></div>
+      </div>
+      <div class="product-info">
+        <div class="product-name">Sabre Glove Set</div>
+        <div class="product-detail">Size XS · Tustin</div>
+        <div class="product-bottom">
+          <span class="product-price" style="color:#34C759;">Free</span>
+          <div class="product-condition"><span class="cond-dot green"></span><span class="cond-text">Good</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <div class="product-img-wrap">
+        <img class="product-img" src="https://images.pexels.com/photos/6539003/pexels-photo-6539003.jpeg?auto=compress&cs=tinysrgb&w=400" alt="">
+        <div class="product-fav"><i class="far fa-heart"></i></div>
+      </div>
+      <div class="product-info">
+        <div class="product-name">Chest Protector</div>
+        <div class="product-detail">Women's M · LA</div>
+        <div class="product-bottom">
+          <span class="product-price">$30</span>
+          <div class="product-condition"><span class="cond-dot green"></span><span class="cond-text">Excellent</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item">
+    <i class="fas fa-house"></i>
+    <span>Home</span>
+  </div>
+  <div class="tab-item active">
+    <i class="fas fa-magnifying-glass"></i>
+    <span>Browse</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-circle-plus"></i>
+    <span>List</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-comment-dots"></i>
+    <span>Messages</span>
+  </div>
+  <div class="tab-item">
+    <i class="fas fa-user"></i>
+    <span>Profile</span>
+  </div>
+</div>
+
+</body>
+</html>
