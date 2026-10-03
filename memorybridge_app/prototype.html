@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MemoryBridge — Interactive prototype</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Lora:ital,wght@0,400;0,500;0,600;0,700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+*::-webkit-scrollbar{display:none}*{scrollbar-width:none}
+:root{--ink:#231B13;--mut:#7B6A59;--faint:#A69685;--bd:#E8DFD2;--acc:#9E4521;--listen:#0E6B74;--play:#6A4B8C}
+html,body{height:100%}
+body{background:#fff;color:var(--ink);overflow:hidden}
+.serif{font-family:'Lora',Georgia,serif}
+.app{display:flex;height:100vh}
+
+/* ---------- left panel ---------- */
+.side{width:344px;flex:0 0 344px;border-right:1px solid #EDE6DA;display:flex;flex-direction:column;background:#FCFAF6}
+.brand{padding:26px 24px 18px;border-bottom:1px solid #EDE6DA}
+.brand .top{display:flex;align-items:center;gap:12px}
+.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#0E6B74,#9E4521);display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;flex:0 0 42px}
+.brand h1{font-size:20px;font-weight:900;letter-spacing:-.6px}
+.brand .st{font-size:12px;color:var(--faint);font-weight:600;margin-top:1px}
+.hint{margin-top:15px;display:flex;align-items:flex-start;gap:9px;padding:11px 12px;border-radius:12px;background:#F2F8F8;border:1px solid #DCEAEB}
+.hint i{color:var(--listen);font-size:12px;margin-top:2px}
+.hint span{font-size:12.5px;line-height:1.5;color:#2D5A5E}
+.list{flex:1;overflow-y:auto;padding:8px 14px 16px}
+.gl{display:flex;align-items:center;gap:10px;padding:18px 10px 8px}
+.gl b{font-size:10.5px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--faint)}
+.gl i{flex:1;height:1px;background:#EDE6DA}
+.it{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:12px;cursor:pointer;border:1px solid transparent}
+.it:hover{background:#F4EFE6}
+.it.on{background:#fff;border-color:var(--bd);box-shadow:0 2px 8px rgba(35,27,19,.07)}
+.it .n{width:24px;flex:0 0 24px;text-align:center;font-size:11.5px;font-weight:800;color:var(--faint);font-variant-numeric:tabular-nums}
+.it.on .n{color:var(--acc)}
+.it .tx{flex:1;min-width:0}
+.it .nm{font-size:14px;font-weight:700;letter-spacing:-.1px}
+.it .fl{font-size:11.5px;color:var(--faint);margin-top:1px}
+.it .md{width:7px;height:7px;border-radius:50%;flex:0 0 7px}
+.foot{padding:14px 20px 18px;border-top:1px solid #EDE6DA;display:flex;align-items:center;gap:10px}
+.sw{width:42px;height:25px;border-radius:13px;background:#DCD3C4;position:relative;cursor:pointer;transition:background .15s;flex:0 0 42px}
+.sw b{position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .15s}
+.sw.on{background:var(--listen)}
+.sw.on b{left:20px}
+.foot label{font-size:13px;font-weight:600;color:var(--mut);cursor:pointer}
+
+/* ---------- right panel ---------- */
+.stage{flex:1;display:flex;flex-direction:column;min-width:0;background:#F6F2EA;background-image:radial-gradient(#E4DBCC 1px,transparent 1px);background-size:22px 22px}
+.bar{height:66px;flex:0 0 66px;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);border-bottom:1px solid #EDE6DA;display:flex;align-items:center;gap:14px;padding:0 26px}
+.bar .ttl{font-size:16.5px;font-weight:800;letter-spacing:-.3px}
+.bar .sub{font-size:12.5px;color:var(--faint);font-weight:600;margin-top:1px}
+.pill{height:36px;padding:0 13px;border-radius:11px;background:#fff;border:1px solid var(--bd);display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--ink);cursor:pointer}
+.pill:hover{background:#FBF8F2}
+.pill.g{color:var(--faint);cursor:default;background:#F8F5EF}
+.pill i{font-size:12px}
+.wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:22px 0 0;overflow:hidden}
+.scaler{transform-origin:top center}
+.frame{width:460px;height:980px;border-radius:62px;padding:12px;background:#231B13;box-shadow:0 30px 64px rgba(35,27,19,.26),0 0 0 1px rgba(35,27,19,.06)}
+.frame iframe{width:436px;height:956px;border:0;border-radius:52px;display:block;background:#F6F2EA}
+.goes{flex:0 0 auto;padding:14px 26px 20px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:center}
+.goes .lb{font-size:11px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;color:var(--faint);margin-right:4px}
+.chip{height:32px;padding:0 13px;border-radius:999px;background:#fff;border:1px solid var(--bd);display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;cursor:pointer}
+.chip:hover{border-color:var(--acc);color:var(--acc)}
+.chip i{font-size:9px;color:var(--faint)}
+@media (max-width:1100px){.side{width:280px;flex:0 0 280px}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="side">
+    <div class="brand">
+      <div class="top">
+        <div class="logo"><i class="fas fa-bridge"></i></div>
+        <div>
+          <h1>MemoryBridge</h1>
+          <div class="st">15 screens &middot; clickable prototype</div>
+        </div>
+      </div>
+      <div class="hint">
+        <i class="fas fa-hand-pointer"></i>
+        <span>Tap inside the phone. Tab bars, buttons, photo cards and the three Together doors all navigate.</span>
+      </div>
+    </div>
+
+    <div class="list" id="list"></div>
+
+    <div class="foot">
+      <div class="sw" id="hotsw"><b></b></div>
+      <label for="hotsw">Outline tap targets</label>
+      <a href="index.html" style="margin-left:auto;font-size:12.5px;font-weight:700;color:var(--acc);text-decoration:none">All screens</a>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="bar">
+      <div class="pill" id="back" title="Back"><i class="fas fa-arrow-left"></i></div>
+      <div style="flex:1;min-width:0">
+        <div class="ttl" id="ttl">Circle home</div>
+        <div class="sub" id="sub">circle.html &middot; Organiser</div>
+      </div>
+      <div class="pill" id="prev" title="Previous screen"><i class="fas fa-chevron-up"></i></div>
+      <div class="pill" id="next" title="Next screen"><i class="fas fa-chevron-down"></i></div>
+      <a class="pill" id="raw" href="circle.html" target="_blank" style="text-decoration:none"><i class="fas fa-arrow-up-right-from-square"></i>Open alone</a>
+    </div>
+
+    <div class="wrap" id="wrap">
+      <div class="scaler" id="scaler">
+        <div class="frame"><iframe id="fr" src="circle.html"></iframe></div>
+      </div>
+    </div>
+
+    <div class="goes" id="goes"></div>
+  </div>
+
+</div>
+
+<script>
+var SCREENS = [
+  {g:'Contribute', f:'circle.html',    n:'Circle home',      m:'Organiser', to:['memory.html','settings.html','review.html','book.html','privacy.html']},
+  {g:'Contribute', f:'add.html',       n:'Add a memory',     m:'Organiser', to:['review.html','import.html','circle.html']},
+  {g:'Contribute', f:'memory.html',    n:'Memory card',      m:'Organiser', to:['slideshow.html','book.html','puzzle.html','circle.html']},
+  {g:'Curate',     f:'review.html',    n:'Review queue',     m:'Organiser', to:['memory.html','circle.html']},
+  {g:'Curate',     f:'book.html',      n:'Memory books',     m:'Organiser', to:['slideshow.html','add.html']},
+  {g:'Curate',     f:'import.html',    n:'Import & preserve',m:'Organiser', to:['add.html','circle.html']},
+  {g:'Hand over',  f:'privacy.html',   n:'Circle & privacy', m:'Organiser', to:['settings.html','circle.html']},
+  {g:'Hand over',  f:'settings.html',  n:'Session setup',    m:'Organiser', to:['together.html','privacy.html','circle.html']},
+  {g:'Hand over',  f:'community.html', n:'Community circle', m:'Organiser', to:['circle.html','slideshow.html','memory.html']},
+  {g:'Together',   f:'together.html',  n:'Three doors',      m:'Together',  to:['slideshow.html','prompt.html','puzzle.html','settings.html']},
+  {g:'Together',   f:'slideshow.html', n:'Narrated slideshow',m:'Together', to:['together.html']},
+  {g:'Together',   f:'prompt.html',    n:'One question',     m:'Together',  to:['record.html','together.html']},
+  {g:'Play',       f:'record.html',    n:'A new story',      m:'Together',  to:['together.html','prompt.html']},
+  {g:'Play',       f:'puzzle.html',    n:'Photo puzzle',     m:'Together',  to:['match.html','together.html']},
+  {g:'Play',       f:'match.html',     n:'Picture matching', m:'Together',  to:['together.html','memory.html']}
+];
+var BY = {}; SCREENS.forEach(function(s,i){ s.i=i; BY[s.f]=s; });
+
+var cur = 0, hist = [], hot = false;
+var fr=document.getElementById('fr'), list=document.getElementById('list'),
+    ttl=document.getElementById('ttl'), sub=document.getElementById('sub'),
+    raw=document.getElementById('raw'), goes=document.getElementById('goes'),
+    scaler=document.getElementById('scaler'), wrap=document.getElementById('wrap');
+
+function dot(m){ return m==='Together' ? '#0E6B74' : '#9E4521'; }
+
+/* build the left list */
+(function(){
+  var last=null, h='';
+  SCREENS.forEach(function(s){
+    if(s.g!==last){ h+='<div class="gl"><b>'+s.g+'</b><i></i></div>'; last=s.g; }
+    h+='<div class="it" data-i="'+s.i+'">'+
+         '<span class="n">'+String(s.i+1).padStart(2,'0')+'</span>'+
+         '<span class="tx"><span class="nm">'+s.n+'</span><span class="fl">'+s.f+'</span></span>'+
+         '<span class="md" style="background:'+dot(s.m)+'"></span>'+
+       '</div>';
+  });
+  list.innerHTML = h;
+  list.addEventListener('click', function(e){
+    var it = e.target.closest('.it');
+    if(it) show(+it.dataset.i, true);
+  });
+})();
+
+function show(i, push){
+  if(i<0||i>=SCREENS.length) return;
+  if(push && i!==cur) hist.push(cur);
+  cur = i;
+  var s = SCREENS[i];
+  if(fr.getAttribute('src') !== s.f) fr.setAttribute('src', s.f);
+  ttl.textContent = s.n;
+  sub.innerHTML = s.f + ' &middot; ' + s.m + ' mode';
+  raw.href = s.f;
+  location.hash = s.f.replace('.html','');
+
+  Array.prototype.forEach.call(list.querySelectorAll('.it'), function(el){
+    el.classList.toggle('on', +el.dataset.i === i);
+  });
+  var active = list.querySelector('.it.on');
+  if(active) active.scrollIntoView({block:'nearest'});
+
+  var g = '<span class="lb">Goes to</span>';
+  s.to.forEach(function(f){
+    var t = BY[f]; if(!t) return;
+    g += '<div class="chip" data-f="'+f+'"><i class="fas fa-arrow-right"></i>'+t.n+'</div>';
+  });
+  goes.innerHTML = g;
+}
+
+goes.addEventListener('click', function(e){
+  var c = e.target.closest('.chip');
+  if(c) show(BY[c.dataset.f].i, true);
+});
+
+/* clicks from inside the screens */
+window.addEventListener('message', function(e){
+  var d = e.data || {};
+  if(d.mb === 'goto'){
+    var t = BY[d.screen];
+    if(!t) return;
+    if(t.i === cur) fr.setAttribute('src', t.f);  /* same screen: replay it */
+    else show(t.i, true);
+  }
+});
+
+/* re-apply the hotspot outline whenever a screen finishes loading */
+fr.addEventListener('load', function(){
+  try{ fr.contentWindow.postMessage({mb:'hotspots', on:hot}, '*'); }catch(err){}
+});
+
+document.getElementById('hotsw').addEventListener('click', function(){
+  hot = !hot;
+  this.classList.toggle('on', hot);
+  try{ fr.contentWindow.postMessage({mb:'hotspots', on:hot}, '*'); }catch(err){}
+});
+
+document.getElementById('back').addEventListener('click', function(){
+  if(hist.length) show(hist.pop(), false);
+});
+document.getElementById('prev').addEventListener('click', function(){ show(cur-1, true); });
+document.getElementById('next').addEventListener('click', function(){ show(cur+1, true); });
+
+document.addEventListener('keydown', function(e){
+  if(e.key==='ArrowDown'||e.key==='ArrowRight'){ e.preventDefault(); show(cur+1,true); }
+  if(e.key==='ArrowUp'||e.key==='ArrowLeft'){ e.preventDefault(); show(cur-1,true); }
+  if(e.key==='Backspace'){ e.preventDefault(); if(hist.length) show(hist.pop(),false); }
+});
+
+/* fit the 460x980 frame to whatever height the window has */
+function fit(){
+  var avail = wrap.clientHeight - 24;
+  var k = Math.min(1, avail/980, (wrap.clientWidth-40)/460);
+  if(k<0.3) k=0.3;
+  scaler.style.transform = 'scale('+k+')';
+  scaler.style.height = (980*k)+'px';
+}
+window.addEventListener('resize', fit);
+
+var startF = location.hash.replace('#','');
+show(BY[startF+'.html'] ? BY[startF+'.html'].i : 0, false);
+fit();
+</script>
+</body>
+</html>
