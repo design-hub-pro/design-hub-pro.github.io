@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>EditMate AI — Music &amp; Beat Studio</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="assets/app.css">
+<style>
+  .tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);padding:9px 11px}
+  .tile .v{font-size:18px;font-weight:650;letter-spacing:-.01em}
+  .tile .l{font-size:11px;color:var(--dim)}
+  .lg{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted)}
+  .sec{font-size:10.5px;color:var(--dim);position:absolute;top:0;padding-left:5px;border-left:1px solid var(--line2);height:100%}
+</style>
+</head>
+<body data-title="Music &amp; Beats" data-nav="music" data-status="Beat analysis complete · 130 beats · 0.8s">
+
+<template id="main">
+  <div style="padding:16px 20px 0;flex:1;overflow:hidden;display:flex;flex-direction:column">
+    <!-- track header -->
+    <div class="row" style="gap:12px">
+      <img class="thumb" style="width:46px;height:46px;border-radius:6px" src="https://cm-idea-images.s3.us-west-1.amazonaws.com/1794410831574-image-1.png">
+      <div>
+        <div class="row" style="gap:8px"><span class="h1" style="font-size:18px">Run It Back.mp3</span><span class="tag">Royalty-free · Artlist</span></div>
+        <div class="dim" style="font-size:12px;margin-top:1px">1:04 · 44.1 kHz stereo · ~/Movies/Basketball 2026/Music</div>
+      </div>
+      <div class="row" style="margin-left:auto;gap:8px">
+        <span class="btn sm"><i class="fa-solid fa-arrow-right-arrow-left"></i>Replace track</span>
+        <span class="btn sm"><i class="fa-solid fa-plus"></i>Compare another</span>
+      </div>
+    </div>
+
+    <!-- waveform panel -->
+    <div class="card" style="margin-top:14px;padding:12px 14px 10px">
+      <div class="row" style="justify-content:space-between">
+        <div class="row" style="gap:8px"><span class="h3">ANALYSIS OUTPUT</span><span class="tag ai"><i class="fa-solid fa-wand-magic-sparkles"></i>AI-detected, review before cutting</span></div>
+        <div class="row" style="gap:14px">
+          <span class="lg"><i style="width:9px;height:9px;transform:rotate(45deg);background:var(--beat);display:inline-block"></i>Strong beat / drop</span>
+          <span class="lg"><i style="width:2px;height:10px;background:var(--beat-weak);display:inline-block"></i>Weak beat</span>
+          <span class="lg"><i style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:8px solid var(--cut);display:inline-block"></i>Suggested cut</span>
+          <span class="lg"><i style="width:14px;height:6px;border-radius:2px;background:linear-gradient(90deg,#3b3f5c,#8b7cf6,#f5b544);display:inline-block"></i>Intensity</span>
+        </div>
+      </div>
+
+      <!-- time ruler -->
+      <div id="ruler" class="mono" style="position:relative;height:16px;margin-top:10px;color:var(--dim);font-size:10px"></div>
+      <!-- sections -->
+      <div id="sections" style="position:relative;height:16px"></div>
+      <!-- cut markers + waveform -->
+      <div style="position:relative">
+        <svg id="wave" viewBox="0 0 1000 190" preserveAspectRatio="none" style="width:100%;height:190px;display:block"></svg>
+        <!-- tooltip for selected marker -->
+        <div id="tip" class="popover" style="position:absolute;top:-6px;padding:7px 10px;font-size:12px;white-space:nowrap;z-index:3">
+          <div class="row" style="gap:6px"><span style="width:8px;height:8px;transform:rotate(45deg);background:var(--beat);display:inline-block"></span><b>Strong drop 3 of 6</b><span class="mono" style="color:var(--text)">0:23.61</span></div>
+          <div class="dim" style="font-size:11px;margin-top:2px">Beat 49 · bar 13 · energy 0.92</div>
+          <div class="row" style="gap:5px;margin-top:6px"><span class="btn sm" style="height:20px;font-size:11px"><i class="fa-regular fa-copy"></i>Copy</span><span class="btn sm primary" style="height:20px;font-size:11px">Cut here</span></div>
+        </div>
+      </div>
+      <!-- beat lane -->
+      <svg id="beats" viewBox="0 0 1000 26" preserveAspectRatio="none" style="width:100%;height:26px;display:block;margin-top:4px"></svg>
+      <!-- intensity lane -->
+      <div class="row" style="gap:8px;margin-top:6px">
+        <span class="dim" style="font-size:10.5px;width:48px">Intensity</span>
+        <svg id="energy" viewBox="0 0 1000 40" preserveAspectRatio="none" style="flex:1;height:40px;display:block"></svg>
+      </div>
+
+      <!-- transport -->
+      <div class="row hair" style="margin-top:10px;padding-top:10px;gap:6px">
+        <span class="tb-btn"><i class="fa-solid fa-backward-step"></i></span>
+        <span class="btn primary" style="width:32px;padding:0;justify-content:center;border-radius:50%"><i class="fa-solid fa-pause"></i></span>
+        <span class="tb-btn"><i class="fa-solid fa-forward-step"></i></span>
+        <span class="mono" style="margin-left:8px;font-size:13px;color:var(--text)">0:23.61</span><span class="mono dim">/ 1:04.00</span>
+        <span class="tb-btn on" style="margin-left:14px"><i class="fa-solid fa-repeat"></i></span>
+        <span class="pill" style="margin-left:4px"><i class="fa-solid fa-magnet"></i>Snap to beats</span>
+        <span class="pill"><i class="fa-solid fa-drum"></i>Click track</span>
+        <div class="row" style="margin-left:auto;gap:8px">
+          <i class="fa-solid fa-magnifying-glass-minus dim"></i>
+          <div class="progress" style="width:90px"><i style="width:35%"></i></div>
+          <i class="fa-solid fa-magnifying-glass-plus dim"></i>
+          <span class="kbd" style="margin-left:8px">Space</span><span class="dim" style="font-size:11px">play</span>
+          <span class="kbd">← →</span><span class="dim" style="font-size:11px">jump beat</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- bottom: summary + recommendation -->
+    <div style="display:grid;grid-template-columns:1fr 1.35fr;gap:12px;margin-top:12px;flex:1;min-height:0">
+      <div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+          <div class="tile"><div class="v">122</div><div class="l">BPM (estimated)</div></div>
+          <div class="tile"><div class="v">F minor</div><div class="l">Key · 4/4 time</div></div>
+          <div class="tile"><div class="v">130</div><div class="l">Beats detected</div></div>
+          <div class="tile"><div class="v" style="color:var(--beat)">6</div><div class="l">Strong drops</div></div>
+          <div class="tile"><div class="v" style="color:var(--cut)">18</div><div class="l">Suggested cuts</div></div>
+          <div class="tile"><div class="v">0:07.9</div><div class="l">First drop</div></div>
+        </div>
+        <div class="card" style="margin-top:8px;padding:8px 11px">
+          <div class="h3" style="font-size:11px">HIGHLIGHT MOMENTS</div>
+          <div class="row" style="gap:8px;margin-top:5px;font-size:12px"><span class="mono" style="color:var(--beat)">0:23.6</span>Biggest drop, use your best play<span class="dim" style="margin-left:auto">energy 0.92</span></div>
+          <div class="row" style="gap:8px;margin-top:3px;font-size:12px"><span class="mono" style="color:var(--beat)">0:47.2</span>Second peak, team celebration<span class="dim" style="margin-left:auto">0.88</span></div>
+        </div>
+      </div>
+      <div class="suggest" style="padding:12px 14px;display:flex;flex-direction:column">
+        <div class="row" style="gap:6px"><span class="tag ai"><i class="fa-solid fa-wand-magic-sparkles"></i>Suggested</span><span class="dim" style="font-size:11px">Editing recommendation · not applied</span></div>
+        <div style="font-size:14px;margin-top:8px;line-height:1.5">Your music is about <b>122 BPM</b>. Switch clips on the highlighted beats for a fast-paced montage.</div>
+        <div class="dim" style="font-size:12px;margin-top:6px">Hold one shot per bar (about 2.0s) in the build, then cut every beat (0.49s) through the peak. That fits 48 scoring clips into 1:04 with room for the interview line at 0:31.</div>
+        <div class="row" style="gap:6px;margin-top:auto;padding-top:10px;flex-wrap:wrap">
+          <span class="btn sm primary"><i class="fa-solid fa-list-check"></i>Generate Editing Plan</span>
+          <span class="btn sm"><i class="fa-solid fa-scissors"></i>View Suggested Cut Points</span>
+          <span class="btn sm"><i class="fa-regular fa-copy"></i>Copy Beat Timestamps<span class="kbd">⌘⇧C</span></span>
+          <span class="btn sm"><i class="fa-solid fa-file-export"></i>Export Beat Analysis</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script src="assets/shell.js"></script>
+<script>
+(function(){
+  // deterministic PRNG so the waveform is identical on every load
+  let s = 1220064; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  const DUR = 64, W = 1000, X = t => t / DUR * W;
+  const BEAT = 60 / 122;
+  const drops = [7.87, 15.74, 23.61, 31.48, 39.34, 47.21];
+  const sections = [[0,'Intro'],[7.87,'Build'],[15.74,"Drop"],[23.61,"Peak"],[35.4,"Break"],[39.34,"Drop 2"],[55,'Outro']];
+  const energyAt = t => {
+    let e = 0.25 + 0.5 * Math.min(1, t / 16);
+    if (t > 15.7 && t < 35.4) e = 0.8 + 0.12 * Math.sin(t);
+    if (t >= 35.4 && t < 39.3) e = 0.42;
+    if (t >= 39.3 && t < 55) e = 0.86 + 0.06 * Math.sin(t * 1.3);
+    if (t >= 55) e = 0.86 - (t - 55) / 9 * 0.65;
+    return Math.max(0.1, Math.min(1, e));
+  };
+  // ruler
+  const ruler = document.getElementById('ruler');
+  for (let t = 0; t <= 60; t += 5) ruler.insertAdjacentHTML('beforeend', `<span style="position:absolute;left:${X(t)/10}%">${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}</span>`);
+  const sec = document.getElementById('sections');
+  sections.forEach(([t, n]) => sec.insertAdjacentHTML('beforeend', `<span class="sec" style="left:${X(t)/10}%">${n}</span>`));
+  // waveform
+  const wave = document.getElementById('wave'); let svg = '';
+  // drop regions
+  svg += `<rect x="${X(15.74)}" y="0" width="${X(35.4)-X(15.74)}" height="190" fill="rgba(245,181,68,.05)"/>`;
+  svg += `<rect x="${X(39.34)}" y="0" width="${X(55)-X(39.34)}" height="190" fill="rgba(245,181,68,.05)"/>`;
+  const N = 250, bw = W / N;
+  for (let i = 0; i < N; i++) {
+    const t = i / N * DUR; const e = energyAt(t);
+    const onBeat = Math.abs(((t / BEAT) % 1)) < 0.18;
+    const h = Math.max(4, (e * (0.55 + 0.45 * rnd()) * (onBeat ? 1.1 : 0.8)) * 82);
+    const played = t < 23.61;
+    svg += `<rect x="${i*bw+0.6}" y="${95-h}" width="${bw-1.2}" height="${h*2}" rx="1" fill="${played ? '#8b7cf6' : '#4b5068'}" opacity="${played ? .9 : 1}"/>`;
+  }
+  // cut markers
+  const cuts = [3.93,7.87,11.8,15.74,17.7,19.67,21.64,23.61,25.57,27.54,29.51,31.48,39.34,41.31,43.28,45.25,47.21,51.15];
+  cuts.forEach(t => { svg += `<line x1="${X(t)}" x2="${X(t)}" y1="10" y2="190" stroke="#34d1bf" stroke-width="1" stroke-dasharray="3 3" opacity=".55"/><polygon points="${X(t)-5},0 ${X(t)+5},0 ${X(t)},8" fill="#34d1bf"/>`; });
+  // playhead + selected
+  svg += `<line x1="${X(23.61)}" x2="${X(23.61)}" y1="0" y2="190" stroke="#fff" stroke-width="2"/>`;
+  wave.innerHTML = svg;
+  const tip = document.getElementById('tip'); tip.style.left = `calc(${X(23.61)/10}% + 10px)`;
+  // beat lane
+  let b = '';
+  for (let k = 0, t = 0; t < DUR; k++, t = k * BEAT) {
+    const strong = k % 4 === 0;
+    b += `<rect x="${X(t)-0.6}" y="${strong ? 6 : 12}" width="${strong ? 1.6 : 1}" height="${strong ? 18 : 10}" fill="${strong ? '#f5b544' : '#5d6a85'}" opacity="${strong ? .7 : .9}"/>`;
+  }
+  drops.forEach(t => { const sel = Math.abs(t - 23.61) < .01;
+    b += `<rect x="${X(t)-6}" y="7" width="12" height="12" transform="rotate(45 ${X(t)} 13)" fill="#f5b544" stroke="${sel ? '#fff' : 'none'}" stroke-width="2"/>`; });
+  document.getElementById('beats').innerHTML = b;
+  // energy lane
+  let pts = []; for (let i = 0; i <= 200; i++) { const t = i / 200 * DUR; pts.push(`${X(t)},${40 - energyAt(t) * 36}`); }
+  document.getElementById('energy').innerHTML =
+    `<defs><linearGradient id="eg" x1="0" x2="0" y1="1" y2="0"><stop offset="0" stop-color="#3b3f5c"/><stop offset=".6" stop-color="#8b7cf6"/><stop offset="1" stop-color="#f5b544"/></linearGradient></defs>` +
+    `<polygon points="0,40 ${pts.join(' ')} 1000,40" fill="url(#eg)" opacity=".55"/><polyline points="${pts.join(' ')}" fill="none" stroke="#a99cff" stroke-width="1.5"/>`;
+})();
+</script>
+</body>
+</html>
